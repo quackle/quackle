@@ -1,0 +1,6 @@
+#!/bin/sh
+cp -r quackle quackle-$1
+find quackle-$1/ -name "CVS" -exec rm -r {} \;
+find quackle-$1/ -name ".svn" -exec rm -r {} \;
+tar cf quackle-$1-source.tar quackle-$1/
+gzip quackle-$1-source.tar

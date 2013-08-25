@@ -1,0 +1,114 @@
+See README for further details about Quackle, its licensing, and its
+copyright.
+
+Quackle was first ported to Windows by John Fultz, jfultz@wolfram.com, who
+is also the original author of this ReadMe.
+
+I maintain the Windows version so that it can be built with either
+Visual C++ or the GNU-based MinGW compiler.  As of Quackle 0.97,
+I use the mingw tools bundled with Qt 4.7.4 to build the release version.
+The build ought to work with Visual C++ Express, as well, but I'm not
+sure whether Microsoft disables useful optimizations in that version,
+so I won't guarantee that you'll get nice and fast optimized binaries.
+
+All build commands are run from Windows' regular command shell.  The
+tools are:
+
+Free Tools Build:
+------------------------------------
+MinGW
+Qt 4.7.4 or higher
+CVS (you may elect to use the cvs available in cygwin, but see the
+     note below)
+cygwin (optional) - if you want to debug, you'll need gdb from cygwin.  I
+               recommend installing it with DOS newline support,
+               not Unix newline support (especially if you use cygwin's
+               cvs client).
+
+Microsoft Tools Build:
+------------------------------------
+Visual C++ (I use 15.00.21022.08 in Quackle 0.97)
+Qt 4.4.x or higher (I use 4.4.1 in Quackle 0.97)
+CVS (you may elect to use the cvs available in cygwin, but see the
+     note below)
+
+Installer build:
+------------------------------------
+Inno Setup 5
+
+
+Also, you'll need to make sure the following things are set appropriately
+in your environment...
+
+* INCLUDE needs to include Qt's include\ directory
+* LIB needs to include Qt's lib\ directory
+* PATH needs to include MinGW's bin\ directory and Qt's bin/ directory.
+* cygwin's bin directory (if present) should be on PATH, and it must
+  be after MinGW.
+
+
+Building is very straightforward.  The following steps will get you to a
+working executable...
+
+* Check out or update the quackle development directory using cvs.
+
+* In the directories quackle\, quackle\quackleio, and quackle\quacker,
+  do the following...
+  	qmake
+
+    Free tools:                    Microsoft tools:
+  	mingw32-make <target>          nmake <target>
+ <target> can be debug, release, or empty if you want to build both.
+
+* You can now run quackle\quacker\release\quacker.exe
+
+
+Additional things to know:
+--------------------------
+* To build the Quackle installer,
+  + Copy QtCore4.dll and QtGui4.dll from Qt's bin/ directory into quackle\
+  + If you're building with MinGW, copy mingwm10.dll and
+    libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
+  + From the Quackle directory, run the following...
+    <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
+  + Find the file QuackleInstaller.exe in the quackle\ directory.
+
+* MinGW doesn't seem to come with a debugger, but the cygwin gdb
+  seems to work great on MinGW-generated binaries.  Watch for
+  conflicts between MinGW and cygwin if both are on the path at
+  once, though.
+
+* If you're more comfortable with project files you can run
+    qmake -tp vc
+  to generate project files.  I've included a 'quackle.sln' which contains
+  all of the projects including all of the various utilities.  If you're
+  not interested in the additional utilities, you can simply ignore
+  Visual C++'s warnings about missing project files.  Only the quackle,
+  quackleio, and quacker projects are absolutely necessary, and if you
+  run qmake -tp vc in the directories mentioned above, you'll have those
+  project files.
+
+
+Building Qt libraries
+---------------------
+  You can download the mingw or Visual Studio 2008 version of the prebuilt
+  Qt libraries.
+  
+  To build your own libraries, download
+    qt-win-opensource-src-<ver>.zip
+  from Trolltech or a mirror.  Unpack it someplace.  Set your
+  PATH so that it contains Qt's bin directory.  It should also
+  include MinGW's bin directory if you're building for MinGW, or
+  the results of having run VSVARS32.BAT (found in Common7\Tools)
+  if you're building on Visual Studio.
+
+  If you have cygwin installed, make sure that you do *not* have
+  it on your PATH.  Then run
+  
+    configure -debug-and-release
+
+  and follow the directions given at the end of the [moderately lengthy]
+  configure process.
+
+  Here's a helpful document on the process:
+  http://doc.qt.nokia.com/4.7/install-win.html

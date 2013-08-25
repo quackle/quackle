@@ -1,0 +1,4 @@
+Call both loaddawg and loadgaddag in main, and change findstaticbest
+to use gordongenerate() insted of generate()
+
+

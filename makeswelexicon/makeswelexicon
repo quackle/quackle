@@ -1,0 +1,166 @@
+#!/bin/bash
+# dqplz@yahoo.com / Aug 5 2008
+GOAL=110282
+RMLINE=./rmline
+MD5SUM=md5sum
+PDFTOTEXT=pdftotext
+RAWNAME=swedish.raw
+MAXNO=5
+
+PROGRESS()
+{
+  FILENAME=$1
+  SOFAR=`wc -l < $FILENAME`
+  DIFF=$((GOAL-SOFAR))
+  echo "$SOFAR/$GOAL, $DIFF to go."
+}
+
+if [ ! -x $RMLINE ]; then
+  echo Compiling rmline...
+  if ! gcc -O2 -o rmline rmline.c; then
+    echo Can not compile rmline.c, too bad. Aborting.
+    exit 1
+  fi
+fi
+
+if $MD5SUM --status -c $RAWNAME.md5 2>/dev/null; then
+  echo "A good copy of $RAWNAME already exists!"
+  exit 1
+fi
+
+export LANG=sv_SE.UTF-8 # must be set when sorting
+if [ "`locale >/dev/null`" != "" ]; then
+  echo There were some locale errors, please fix them before continuing.
+  echo Add support for sv_SE.UTF-8 and try again.
+  exit 1
+fi
+
+echo "Creating Swedish lexicon, please wait..."
+
+# ===
+
+LNAME=list0
+
+echo -n "[1/$MAXNO] Downloading word list"
+URL=`cat $LNAME.url`
+TMPFILE=$LNAME.tmp
+
+if $MD5SUM --status -c $LNAME.md5 2>/dev/null; then
+  echo -n " (already downloaded & OK)"
+else
+  rm $TMPFILE 2>/dev/null
+  wget -qO $TMPFILE "$URL" && $MD5SUM --status -c $LNAME.md5 && \
+    echo -n ", converting & adjusting" && \
+    iconv --from-code=ISO-8859-1 --to-code=UTF-8 < $TMPFILE | \
+    ./rmline $LNAME.rmline > $LNAME.lis
+fi
+
+if [ ! -f $LNAME.lis ]; then
+  echo "Error occured. Can not continue. Missing: $LNAME.lis, too bad."
+  exit 1
+fi
+
+echo ". Done. `PROGRESS list0.lis`"
+
+# ===
+
+LNAME=list1
+
+echo -n "[2/$MAXNO] Downloading word list"
+URL=`cat $LNAME.url`
+TMPFILE=$LNAME.tmp
+
+#rm list*.tmp 2>/dev/null
+
+if $MD5SUM --status -c $LNAME.md5 2>/dev/null; then
+  echo -n " (already downloaded & OK)"
+else
+  wget -qO $TMPFILE "$URL" && $MD5SUM --status -c $LNAME.md5 && \
+    echo -n ", converting & adjusting" && \
+    $RMLINE $LNAME.rmline < $TMPFILE | \
+    iconv --from-code=ISO-8859-1 --to-code=UTF-8 | \
+    sed "s/é/e/g" | \
+    awk '{print toupper($0)}' > $LNAME.lis
+fi
+
+if [ ! -f $LNAME.lis ]; then
+  echo "Error occured. Can not continue. Missing: $LNAME.lis, too bad."
+  exit 1
+fi
+
+sort -u list[01].lis > listx.lis
+
+echo ". Done. `PROGRESS listx.lis`"
+
+# ===
+
+LNAME=list2
+
+echo -n "[3/$MAXNO] Downloading word list"
+URL=`cat $LNAME.url`
+TMPFILE=$LNAME.tmp
+
+if $MD5SUM --status -c $LNAME.md5 2>/dev/null; then
+  echo -n " (already downloaded & OK)"
+else
+  wget -qO $TMPFILE "$URL" && $MD5SUM --status -c $LNAME.md5 && \
+    echo -n ", converting & adjusting" && \
+    $PDFTOTEXT -enc UTF-8 $TMPFILE $LNAME.txt && \
+    egrep -v "NYTILLKOMNA|Publicerad" $LNAME.txt | \
+    tr ' ' '\012' | \
+    egrep -v "^(TVÅ|TRE|FYR|FEMM|SEX|SJU|ÅTT)OR\$" | \
+    egrep "^[[:upper:]]+\$" > $LNAME.lis
+fi
+
+if [ ! -f $LNAME.lis ]; then
+  echo "Error occured. Can not continue. Missing: $LNAME.lis, too bad."
+  exit 1
+fi
+
+sort -u list[012].lis > listx.lis
+
+echo ". Done. `PROGRESS listx.lis`"
+
+# ===
+
+LNAME=list3
+
+echo -n "[4/$MAXNO] Downloading word list"
+URL=`cat $LNAME.url`
+TMPFILE=$LNAME.tmp
+
+if $MD5SUM --status -c $LNAME.md5 2>/dev/null; then
+  echo -n " (already downloaded & OK)"
+else
+  wget -qO $TMPFILE "$URL" && $MD5SUM --status -c $LNAME.md5 && \
+    echo -n ", converting & adjusting" && \
+    $PDFTOTEXT -enc UTF-8 $TMPFILE $LNAME.txt && \
+    egrep -v "Publicerad|SVENSKA SCR" $LNAME.txt | \
+    tr ' ' '\012' | \
+    egrep "^[[:upper:]]+\$" > $LNAME.lis
+fi
+
+if [ ! -f $LNAME.lis ]; then
+  echo "Error occured. Can not continue. Missing: $LNAME.lis, too bad."
+  exit 1
+fi
+
+sort -u list[0123].lis > listx.lis
+
+echo ". Done. `PROGRESS listx.lis`"
+
+# ===
+
+echo -n "[5/$MAXNO] Merging lists"
+sort -u listx.lis listx.add > $RAWNAME
+
+echo ". Done. `PROGRESS $RAWNAME`"
+echo
+
+echo -n "Lexicon created: $RAWNAME. Checksum: "
+if $MD5SUM --status -c $RAWNAME.md5 2>/dev/null; then
+  echo "OK"
+else
+  echo "BAD"
+fi
+exit 0

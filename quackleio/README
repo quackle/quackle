@@ -1,0 +1,6 @@
+IO library for saving and loading Quackle data structures.
+
+Supported formats:
+
+- GCG
+  See http://www.poslfit.com/scrabble/gcg

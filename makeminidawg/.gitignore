@@ -1,0 +1,7 @@
+Makefile
+obj
+makeminidawg
+Makefile.Debug
+Makefile.Release
+debug
+release

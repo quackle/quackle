@@ -1,0 +1,34 @@
+blank 0 2
+#char	blank	score	count	vowel
+N	[N]	8	1	0
+R	[R]	8	1	0
+Q	[Q]	8	1	0
+M	[M]	8	1	0
+Ê	[Ê]	8	1	0
+Z	[Z]	8	1	0
+AI	[AI]	7	1	0
+OU	[OU]	7	2	0
+G	[G]	7	2	0
+O	[O]	7	2	0
+Ü	[Ü]	6	2	0
+X	[X]	6	2	0
+B	[B]	6	2	0
+EI	[EI]	6	2	0
+ANG	[ANG]	6	2	0
+ZH	[ZH]	6	2	0
+T	[T]	6	3	0
+L	[L]	6	3	0
+SH	[SH]	6	3	0
+H	[H]	6	3	0
+EN	[EN]	5	3	0
+AO	[AO]	5	4	0
+J	[J]	5	4	0
+A	[A]	5	4	0
+ENG	[ENG]	4	5	0
+E	[E]	4	5	0
+AN	[AN]	4	5	0
+D	[D]	4	8	0
+U	[U]	1	10	0
+I	[I]	1	13	0
+# Total count: 100
+# Total score: 174

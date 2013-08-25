@@ -1,0 +1,12 @@
+make a test program for correctness of opening rack scores
+-- meh, i have tested it. going to put off 
+make a test program for speed of opening racks
+-- putting this off as well, the really interesting thing
+   will be overall speed
+filldawg!
+-- filldawg works!
+nonempty board move finding
+-- starting on this
+   write these:
+   (place-move board move)
+   (update-crosses board &optional last-move)

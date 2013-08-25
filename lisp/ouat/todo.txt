@@ -1,0 +1,16 @@
+"letter/word-multipliers" -> "letter/word-muls"
+
+board struct (where the letters are etc)
+tile-distribution struct
+bag struct
+move struct
+rack struct
+
+game struct?
+
+empty-board move generator
+move-generator
+exchanges
+make/unmake-move
+
+pretty-printers

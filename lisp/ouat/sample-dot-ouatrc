@@ -1,0 +1,6 @@
+;; -*-lisp-*-
+(in-package :ouat)
+
+(setf *data-directory* "/home/john/sources/quackle/qcvs-dec03-2008/lisp/ouat/data")
+(load-dictionaries)
+(setf *default-dictionary* *twl-dawg*)

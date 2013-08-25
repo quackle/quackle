@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quackle", "quackle.vcproj", "{6C429191-B74F-3B40-9FE5-21EE1864C457}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quackleio", "quackleio\quackleio.vcproj", "{9C6A8121-74C5-3615-A2C3-62037D75F0F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quacker", "quacker\quacker.vcproj", "{3F7F4915-6D64-3754-A3EC-5937FE6AD050}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9C6A8121-74C5-3615-A2C3-62037D75F0F3} = {9C6A8121-74C5-3615-A2C3-62037D75F0F3}
+		{6C429191-B74F-3B40-9FE5-21EE1864C457} = {6C429191-B74F-3B40-9FE5-21EE1864C457}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "encodeleaves", "encodeleaves\encodeleaves.vcproj", "{2D21C7D1-CD40-35C4-8D80-D20F45334BA8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gaddagize", "gaddagize\gaddagize.vcproj", "{50324DE5-231D-3B14-A4E3-FCF2FB022B5B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makeminidawg", "makeminidawg\makeminidawg.vcproj", "{261B8CAF-C41A-3032-839A-DA21A1DBE423}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcproj", "{6297FEDC-3DA1-3DB4-BCA7-9D336043D266}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6C429191-B74F-3B40-9FE5-21EE1864C457} = {6C429191-B74F-3B40-9FE5-21EE1864C457}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C429191-B74F-3B40-9FE5-21EE1864C457}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6C429191-B74F-3B40-9FE5-21EE1864C457}.Debug|Win32.Build.0 = Debug|Win32
+		{6C429191-B74F-3B40-9FE5-21EE1864C457}.Release|Win32.ActiveCfg = Release|Win32
+		{6C429191-B74F-3B40-9FE5-21EE1864C457}.Release|Win32.Build.0 = Release|Win32
+		{9C6A8121-74C5-3615-A2C3-62037D75F0F3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C6A8121-74C5-3615-A2C3-62037D75F0F3}.Debug|Win32.Build.0 = Debug|Win32
+		{9C6A8121-74C5-3615-A2C3-62037D75F0F3}.Release|Win32.ActiveCfg = Release|Win32
+		{9C6A8121-74C5-3615-A2C3-62037D75F0F3}.Release|Win32.Build.0 = Release|Win32
+		{3F7F4915-6D64-3754-A3EC-5937FE6AD050}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3F7F4915-6D64-3754-A3EC-5937FE6AD050}.Debug|Win32.Build.0 = Debug|Win32
+		{3F7F4915-6D64-3754-A3EC-5937FE6AD050}.Release|Win32.ActiveCfg = Release|Win32
+		{3F7F4915-6D64-3754-A3EC-5937FE6AD050}.Release|Win32.Build.0 = Release|Win32
+		{2D21C7D1-CD40-35C4-8D80-D20F45334BA8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2D21C7D1-CD40-35C4-8D80-D20F45334BA8}.Release|Win32.ActiveCfg = Release|Win32
+		{50324DE5-231D-3B14-A4E3-FCF2FB022B5B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{50324DE5-231D-3B14-A4E3-FCF2FB022B5B}.Release|Win32.ActiveCfg = Release|Win32
+		{261B8CAF-C41A-3032-839A-DA21A1DBE423}.Debug|Win32.ActiveCfg = Debug|Win32
+		{261B8CAF-C41A-3032-839A-DA21A1DBE423}.Release|Win32.ActiveCfg = Release|Win32
+		{6297FEDC-3DA1-3DB4-BCA7-9D336043D266}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6297FEDC-3DA1-3DB4-BCA7-9D336043D266}.Release|Win32.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

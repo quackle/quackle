@@ -1,0 +1,49 @@
+#!/bin/bash
+MAKEDAWGDIR=../makeminidawg
+MAKEDAWG=$MAKEDAWGDIR/makeminidawg
+DAWGINPUT=dawginput.raw
+DAWGOUTPUT=output.dawg
+RAW_FILE=swedish.raw
+DAWG_FILE=swedish.dawg
+SMALLER_FILE=smaller.raw
+PLAYABILITIES_FILE=playabilities.raw
+ALPHABET=swedish.quackle_alphabet
+DATA_DIR=../data
+LEXICA_DIR=$DATA_DIR/lexica
+ALPHABET_DIR=$DATA_DIR/alphabets
+
+if [ ! -x $MAKEDAWG ]; then
+  echo Can not find/execute $MAKEDAWG.
+  echo Please run qmake/make in directory $MAKEDAWGDIR
+  echo Aborting.
+  exit 1
+fi
+ln -sf $RAW_FILE $DAWGINPUT
+ln -sf $RAW_FILE $SMALLER_FILE
+touch $PLAYABILITIES_FILE
+if cp $ALPHABET $ALPHABET_DIR/$ALPHABET 2>/dev/null; then
+  echo Alphabet file $ALPHABET copied to $ALPHABET_DIR
+else
+  echo Can not copy alphabet file $ALPHABET to $ALPHABET_DIR.
+  echo Aborting.
+  exit 1
+fi
+
+$MAKEDAWG --alphabet=swedish
+
+if mv $DAWGOUTPUT $DAWG_FILE 2>/dev/null; then
+  echo Dawg file created: $DAWG_FILE
+else
+  echo Could not create dawg file. Aborting.
+  exit 1
+fi
+
+if cp $DAWG_FILE $LEXICA_DIR; then
+  echo Dawg file $DAWG_FILE copied to $LEXICA_DIR
+else
+  echo Can not copy dawg file $DAWG_FILE to $LEXICA_DIR
+  echo Aborting.
+  exit 1
+fi
+
+echo "Done. You may now play Quackle in Swedish!"

@@ -1,0 +1,2 @@
+#!/bin/sh
+wc -l *.cpp *.h quacker/*.cpp quacker/*.h quackleio/*.cpp quackleio/*.h gaddagize/*.cpp makegaddag/*.cpp test/*.cpp test/*.h makeminidawg/*.cpp makeminidawg/*.h new_language_generation/perl_tools/*.pl

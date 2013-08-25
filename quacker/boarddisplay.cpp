@@ -1,0 +1,221 @@
+/*
+ *  Quackle -- Crossword game artificial intelligence and analysis tool
+ *  Copyright (C) 2005-2006 Jason Katz-Brown and John O'Laughlin.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  02110-1301  USA
+ */
+
+#include <QtGui>
+
+#include <alphabetparameters.h>
+#include <board.h>
+#include <game.h>
+#include <quackleio/util.h>
+
+#include "boarddisplay.h"
+#include "geometry.h"
+
+BoardWithQuickEntry::BoardWithQuickEntry(QWidget *parent)
+	: View(parent)
+{
+	m_vlayout = new QVBoxLayout(this);
+	Geometry::setupInnerLayout(m_vlayout);
+
+	m_lineEdit = new QLineEdit;
+	connect(m_lineEdit, SIGNAL(returnPressed()), this, SLOT(quickEditReturnPressed()));
+
+	QLabel *placeLabel = new QLabel(tr("Move: '<position> <word>' or 'exchange <tiles|number>'"));
+	placeLabel->setBuddy(m_lineEdit);
+	m_vlayout->addWidget(placeLabel);
+
+	QHBoxLayout *placeEditLayout = new QHBoxLayout;
+	Geometry::setupInnerLayout(placeEditLayout);
+	m_vlayout->addLayout(placeEditLayout);
+	placeEditLayout->addWidget(m_lineEdit);
+
+	QPushButton *placeButton = new QPushButton(tr("Enter move"));
+	connect(placeButton, SIGNAL(clicked()), this, SLOT(quickEditReturnPressed()));
+	//placeEditLayout->addWidget(placeButton);
+
+	QPushButton *scoreAdditionButton = new QPushButton(tr("+5"));
+	connect(scoreAdditionButton, SIGNAL(clicked()), this, SLOT(plusFive()));
+	placeEditLayout->addWidget(scoreAdditionButton);
+
+	m_commitButton = new QPushButton(tr("Commit"));
+	connect(m_commitButton, SIGNAL(clicked()), this, SLOT(performCommit()));
+	placeEditLayout->addWidget(m_commitButton);
+
+	QPushButton *resetButton = new QPushButton(tr("Rese&t"));
+	connect(resetButton, SIGNAL(clicked()), this, SLOT(reset()));
+	//placeEditLayout->addWidget(resetButton);
+}
+
+BoardWithQuickEntry::~BoardWithQuickEntry()
+{
+}
+
+void BoardWithQuickEntry::positionChanged(const Quackle::GamePosition &position)
+{
+	View::positionChanged(position);
+	setLocalCandidate(position.moveMade());
+}
+
+void BoardWithQuickEntry::setLocalCandidate(const Quackle::Move &candidate)
+{
+	m_localCandidateMove = candidate;
+
+	if (candidate.isAMove())
+	{
+		m_lineEdit->setText(QuackleIO::Util::moveToDetailedString(candidate));
+		m_commitButton->setText(tr("Commit %1").arg(QuackleIO::Util::moveToDetailedString(candidate)));
+	}
+	else
+	{
+		m_lineEdit->clear();
+		m_commitButton->setText(tr("Commit"));
+	}
+
+	m_commitButton->setEnabled(candidate.isAMove());
+}
+
+void BoardWithQuickEntry::quickEditReturnPressed()
+{
+	processCommand(m_lineEdit->text());
+
+	m_lineEdit->clear();
+}
+
+void BoardWithQuickEntry::plusFive()
+{
+	m_localCandidateMove.setScoreAddition(m_localCandidateMove.scoreAddition() + 5);
+	emit setCandidateMove(m_localCandidateMove);
+}
+
+void BoardWithQuickEntry::performCommit()
+{
+	emit setCandidateMove(m_localCandidateMove);
+	emit commit();
+}
+
+void BoardWithQuickEntry::reset()
+{
+	emit setCandidateMove(Quackle::Move::createNonmove());
+}
+
+void BoardWithQuickEntry::provideHelp()
+{
+	QMessageBox::information(this, tr("Entering Moves - Quackle"), QString("<html>") + tr("To enter a move, click on the board once or twice and start typing. Hold down the Shift key for blanks. To exchange, type something like \"exchange QWUV\" or \"pass\" into the move editor, then press the Enter key or click \"Enter move\".") + "</html>");
+}
+
+void BoardWithQuickEntry::processCommand(const QString &command)
+{
+	QStringList items(command.split(" ", QString::SkipEmptyParts));
+	Quackle::Move move(Quackle::Move::createNonmove());
+
+	if (items.size() <= 0)
+	{
+		provideHelp();
+		return;
+	}
+
+	const QString verb(items.first().toLower());
+
+	if (verb.startsWith("pass"))
+		move = Quackle::Move::createPassMove();
+	else
+	{
+		if (items.size() != 2)
+		{
+			provideHelp();
+			return;
+		}
+
+		if (verb.startsWith(tr("ex")))
+		{
+			QString letters = items.at(1);
+			bool isIntConvertable = false;
+			int exchangeLength = letters.toInt(&isIntConvertable);
+			bool isPass = false;
+
+			Quackle::LetterString encodedLetters;
+
+			if (isIntConvertable)
+			{
+				if (exchangeLength == 0)
+				{
+					isPass = true;
+				}
+				else
+				{
+					for (int i = 0; i < exchangeLength; ++i)
+						encodedLetters.push_back(QUACKLE_BLANK_MARK);
+				}
+			}
+			else
+			{
+				encodedLetters = QuackleIO::Util::nonBlankEncode(letters);
+			}
+
+			if (isPass)
+				move = Quackle::Move::createPassMove();
+			else
+				move = Quackle::Move::createExchangeMove(encodedLetters);
+		}
+		else
+		{
+			QString prettyLetters(items.at(1));
+			QString letters;
+
+			bool replace = false;
+			for (int i = 0; i < prettyLetters.length(); ++i)
+			{
+				QChar character = prettyLetters.at(i);
+				if (character == '(')
+					replace = true;
+				else if (character == ')')
+					replace = false;
+				else if (replace)
+					letters += ".";
+				else
+					letters += character;
+			}
+			move = Quackle::Move::createPlaceMove(QuackleIO::Util::qstringToString(items.first()), QuackleIO::Util::encode(letters));
+		}
+	}
+
+	if (move.isAMove())
+		emit setCandidateMove(move);
+}
+
+///////////
+
+TextBoard::TextBoard(QWidget *parent)
+	: BoardWithQuickEntry(parent)
+{
+	m_textEdit = new QTextEdit;
+	m_textEdit->setFontPointSize(16);
+	m_textEdit->setFontFamily("Courier");
+	m_vlayout->addWidget(m_textEdit);
+
+	m_textEdit->setReadOnly(true);
+}
+
+void TextBoard::positionChanged(const Quackle::GamePosition &position)
+{
+	BoardWithQuickEntry::positionChanged(position);
+	//m_textEdit->setHtml(QString("<html><font size=\"+4\"><pre>%1</pre></font></html>").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
+	m_textEdit->setPlainText(QString("%1").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
+}

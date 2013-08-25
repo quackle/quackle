@@ -1,0 +1,51 @@
+By Jeff Walden <jwalden@mit.edu>
+
+Pitting two "slow sucky simulating computer" players against each other effectively results in a hang; the UI can only barely be called usable.
+
+After removing plays from the list of play choices, no play is selected (and thus I have to do mad tabbing in order to remove more plays).
+
+Delete doesn't remove the currently-selected play or plays from the list of choices.
+
+The same play may be included in the list of choices twice (cf. VIM/FADEIN).
+
+Pressing space bar while focus is on a button doesn't push the button.
+
+Settings should be in a separate dialog box accessible thru menus.  Most users are unlikely to change the board after initially setting it, so consequently it's not something that should be displayed in the main UI.  (I have further ideas for what a board-editing interface should look like; I'll draw something up later and hopefully look into writing some code to make it if I can find the time.  I really should learn how to use Qt sometime, and this seems like it might be a good way to do so.)
+
+The Enter/Commit distinction in Quackle is clumsy; I'm still working on a good (not just better) solution for this.  For now, however, I think you can get rid of the Enter part by just updating the list of choices dynamically as (valid) plays are typed.
+
+The generated plaintext boards may not be amenable to use in HTML email -- insert . for a blank space?
+
+Application icon so no generic icon in Windows?
+
+Regarding premium square coloring/labeling -- probably don't offer labeling but instead offer a hideable legend; I'm unsure whether color customization is a worthwhile endeavor, but I suspect it isn't.
+
+The score for the current move needs to be displayed more prominently than within a tree in the choices list.  A move's score and the leave are the prime variables in determining whether to make a play.  The leave of the play is intuitive and doesn't really need to be displayed, because the player can work back to it with ease.  However, calculating the score requires substantial effort from the player, and the process is fairly error-prone even for experienced players.  Additionally, since the score is only displayed in the choices list, it requires the user to see Quackle's valuation of the play even if he explicitly doesn't want to see it (because, say, he's playing a serious game).
+
+Should player names really be changeable?  As Quackle exists now it's just a cosmetic detail (cf. Maven ratings for a non-cosmetic use of names), and because some number of users will feel obligated to fill it out just because it's there, it'll unnecessarily slow down creation of new games.
+
+Starting a new game shouldn't require displaying a New Game dialog, in general.  The current method works well in the general case of n players, each of which follows one of four different models.  However, this isn't how anyone actually uses "computer crossword games".  There are really two different models which cover 95% of all uses: human vs. computer and human vs. human (i.e., poor man's postmortem mode).  The other possibilities are all useful at various times and in various situations, but realistically there just isn't enough demand for playing the computer against itself to make this easily accessible in the main new-game UI.  Instead, the following menu items should be added to the Game menu: New Game Against Computer (Ctrl+N), New Game Against Human (Ctrl+H), and New Custom Game... (Ctrl+Shift+N).  The menu item titles aren't necessarily the best titles imaginable, but the idea is to make accessing the most common new-game scenarios easy and to hide the complexity of accessing the uncommon scenarios so it doesn't make using the most useful scenarios harder.
+
+The explanation of simulation details is complete gobbledygook to anyone who doesn't already understand simulations.  I'll take a go at rewriting the text sometime.
+
+The location of the start/stop simulation button isn't good because it's so far from the simulation details area.  Typically the user is going to remove some nonzero number of choices from the list of choices before running a simulation, so his attention (and often mouse) will be in the area at this time.  Actually running the simulation then requires an attention (and often mouse) shift which is much slower than just including the simulate button in that area.
+
+The simulate UI feels crufty overall; I'm trying to come up with a good, useful description of changes that can be made to it so that it's better.  Any changes to it that I mention here are at best incremental changes, and I suspect they could be totally overridden at some point in future UI recommendations.
+
+I can type in the empty boxes in the History tab!
+
+Why does hitting Enter when a history box is selected reflow the entire history tree?
+
+Is About Qt legally required?  It's totally useless to any real users, so if it's not legally required it should be removed to make accessing functionality in the Help menu a tad bit faster.
+
+A possibly hard modification: stop the simulation when all possible move combinations have been exhausted.  I can simulate an endgame situation for thousands of totally repetitive iterations if the number of tiles left on racks and in the bag is, say, 14 or fewer; it's extremely obvious that nothing's happening when the number of tiles left is below 7.
+
+There's no quick way to check whether or not a letter string is a word without attempting to play it.  A not-totally-fleshed-out suggestion on how to fix this: hook up Ctrl+F to display a Firefox-style find bar across the bottom of Quackle and focus a textbox where the letter string to check can go, and highlight the textbox light green when the letters in the box are a valid letter string and red when the letters aren't a valid letter string (i.e., use a validate-as-you-type model) and display VALID or INVALID after the textbox as the letter string is displayed.  (Note: the colors mentioned here are just examples; I'd have to play with them to see what background and text colors actually work best.)
+
+General considerations: hide complexity as much as possible.  Use menus to hide not-often-used functionality, and make that functionality available via keyboard shortcuts for those who really want to use it all the time.
+
+Alert boxes suck for communicating information.  Majorly.
+
+Help documentation: at a minimum, document all the keyboard shortcuts now while you haven't forgotten them, and make that documentation accessible via the Help menu.
+
+617 319 1300

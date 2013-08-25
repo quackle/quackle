@@ -1,0 +1,66 @@
+Quackle 0.96 Checklist
+- Allow setting how many tiles must be in the bag to allow exchange. Spanish Scrabble wants this to be 1.
+- Improve the notes editor and 5-point challenge UI.
+
+Letterbox / Playability+Britishness DAWG detritus cleanup
+- don't keep regenerating extension QString
+- get britishness information at same time as anagramming
+- make dict into a singleton
+- give dict a factory method that returns a dict implementation
+
+TODO
+- clock information stored in GamePosition, clock below history
+- allow using keyboard arrows to move around in move box
+- clicking 'shuffle rack' shouldn't cause redraw of board (e.g., it removes a candidate play that's been typed onto the board.)
+- consider passing more often
+- arbitrary score adjustments that can be negative
+- when saving a game with no plays and only racks, loading it doesn't load anything!
+- store type of computer player in gcg files and load that computer player when opening the game. Assume human player type if no computer type is mentioned in the gcg file.
+- option to see how many possible plays there are
+
+CHEW TODO:
+- improve printf formats of small decimal values in game reports
+- parametrize championship players
+- confidence intervals in reports
+- time penalty applied throughout game
+
+KURNIA TODO:
+2. Human with Unknown Racks doesn't draw tiles
+4. Prev/Next browsing buttons
+5. Keep ERS exchange syntax
+7. A keyboard-friendly way to enter plays on the graphical board (i.e. a shortcut to activate the board; arrow keys to move the pointer and to change its direction; backspace that works even if the rightmost column or bottommost row has just been exceeded; ...)
+8. Command-line quackle binary.
+9. Reports should also list, for each move, all anagrams of (rack) and (rack plus one blank). Something like ddbot. The list should be ordered by length and then by alphagram of the blanks; blanks shown as lowercase.
+ 
+LEAVE HEURISTICS
+
+In Landau we precalculated BaSiC leaves for 1-6 tiles, but that was
+simply in the interest of speed.  That is, they were based only on 1
+tile values and v/c.  BobBot actually had simmed leave values for
+almost all of the leaves, and I think that's what we should do too.  I
+generated 1-4 tile leave values (except for 4 tile leaves with a
+blank) with Landau, but I think I know how to do them better than I
+did before, and of course it would be nice to do them with TWL06.  So
+we should
+
+1. Write code to load precalcuated leave values for 1-6 tile leaves
+into a hash table.
+2. Make a list of leave values using my Landau stuff for 1-4 tiles.
+For leaves we haven't simmed yet, use 1 tile values + synergies +
+Maven v/c (from the CanAm book).
+3. Generate TWL06 leave values with Quackle.  Using all the computers
+we have available to us, we should be able to get a lot done in a
+month.  I'll leave stuff running on both my PCs while I'm in London,
+and also on my Mac whenever I can.  First priority is to get all 1 to
+4 tile leaves.  Five and six tile leaves will take longer, so we can
+prioritize these by running a millionish games and ranking the leaves
+by how often they are in the kibitzer's top ten.  The sims will run
+faster if we use a GADDAG, so of course we should get that working
+first.
+
+LEAVE HASHING
+Our neat trick for hashing Leave values without sorting was to assign
+each letter a prime number, like  E = 2, A = 3, I = 5 ... X = 101, X =
+103 (or whatever).  Multiply the letters together into a 64 bit int
+and you've got your hash key.  Way faster than alphagramming.
+

@@ -1,0 +1,10 @@
+;;; -*- Mode: Lisp -*-
+
+(require :asdf)
+
+(push "/home/john/sources/quackle/qcvs-nov11-2008/lisp/ouat/" 
+      asdf:*central-registry*)
+
+(defun ouat ()
+  (asdf:operate 'asdf:load-op 'ouat)
+  (in-package :ouat))

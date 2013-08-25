@@ -1,13 +1,10 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+.sconsign
+obj
+Makefile
+Makefile.Debug
+Makefile.Release
+debug
+object_script.libquackle.Debug
+object_script.libquackle.Release
+release
+ChangeLog

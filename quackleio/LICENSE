@@ -1,0 +1,5 @@
+Copyright (c) 2005-2006, Jason Katz-Brown and John O'Laughlin.
+
+libquackleio, the Quackle input/output library, is under the same license 
+as libquackle in the parent directory. Please see quackle/LICENSE for license 
+information.

@@ -1,0 +1,50 @@
+Requirements:
+-------------
+
+1. Xcode (for the compiler and build tools)
+2. A recent version of Qt with carbon support (this allows building Intel and
+PPC versions - I'm using qt-mac-carbon-opensource-4.7.1.dmg)
+
+Building Quackle:
+-----------------
+
+Unpack the source code. Edit these 3 files:
+
+1. quackle.pro
+2. quackleio/quackleio.pro
+3. quacker/quacker.pro
+
+In each of these files, find the CONFIG variable, and append the string "x86
+ppc" to it. This instructs the compiler to create binaries for both
+architectures. Also make sure that CONFIG contains "release" and not "debug".
+You don't want to distribute a binary which still has debug symbols in it.
+
+rename the file "quacker.pro" to "Quackle.pro". This is a cosmetic change. It
+results in the application being called "Quackle" rather than "quacker".
+
+Now start with the top-level directory. Run "qmake -spec macx-g++" in it,
+followed by "make". Repeat these steps in the "quackleio" and then the
+"quacker" directories. Now you will have an OSX application bundle called
+"Quackle.app" in the "quacker" directory. This bundle contains a fat binary,
+with code for both architectures.
+
+Creating a self-contained bundle:
+---------------------------------
+
+First, copy the "data" directory from the top-level directory into the bundle:
+
+cp -pR ../data Quackle.app/Contents
+
+Next, copy the icon from an existing Quackle.app bundle into this new one:
+select the old Quackle application, press CMD-I, click on the icon and press
+CMD-C to copy it. Then select the new application bundle, press CMD-I to open
+its properties, click on the blank icon area on the top, and press CMD-V to
+paste the icon.
+
+Finally, you need to insert the Qt frameworks into this bundle, so that it can
+run stand-alone, without any dependencies. You do that by running:
+
+/Developer/Tools/Qt/macdeployqt Quackle.app -dmg
+
+This will create a file, Quackle.dmg, containing the application bundle. You
+can now distribute this. It should run on OSX 10.4, 10.5 and 10.6.

@@ -1,0 +1,10 @@
+Set up these files:
+1) playabilities.raw - empty file
+2) dawginput.raw - list of words
+3) smaller.raw - list that includes subset of words that will be marked as "british". Make this a copy of dawginput.raw to ignore the british feature.
+
+Options:
+--alphabet=<alphabet name> -- name of Quackle alphabet, which should be in "../data/alphabets/<alphabet name>.quackle_alphabet"
+
+Output:
+output.dawg

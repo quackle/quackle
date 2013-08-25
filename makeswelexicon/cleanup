@@ -1,0 +1,1 @@
+rm *.tmp *.raw *.lis *.txt *.dawg rmline 2>/dev/null

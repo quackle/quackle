@@ -1,0 +1,31 @@
+# dqplz@yahoo.com / Aug 6 2008
+
+===
+
+run: makeswelexicon
+
+This script will download word lists from various free online
+resources and from them create a very accurate "swedish.raw",
+which then may be used to create dawg and gaddag files for use
+with Quackle.
+
+===
+
+run: makeswedawg
+
+This script will try to help you create a swedish.dawg, as
+well as place it in the correct directory.
+
+Included is also the necessary alphabet file:
+swedish.quackle_alphabet
+
+===
+
+Required commands, besides GNU core utils (try "info core"):
+	bash
+	locale
+	gcc
+	iconv
+	wget		(Debian/Ubuntu package: wget)
+	pdftotext	(Debian/Ubuntu package: poppler-utils)
+
