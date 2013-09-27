@@ -32,3 +32,7 @@ win32:!win32-g++ {
 	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
 	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
 }
+
+macx-g++ {
+    QMAKE_CXXFLAGS += -fpermissive
+}

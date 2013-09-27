@@ -31,3 +31,7 @@ win32 {
 	QMAKE_CXXFLAGS_DEBUG += -mthreads
 	QMAKE_CXXFLAGS_RELEASE += -mthreads
 }
+
+macx-g++ {
+    QMAKE_CXXFLAGS += -fpermissive
+}

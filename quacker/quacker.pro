@@ -39,3 +39,6 @@ macx {
 	DEFINES += FORCE_SECONDARY_ARROW_GLYPHS=1
 }
 
+macx-g++ {
+    QMAKE_CXXFLAGS += -fpermissive
+}
