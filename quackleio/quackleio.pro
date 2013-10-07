@@ -6,11 +6,13 @@ QT -= gui
 debug {
   OBJECTS_DIR = obj/debug
   win32 { LIBS += -L../debug }
+  DESTDIR = lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
   win32 { LIBS += -L../release }
+  DESTDIR = lib/release
 }
 
 MOC_DIR = moc
@@ -23,8 +25,9 @@ CONFIG -= x11
 LIBS += -L.. -lquackle
 
 # Input
-HEADERS += gcgio.h logania.h queenie.h streamingreporter.h flexiblealphabet.h util.h froggetopt.h dict.h dictfactory.h dictimplementation.h
-SOURCES += gcgio.cpp queenie.cpp streamingreporter.cpp flexiblealphabet.cpp util.cpp froggetopt.cpp dict.cpp dictfactory.cpp dictimplementation.cpp 
+HEADERS += *.h
+
+SOURCES += *.cpp
 
 win32:!win32-g++ {
 	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/

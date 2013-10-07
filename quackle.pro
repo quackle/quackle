@@ -5,10 +5,12 @@ VERSION = 0.9
 QT -= gui core
 debug {
   OBJECTS_DIR = obj/debug
+  DESTDIR = lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
+  DESTDIR = lib/release
 }
 
 # enable/disable debug symbols

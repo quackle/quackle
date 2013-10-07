@@ -9,20 +9,22 @@ MOC_DIR = moc
 #CONFIG += debug
 CONFIG += release
 
-build_pass:CONFIG(debug, debug|release) {
-	LIBS += -L../debug -L../quackleio/debug
+debug {
+  OBJECTS_DIR = obj/debug
 }
 
-build_pass:CONFIG(release, debug|release) {
-	LIBS += -L../release -L../quackleio/release
+release {
+  OBJECTS_DIR = obj/release
 }
 
-LIBS += -L.. -L../quackleio -lquackle -lquackleio
+QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
+QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
+
+LIBS += -lquackle -lquackleio
 
 # Input
-HEADERS += bagdisplay.h boarddisplay.h boardsetup.h boardsetupdialog.h brb.h configdialog.h configpages.h customqsettings.h dashboard.h geometry.h graphicalboard.h graphicalreporter.h history.h letterbox.h letterboxsettings.h lister.h movebox.h newgame.h noteeditor.h quacker.h quackersettings.h rackdisplay.h settings.h simviewer.h view.h widgetfactory.h oppothread.h oppothreadprogressbar.h
-SOURCES += bagdisplay.cpp boarddisplay.cpp boardsetup.cpp boardsetupdialog.cpp brb.cpp configdialog.cpp configpages.cpp dashboard.cpp geometry.cpp graphicalboard.cpp graphicalreporter.cpp history.cpp letterbox.cpp letterboxsettings.cpp lister.cpp movebox.cpp newgame.cpp noteeditor.cpp quacker.cpp quackersettings.cpp rackdisplay.cpp settings.cpp simviewer.cpp view.cpp widgetfactory.cpp oppothread.cpp oppothreadprogressbar.cpp main.cpp 
-
+HEADERS += *.h
+SOURCES += *.cpp
 
 win32 {
 	RC_FILE = quacker.rc
