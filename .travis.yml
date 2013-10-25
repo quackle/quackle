@@ -4,5 +4,13 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install libqt4-dev
 script: 
-  - qmake
-  - make
+  - qmake && make
+  - cd quackleio && qmake && make && cd ..
+  - cd quacker && qmake && make && cd ..
+  - cd decodeleaves && qmake && make && cd ..
+  - cd encodeleaves && qmake && make && cd ..
+  - cd gaddagize && qmake && make && cd ..
+  - cd makegaddag && qmake && make && cd ..
+  - cd makeminidawg && qmake && make && cd ..
+  - cd quackleio/iotest && qmake && make && cd ../..
+  - cd test && qmake && make && cd ..
