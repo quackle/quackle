@@ -1,6 +1,8 @@
 Quackle
 =======
 
+[![Build Status](https://secure.travis-ci.org/quackle/quackle.png?branch=master)](http://travis-ci.org/quackle/quackle)
+
 Crossword game artificial intelligence and analysis tool.
 
 See LICENSE in this directory.
