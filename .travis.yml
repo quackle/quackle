@@ -7,7 +7,6 @@ script:
   - qmake && make
   - cd quackleio && qmake && make && cd ..
   - cd quacker && qmake && make && cd ..
-  - cd decodeleaves && qmake && make && cd ..
   - cd encodeleaves && qmake && make && cd ..
   - cd gaddagize && qmake && make && cd ..
   - cd makegaddag && qmake && make && cd ..
