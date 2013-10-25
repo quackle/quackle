@@ -18,7 +18,7 @@ MOC_DIR = moc
 
 CONFIG += console
 
-LIBS += -lquackle -lquackleio
+LIBS += -lquackleio -lquackle
 
 QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
 QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug

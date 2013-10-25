@@ -5,13 +5,11 @@ VERSION = 0.9
 QT -= gui
 debug {
   OBJECTS_DIR = obj/debug
-  win32 { LIBS += -L../debug }
   DESTDIR = lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
-  win32 { LIBS += -L../release }
   DESTDIR = lib/release
 }
 
@@ -21,8 +19,6 @@ MOC_DIR = moc
 #CONFIG += debug staticlib
 CONFIG += release staticlib
 CONFIG -= x11
-
-LIBS += -L.. -lquackle
 
 # Input
 HEADERS += *.h
