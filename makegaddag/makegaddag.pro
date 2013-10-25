@@ -1,14 +1,14 @@
 TEMPLATE = app
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
+CONFIG += release
+
 debug {
   OBJECTS_DIR = obj/debug
-  win32 { LIBS += -L../debug -L../quackleio/debug }
 }
 
 release {
   OBJECTS_DIR = obj/release
-  win32 { LIBS += -L../release -L../quackleio/release }
 }
 
 MOC_DIR = moc
@@ -18,7 +18,10 @@ MOC_DIR = moc
 
 CONFIG += console
 
-LIBS += -L.. -L../quackleio -lquackle -lquackleio
+LIBS += -lquackle -lquackleio
+
+QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
+QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
 
 # Input
 SOURCES += makegaddag.cpp

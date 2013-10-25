@@ -4,10 +4,17 @@ INCLUDEPATH += . ..
 
 # enable/disable debug symbols
 # CONFIG += debug
+CONFIG += release
 
 CONFIG += console
 
-#LIBS += -L.. -L../quackleio -lquackle -lquackleio
+debug {
+  OBJECTS_DIR = obj/debug
+}
+
+release {
+  OBJECTS_DIR = obj/release
+}
 
 # Input
 SOURCES += gaddagize.cpp

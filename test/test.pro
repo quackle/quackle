@@ -9,15 +9,18 @@ CONFIG += console
 CONFIG -= x11
 CONFIG += release
 
-build_pass:CONFIG(debug, debug|release) {
-	LIBS += -L../debug -L../quackleio/debug
+debug {
+  OBJECTS_DIR = obj/debug
 }
 
-build_pass:CONFIG(release, debug|release) {
-	LIBS += -L../release -L../quackleio/release
+release {
+  OBJECTS_DIR = obj/release
 }
 
-LIBS += -L.. -L../quackleio -lquackle -lquackleio
+LIBS += -lquackle -lquackleio
+
+QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
+QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
 
 # Input
 HEADERS += testharness.h trademarkedboards.h
