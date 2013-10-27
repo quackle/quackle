@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -53,10 +53,10 @@ public:
 
 	// Enumerates all racks using a full bag
 	void enumerateAll();
-	
+
 	// Compute bingo stems ala Baron's MMPR
 	void bingos();
-	
+
 	// Loads game from the file, and tests the final position,
 	// and cleans up the game.
 	void testFromFile(const QString &file);
@@ -86,7 +86,7 @@ public:
 
 	void selfPlayGames(unsigned int seed, unsigned int reps, bool reports, bool playability);
 	void selfPlayGame(unsigned int gameNumber, bool reports, bool playability);
-	
+
 	// Sets the positions that will be tested.
 	void setPositions(const QStringList &positions)
 	{
@@ -108,6 +108,7 @@ protected:
 	QStringList m_positions;
 	Quackle::DataManager m_dataManager;
 	Quackle::ComputerPlayer *m_computerPlayerToTest;
+	Quackle::ComputerPlayer *m_computerPlayer2ToTest;
 	bool m_quiet;
 	QString m_gamesDir;
 	QString m_lexicon;

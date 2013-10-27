@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -47,8 +47,24 @@
 
 using namespace Quackle;
 
+static ComputerPlayer*
+checkPlayerName(const QString& computer)
+{
+	bool playerFound = false;
+	const Quackle::Player &player = QUACKLE_COMPUTER_PLAYERS.playerForName(QuackleIO::Util::qstringToString(computer), playerFound);
+	if (playerFound)
+	{
+		return player.computerPlayer();
+	}
+	else
+	{
+		UVcout << "Computer " << QuackleIO::Util::qstringToString(computer) << " not found!" << endl;
+		exit(1);
+	}
+}
+
 TestHarness::TestHarness()
-	: m_computerPlayerToTest(0), m_quiet(false)
+	: m_computerPlayerToTest(0), m_computerPlayer2ToTest(0), m_quiet(false)
 {
 	m_gamesDir = "games";
 	m_dataManager.setComputerPlayers(Quackle::ComputerPlayerCollection::fullCollection());
@@ -61,7 +77,7 @@ TestHarness::~TestHarness()
 const char *usage =
 "Optional arguments:\n"
 "--computer=; sets the computer player (default 'Speedy Player').\n"
-"--mode=\n" 
+"--mode=\n"
 "       'positions' (default) runs computer player all positions.\n"
 "       'report' asks computer player for report on all positions.\n"
 "       'htmlreport' asks for html report on all positions.\n"
@@ -89,6 +105,7 @@ void TestHarness::executeFromArguments()
 
 	QString mode;
 	QString computer;
+	QString computer2;
 	QString seedString;
 	QString repString;
 	bool build;
@@ -99,6 +116,7 @@ void TestHarness::executeFromArguments()
 	unsigned int reps = 1000;
 
 	opts.addOption('c', "computer", &computer);
+	opts.addOption('d', "computer2", &computer2);
 	opts.addOption('a', "alphabet", &m_alphabet);
 	opts.addOption('l', "lexicon", &m_lexicon);
 	opts.addOption('m', "mode", &mode);
@@ -106,7 +124,7 @@ void TestHarness::executeFromArguments()
 	opts.addOption('r', "repetitions", &repString);
 	opts.addOption('t', "letters", &letters);
 	opts.addRepeatableOption("position", &m_positions);
-	
+
 	opts.addSwitch("report", &report);
 	opts.addSwitch("build", &build);
 	opts.addSwitch("quiet", &m_quiet);
@@ -125,6 +143,8 @@ void TestHarness::executeFromArguments()
 		mode = "positions";
 	if (computer.isNull())
 		computer = "Speedy Player";
+	if (computer2.isNull())
+		computer2 = computer;
 	if (m_lexicon.isNull())
 		m_lexicon = "twl06";
 	if (m_alphabet.isNull())
@@ -133,19 +153,10 @@ void TestHarness::executeFromArguments()
 	        seed = seedString.toUInt();
 	if (!repString.isNull())
 	        reps = repString.toUInt();
-	
 
-	bool playerFound = false;
-	const Quackle::Player &player = QUACKLE_COMPUTER_PLAYERS.playerForName(QuackleIO::Util::qstringToString(computer), playerFound);
-	if (playerFound)
-	{
-		m_computerPlayerToTest = player.computerPlayer();
-	}
-	else
-	{
-		UVcout << "Computer " << QuackleIO::Util::qstringToString(computer) << " not found!" << endl;
-		return;
-	}
+
+	m_computerPlayerToTest = checkPlayerName(computer);
+	m_computerPlayer2ToTest = checkPlayerName(computer2);
 
 	startUp();
 
@@ -231,7 +242,7 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 
 	int tilesToLeave = 14 + rand() % (93 - 14);
 
-	for (int i = 0; i < iterations; i++) 
+	for (int i = 0; i < iterations; i++)
 	{
 		Quackle::Game game;
 
@@ -239,12 +250,12 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 
 		Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
 		compyA.setAbbreviatedName(MARK_UV("A"));
-		compyA.setComputerPlayer(new Quackle::StaticPlayer());
+		compyA.setComputerPlayer(m_computerPlayerToTest);
 		players.push_back(compyA);
 
-		Quackle::Player compyB(m_computerPlayerToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+		Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
 		compyB.setAbbreviatedName(MARK_UV("B"));
-		compyB.setComputerPlayer(new Quackle::StaticPlayer());
+		compyB.setComputerPlayer(m_computerPlayer2ToTest);
 		players.push_back(compyB);
 
 		game.setPlayers(players);
@@ -254,7 +265,7 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 
 		game.currentPosition().setCurrentPlayerRack(Rack(""), true);
 		game.currentPosition().setOppRack(Rack(""), true);
-	
+
 		Bag startBag = B;
 		game.currentPosition().setBag(startBag);
 
@@ -269,7 +280,7 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 				UVcout << "GAME OVER" << endl;
 				break;
 			}
-			
+
 			const Quackle::Player player(game.currentPosition().currentPlayer());
 			Quackle::Move compMove(game.haveComputerPlay());
 			UVcout << "with " << player.rack() << ", " << player.name() << " commits to " << compMove << endl;
@@ -277,7 +288,7 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 
 		game.currentPosition().setCurrentPlayerRack(R, true);
 		Quackle::Move compMove(game.haveComputerPlay());
-		sum += compMove.equity;	
+		sum += compMove.equity;
 	}
 
 	return sum / iterations;
@@ -295,7 +306,7 @@ void TestHarness::leaveCalc(const QString &filename)
 	}
 
 	QTextStream in(&file);
-	
+
 	const int iterations = 10;
 
 	while (!in.atEnd())
@@ -303,7 +314,7 @@ void TestHarness::leaveCalc(const QString &filename)
 		QString line = in.readLine();
 		Rack rack(QuackleIO::Util::encode(line));
 		double value = leaveSim(rack, iterations);
-		UVcout << "leavecalc: " << rack << " " << value << endl; 
+		UVcout << "leavecalc: " << rack << " " << value << endl;
 	}
 
 	file.close();
@@ -317,7 +328,7 @@ void TestHarness::randomRacks()
 		Game game;
 
 		Quackle::PlayerList players;
-	
+
 		Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
 		compyA.setAbbreviatedName(MARK_UV("A"));
 		compyA.setComputerPlayer(m_computerPlayerToTest);
@@ -343,7 +354,7 @@ void TestHarness::staticLeaves(const QString &filename)
 	}
 
 	QTextStream in(&file);
-	
+
 	Quackle::Game game;
 
 	Quackle::PlayerList players;
@@ -353,9 +364,9 @@ void TestHarness::staticLeaves(const QString &filename)
 	compyA.setComputerPlayer(m_computerPlayerToTest);
 	players.push_back(compyA);
 
-	Quackle::Player compyB(m_computerPlayerToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
 	compyB.setAbbreviatedName(MARK_UV("B"));
-	compyB.setComputerPlayer(m_computerPlayerToTest);
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
 	players.push_back(compyB);
 
 	game.setPlayers(players);
@@ -370,7 +381,7 @@ void TestHarness::staticLeaves(const QString &filename)
 		game.currentPosition().setCurrentPlayerRack(rack);
 		Move move = game.currentPosition().staticBestMove();
 		//Move scoredExch = game.currentPosition().scoreMove(exchZero);
-		//UVcout << rack << " " << scoredExch << endl;			
+		//UVcout << rack << " " << scoredExch << endl;
 		UVcout << rack << " " << move << endl;
 	}
 
@@ -389,12 +400,12 @@ void TestHarness::enumerateAll()
 
 struct PowerRack
 {
-    PowerRack(ProbableRack &r) : rack(r.rack), 
+    PowerRack(ProbableRack &r) : rack(r.rack),
 				 stemProbability(r.probability),
 				 usableTiles(0),
 				 power(0) {}
-				 
-    Rack   rack; 
+
+    Rack   rack;
     double stemProbability; /* MSP */
     int    usableTiles; /* UT */
     double power; /* MMPR */
@@ -402,7 +413,7 @@ struct PowerRack
 
 typedef vector<PowerRack> PowerRackList;
 
-static bool powerSort(const PowerRack& r1, 
+static bool powerSort(const PowerRack& r1,
 		      const PowerRack& r2)
 {
     return r1.power > r2.power;
@@ -446,16 +457,16 @@ static Letter findPluarlizer()
 	    max2EndLetter = j;
 	}
     }
-    
-//     UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(maxEndLetter) 
+
+//     UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(maxEndLetter)
 // 	   << " " << endCounts[maxEndLetter] << endl;
-//     UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(max2EndLetter) 
+//     UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(max2EndLetter)
 // 	   << " " << endCounts[max2EndLetter] << endl;
 
     // We found a pluralizer if it is much more common, otherwise this
     // language doesn't seem to have one.
     if (endCounts[maxEndLetter] > 2 * endCounts[max2EndLetter]) {
-	UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(maxEndLetter) 
+	UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(maxEndLetter)
 	       << " is the pluralizer" << endl;
 	return maxEndLetter;
     }
@@ -478,10 +489,10 @@ void TestHarness::bingos()
 
     // convert probable racks to power racks for extra fields
     PowerRackList racks;
-    for (ProbableRackList::iterator it = enumRacks.begin(); 
+    for (ProbableRackList::iterator it = enumRacks.begin();
 	 it != enumRacks.end(); ++it) {
 	racks.push_back(PowerRack(*it));
-    }    
+    }
 
     // get counts of all non-blank letters
     Letter start = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
@@ -498,7 +509,7 @@ void TestHarness::bingos()
 	String::counts(letters, rackCounts);
 
 	if (++cnt % 1000 == 0) {
-	    UVcout << "stem: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters) 
+	    UVcout << "stem: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters)
 		   << " (" << cnt << " / " << racks.size() << ")" << endl;
 	}
 
@@ -516,14 +527,14 @@ void TestHarness::bingos()
 	}
 
 	// if we can make anything we can also do so with blanks
-	if (usableTiles > 0) { 
+	if (usableTiles > 0) {
 	    usableTiles += blankCnt;
 	}
 	it->usableTiles = usableTiles;
-	if (rackCounts[pluralizer]) { 
+	if (rackCounts[pluralizer]) {
 	    // Baron: "However, due to the frequent retention of the S in
 	    // actual play, its attributed frequency was subsequently increased
-	    // artificially 50%".  I generalized 'S' to a pluralizer for 
+	    // artificially 50%".  I generalized 'S' to a pluralizer for
 	    // multi-language support.
 	    it->stemProbability *= 1.5;
 	}
@@ -663,9 +674,9 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	compyA.setComputerPlayer(m_computerPlayerToTest);
 	players.push_back(compyA);
 
-	Quackle::Player compyB(m_computerPlayerToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
 	compyB.setAbbreviatedName(MARK_UV("B"));
-	compyB.setComputerPlayer(m_computerPlayerToTest);
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
 	players.push_back(compyB);
 
 	game.setPlayers(players);
@@ -689,7 +700,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		}
 
 		const Quackle::Player player(game.currentPosition().currentPlayer());
-        
+
    		if (!m_quiet) {
             if (playability) {
                 game.currentPosition().kibitz(100);
@@ -715,7 +726,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
             } else {
                 Quackle::Move compMove(game.haveComputerPlay());
                 UVcout << "with " << player.rack() << ", " << player.name()
-                       << " commits to " << compMove << endl; 
+                       << " commits to " << compMove << endl;
             }
         }
 	}
@@ -740,7 +751,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	gamesDir.replace(" ", "_");
 	QDir::current().mkdir(gamesDir);
 
-	QString joinedCompyName = QuackleIO::Util::uvStringToQString(m_computerPlayerToTest->name());
+	QString joinedCompyName = QuackleIO::Util::uvStringToQString(m_computerPlayer2ToTest->name());
 	joinedCompyName.replace(" ", "_");
 	QFile outFile(QString("%1/%2-game-%3.gcg").arg(gamesDir).arg(joinedCompyName).arg(gameNumber));
 
@@ -753,7 +764,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	QuackleIO::GCGIO io;
 	QTextStream out(&outFile);
 	io.write(game, out);
-	
+
 	QFile outFileReport(QString("%1/%2-game-%3.report").arg(gamesDir).arg(joinedCompyName).arg(gameNumber));
 
 	if (!outFileReport.open(QIODevice::WriteOnly | QIODevice::Text))
