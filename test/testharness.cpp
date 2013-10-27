@@ -695,7 +695,16 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	{
 		if (game.currentPosition().gameOver())
 		{
-			if (!m_quiet) { UVcout << "GAME OVER" << endl; }
+			if (!m_quiet) {
+				UVcout << "GAME OVER ";
+				GamePosition &pos = game.currentPosition();
+				const PlayerList players = pos.endgameAdjustedScores();
+				for (PlayerList::const_iterator it = players.begin();
+					it != players.end(); ++it) {
+					UVcout << it->name() << " : " << it->score() << " ";
+				}
+				UVcout << endl;
+			}
 			break;
 		}
 
