@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -97,15 +97,15 @@ void Settings::createGUI()
 
 	m_addBoard = new QPushButton(tr("Add Board"));
 	connect(m_addBoard, SIGNAL(clicked()), this, SLOT(addBoard()));
-	
+
 	m_editBoard = new QPushButton(tr("&Edit Board"));
 	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
-	
+
 	m_deleteBoard = new QPushButton(tr("&Delete Board"));
 	connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
 
 	loadBoardNameCombo();
-		
+
 	QGroupBox *boardGroup = new QGroupBox("Game Board Definitions");
 	QGridLayout *boardLayout = new QGridLayout(boardGroup);
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
@@ -156,6 +156,8 @@ void Settings::initialize()
 	{
 		QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 		if (directory.cd("data"))
+			QUACKLE_DATAMANAGER->setDataDirectory(directory.absolutePath().toStdString());
+		else if (directory.cd("../data")) // For OSX
 			QUACKLE_DATAMANAGER->setDataDirectory(directory.absolutePath().toStdString());
 		else
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
@@ -239,7 +241,7 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 		string boardParameterBuf;
 		boardParameterBuf.assign((const char *) boardParameterBytes, boardParameterBytes.size());
 		istringstream boardParameterStream(boardParameterBuf);
-		
+
 		QUACKLE_DATAMANAGER->setBoardParameters(Quackle::BoardParameters::Deserialize(boardParameterStream));
 	}
 	QUACKLE_BOARD_PARAMETERS->setName(QuackleIO::Util::qstringToString(boardName));
@@ -281,17 +283,17 @@ void Settings::addBoard()
 {
 	QUACKLE_DATAMANAGER->setBoardParameters(new Quackle::BoardParameters());
 	QUACKLE_BOARD_PARAMETERS->setName(MARK_UV(""));
-	
+
 	CustomQSettings settings;
 	BoardSetupDialog dialog(this);
 	if (dialog.exec())
 	{
 		QString boardName = QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name());
 		settings.beginGroup("quackle/boardparameters");
-		
+
 		ostringstream boardParameterStream;
 		QUACKLE_BOARD_PARAMETERS->Serialize(boardParameterStream);
-		
+
 		QByteArray boardParameterBytes = qCompress(
 							(const uchar *)boardParameterStream.str().data(),
 							boardParameterStream.str().size());
@@ -315,13 +317,13 @@ void Settings::editBoard()
 		QString newBoardName = QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name());
 		CustomQSettings settings;
 		settings.beginGroup("quackle/boardparameters");
-	
+
 		if (newBoardName != oldBoardName)
 			settings.remove(oldBoardName);
-		
+
 		ostringstream boardParameterStream;
 		QUACKLE_BOARD_PARAMETERS->Serialize(boardParameterStream);
-		
+
 		QByteArray boardParameterBytes = qCompress(
 							(const char *)boardParameterStream.str().data(),
 							boardParameterStream.str().size());
@@ -360,17 +362,17 @@ void Settings::loadBoardNameCombo()
 
 	while (m_boardNameCombo->count() > 0)
 		m_boardNameCombo->removeItem(0);
-	
+
 	CustomQSettings settings;
 	settings.beginGroup("quackle/boardparameters");
 	QStringList boardNames = settings.childKeys();
 	boardNames.sort();
 	m_boardNameCombo->addItems(boardNames);
 	settings.endGroup();
-	
+
 	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(currentItem));
-	
+
 	m_editBoard->setEnabled(boardNames.count() > 0);
 	m_deleteBoard->setEnabled(boardNames.count() > 0);
 }
