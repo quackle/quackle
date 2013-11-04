@@ -55,6 +55,10 @@ private:
 	ExtensionList getExtensionList(bool front) const;
 };
 
+// Returns true if word1 is less playable than word2;
+// otherwise returns false.
+bool operator<(const Dict::Word &word1, const Dict::Word &word2);
+
 class WordList : public QList<Word>
 {
 public:
@@ -83,9 +87,5 @@ public:
 };
 
 }
-
-// Returns true if word1 is less playable than word2;
-// otherwise returns false.
-bool operator<(const Dict::Word &word1, const Dict::Word &word2);
 
 #endif

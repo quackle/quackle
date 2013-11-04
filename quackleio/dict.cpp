@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -42,7 +42,7 @@ void WordList::setSortBy(SortType _sortType)
 	sortType = _sortType;
 }
 
-bool operator<(const Dict::Word &word1, const Dict::Word &word2)
+bool Dict::operator<(const Dict::Word &word1, const Dict::Word &word2)
 {
 	switch (Dict::WordList::sortType)
 	{
@@ -52,15 +52,15 @@ bool operator<(const Dict::Word &word1, const Dict::Word &word2)
 	case Dict::WordList::Playability:
 		if (word1.playability != word2.playability)
 			return word1.playability > word2.playability;
-	
+
 		if (word1.word.length() != word2.word.length())
 			return word1.word.length() < word2.word.length();
 
 		// fall through
-		
+
 	case Dict::WordList::Probability:
 		return word1.probability > word2.probability;
-	
+
 	case Dict::WordList::Length:
 	case Dict::WordList::LengthLongestFirst:
 	{

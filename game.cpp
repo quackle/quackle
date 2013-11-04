@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -123,7 +123,7 @@ ComputerPlayer *Game::computerPlayer(int playerId)
 {
 	if (m_computerPlayers.find(playerId) == m_computerPlayers.end())
 		return defaultComputerPlayer();
-	
+
 	return m_computerPlayers[playerId];
 }
 
@@ -136,7 +136,7 @@ ComputerPlayer *Game::defaultComputerPlayer()
 {
 	if (m_defaultComputerPlayer)
 		return m_defaultComputerPlayer;
-	
+
 	m_defaultComputerPlayer = new StaticPlayer;
 	return m_defaultComputerPlayer;
 }
@@ -148,7 +148,7 @@ Move Game::haveComputerPlay(ComputerPlayer *computerPlayer)
 
 	if (!computerPlayer)
 		computerPlayer = this->computerPlayer(currentPosition().currentPlayer().id());
-	
+
 	computerPlayer->setPosition(currentPosition());
 
 	Move move(computerPlayer->move());
@@ -239,7 +239,7 @@ const GamePosition &GamePosition::operator=(const GamePosition &position)
 }
 
 GamePosition::GamePosition()
-	: m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false) 
+	: m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false)
 {
 	setEmptyBoard();
 	resetMoveMade();
@@ -356,7 +356,7 @@ int GamePosition::validateMove(const Move &move) const
 				ret |= TooLateExchange;
 		}
 		break;
-	
+
 	case Move::UnusedTilesBonus:
 	case Move::TimePenalty:
 		ret = InvalidAction;
@@ -384,7 +384,7 @@ bool GamePosition::formsAcceptableWords(const Move &move) const
 		if (!isAcceptableWord((*it).wordTiles()))
 			return false;
 	}
-	
+
 	return true;
 }
 
@@ -506,7 +506,7 @@ Bag GamePosition::unseenBagFromPlayerPerspective(const Player &player) const
 			ret.toss((*it).rack());
 		}
 	}
-	
+
 	return ret;
 }
 
@@ -526,9 +526,9 @@ void GamePosition::ensureProperBag() const
 		allTiles.toss((*it).rack());
 		racks.toss((*it).rack());
 	}
-	
+
 	allTiles.toss(m_bag.shuffledTiles());
-	
+
 	Bag fullDistribution;
 
 	bool mismatch = false;
@@ -633,7 +633,7 @@ void GamePosition::setOppRack(const Rack &rack, bool adjustBag)
 Rack GamePosition::oppRack()
 {
 	UVcout << "currentPlayer(): " << currentPlayer() << endl;
-	
+
 	const PlayerList::iterator end(m_players.end());
 	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
 		UVcout << "rack " << *it << " " << (*it).rack() << endl;
@@ -682,7 +682,7 @@ bool GamePosition::canSetPlayerRackWithoutBagExpansion(int playerID, const Rack 
 	const PlayerList::const_iterator end(m_players.end());
 	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
 		someTiles.toss((*it).rack());
-	
+
 	// Now we have a bag with all tiles not on the board
 	return someTiles.removeLetters(rack.tiles());
 }
@@ -698,7 +698,7 @@ bool GamePosition::setCurrentPlayer(int playerID)
 			return true;
 		}
 	}
-	
+
 	m_currentPlayer = m_players.begin();
 	return false;
 }
@@ -714,7 +714,7 @@ bool GamePosition::setPlayerOnTurn(int playerID)
 			return true;
 		}
 	}
-	
+
 	m_playerOnTurn = m_players.begin();
 	return false;
 }
@@ -1036,7 +1036,7 @@ void GamePosition::adjustScoresToFinishGame()
 {
 	int addand = 0;
 	LetterString clobberedTiles;
-	
+
 	addand = deadwood(&clobberedTiles);
 
 	m_moveMade = Move::createUnusedTilesBonus(clobberedTiles, addand);
@@ -1246,7 +1246,7 @@ HistoryLocation::HistoryLocation(int playerId, int turnNumber)
 {
 }
 
-bool operator<(const HistoryLocation &hl1, const HistoryLocation &hl2)
+bool Quackle::operator<(const HistoryLocation &hl1, const HistoryLocation &hl2)
 {
 	if (hl1.turnNumber() != hl2.turnNumber())
 		return hl1.turnNumber() < hl2.turnNumber();

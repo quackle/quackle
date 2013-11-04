@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -59,7 +59,7 @@ bool operator==(const Move &move1, const Move &move2)
 	return ret;
 }
 
-bool operator<(const Move &move1, const Move &move2)
+bool Quackle::operator<(const Move &move1, const Move &move2)
 {
 	if (move1.action != move2.action)
 		return move1.action < move2.action;
@@ -75,7 +75,7 @@ bool operator<(const Move &move1, const Move &move2)
 		return move1.scoreAddition() < move2.scoreAddition();
 	if (move1.isChallengedPhoney() != move2.isChallengedPhoney())
 		return move1.isChallengedPhoney() < move2.isChallengedPhoney();
-	
+
 	return false;
 }
 
@@ -116,7 +116,7 @@ UVString Move::xml() const
 	bool includeRest = false;
 	bool includeTiles = false;
 	bool includeScore = false;
-	
+
 	switch (action)
 	{
 	case Pass:
@@ -148,7 +148,7 @@ UVString Move::xml() const
 		actionString = MARK_UV("place");
 
 		UVOStringStream restStream;
-		
+
 		// adding row and column numbers I suppose is bloat
 		//restStream << "position=\"" << positionString() << "\" startrow=\"" << startrow << "\" startcolumn=\"" << startcol << "\"";
 		restStream << "position=\"" << positionString() << "\"";
@@ -441,7 +441,7 @@ bool MoveList::scoreComparator(const Move &move1, const Move &move2)
 	}
 	return move1.effectiveScore() < move2.effectiveScore();
 }
-		
+
 bool MoveList::alphabeticalComparator(const Move &move1, const Move &move2)
 {
 	if (move1.tiles() == move2.tiles()) {

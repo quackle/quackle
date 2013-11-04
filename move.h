@@ -139,6 +139,9 @@ private:
 	int m_scoreAddition;
 };
 
+// comparison based on action, then tiles, then horizontalness, then startrow, then endcol
+bool operator<(const Quackle::Move &move1, const Quackle::Move &move2);
+
 class MoveList : public vector<Move>
 {
 public:
@@ -225,9 +228,6 @@ inline bool Move::isAlreadyOnBoard(Letter letter)
 // we gotta overload so plays with diff equity 
 // are equal
 bool operator==(const Quackle::Move &move1, const Quackle::Move &move2);
-
-// comparison based on action, then tiles, then horizontalness, then startrow, then endcol
-bool operator<(const Quackle::Move &move1, const Quackle::Move &move2);
 
 UVOStream& operator<<(UVOStream& o, const Quackle::Move& m);
 UVOStream& operator<<(UVOStream& o, const Quackle::MoveList& moves);

@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  
+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  *  02110-1301  USA
  */
 
@@ -39,7 +39,7 @@ class HistoryLocation
 {
 public:
 	HistoryLocation(int playerId, int turnNumber);
-	
+
 	int playerId() const;
 	int turnNumber() const;
 
@@ -47,7 +47,10 @@ private:
 	int m_playerId;
 	int m_turnNumber;
 };
-	
+
+// comparison based on turn number then player id
+bool operator<(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2);
+
 inline int HistoryLocation::playerId() const
 {
 	return m_playerId;
@@ -330,7 +333,7 @@ public:
 
 	// return opponent's rack (for preendgame win% usage)
 	Rack oppRack();
-	
+
 	// if we set player's rack to this, will there be more tiles in
 	// play than before?
 	bool canSetCurrentPlayerRackWithoutBagExpansion(const Rack &rack) const;
@@ -410,8 +413,8 @@ protected:
 	// moves originally from kibitzer
 	MoveList m_moves;
 
-	// It is very important that these two variables almost always be 
-	// modified together, unless one is experimenting with different 
+	// It is very important that these two variables almost always be
+	// modified together, unless one is experimenting with different
 	// candidates before deciding on the move to commit.
 	// For instance, the end-of-game bonus move is stored in both fields.
 	Move m_moveMade;
@@ -806,7 +809,7 @@ public:
 	// maintainBoard must be true if you want to keep using this game.
 	// If the game is over, does nothing.
 	void commitCandidate(bool maintainBoard = true);
-	
+
 	// convience to set move as candidate and then commit the candidate
 	void commitMove(const Move &move);
 
@@ -898,9 +901,6 @@ inline void Game::setTitle(const UVString &title)
 }
 
 }
-
-// comparison based on turn number then player id
-bool operator<(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2);
 
 bool operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2);
 
