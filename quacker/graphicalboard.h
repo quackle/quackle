@@ -55,6 +55,8 @@ public:
     // deletes self and resets
     static void cleanUp();
 
+    void readTheme(const QString& themeFile);
+
     QColor arrowColor;
     QColor letterColor;
     QColor britishLetterColor;
@@ -62,9 +64,9 @@ public:
     QColor TLSColor;
     QColor DWSColor;
     QColor TWSColor;
-
     QColor QLSColor;
     QColor QWSColor;
+    QColor bonusTextColor;
     
     QColor nothingColor;
     QColor rackColor;

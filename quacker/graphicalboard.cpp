@@ -967,31 +967,39 @@ void PixmapCacher::cleanUp()
 
 PixmapCacher::PixmapCacher()
 {
-    arrowColor = QColor("black");
-    letterColor = QColor("#6e6e6e");
-    britishLetterColor = QColor("#703d3d");
+    readTheme("");
+}
+
+void PixmapCacher::readTheme(const QString& themeFile)
+{
+    QSettings settings(themeFile, QSettings::IniFormat);
+
+    arrowColor = QColor(settings.value("arrow", "black").toString());
+    letterColor = QColor(settings.value("letter", "#6e6e6e").toString());
+    britishLetterColor = QColor(settings.value("britishLetter", "#703d3d").toString());
 
     // tiles on rack will be of different sizes and thus are slightly
     // altered to fool the pixmap cacher
     rackColor = letterColor.light(101);
 
-    DLSColor = QColor("cornflowerblue");
-    TLSColor = QColor("slateblue");
-    DWSColor = QColor("palevioletred");
-    TWSColor = QColor("firebrick");
+    DLSColor = QColor(settings.value("DLS", "cornflowerblue").toString());
+    TLSColor = QColor(settings.value("TLS", "slateblue").toString());
+    DWSColor = QColor(settings.value("DWS", "palevioletred").toString());
+    TWSColor = QColor(settings.value("TWS", "firebrick").toString());
+    QLSColor = QColor(settings.value("QLS", "blueviolet").toString());
+    QWSColor = QColor(settings.value("QWS", "goldenrod").toString());
+    bonusTextColor = QColor(settings.value("bonusLabel", "gainsboro").toString());
 
-    QLSColor = QColor("blueviolet").light();
-    QWSColor = QColor("goldenrod");
+    nothingColor = QColor(settings.value("nothing", "gainsboro").toString());
 
-    nothingColor = QColor("gainsboro");
+    cementedLetterTextColor = QColor(settings.value("cementedLetterText", "#f8f8ff").toString());
+    cementedBritishLetterTextColor = QColor(settings.value("cementedBritishLetterText", "#FFC0C0").toString());
+    uncementedLetterTextColor = QColor(settings.value("uncementedLetterText", "khaki").toString());
 
-    cementedLetterTextColor = QColor("#f8f8ff");
-    cementedBritishLetterTextColor = QColor("#FFC0C0");
-    uncementedLetterTextColor = QColor("khaki");
-
-    markColor = QColor("tan");
-    markTextColor = markColor.dark();
+    markColor = QColor(settings.value("mark", "tan").toString());
+    markTextColor = QColor(settings.value("markLabel", "tan").toString());
 }
+
 
 bool PixmapCacher::contains(const QColor &color) const
 {
@@ -1180,7 +1188,7 @@ QColor TileWidget::letterTextColor()
     else if (m_information.letter == QUACKLE_NULL_MARK && m_information.isStartLocation)
         ret = PixmapCacher::self()->arrowColor;
     else if (m_information.letter == QUACKLE_NULL_MARK)
-        ret = tileColor().light(145);
+        ret = PixmapCacher::self()->bonusTextColor;
     else
         ret = PixmapCacher::self()->uncementedLetterTextColor;
 

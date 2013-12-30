@@ -24,18 +24,18 @@
 #include <QtGui>
 #include <QMessageBox>
 
-#include <alphabetparameters.h>
-#include <board.h>
-#include <boardparameters.h>
-#include <computerplayercollection.h>
-#include <datamanager.h>
-#include <game.h>
-#include <lexiconparameters.h>
-#include <rack.h>
-#include <strategyparameters.h>
+#include "alphabetparameters.h"
+#include "board.h"
+#include "boardparameters.h"
+#include "computerplayercollection.h"
+#include "datamanager.h"
+#include "game.h"
+#include "lexiconparameters.h"
+#include "rack.h"
+#include "strategyparameters.h"
 
-#include <quackleio/flexiblealphabet.h>
-#include <quackleio/util.h>
+#include "quackleio/flexiblealphabet.h"
+#include "quackleio/util.h"
 
 #include "settings.h"
 #include "boardsetupdialog.h"
@@ -49,9 +49,24 @@ Settings *Settings::self()
 }
 
 Settings::Settings(QWidget *parent)
-	: QWidget(parent), m_lexiconNameCombo(0), m_alphabetNameCombo(0)
+	: QWidget(parent), m_lexiconNameCombo(0), m_alphabetNameCombo(0), m_themeNameCombo(0)
 {
 	m_self = this;
+
+	if (QFile::exists("data"))
+		m_dataDir = "data";
+	else if (QFile::exists("../data"))
+		m_dataDir = "../data";
+	else if (QFile::exists("Quackle.app/Contents/data"))
+		m_dataDir = "Quackle.app/Contents/data";
+
+	else
+	{
+		QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
+		if (!directory.cd("data") || !directory.cd("../data"))
+			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
+		m_dataDir = directory.absolutePath();
+	}
 }
 
 void Settings::createGUI()
@@ -65,10 +80,10 @@ void Settings::createGUI()
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
 
 	QStringList items;
-	items << "csw12" << "cswapr07" << "sowpods" << "twl06" << "twl98" << "ods5" << "korean" << "greek";
+	populateListFromFilenames(items, m_dataDir + "/lexica");
 	m_lexiconNameCombo->addItems(items);
 
-        QLabel *cswText = new QLabel(tr("The WESPA wordlist (CSW12) is copyright Harper Collins 2011."));
+	QLabel *cswText = new QLabel(tr("The WESPA wordlist (CSW12) is copyright Harper Collins 2011."));
 
 	QHBoxLayout *lexiconLayout = new QHBoxLayout;
 	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon:"));
@@ -81,8 +96,7 @@ void Settings::createGUI()
 	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
 
 	QStringList alphabetItems;
-	//alphabetItems << "english" << "english_super" << "french" << "korean" << "greek" << "mandarin" << "zhuyin" << "pinyin";
-	alphabetItems << "english" << "english_super" << "french" << "korean" << "greek";
+	populateListFromFilenames(alphabetItems, m_dataDir + "/alphabets");
 	m_alphabetNameCombo->addItems(alphabetItems);
 
 	QHBoxLayout *alphabetLayout = new QHBoxLayout;
@@ -91,6 +105,20 @@ void Settings::createGUI()
 
 	alphabetLayout->addWidget(alphabetNameLabel);
 	alphabetLayout->addWidget(m_alphabetNameCombo);
+
+	m_themeNameCombo = new QComboBox;
+	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
+
+	QStringList themeItems;
+	populateListFromFilenames(themeItems, m_dataDir + "/themes");
+	m_themeNameCombo->addItems(themeItems);
+
+	QHBoxLayout *themeLayout = new QHBoxLayout;
+	QLabel *themeNameLabel = new QLabel(tr("&Theme:"));
+	themeNameLabel->setBuddy(m_themeNameCombo);
+
+	themeLayout->addWidget(themeNameLabel);
+	themeLayout->addWidget(m_themeNameCombo);
 
 	m_boardNameCombo = new QComboBox();
 	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
@@ -117,9 +145,10 @@ void Settings::createGUI()
 	boardLayout->addWidget(m_editBoard, 1, 1);
 	boardLayout->addWidget(m_deleteBoard, 1, 2);
 
-        vlayout->addWidget(cswText);
+	vlayout->addWidget(cswText);
 	vlayout->addLayout(lexiconLayout);
 	vlayout->addLayout(alphabetLayout);
+	vlayout->addLayout(themeLayout);
 	vlayout->addWidget(boardGroup);
 	vlayout->addStretch();
 
@@ -130,6 +159,7 @@ void Settings::load()
 {
 	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName())));
 	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
+	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
 }
 
@@ -144,24 +174,7 @@ void Settings::initialize()
 	CustomQSettings settings;
 
 	QUACKLE_DATAMANAGER->setBackupLexicon("twl06");
-
-	if (QFile::exists("data"))
-		QUACKLE_DATAMANAGER->setDataDirectory("data");
-	else if (QFile::exists("../data"))
-		QUACKLE_DATAMANAGER->setDataDirectory("../data");
-	else if (QFile::exists("Quackle.app/Contents/data"))
-		QUACKLE_DATAMANAGER->setDataDirectory("Quackle.app/Contents/data");
-
-	else
-	{
-		QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
-		if (directory.cd("data"))
-			QUACKLE_DATAMANAGER->setDataDirectory(directory.absolutePath().toStdString());
-		else if (directory.cd("../data")) // For OSX
-			QUACKLE_DATAMANAGER->setDataDirectory(directory.absolutePath().toStdString());
-		else
-			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
-	}
+	QUACKLE_DATAMANAGER->setDataDirectory(m_dataDir.toStdString());
 
 	QString lexiconName = settings.value("quackle/settings/lexicon-name", QString("twl06")).toString();
 
@@ -171,6 +184,7 @@ void Settings::initialize()
 
 	setQuackleToUseLexiconName(QuackleIO::Util::qstringToStdString(lexiconName));
 	setQuackleToUseAlphabetName(QuackleIO::Util::qstringToStdString(settings.value("quackle/settings/alphabet-name", QString("english")).toString()));
+	setQuackleToUseThemeName(settings.value("quackle/settings/theme-name", QString("traditional")).toString());
 	setQuackleToUseBoardName(settings.value("quackle/settings/board-name", QString("")).toString());
 }
 
@@ -228,6 +242,18 @@ void Settings::setQuackleToUseAlphabetName(const string &alphabetName)
 	}
 }
 
+void Settings::setQuackleToUseThemeName(const QString &themeName)
+{
+	m_themeName = themeName;
+	QString themeFile = m_dataDir + "/themes/" + themeName + ".ini";
+	if (!QFile::exists(themeFile))
+	{
+		m_themeName = "traditional";
+		themeFile = m_dataDir + "/themes/traditional.ini";
+	}
+	PixmapCacher::self()->readTheme(themeFile);
+}
+
 void Settings::setQuackleToUseBoardName(const QString &boardName)
 {
 	CustomQSettings settings;
@@ -266,6 +292,16 @@ void Settings::alphabetChanged(const QString &alphabetName)
 
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/alphabet-name", alphabetName);
+
+	emit refreshViews();
+}
+
+void Settings::themeChanged(const QString &themeName)
+{
+	setQuackleToUseThemeName(themeName);
+
+	CustomQSettings settings;
+	settings.setValue("quackle/settings/theme-name", themeName);
 
 	emit refreshViews();
 }
@@ -377,3 +413,23 @@ void Settings::loadBoardNameCombo()
 	m_deleteBoard->setEnabled(boardNames.count() > 0);
 }
 
+void Settings::populateListFromFilenames(QStringList& list, const QString &path)
+{
+	QDir dir(path);
+	QStringList fileList = dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+	QStringListIterator i(fileList);
+	QString fileName;
+	int periodPos;
+
+	while (i.hasNext())
+	{
+		fileName = i.next();
+		periodPos = fileName.indexOf('.');
+		if (periodPos)
+		{
+			fileName.truncate(periodPos);
+			list << fileName;
+		}
+	}
+	list.removeDuplicates();
+}

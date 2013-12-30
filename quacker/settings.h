@@ -61,6 +61,7 @@ public slots:
 protected slots:
 	void lexiconChanged(const QString &lexiconName);
 	void alphabetChanged(const QString &alphabetName);
+	void themeChanged(const QString &themeName);
 	void boardChanged(const QString &boardName);
 
 	void addBoard();
@@ -69,19 +70,26 @@ protected slots:
 	
 	void setQuackleToUseLexiconName(const string &lexiconName);
 	void setQuackleToUseAlphabetName(const string &alphabetName);
+	void setQuackleToUseThemeName(const QString &themeName);
 	void setQuackleToUseBoardName(const QString &lexiconName);
 
 protected:
 	QComboBox *m_lexiconNameCombo;
 	QComboBox *m_alphabetNameCombo;
+	QComboBox *m_themeNameCombo;
 	QComboBox *m_boardNameCombo;
 	QPushButton *m_addBoard;
 	QPushButton *m_editBoard;
 	QPushButton *m_deleteBoard;
+	QString m_dataDir;
+	QString m_themeName;
 
 private:
 	// populate the popup based on what's in QSettings
 	void loadBoardNameCombo();
+
+	// load up an item list based on a list of filenames
+	void populateListFromFilenames(QStringList& list, const QString &path);
 	
 	static Settings *m_self;
 };
