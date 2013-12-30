@@ -47,8 +47,10 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	// construct the UI elements
 	m_horizontalSymmetry = new QCheckBox(tr("Horizontal"));
 	m_verticalSymmetry = new QCheckBox(tr("Vertical"));
+	m_diagonalSymmetry = new QCheckBox(tr("Diagonal"));
 	m_horizontalSymmetry->setCheckState(Qt::Checked);
 	m_verticalSymmetry->setCheckState(Qt::Checked);
+	m_diagonalSymmetry->setCheckState(Qt::Checked);
 
 	m_horizontalDimension = constructDimensionComboBox(QUACKLE_BOARD_PARAMETERS->width());
 	m_verticalDimension = constructDimensionComboBox(QUACKLE_BOARD_PARAMETERS->height());
@@ -85,6 +87,7 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 
 	symmetryCol->addWidget(m_horizontalSymmetry);
 	symmetryCol->addWidget(m_verticalSymmetry);
+	symmetryCol->addWidget(m_diagonalSymmetry);
 
 	buttonRow->addStretch(1);
 	buttonRow->addWidget(m_cancel);
@@ -110,13 +113,16 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 
 	// hook up signals and slots
 	connect(m_horizontalDimension, SIGNAL(activated(const QString &)), this, SLOT(parametersChanged(const QString &)));
+	connect(m_horizontalDimension, SIGNAL(activated(const QString &)), this, SLOT(symmetryChanged()));
 	connect(m_verticalDimension, SIGNAL(activated(const QString &)), this, SLOT(parametersChanged(const QString &)));
+	connect(m_verticalDimension, SIGNAL(activated(const QString &)), this, SLOT(symmetryChanged()));
 	connect(m_boardName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(const QString &)));
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_undoAll, SIGNAL(clicked()), this, SLOT(undoAllChanges()));
 	connect(m_horizontalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	connect(m_verticalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
+	connect(m_diagonalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	
 	setWindowTitle(tr("Configure Board - Quackle"));
 
@@ -186,9 +192,14 @@ void BoardSetupDialog::parametersChanged(const QString &)
 
 void BoardSetupDialog::symmetryChanged()
 {
+	bool allowDiagonalSymmetry =
+		m_horizontalSymmetry->isChecked() && m_verticalSymmetry->isChecked() &&
+		(m_horizontalDimension->currentIndex() == m_verticalDimension->currentIndex());
+	m_diagonalSymmetry->setEnabled(allowDiagonalSymmetry);
 	m_boardFrame->setSymmetry(
-				m_horizontalSymmetry->checkState() == Qt::Checked,
-				m_verticalSymmetry->checkState() == Qt::Checked);
+				m_horizontalSymmetry->isChecked(),
+				m_verticalSymmetry->isChecked(),
+				m_diagonalSymmetry->isChecked() && m_diagonalSymmetry->isEnabled());
 }
 
 void BoardSetupDialog::accept()

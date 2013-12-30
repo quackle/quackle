@@ -53,7 +53,7 @@ public:
 	BoardSetupFrame(QWidget *parent = 0);
 	~BoardSetupFrame();
 	void setBoard(const Quackle::Board &board);
-	void setSymmetry(bool horizontal, bool vertical);
+	void setSymmetry(bool horizontal, bool vertical, bool diagonal);
 	void parametersChanged();
 
 public slots:
@@ -70,6 +70,7 @@ protected:
 private:
 	bool horizontalSymmetry;
 	bool verticalSymmetry;
+	bool diagonalSymmetry;
 
 	void setMultipliers(int row, int col, int word, int letter);
 };

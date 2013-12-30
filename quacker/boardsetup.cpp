@@ -83,10 +83,11 @@ void BoardSetupFrame::setBoard(const Quackle::Board &board)
 	m_board = board;
 }
 
-void BoardSetupFrame::setSymmetry(bool horizontal, bool vertical)
+void BoardSetupFrame::setSymmetry(bool horizontal, bool vertical, bool diagonal)
 {
 	horizontalSymmetry = horizontal;
 	verticalSymmetry = vertical;
+	diagonalSymmetry = diagonal;
 }
 
 void BoardSetupFrame::parametersChanged()
@@ -148,6 +149,13 @@ void BoardSetupFrame::tileClicked(const QSize &tileLocation, const QMouseEvent *
 		setMultipliers(height - 1 - row, col, wordMultiplier, letterMultiplier);
 	if (horizontalSymmetry && verticalSymmetry)
 		setMultipliers(height - 1 - row, width - 1 - col, wordMultiplier, letterMultiplier);
+	if (diagonalSymmetry && (row != col) && (height - 1 - row != col))
+	{
+		setMultipliers(col, row, wordMultiplier, letterMultiplier);
+		setMultipliers(col, width - 1 - row, wordMultiplier, letterMultiplier);
+		setMultipliers(height - 1 - col, row, wordMultiplier, letterMultiplier);
+		setMultipliers(height - 1 - col, width - 1 - row, wordMultiplier, letterMultiplier);
+	}
 		
 	prepare();
 }

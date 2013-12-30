@@ -54,6 +54,7 @@ protected slots:
 private:
 	QCheckBox *m_horizontalSymmetry;
 	QCheckBox *m_verticalSymmetry;
+	QCheckBox *m_diagonalSymmetry;
 	
 	QComboBox *m_horizontalDimension;
 	QComboBox *m_verticalDimension;
