@@ -53,7 +53,7 @@ Settings::Settings(QWidget *parent)
 {
 	QDir appDir = QDir(QCoreApplication::applicationDirPath());
 	// Make up for the idiosyncracies of Mac OSX bundle paths.
-	#ifdef Q_WS_MAC
+	#ifdef Q_OS_MAC
 	appDir.cdUp();
 	appDir.cdUp();
 	appDir.cdUp();
