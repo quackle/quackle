@@ -200,6 +200,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 	int j = 0;
 	UVString wrappedTiles;
 	LongLetterString unseenTiles = position.unseenBag().tiles();
+	std::sort(unseenTiles.begin(), unseenTiles.end());
 	for (Quackle::LongLetterString::const_iterator it = unseenTiles.begin(); it != unseenTiles.end(); ++it, ++j)
 	{
 		if (j >= 44)
