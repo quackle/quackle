@@ -38,3 +38,7 @@ win32:!win32-g++ {
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }
+
+macx-xcode {
+	CONFIG += x86	
+}
