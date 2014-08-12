@@ -9,5 +9,5 @@ object_script.libquackle.Release
 release
 ChangeLog
 *.app
-*.sublime-project
 *.sublime-workspace
+*.xcodeproj
