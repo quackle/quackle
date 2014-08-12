@@ -42,8 +42,6 @@ public:
 public slots:
 	void setSimulator(const Quackle::Simulator &simulator);
 
-	void done();
-
 private:
 	QTabWidget *m_tabs;
 	AveragesTab *m_averagesTab;

@@ -52,7 +52,7 @@ public:
 	Quackle::PlayerList players() const;
 
 public slots:
-	void done();
+	void accept();
 
 protected:
 	void saveSettings();

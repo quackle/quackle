@@ -90,7 +90,7 @@ void String::counts(const LetterString &letterString, char *countsArray)
 
 	const LetterString::const_iterator end(letterString.end());
 	for (LetterString::const_iterator it = letterString.begin(); it != end; ++it)
-		countsArray[*it]++;
+		countsArray[(int)*it]++;
 }
 
 void String::counts(const LongLetterString &letterString, char *countsArray)
@@ -100,7 +100,7 @@ void String::counts(const LongLetterString &letterString, char *countsArray)
 
 	const LongLetterString::const_iterator end(letterString.end());
 	for (LongLetterString::const_iterator it = letterString.begin(); it != end; ++it)
-		countsArray[*it]++;
+		countsArray[(int)*it]++;
 }
 
 ////////////

@@ -1223,15 +1223,15 @@ QString TileWidget::letterText()
     else
         return QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::letterToQString(m_information.letter));
     
+#ifdef FORCE_SECONDARY_ARROW_GLYPHS
+    QChar macSecondaryGlyphs[] =  {QChar(0x2192), QChar(0x2193), QChar(0x2606)}; // single arrows, white star
+    return QString(macSecondaryGlyphs[glyphIndex]);
+#else
     QChar preferredGlyphs[] =  {QChar(0x21d2), QChar(0x21d3), QChar(0x2606)}; // double arrows, white star
     QChar secondaryGlyphs[] =  {QChar(0x2192), QChar(0x2193), QChar(   '*')}; // single arrows, ASCII star
     QChar asciiGlyphs[] =      {QChar(   '>'), QChar(   'v'), QChar(   '*')}; // 7-bit
     QFontMetrics metrics(letterFont());
 
-#ifdef FORCE_SECONDARY_ARROW_GLYPHS
-    QChar macSecondaryGlyphs[] =  {QChar(0x2192), QChar(0x2193), QChar(0x2606)}; // single arrows, white star
-    return QString(macSecondaryGlyphs[glyphIndex]);
-#else
     if (metrics.inFont(preferredGlyphs[0]) &&
             metrics.inFont(preferredGlyphs[1]) &&
             metrics.inFont(preferredGlyphs[2]))

@@ -21,7 +21,7 @@
 #ifndef QUACKER_BAGDISPLAY_H
 #define QUACKER_BAGDISPLAY_H
 
-#include <alphabetparameters.h>
+#include "alphabetparameters.h"
 #include "view.h"
 
 class QLabel;

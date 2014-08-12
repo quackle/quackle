@@ -85,7 +85,7 @@ public slots:
 
 	QString windowTitleWithAppName(const QString &windowTitle);
 
-	void done();
+	void accept();
 
 protected:
 	Dict::WordList m_wordList;

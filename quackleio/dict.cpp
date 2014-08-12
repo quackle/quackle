@@ -85,7 +85,7 @@ ExtensionList Word::extensionsByLength(int length, const ExtensionList &list)
 
 	for (ExtensionList::const_iterator it = list.begin(); it != list.end(); ++it)
 	{
-		if ((*it).extensionLetterString.length() == length)
+		if ((*it).extensionLetterString.length() == (unsigned)length)
 		{
 			Extension extension(*it);
 			extension.word = QuackleIO::Util::letterStringToQString((*it).extensionLetterString);

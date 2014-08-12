@@ -147,7 +147,7 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 	connect(m_writeButton, SIGNAL(clicked()), this, SLOT(writeButtonClicked()));
 	connect(m_writeNormalButton, SIGNAL(clicked()), this, SLOT(writeNormalButtonClicked()));
 	connect(m_studyThisButton, SIGNAL(clicked()), this, SLOT(studyButtonClicked()));
-	connect(m_closeButton, SIGNAL(clicked()), this, SLOT(done()));
+	connect(m_closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(clearButton, SIGNAL(clicked()), this, SLOT(clear()));
 	connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
 
@@ -309,7 +309,7 @@ void ListerDialog::showFilter(QListWidgetItem *item)
 	showFilter(item->text());
 }
 
-void ListerDialog::done()
+void ListerDialog::accept()
 {
 	saveSettings();
 	resetFocus();

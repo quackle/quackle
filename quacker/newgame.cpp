@@ -40,7 +40,7 @@ NewGameDialog::NewGameDialog(QWidget *parent)
 	QPushButton *okButton = new QPushButton(tr("&OK"));
 	QPushButton *cancelButton = new QPushButton(tr("&Cancel"));
 
-	connect(okButton, SIGNAL(clicked()), this, SLOT(done()));
+	connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
 
 	QHBoxLayout *buttonLayout = new QHBoxLayout;
@@ -64,10 +64,10 @@ Quackle::PlayerList NewGameDialog::players() const
 	return m_playerTab->players();
 }
 
-void NewGameDialog::done()
+void NewGameDialog::accept()
 {
 	saveSettings();
-	accept();
+	QDialog::accept();
 }
 
 void NewGameDialog::saveSettings()

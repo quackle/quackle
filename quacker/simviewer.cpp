@@ -37,7 +37,7 @@ SimViewer::SimViewer(QWidget *parent)
 	QPushButton *closeButton = new QPushButton(tr("&Close"));
 	closeButton->setDefault(true);
 
-	connect(closeButton, SIGNAL(clicked()), this, SLOT(done()));
+	connect(closeButton, SIGNAL(clicked()), this, SLOT(accept()));
 
 	QHBoxLayout *buttonLayout = new QHBoxLayout;
 	buttonLayout->addStretch(1);
@@ -55,11 +55,6 @@ void SimViewer::setSimulator(const Quackle::Simulator &simulator)
 {
 	m_averagesTab->setSimulator(simulator);
 	setWindowTitle(tr("%1 iterations of %2 - Quackle").arg(simulator.iterations()).arg(QuackleIO::Util::letterStringToQString(simulator.currentPosition().currentPlayer().rack().tiles())));
-}
-
-void SimViewer::done()
-{
-	accept();
 }
 
 /////////////
