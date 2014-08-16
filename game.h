@@ -402,6 +402,10 @@ public:
 	const UVString &explanatoryNote() const;
 	void setExplanatoryNote(const UVString &explanatoryNote);
 
+	// Methods used for tracking sim information to generate a heat map
+	void resetSimStats();
+	void addMoveToSimStats(const Move& move);
+
 	// not recommended to use this!
 	Board &underlyingBoardReference();
 

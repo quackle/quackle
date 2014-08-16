@@ -183,6 +183,16 @@ void Game::commitMove(const Move &move)
 	commitCandidate();
 }
 
+void Game::resetSimStats()
+{
+	m_board.resetSimStats();
+}
+
+void Game::addMoveToSimStats(const Move& move)
+{
+
+}
+
 ///////////
 
 GamePosition::GamePosition(const PlayerList &players)

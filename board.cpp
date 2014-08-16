@@ -748,6 +748,45 @@ void Board::prepareEmptyBoard()
 			m_hcross[i][j] = Utility::Max;
 		}
 	}
+	resetSimStats();
+}
+
+void Board::resetSimStats()
+{
+	m_simCount = 0;
+	for (int i = 0; i < m_height; ++i)
+	{
+		for (int j = 0; j < m_width; ++j)
+		{
+			m_tilesOurSimScore[row][col] = 0.;
+			m_tilesTheirSimScore[row][col] = 0.;
+		}
+	}
+}
+
+void Board::addMoveToSimStats(const Move& move, bool ourMove, int moveCount)
+{
+	if (!ourMove && moveCount > 0)
+		m_simCount++;
+	if (move.action == Move::Place)
+	{
+		double** simScore = ourMove ? m_tileOurSimScore : m_tileTheirSimScore;
+		int col = move.startcol;
+		int row = move.startrow;
+		int score = move.effectiveScore();
+
+		const LetterString::const_iterator end(move.tiles().end());
+		for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it)
+		{
+			if (m_letters[row][col] == QUACKLE_NULL_MARK)
+				simScore[row][col] += score;;
+
+			if (move.horizontal)
+				col++;
+			else
+				row++;
+		}
+	}	
 }
 
 Board::TileInformation Board::tileInformation(int row, int col) const
@@ -760,6 +799,8 @@ Board::TileInformation Board::tileInformation(int row, int col) const
 		ret.isBlank = m_isBlank[row][col];
 		ret.letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(m_letters[row][col]);
 		ret.isBritish = m_isBritish[row][col];
+		ret.ourSimScore = 0;
+		ret.theirSimScore = 0;
 	}
 	else
 	{
@@ -775,6 +816,8 @@ Board::TileInformation Board::tileInformation(int row, int col) const
 			ret.bonusSquareType = WordBonus;
 			ret.bonusMultiplier = wordMultiplier(row, col);
 		}
+		ret.ourSimScore = (int) (m_tileOurSimScore[row][col] / m_simCount);
+		ret.theirSimScore = (int) (m_tileTheirSimScore[row][col] / m_simCount);
 	}
 
 	if (row == QUACKLE_BOARD_PARAMETERS->startRow() && col == QUACKLE_BOARD_PARAMETERS->startColumn())

@@ -90,11 +90,15 @@ public:
 	UVString htmlBoard(const int tileSize) const;
 	UVString htmlKey() const;
 
+	void resetSimStats();
+	void addMoveToSimStats(const Move& move, bool ourMove, int moveCount);
+
 	enum TileType { LetterTile = 0, BonusSquareTile, NothingTile };
 	enum BonusSquareType { LetterBonus = 0, WordBonus, NoBonus };
 
-	struct TileInformation
+	class TileInformation
 	{
+	public:
 		TileInformation()
 			: letter(QUACKLE_NULL_MARK), tileType(NothingTile), isBlank(false), isBritish(false), isStartLocation(false), bonusSquareType(NoBonus), bonusMultiplier(0), isOnRack(false)
 		{
@@ -114,6 +118,9 @@ public:
 		int bonusMultiplier;
 
         bool isOnRack;
+
+        int ourSimScore;
+        int theirSimScore;
 	};
 
 	TileInformation tileInformation(int row, int col) const;
@@ -131,6 +138,7 @@ public:
 protected:
 	int m_width;
 	int m_height;
+	int m_simCount;
 	bool m_empty;
 
 	Letter m_letters[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
@@ -139,6 +147,9 @@ protected:
 
 	int m_vcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 	int m_hcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+
+	double m_tileOurSimScore[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+	double m_tileTheirSimScore[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 
 	inline bool isNonempty(int row, int column) const;
 };

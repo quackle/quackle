@@ -1411,6 +1411,20 @@ QPixmap TileWidget::generateTilePixmap()
             painter.drawRect(QRect(border, border, currentSize.width() - 2 * border, currentSize.height() - 2 * border));
         }
     }
+    else
+    {
+        int heat = m_location.width() * m_location.height() / 2;
+        QPainter painter(&ret);
+        QRadialGradient gradient(borderRect.width() / 2, borderRect.height() / 2, .75 * borderRect.width());
+        gradient.setColorAt(0., QColor(128 - heat, 128 + heat, 128 - heat, 192 + heat / 2));
+        gradient.setColorAt(0.25, QColor(128 - heat, 128 + heat, 128 - heat, 192 + heat / 2));
+        gradient.setColorAt(1.0, QColor(128, 128, 128, 192));
+
+        QBrush heatBrush(gradient);
+
+        painter.setBrush(heatBrush);
+        painter.drawRect(borderRect);
+    }
 
     if (hasNanism)
     {
