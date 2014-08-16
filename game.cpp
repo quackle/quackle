@@ -183,16 +183,6 @@ void Game::commitMove(const Move &move)
 	commitCandidate();
 }
 
-void Game::resetSimStats()
-{
-	m_board.resetSimStats();
-}
-
-void Game::addMoveToSimStats(const Move& move)
-{
-
-}
-
 ///////////
 
 GamePosition::GamePosition(const PlayerList &players)
@@ -911,6 +901,17 @@ bool GamePosition::removeLetters(const LetterString &letters)
 
 	return ret;
 }
+
+void GamePosition::resetSimStats()
+{
+	m_board.resetSimStats();
+}
+
+void GamePosition::addMoveToSimStats(const Move& move, int plyNumber)
+{
+	m_board.addMoveToSimStats(move, plyNumber);
+}
+
 
 PlayerList::const_iterator GamePosition::nextPlayer() const
 {

@@ -91,7 +91,7 @@ public:
 	UVString htmlKey() const;
 
 	void resetSimStats();
-	void addMoveToSimStats(const Move& move, bool ourMove, int moveCount);
+	void addMoveToSimStats(const Move& move, int plyNumber);
 
 	enum TileType { LetterTile = 0, BonusSquareTile, NothingTile };
 	enum BonusSquareType { LetterBonus = 0, WordBonus, NoBonus };
@@ -100,7 +100,7 @@ public:
 	{
 	public:
 		TileInformation()
-			: letter(QUACKLE_NULL_MARK), tileType(NothingTile), isBlank(false), isBritish(false), isStartLocation(false), bonusSquareType(NoBonus), bonusMultiplier(0), isOnRack(false)
+			: letter(QUACKLE_NULL_MARK), tileType(NothingTile), isBlank(false), isBritish(false), isStartLocation(false), bonusSquareType(NoBonus), bonusMultiplier(0), isOnRack(false), simScore(0)
 		{
 		}
 
@@ -119,11 +119,10 @@ public:
 
         bool isOnRack;
 
-        int ourSimScore;
-        int theirSimScore;
+        int simScore;
 	};
 
-	TileInformation tileInformation(int row, int col) const;
+	TileInformation tileInformation(int row, int col, int plyNumber = -1) const;
 
 	Letter letter(int row, int col) const;
 	bool isBlank(int row, int col) const;
@@ -148,8 +147,16 @@ protected:
 	int m_vcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 	int m_hcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 
-	double m_tileOurSimScore[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
-	double m_tileTheirSimScore[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+	class SimScoreboard
+	{
+	public:
+		SimScoreboard()
+		{
+			memset(this, 0, sizeof(*this));
+		}
+		double score[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+	};
+	std::vector<SimScoreboard> m_simScoreboard;
 
 	inline bool isNonempty(int row, int column) const;
 };

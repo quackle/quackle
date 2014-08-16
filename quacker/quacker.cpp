@@ -1857,6 +1857,13 @@ void TopLevel::createMenu()
 	moveBar->addAction(m_kibitzAsActions->actions().front());
 	moveBar->addAction(m_simulateAction);
 
+	m_heatCombo = new QComboBox;
+	QLabel *heatLabel = new QLabel(tr("Heat map:"));
+	heatLabel->setBuddy(m_heatCombo);
+
+	moveBar->addWidget(heatLabel);
+	moveBar->addWidget(m_heatCombo);
+
 	// study toolbar
 	if (enableLetterbox)
 	{

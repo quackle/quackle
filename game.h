@@ -404,7 +404,7 @@ public:
 
 	// Methods used for tracking sim information to generate a heat map
 	void resetSimStats();
-	void addMoveToSimStats(const Move& move);
+	void addMoveToSimStats(const Move& move, int plyNumber);
 
 	// not recommended to use this!
 	Board &underlyingBoardReference();

@@ -401,6 +401,8 @@ private:
 	QAction *m_simulateDetailsAction;
 	QAction *m_preferencesAction;
 
+	QComboBox *m_heatCombo;
+
 #ifdef ENABLE_GRAPHICAL_REPORT
 	QAction *m_graphicalReportAction;
 #endif
