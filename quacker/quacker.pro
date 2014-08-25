@@ -61,6 +61,6 @@ macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }
 
-unix {
+unix:!macx {
 	QMAKE_CXXFLAGS += -Wno-unused-local-typedefs
 }

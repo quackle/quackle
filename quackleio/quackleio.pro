@@ -40,6 +40,6 @@ macx-xcode {
 	CONFIG += x86	
 }
 
-unix {
+unix:!macx {
 	QMAKE_CXXFLAGS += -Wno-unused-local-typedefs
 }
