@@ -164,7 +164,6 @@ void MoveBox::setMoves(const Quackle::MoveList &moves, const Quackle::Move &sele
 		resorted = true;
 	}
 
-	bool hasOldItems = false;
 	bool hasNewItems = false;
 
 	Quackle::MoveList::const_iterator end(moves.end());
@@ -183,7 +182,6 @@ void MoveBox::setMoves(const Quackle::MoveList &moves, const Quackle::Move &sele
 					m_treeWidget->addTopLevelItem(m_treeWidget->takeTopLevelItem(m_treeWidget->indexOfTopLevelItem(mapIt.value())));
 				}
 
-				hasOldItems = true;
 				goto foundFirstPass;
 			}
 		}

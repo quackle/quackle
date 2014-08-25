@@ -39,3 +39,7 @@ macx-g++ {
 macx-xcode {
 	CONFIG += x86	
 }
+
+unix {
+	QMAKE_CXXFLAGS += -Wno-unused-local-typedefs
+}
