@@ -20,6 +20,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <algorithm>
 
 #include "alphabetparameters.h"
 #include "computerplayer.h"
