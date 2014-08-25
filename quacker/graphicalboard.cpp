@@ -574,7 +574,12 @@ void GraphicalBoardFrame::keyPressEvent(QKeyEvent *event)
             break;
         
         case Append:
-            if (event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier || event->text().isEmpty())
+            if (event->modifiers() & Qt::AltModifier && event->modifiers() & Qt::ControlModifier)
+            {
+                if (event->text().isEmpty())
+                    break; // let AltGr (Ctrl+Alt) events slip through
+            }
+            else if (event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier || event->text().isEmpty())
             {
                 event->ignore();
                 return;
