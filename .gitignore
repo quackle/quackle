@@ -11,3 +11,10 @@ ChangeLog
 *.app
 *.sublime-workspace
 *.xcodeproj
+*.exe
+*.pfx
+*.cer
+*.dll
+dawginput.raw
+playabilities.raw
+smaller.raw
