@@ -514,4 +514,5 @@ int MiniDawgMaker::executeFromArguments()
 				bytes[4] = n5; bytes[5] = n6; bytes[6] = n7;
         out.write(bytes, 7);
     }
+    return 0;
 }

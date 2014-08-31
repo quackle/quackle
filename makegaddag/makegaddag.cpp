@@ -63,11 +63,11 @@ void Node::print(Quackle::LetterString prefix) {
 		children[children.size() - 1].lastchild = true;
 	}
 
-	for (int i = 0; i < children.size(); i++) {
+	for (size_t i = 0; i < children.size(); i++) {
 		nodelist.push_back(&children[i]);
 	}
 
-	for (int i = 0; i < children.size(); i++) {
+	for (size_t i = 0; i < children.size(); i++) {
 		children[i].print(prefix + children[i].c);
 	}
 }
@@ -84,7 +84,7 @@ void Node::pushword(Quackle::LetterString word) {
 
 		// cout << "first: " << first << ", rest: " << rest << endl;
 
-		for (int i = 0; i < children.size(); i++) {
+		for (size_t i = 0; i < children.size(); i++) {
 			if (children[i].c == first) {
 				index = i;
 				i = children.size();
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
 			++encodableWords;
 
-			for (int i = 1; i <= encodedWord.length(); i++) {
+			for (unsigned i = 1; i <= encodedWord.length(); i++) {
 				Quackle::LetterString newword;
 
 				for (int j = i - 1; j >= 0; j--) {
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
 
 				if (i < encodedWord.length()) {
 					newword.push_back(internalSeparatorRepresentation);  // "^"
-					for (int j = i; j < encodedWord.length(); j++) {
+					for (unsigned j = i; j < encodedWord.length(); j++) {
 						newword.push_back(encodedWord[j]);
 					}
 				}
@@ -226,7 +226,7 @@ int main(int argc, char **argv)
 
 	ofstream out(QuackleIO::Util::qstringToStdString(outputFilename).c_str(), ios::out | ios::binary);
 
-	for (int i = 0; i < nodelist.size(); i++) {
+	for (size_t i = 0; i < nodelist.size(); i++) {
 		// UVcout << nodelist[i]->c << " " << nodelist[i]->pointer << " " << nodelist[i]->t << " " << nodelist[i]->lastchild << endl;
 
 		unsigned int p = (unsigned int)(nodelist[i]->pointer);
