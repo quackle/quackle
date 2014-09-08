@@ -572,15 +572,19 @@ void GraphicalBoardFrame::keyPressEvent(QKeyEvent *event)
             break;
         
         case Append:
-            if (event->modifiers() & Qt::AltModifier && event->modifiers() & Qt::ControlModifier)
+			if (event->text().isEmpty() ||
+				(event->text().at(0) >= 0xa8 && event->text().at(0) <= 0xb8) || // combining character
+				(event->text().at(0) >= 0x2b9 && event->text().at(0) <= 0x2ff)) // combining character
+				break; // let AltGr (Ctrl+Alt) and other composite keyboard events slip through
+            else if (event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier)
             {
-                if (event->text().isEmpty())
-                    break; // let AltGr (Ctrl+Alt) events slip through
-            }
-            else if (event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier || event->text().isEmpty())
-            {
-                event->ignore();
-                return;
+				if (!event->text().isEmpty() &&
+					((event->text().at(0) >= 'a' && event->text().at(0) <= 'z') ||
+					 (event->text().at(0) >= 'A' && event->text().at(0) <= 'Z')))
+				{
+					event->ignore();
+					return;
+				}
             }
     
             appendHandler(event->text(), event->modifiers() & Qt::ShiftModifier);
