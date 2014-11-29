@@ -4,8 +4,7 @@ Makefile
 Makefile.Debug
 Makefile.Release
 debug
-object_script.libquackle.Debug
-object_script.libquackle.Release
+object_script.*
 release
 ChangeLog
 *.app
