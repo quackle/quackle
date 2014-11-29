@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
     while (!stream.atEnd())
 	{
 		QString originalQString;
-    stream >> originalQString;
+		stream >> originalQString;
 
 		bool inSmaller = smallerMap[originalQString];
 		int pb = playabilityMap[originalQString];
