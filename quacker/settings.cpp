@@ -51,15 +51,26 @@ Settings *Settings::self()
 Settings::Settings(QWidget *parent)
 	: QWidget(parent), m_lexiconNameCombo(0), m_alphabetNameCombo(0), m_themeNameCombo(0)
 {
+	QDir appDir = QDir(QCoreApplication::applicationDirPath());
+	// Make up for the idiosyncracies of Mac OSX bundle paths.
+	#ifdef Q_OS_MAC
+	appDir.cdUp();
+	appDir.cdUp();
+	appDir.cdUp();
+	#endif
 	m_self = this;
-
-	if (QFile::exists("data"))
-		m_dataDir = "data";
-	else if (QFile::exists("../data"))
-		m_dataDir = "../data";
-	else if (QFile::exists("Quackle.app/Contents/data"))
-		m_dataDir = "Quackle.app/Contents/data";
-
+	if (QFile::exists(appDir.filePath("data"))) {
+		// Windows/Linux (I think)
+		m_dataDir = appDir.filePath("data");
+	}
+	else if (QFile::exists(appDir.filePath("../data"))) {
+		// (While developing)
+		m_dataDir = appDir.filePath("../data");
+	}
+	else if (QFile::exists(appDir.filePath("Quackle.app/Contents/data"))) {
+		// Mac-specific case
+		m_dataDir = appDir.filePath("Quackle.app/Contents/data");
+	}
 	else
 	{
 		QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
