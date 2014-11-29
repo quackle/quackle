@@ -1,11 +1,13 @@
 TEMPLATE = app
-VERSION = 0.97
+VERSION = 0.98
+TARGET = Quackle
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
 
 APP_ALPHABETS_FILES.files = ../data/alphabets
 APP_LEXICA_FILES.files = ../data/lexica
 APP_STRATEGY_FILES.files = ../data/strategy
+APP_THEME_FILES.files = ../data/themes
 
 MOC_DIR = moc
 
@@ -44,13 +46,16 @@ win32:!win32-g++ {
 macx {
 	DEFINES += FORCE_SECONDARY_ARROW_GLYPHS=1
 	ICON = quacker.icns
+	BUNDLEID = com.Quackle.Quackle
+	QMAKE_INFO_PLIST = Quackle.plist
 
 	# copy data/ directory into app bundle
 	APP_ALPHABETS_FILES.path = Contents/MacOS/data
 	APP_LEXICA_FILES.path = Contents/MacOS/data
 	APP_STRATEGY_FILES.path = Contents/MacOS/data
+	APP_THEME_FILES.path = Contents/MacOS/data
 
-	QMAKE_BUNDLE_DATA += APP_ALPHABETS_FILES APP_LEXICA_FILES APP_STRATEGY_FILES APP_PLIST_FILE
+	QMAKE_BUNDLE_DATA += APP_ALPHABETS_FILES APP_LEXICA_FILES APP_STRATEGY_FILES APP_THEME_FILES
 
 	# plist gymnastics
 	QMAKE_POST_LINK += ;cp -n $$PWD/quacker.plist $${OUT_PWD}/$${TARGET}.app/Contents
