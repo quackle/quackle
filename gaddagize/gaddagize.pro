@@ -7,6 +7,7 @@ INCLUDEPATH += . ..
 CONFIG += release
 
 CONFIG += console
+CONFIG -= app_bundle
 
 debug {
   OBJECTS_DIR = obj/debug

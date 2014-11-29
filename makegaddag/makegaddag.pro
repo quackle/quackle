@@ -17,6 +17,7 @@ MOC_DIR = moc
 # CONFIG += debug
 
 CONFIG += console
+CONFIG -= app_bundle
 
 LIBS += -lquackleio -lquackle
 

@@ -8,6 +8,7 @@ CONFIG += release
 
 CONFIG += console
 CONFIG -= x11
+CONFIG -= app_bundle
 
 debug {
   OBJECTS_DIR = obj/debug
