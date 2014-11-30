@@ -6,6 +6,8 @@ INCLUDEPATH += . ..
 
 APP_ALPHABETS_FILES.files = $$files(../data/alphabets/*)
 APP_LEXICA_FILES.files = $$files(../data/lexica/*)
+APP_STRATEGY_FILEScswapr07.files = $$files(../data/strategy/cswapr07/*)
+APP_STRATEGY_FILEScsw12.files = $$files(../data/strategy/csw12/*)
 APP_STRATEGY_FILESods5.files = $$files(../data/strategy/ods5/*)
 APP_STRATEGY_FILEStwl06.files = $$files(../data/strategy/twl06/*)
 APP_STRATEGY_FILEStwl98.files = $$files(../data/strategy/twl98/*)
@@ -55,12 +57,14 @@ macx {
 	# copy data/ directory into app bundle
 	APP_ALPHABETS_FILES.path = Contents/MacOS/data/alphabets
 	APP_LEXICA_FILES.path = Contents/MacOS/data/lexica
+	APP_STRATEGY_FILEScswapr07.path = Contents/MacOS/data/strategy/cswapr07
+	APP_STRATEGY_FILEScsw12.path = Contents/MacOS/data/strategy/csw12
 	APP_STRATEGY_FILESods5.path = Contents/MacOS/data/strategy/ods5
 	APP_STRATEGY_FILEStwl06.path = Contents/MacOS/data/strategy/twl06
 	APP_STRATEGY_FILEStwl98.path = Contents/MacOS/data/strategy/twl98
 	APP_THEME_FILES.path = Contents/MacOS/data/themes
 
-	QMAKE_BUNDLE_DATA += APP_ALPHABETS_FILES APP_LEXICA_FILES APP_STRATEGY_FILESods5 APP_STRATEGY_FILEStwl06 APP_STRATEGY_FILEStwl98 APP_THEME_FILES
+	QMAKE_BUNDLE_DATA += APP_ALPHABETS_FILES APP_LEXICA_FILES APP_STRATEGY_FILEScswapr07 APP_STRATEGY_FILEScsw12 APP_STRATEGY_FILESods5 APP_STRATEGY_FILEStwl06 APP_STRATEGY_FILEStwl98 APP_THEME_FILES
 
 	# plist gymnastics
 	QMAKE_POST_LINK += ;cp -n $$PWD/quacker.plist $${OUT_PWD}/$${TARGET}.app/Contents
