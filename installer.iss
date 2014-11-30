@@ -7,6 +7,7 @@ AppVerName=Quackle 0.98
 DefaultDirName={pf}\Quackle
 DefaultGroupName=Quackle
 ChangesAssociations=yes
+UninstallDisplayIcon={app}\Quackle.exe
 
 [Icons]
 Name: "{group}\Quackle 0.98"; Filename: "{app}\Quackle.exe"; WorkingDir: "{app}"
