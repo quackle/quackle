@@ -24,6 +24,10 @@
 #include <QtGui>
 #include <QMessageBox>
 
+#ifdef Q_WS_MAC
+#include <CoreFoundation/CoreFoundation.h>
+#endif // Q_WS_MAC
+
 #include "alphabetparameters.h"
 #include "board.h"
 #include "boardparameters.h"
@@ -52,6 +56,28 @@ Settings::Settings(QWidget *parent)
 	: QWidget(parent), m_lexiconNameCombo(0), m_alphabetNameCombo(0), m_themeNameCombo(0)
 {
 	m_self = this;
+	QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
+
+ #ifdef Q_WS_MAC
+	if (CFBundleGetMainBundle())
+	{
+		 CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
+		 if (dataUrlRef)
+		 {
+		 	 CFStringRef macPath = CFURLCopyFileSystemPath(dataUrlRef, kCFURLPOSIXPathStyle);
+			 size_t sizeOfBuf = CFStringGetMaximumSizeOfFileSystemRepresentation(macPath);
+			 char* buf = (char*) malloc(sizeOfBuf);
+
+			 CFStringGetFileSystemRepresentation(macPath, buf, sizeOfBuf);
+		 	 directory = QDir(buf);
+		 	 directory.cdUp();
+
+			 free(buf);
+			 CFRelease(dataUrlRef);
+			 CFRelease(macPath);
+		 }
+	}
+ #endif
 
 	if (QFile::exists("data"))
 		m_dataDir = "data";
@@ -59,10 +85,8 @@ Settings::Settings(QWidget *parent)
 		m_dataDir = "../data";
 	else if (QFile::exists("Quackle.app/Contents/data"))
 		m_dataDir = "Quackle.app/Contents/data";
-
 	else
 	{
-		QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 		if (!directory.cd("data") || !directory.cd("../data"))
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
 		m_dataDir = directory.absolutePath();
