@@ -103,77 +103,102 @@ void Settings::createGUI()
 	m_lexiconNameCombo = new QComboBox;
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
 
-	QStringList items;
-	populateListFromFilenames(items, m_dataDir + "/lexica");
-	m_lexiconNameCombo->addItems(items);
-
-	QLabel *cswText = new QLabel(tr("The WESPA wordlist (CSW12) is copyright Harper Collins 2011."));
+	QStringList lexiconItems;
+	populateListFromFilenames(lexiconItems, "lexica");
+	m_lexiconNameCombo->addItems(lexiconItems);
 
 	QHBoxLayout *lexiconLayout = new QHBoxLayout;
 	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon:"));
 	lexiconNameLabel->setBuddy(m_lexiconNameCombo);
+	m_editLexicon = new QPushButton(tr("Edit..."));
+	m_editLexicon->setMaximumWidth(60);
+	connect(m_editLexicon, SIGNAL(clicked()), this, SLOT(editLexicon()));
 
 	lexiconLayout->addWidget(lexiconNameLabel);
 	lexiconLayout->addWidget(m_lexiconNameCombo);
+	lexiconLayout->addWidget(m_editLexicon);
 
 	m_alphabetNameCombo = new QComboBox;
 	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
 
 	QStringList alphabetItems;
-	populateListFromFilenames(alphabetItems, m_dataDir + "/alphabets");
+	populateListFromFilenames(alphabetItems, "alphabets");
 	m_alphabetNameCombo->addItems(alphabetItems);
 
 	QHBoxLayout *alphabetLayout = new QHBoxLayout;
 	QLabel *alphabetNameLabel = new QLabel(tr("&Alphabet:"));
 	alphabetNameLabel->setBuddy(m_alphabetNameCombo);
+	m_editAlphabet = new QPushButton(tr("Edit..."));
+	m_editAlphabet->setMaximumWidth(60);
+	connect(m_editAlphabet, SIGNAL(clicked()), this, SLOT(editAlphabet()));
 
 	alphabetLayout->addWidget(alphabetNameLabel);
 	alphabetLayout->addWidget(m_alphabetNameCombo);
+	alphabetLayout->addWidget(m_editAlphabet);
 
 	m_themeNameCombo = new QComboBox;
 	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
 
 	QStringList themeItems;
-	populateListFromFilenames(themeItems, m_dataDir + "/themes");
+	populateListFromFilenames(themeItems, "themes");
 	m_themeNameCombo->addItems(themeItems);
 
 	QHBoxLayout *themeLayout = new QHBoxLayout;
 	QLabel *themeNameLabel = new QLabel(tr("&Theme:"));
 	themeNameLabel->setBuddy(m_themeNameCombo);
+	m_editTheme = new QPushButton(tr("Edit..."));
+	m_editTheme->setMaximumWidth(60);
+	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme));
 
 	themeLayout->addWidget(themeNameLabel);
 	themeLayout->addWidget(m_themeNameCombo);
+	themeLayout->addWidget(m_editTheme);
 
-	m_boardNameCombo = new QComboBox();
+	m_boardNameCombo = new QComboBox;
 	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
 
-	m_addBoard = new QPushButton(tr("Add Board"));
-	connect(m_addBoard, SIGNAL(clicked()), this, SLOT(addBoard()));
+	QStringList boardItems;
+	populateListFromFilenames(boardItems, "boards");
+	m_boardNameCombo->addItems(boardItems);
 
-	m_editBoard = new QPushButton(tr("&Edit Board"));
-	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
-
-	m_deleteBoard = new QPushButton(tr("&Delete Board"));
-	connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
-
-	loadBoardNameCombo();
-
-	QGroupBox *boardGroup = new QGroupBox("Game Board Definitions");
-	QGridLayout *boardLayout = new QGridLayout(boardGroup);
+	QHBoxLayout *boardLayout = new QHBoxLayout;
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
 	boardNameLabel->setBuddy(m_boardNameCombo);
+	m_editBoard = new QPushButton(tr("Edit..."));
+	m_editBoard->setMaximumWidth(60);
+	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard));
 
-	boardLayout->addWidget(boardNameLabel, 0, 0);
-	boardLayout->addWidget(m_boardNameCombo, 0, 1, 1, -1);
-	boardLayout->addWidget(m_addBoard, 1, 0);
-	boardLayout->addWidget(m_editBoard, 1, 1);
-	boardLayout->addWidget(m_deleteBoard, 1, 2);
+	boardLayout->addWidget(boardNameLabel);
+	boardLayout->addWidget(m_boardNameCombo);
+	boardLayout->addWidget(m_editBoard);
 
-	vlayout->addWidget(cswText);
+	// m_addBoard = new QPushButton(tr("Add Board"));
+	// connect(m_addBoard, SIGNAL(clicked()), this, SLOT(addBoard()));
+
+	// m_editBoard = new QPushButton(tr("&Edit Board"));
+	// connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
+
+	// m_deleteBoard = new QPushButton(tr("&Delete Board"));
+	// connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
+
+	// loadBoardNameCombo();
+
+	// QGroupBox *boardGroup = new QGroupBox("Game Board Definitions");
+	// QGridLayout *boardLayout = new QGridLayout(boardGroup);
+	// QLabel *boardNameLabel = new QLabel(tr("&Board:"));
+	// boardNameLabel->setBuddy(m_boardNameCombo);
+
+	// boardLayout->addWidget(boardNameLabel, 0, 0);
+	// boardLayout->addWidget(m_boardNameCombo, 0, 1, 1, -1);
+	// boardLayout->addWidget(m_addBoard, 1, 0);
+	// boardLayout->addWidget(m_editBoard, 1, 1);
+	// boardLayout->addWidget(m_deleteBoard, 1, 2);
+
+
 	vlayout->addLayout(lexiconLayout);
 	vlayout->addLayout(alphabetLayout);
 	vlayout->addLayout(themeLayout);
-	vlayout->addWidget(boardGroup);
+	vlayout->addLayout(boardLayout);
 	vlayout->addStretch();
 
 	load();
@@ -432,15 +457,18 @@ void Settings::loadBoardNameCombo()
 
 	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(currentItem));
-
-	m_editBoard->setEnabled(boardNames.count() > 0);
-	m_deleteBoard->setEnabled(boardNames.count() > 0);
 }
 
 void Settings::populateListFromFilenames(QStringList& list, const QString &path)
 {
-	QDir dir(path);
-	QStringList fileList = dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+	QStringList fileList;
+	QDir dir(m_dataDir);
+	if (dir.cd(path))
+		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+	dir = QDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+	if (dir.cd(path))
+		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+
 	QStringListIterator i(fileList);
 	QString fileName;
 	int periodPos;

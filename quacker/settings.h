@@ -76,9 +76,10 @@ protected:
 	QComboBox *m_alphabetNameCombo;
 	QComboBox *m_themeNameCombo;
 	QComboBox *m_boardNameCombo;
-	QPushButton *m_addBoard;
+	QPushButton *m_editLexicon;
+	QPushButton *m_editAlphabet;
+	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
-	QPushButton *m_deleteBoard;
 	QString m_dataDir;
 	QString m_themeName;
 
