@@ -684,7 +684,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 	game.addPosition();
 
-	UVcout << "NEW GAME (#" << gameNumber << ")" << endl;
+	//UVcout << "NEW GAME (#" << gameNumber << ")" << endl;
 
 	QTime time;
 	time.start();
@@ -701,7 +701,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				const PlayerList players = pos.endgameAdjustedScores();
 				for (PlayerList::const_iterator it = players.begin();
 					it != players.end(); ++it) {
-					UVcout << it->name() << " : " << it->score() << " ";
+					//UVcout << it->name() << " : " << it->score() << " ";
 				}
 				UVcout << endl;
 			}
@@ -714,24 +714,63 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
             if (playability) {
                 game.currentPosition().kibitz(100);
                 Quackle::MoveList moves = game.currentPosition().moves();
-                float bestEquity = moves.front().equity - 0.0001f;
-                Quackle::MoveList tops;
-                for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
-                    if ((*it).equity >= bestEquity) {
-                        tops.push_back(*it);
-                    }
-                }
-                int numTops = tops.size();
-                for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
-                    MoveList words = game.currentPosition().allWordsFormedBy(*it);
-                    for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
-                        Rack word = (*it2).prettyTiles();
-                        UVcout << word << " " << numTops << endl;
-                    }
-                }
-                int toPlay = rand() % numTops;
-                //UVcout << "playing move #" << toPlay << endl;
-                game.commitMove(tops[toPlay]);
+		
+	        // alkamid's mod: output the best move and the difference between it and the next best that uses different letters (for calculating playability)
+		//TODO: exchange moves get written even if they shouldn't
+		Rack used = moves.front().usedTiles();
+		Rack tempUsed;
+		double diff = 0.0;
+		std::vector<Quackle::Rack> bestMoves;
+
+		for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
+			tempUsed = (*it).usedTiles();
+				
+			if (tempUsed.equals(used) == false) {
+				diff = moves.front().equity - (*it).equity;
+				if (diff == 0) {
+					int found = 0;
+					
+					if ((*it).action == Move::Exchange) {
+						break;
+					}
+					
+					for (int j =0; j< bestMoves.size(); j++) {
+						if (bestMoves[j].equals((*it).wordTiles())) {
+								found = 1;
+								break;
+							}
+					}
+					if (found == 0) {
+						bestMoves.push_back((*it).wordTiles());
+					}
+				}
+				else {
+					for (int j = 0; j < bestMoves.size(); j++) {
+						UVcout << bestMoves[j] << " " << diff << endl;
+					}
+					break;
+				}
+			}
+			else {
+				diff = moves.front().equity - (*it).equity;
+				if (diff == 0) {
+					int found = 0;
+					for (int j =0; j< bestMoves.size(); j++) {
+						if (bestMoves[j].equals((*it).wordTiles())) {
+								found = 1;
+								break;
+							}
+					}
+					if (found == 0) {
+						bestMoves.push_back((*it).wordTiles());
+					}
+				}
+			}
+
+			}
+		// end: alkamid's mod
+                
+                game.commitMove(moves.front());
             } else {
                 Quackle::Move compMove(game.haveComputerPlay());
                 UVcout << "with " << player.rack() << ", " << player.name()
@@ -742,8 +781,8 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 	int secondsElapsed = static_cast<int>(time.elapsed() / 1000);
 	if (!m_quiet) {
-		UVcout << "Game " << gameNumber << " played in " << secondsElapsed
-	           << " seconds with " << i << " moves" << endl;
+		//UVcout << "Game " << gameNumber << " played in " << secondsElapsed
+	        //   << " seconds with " << i << " moves" << endl;
 	}
 
 	if (!reports) {
