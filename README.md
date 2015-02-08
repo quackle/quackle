@@ -18,7 +18,8 @@ jasonkatzbrown@gmail.edu
 jfultz@wolfram.com
 matt.liberty@gmail.com
 
-### alkamid's mod
+alkamid's mod
+=============
 
 I added a few partisan lines in order for the "test" program in test/ to output playability values. The algorithm is as follows:
 
@@ -27,3 +28,37 @@ I added a few partisan lines in order for the "test" program in test/ to output 
 3. Print the best move(s) and the difference between them and the "next best".
 
 If I understand correctly, this is more or less how John O'Laughlin generated his [playability list](http://pages.cs.wisc.edu/~o-laughl/collins/). Please correct me if I am wrong.
+
+### Evaluate rack values
+
+ADUREIL is a much better rack than ZQAAAAE, but how do we quantify it? Quackle uses the following method: play a game of several moves, then set the rack and see what is the best move that we can play. Repeat this ten times or so and average to get an estimated *rack value*. Do the following to calculate the value of all racks: (I'll use Polish as an example)
+
+```shell
+./test --mode=enumerate --lexicon=osps --alphabet=polish > racks
+```
+
+You'll get a list of all racks and their probabilities:
+
+```
+?DĘGHKT 1.34936e-08
+?DĘGHKU 8.99575e-09
+?DĘGHKW 1.79915e-08
+?DĘGHKY 1.79915e-08
+?DĘGHKZ 2.24894e-08
+```
+
+Delete the first three lines from the file `racks`:
+
+```
+Starting up.couldn't open gaddag 
+Performance without gaddag won't be quite so awesome.
+..
+```
+
+Run rack evaluation:
+
+```shell
+./test --mode=staticleaves --lexicon=osps --alphabet=polish > leaves.txt
+```
+
+(to be continued)
