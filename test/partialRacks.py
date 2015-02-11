@@ -52,7 +52,7 @@ def partialValue(rackLen):
         i = 0.0
         avgVal = 0.0
         
-        for elem in s:
+        for elem in combSet:
             multiplier = 1.0
             for letter in elem:
                 multiplier *= smallerBag[letter]
