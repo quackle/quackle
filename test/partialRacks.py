@@ -2,6 +2,7 @@
 
 import io
 import itertools
+import time
 
 def loadAlphabet(filename):
     fil = io.open(filename, encoding="utf-8")
@@ -44,18 +45,23 @@ def partialValue(rackLen):
         for letter in smallerBag:
             bagList += smallerBag[letter]*letter
 
-        it = itertools.combinations(bagList, 7-rackLen)
+        combs= itertools.combinations(bagList, 7-rackLen)
+        combSet = set(combs)
 
         sumVals = 0.0
         i = 0.0
         avgVal = 0.0
         
-        for elem in it:
+        for elem in s:
+            multiplier = 1.0
+            for letter in elem:
+                multiplier *= smallerBag[letter]
+    
             fullrack = u''.join(sorted(r + u''.join(elem)))
-            sumVals += leaves[fullrack]
-            i+=1.0
-        
+            sumVals += leaves[fullrack]*multiplier
+            i+= multiplier
+
         avgVal = sumVals / i
         outFile.write(u'%s %f\n' % (r, avgVal))
 
-partialValue(5)
+partialValue(3)
