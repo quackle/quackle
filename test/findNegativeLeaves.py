@@ -2,7 +2,8 @@ import io
 
 def findNegativeLeaves():
     '''sometimes Quackle incorrectly assigns negative equity to a 7-letter rack.
-    This script finds them.'''
+    This script finds them. Output both the list of negatives and a filtered
+    input list without them.'''
 
     leaves = io.open("input/leaves.txt", encoding='utf-8').read().splitlines()
     leavesNeg = io.open("output/leaves-negative.txt", "w", encoding='utf-8')
