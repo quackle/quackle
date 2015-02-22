@@ -6,7 +6,7 @@ import io
 def calculateAverage():
     '''real values of leaves should be averaged over all possible leaves'''
     
-    # I don't really know how this conv works, but I'll keep it for now as I've already spent too much time on this script
+    # I don't really know how this conv works, but I'll keep it for now as I've already spent too much time on this script. Got it from here: http://stackoverflow.com/questions/28454584/unicode-string-in-matplotlib-annotate
     conv = {0:(lambda s: s.decode('utf-8'))}
 
     values = np.loadtxt("input/leaves.txt", usecols=(1,))
