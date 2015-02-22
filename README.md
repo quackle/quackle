@@ -68,8 +68,8 @@ This will take a while. You'll end up with a file that looks like this:
 ??AAAFP  8H PArAFkA (score = 80, equity = 78.7943, win% = 0)
 ```
 
-We are interested in `equity` of each rack. I got a few racks with a negative value — not sure why. I filtered them out from the big list and run `--mode=staticleaves` on them again.
+We are interested in `equity` of each rack. I got a few racks with a negative value — not sure why. I filtered them out from the big list (`python findNegativeLeaves.py`) and run `--mode=staticleaves` on them again.
 
-Now, these equity values are absolute so we want to average them: simply take an average of all the racks (for Polish it's something like 30-40) and subtract it from each rack's equity to get a list of valid *rack value* estimations.
+Now, these equity values are absolute so we want to average them. First filter the list into a "RACK VALUE" format (`python filterLeaves.py`) and take an average of all the racks (for Polish it's something like 30-40) and subtract it from each rack's equity to get a list of valid *rack value* estimations.
 
 The next step is to calculate the value of n<7 letter racks. I'll write a script to do this soon and post it here.
