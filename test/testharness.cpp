@@ -722,52 +722,55 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		double diff = 0.0;
 		std::vector<Quackle::Rack> bestMoves;
 
-		for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
-			tempUsed = (*it).usedTiles();
-				
-			if (tempUsed.equals(used) == false) {
-				diff = moves.front().equity - (*it).equity;
-				if (diff == 0) {
-					int found = 0;
-					
-					if ((*it).action == Move::Exchange) {
-						break;
-					}
-					
-					for (int j =0; j< bestMoves.size(); j++) {
-						if (bestMoves[j].equals((*it).wordTiles())) {
-								found = 1;
-								break;
-							}
-					}
-					if (found == 0) {
-						bestMoves.push_back((*it).wordTiles());
-					}
-				}
-				else {
-					for (int j = 0; j < bestMoves.size(); j++) {
-						UVcout << bestMoves[j] << " " << diff << endl;
-					}
-					break;
-				}
-			}
-			else {
-				diff = moves.front().equity - (*it).equity;
-				if (diff == 0) {
-					int found = 0;
-					for (int j =0; j< bestMoves.size(); j++) {
-						if (bestMoves[j].equals((*it).wordTiles())) {
-								found = 1;
-								break;
-							}
-					}
-					if (found == 0) {
-						bestMoves.push_back((*it).wordTiles());
-					}
-				}
-			}
+		if (moves.front().action != Move::Exchange) {
 
-			}
+		    for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
+			    tempUsed = (*it).usedTiles();
+
+			    if (tempUsed.equals(used) == false) {
+				    diff = moves.front().equity - (*it).equity;
+				    if (diff == 0) {
+					    int found = 0;
+
+					    if ((*it).action == Move::Exchange) {
+						    break;
+					    }
+
+					    for (uint j =0; j< bestMoves.size(); j++) {
+						    if (bestMoves[j].equals((*it).wordTiles())) {
+								    found = 1;
+								    break;
+							    }
+					    }
+					    if (found == 0) {
+						    bestMoves.push_back((*it).wordTiles());
+					    }
+				    }
+				    else {
+					    for (uint j = 0; j < bestMoves.size(); j++) {
+						    UVcout << bestMoves[j] << " " << diff << endl;
+					    }
+					    break;
+				    }
+			    }
+			    else {
+				    diff = moves.front().equity - (*it).equity;
+				    if (diff == 0) {
+					    int found = 0;
+					    for (uint j =0; j< bestMoves.size(); j++) {
+						    if (bestMoves[j].equals((*it).wordTiles())) {
+								    found = 1;
+								    break;
+							    }
+					    }
+					    if (found == 0) {
+						    bestMoves.push_back((*it).wordTiles());
+					    }
+				    }
+			    }
+
+			    }
+		}
 		// end: alkamid's mod
                 
                 game.commitMove(moves.front());
