@@ -17,20 +17,15 @@ tools are:
 Free Tools Build:
 ------------------------------------
 MinGW
-Qt 4.7.4 or higher
-CVS (you may elect to use the cvs available in cygwin, but see the
-     note below)
-cygwin (optional) - if you want to debug, you'll need gdb from cygwin.  I
-               recommend installing it with DOS newline support,
-               not Unix newline support (especially if you use cygwin's
-               cvs client).
+Qt 4.8
+git
+cygwin (optional) - if you want to debug, you'll need gdb from cygwin.
 
 Microsoft Tools Build:
 ------------------------------------
-Visual C++ (I use 15.00.21022.08 in Quackle 0.97)
-Qt 4.4.x or higher (I use 4.4.1 in Quackle 0.97)
-CVS (you may elect to use the cvs available in cygwin, but see the
-     note below)
+Visual C++
+Qt 4.8
+git
 
 Installer build:
 ------------------------------------
@@ -50,7 +45,10 @@ in your environment...
 Building is very straightforward.  The following steps will get you to a
 working executable...
 
-* Check out or update the quackle development directory using cvs.
+* Make sure your PATH includes Qt's 'bin' directory.  If you're building
+  with MinGW, make sure your PATH includes MinGW's 'bin' directory, and
+  that it's earlier than Qt's 'bin' directory on the PATH (otherwise,
+  attempts to run it from the build layout may fail with DLL errors).
 
 * In the directories quackle\, quackle\quackleio, and quackle\quacker,
   do the following...
@@ -60,14 +58,14 @@ working executable...
   	mingw32-make <target>          nmake <target>
  <target> can be debug, release, or empty if you want to build both.
 
-* You can now run quackle\quacker\release\quacker.exe
+* You can now run quackle\quacker\release\Quackle.exe
 
 
 Additional things to know:
 --------------------------
 * To build the Quackle installer,
   + Copy QtCore4.dll and QtGui4.dll from Qt's bin/ directory into quackle\
-  + If you're building with MinGW, copy mingwm10.dll and
+  + If you're building with MinGW, copy mingwm10.dll, libstdc++-6.dll, and
     libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
   + From the Quackle directory, run the following...
     <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
@@ -91,7 +89,7 @@ Additional things to know:
 
 Building Qt libraries
 ---------------------
-  You can download the mingw or Visual Studio 2008 version of the prebuilt
+  You can download the mingw or Visual Studio versions of the prebuilt
   Qt libraries.
   
   To build your own libraries, download
@@ -111,4 +109,4 @@ Building Qt libraries
   configure process.
 
   Here's a helpful document on the process:
-  http://doc.qt.nokia.com/4.7/install-win.html
+  https://qt-project.org/doc/qt-4.8/install-win.html
