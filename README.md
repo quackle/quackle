@@ -72,4 +72,35 @@ We are interested in `equity` of each rack. I got a few racks with a negative va
 
 Now, these equity values are absolute so we want to average them. First filter the list into a "RACK VALUE" format (`python filterLeaves.py`) and take an average of all the racks (for Polish it's something like 30-40) and subtract it from each rack's equity to get a list of valid *rack value* estimations. (`python calculateAverage.py`)
 
-The next step is to calculate the value of n<7 letter racks. I'll write a script to do this soon and post it here.
+The next step is to calculate the value of n<7 letter racks. First we need to generate them — for this I recommend changing this line in `testharness.cpp`:
+
+```cpp
+E.enumerate(&racks);
+```
+
+to
+
+```cpp
+E.enumerate(&racks, n);
+```
+
+where `n` is the number of letters. Then compile the program and run:
+
+```shell
+./test --mode=enumerate --lexicon=osps --alphabet=polish > racks
+```
+
+then strip these lists (`stripRacks.py`) and sort them (`sortRacks.py`). I know, it's a lot of scripts, maybe I'll write a wrapper one day. Finally, we can run `partialRacks.py` and marge the resulting files into one big **leave value** list:
+
+```shell
+cat rack2output.txt rack3output.txt rack4output.txt rack5output.txt rack6output.txt rack7output.txt > superleaves.raw
+```
+
+Now we copy this file to `encodeleaves` in the main quackle folder, compile it and run:
+```shell
+qmake
+make
+./encodeleaves
+```
+
+After a minutes or so, we'll have a `superleaves` file that we can copy to `data/strategy/yourlexicon`. From now on, Quackle will take leave value into account for static move evaluation.
