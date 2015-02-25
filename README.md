@@ -87,7 +87,7 @@ E.enumerate(&racks, n);
 where `n` is the number of letters. Then compile the program and run:
 
 ```shell
-./test --mode=enumerate --lexicon=osps --alphabet=polish > racks
+./test --mode=enumerate --lexicon=osps --alphabet=polish > racksn.txt
 ```
 
 then strip these lists (`stripRacks.py`) and sort them (`sortRacks.py`). I know, it's a lot of scripts, maybe I'll write a wrapper one day. Finally, we can run `partialRacks.py` and marge the resulting files into one big **leave value** list:
