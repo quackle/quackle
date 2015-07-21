@@ -1313,7 +1313,7 @@ bool TileWidget::shouldShowVerboseLabels() const
     return m_alwaysShowVerboseLabels || QuackerSettings::self()->verboseLabels;
 }
 
-QFont TileWidget::scaledFont(float multiplier)
+QFont TileWidget::scaledFont(double multiplier)
 {
     const int smallerSideLength = qMin(size().width(), size().height());
 

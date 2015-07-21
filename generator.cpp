@@ -444,8 +444,8 @@ void Generator::readFromDawg(int index, unsigned int &p, Letter &letter, bool &t
 	p = (QUACKLE_LEXICON_PARAMETERS->dawgAt(index) << 16) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 1) << 8) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 2));
 	letter = QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 3);
 	
-	t = (letter & 32);
-	lastchild = (letter & 64);
+	t = (letter & 32) != 0;
+	lastchild = (letter & 64) != 0;
 	british = !(letter & 128);
 	letter = (letter & 31) + QUACKLE_FIRST_LETTER;
 

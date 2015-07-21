@@ -69,12 +69,12 @@ inline bool LexiconParameters::hasSomething() const
 
 inline bool LexiconParameters::hasDawg() const
 {
-	return m_dawg;
+	return m_dawg != NULL;
 }
 
 inline bool LexiconParameters::hasGaddag() const
 {
-	return m_gaddag;
+	return m_gaddag != NULL;
 }
 
 inline unsigned char LexiconParameters::dawgAt(int index) const

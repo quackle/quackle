@@ -42,7 +42,7 @@ DataManager::DataManager()
 {
 	m_self = this;
 	setDataDirectory(".");
-    seedRandomNumbers(time(NULL));
+    seedRandomNumbers((int)time(NULL));
 
 	m_alphabetParameters = new EnglishAlphabetParameters;
 	m_evaluator = new CatchallEvaluator;

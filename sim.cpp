@@ -385,7 +385,7 @@ void Simulator::simulate(int plies)
 
 		if (m_simulatedGame.currentPosition().gameOver())
 		{
-			const float wins = spread > 0? 1 : spread == 0? 0.5 : 0;
+			const float wins = spread > 0? 1 : spread == 0? 0.5F : 0;
 			(*moveIt).wins.incorporateValue(wins);
 
 			if (isLogging())

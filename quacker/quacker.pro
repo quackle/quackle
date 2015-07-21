@@ -18,10 +18,18 @@ release {
   OBJECTS_DIR = obj/release
 }
 
-QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
-QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
+debug {
+	QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
+}
+release {
+	QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
+}
 
-LIBS += -lquackleio -lquackle
+win32:!win32-g++ {
+  LIBS += -lquackleio -llibquackle
+} else {
+  LIBS += -lquackleio -lquackle
+}
 macx:LIBS += -framework CoreFoundation
 
 # Input
@@ -30,13 +38,6 @@ SOURCES += *.cpp
 
 win32 {
 	RC_FILE = quacker.rc
-}
-
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
 }
 
 macx {

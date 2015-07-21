@@ -28,13 +28,6 @@ HEADERS += testharness.h trademarkedboards.h
 SOURCES += testharness.cpp testmain.cpp trademarkedboards.cpp
 
 
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
-}
-
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }

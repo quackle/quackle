@@ -1,8 +1,12 @@
 TEMPLATE = lib
 INCLUDEPATH += .
 DEPENDPATH += .
-VERSION = 0.9
+VERSION = 0.99
 QT -= gui core
+win32:!win32-g++ { # VS solutions don't like having two projects named "quackle"
+  TARGET = libquackle
+}
+
 debug {
   OBJECTS_DIR = obj/debug
   DESTDIR = lib/debug
@@ -27,13 +31,6 @@ SOURCES -= \
 	loadgaddag.cpp \
 	makedawg.cpp \
 	quackletest.cpp
-
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
-}
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive

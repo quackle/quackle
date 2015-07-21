@@ -47,7 +47,7 @@ GaddagNode::letter() const
 inline bool
 GaddagNode::isTerminal() const
 {
-	return data[3] & 0x40 /*0b01000000*/;
+	return (data[3] & 0x40) != 0 /*0b01000000*/;
 }
 
 inline const GaddagNode *
