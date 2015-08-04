@@ -7,7 +7,7 @@
 										"playabilities.raw", "smaller.raw", ".gitattributes",
 										"*.Debug", "*.Release", "*.pfx", "*.cer"],
 			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", "lexica", 
-										"strategy", "debug", "release", "makeswelexicon", "lisp"]
+										"strategy", "debug", "release", "makeswelexicon", "lisp", "DerivedData"]
 		}
 	]
 }

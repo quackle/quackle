@@ -148,7 +148,7 @@ void Settings::createGUI()
 	themeNameLabel->setBuddy(m_themeNameCombo);
 	m_editTheme = new QPushButton(tr("Edit..."));
 	m_editTheme->setMaximumWidth(60);
-	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme));
+	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme()));
 
 	themeLayout->addWidget(themeNameLabel);
 	themeLayout->addWidget(m_themeNameCombo);
@@ -160,40 +160,18 @@ void Settings::createGUI()
 	QStringList boardItems;
 	populateListFromFilenames(boardItems, "boards");
 	m_boardNameCombo->addItems(boardItems);
+	m_boardNameCombo->addItem(tr("Add new board..."));
 
 	QHBoxLayout *boardLayout = new QHBoxLayout;
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
 	boardNameLabel->setBuddy(m_boardNameCombo);
 	m_editBoard = new QPushButton(tr("Edit..."));
 	m_editBoard->setMaximumWidth(60);
-	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard));
+	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
 
 	boardLayout->addWidget(boardNameLabel);
 	boardLayout->addWidget(m_boardNameCombo);
 	boardLayout->addWidget(m_editBoard);
-
-	// m_addBoard = new QPushButton(tr("Add Board"));
-	// connect(m_addBoard, SIGNAL(clicked()), this, SLOT(addBoard()));
-
-	// m_editBoard = new QPushButton(tr("&Edit Board"));
-	// connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
-
-	// m_deleteBoard = new QPushButton(tr("&Delete Board"));
-	// connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
-
-	// loadBoardNameCombo();
-
-	// QGroupBox *boardGroup = new QGroupBox("Game Board Definitions");
-	// QGridLayout *boardLayout = new QGridLayout(boardGroup);
-	// QLabel *boardNameLabel = new QLabel(tr("&Board:"));
-	// boardNameLabel->setBuddy(m_boardNameCombo);
-
-	// boardLayout->addWidget(boardNameLabel, 0, 0);
-	// boardLayout->addWidget(m_boardNameCombo, 0, 1, 1, -1);
-	// boardLayout->addWidget(m_addBoard, 1, 0);
-	// boardLayout->addWidget(m_editBoard, 1, 1);
-	// boardLayout->addWidget(m_deleteBoard, 1, 2);
-
 
 	vlayout->addLayout(lexiconLayout);
 	vlayout->addLayout(alphabetLayout);
@@ -357,6 +335,11 @@ void Settings::themeChanged(const QString &themeName)
 
 void Settings::boardChanged(const QString &boardName)
 {
+	if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1)
+	{
+		addBoard();
+		return;
+	}
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/board-name", boardName);
 
@@ -383,6 +366,7 @@ void Settings::addBoard()
 							(const uchar *)boardParameterStream.str().data(),
 							boardParameterStream.str().size());
 		settings.setValue(boardName, QVariant(boardParameterBytes));
+		m_boardNameCombo->setCurrentIndex(-1);
 		boardChanged(boardName);
 	}
 	else
@@ -416,28 +400,8 @@ void Settings::editBoard()
 		boardChanged(newBoardName);
 	}
 	PixmapCacher::self()->invalidate();
-}
-
-void Settings::deleteBoard()
-{
-	int oldIndex = m_boardNameCombo->currentIndex();
-	QString boardName = m_boardNameCombo->currentText();
-	QString message = "Do you really want to delete the game board \"";
-	message += boardName;
-	message += "\"?";
-	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message,
-			QMessageBox::Yes | QMessageBox::Default,
-			QMessageBox::No | QMessageBox::Escape) == QMessageBox::Yes)
-	{
-		CustomQSettings settings;
-		settings.beginGroup("quackle/boardparameters");
-		settings.remove(boardName);
-		loadBoardNameCombo();
-		if (oldIndex != 0)
-			oldIndex--;
-		m_boardNameCombo->setCurrentIndex(oldIndex);
-		boardChanged(m_boardNameCombo->currentText());
-	}
+	loadBoardNameCombo();
+	emit refreshViews();
 }
 
 void Settings::loadBoardNameCombo()
@@ -453,10 +417,14 @@ void Settings::loadBoardNameCombo()
 	QStringList boardNames = settings.childKeys();
 	boardNames.sort();
 	m_boardNameCombo->addItems(boardNames);
+	m_boardNameCombo->addItem("Add new board...");
 	settings.endGroup();
 
 	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
-	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(currentItem));
+	int currentItemIndex = m_boardNameCombo->findText(currentItem);
+	if (m_boardNameCombo->count() > 0 && currentItemIndex < 0)
+		currentItemIndex = 0;
+	m_boardNameCombo->setCurrentIndex(currentItemIndex);
 }
 
 void Settings::populateListFromFilenames(QStringList& list, const QString &path)

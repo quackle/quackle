@@ -48,6 +48,7 @@ protected slots:
 	void parametersChanged(const QString &unused);
 	void symmetryChanged();
 	void undoAllChanges();
+	void deleteBoard();
 
 private:
 	QCheckBox *m_horizontalSymmetry;
@@ -62,6 +63,7 @@ private:
 	QPushButton *m_saveChanges;
 	QPushButton *m_cancel;
 	QPushButton *m_undoAll;
+	QPushButton *m_deleteBoard;
 	
 	Quackle::Game m_game;
 	BoardSetupFrame * m_boardFrame;

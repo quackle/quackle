@@ -64,7 +64,6 @@ protected slots:
 
 	void addBoard();
 	void editBoard();
-	void deleteBoard();
 	
 	void setQuackleToUseLexiconName(const string &lexiconName);
 	void setQuackleToUseAlphabetName(const string &alphabetName);
