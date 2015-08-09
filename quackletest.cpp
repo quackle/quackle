@@ -45,7 +45,7 @@ int main()
 {
 	Quackle::DataManager dataManager;
 
-	dataManager.setDataDirectory("data");
+	dataManager.setAppDataDirectory("data");
 	dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile("twl06.dawg"));
    	dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
 	dataManager.strategyParameters()->initialize("twl06");

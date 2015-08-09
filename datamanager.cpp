@@ -41,7 +41,8 @@ DataManager::DataManager()
 	: m_evaluator(0), m_parameters(0), m_alphabetParameters(0), m_boardParameters(0), m_lexiconParameters(0), m_strategyParameters(0)
 {
 	m_self = this;
-	setDataDirectory(".");
+	setAppDataDirectory(".");
+	setUserDataDirectory(".");
     seedRandomNumbers((int)time(NULL));
 
 	m_alphabetParameters = new EnglishAlphabetParameters;
@@ -122,6 +123,7 @@ void DataManager::cleanupComputerPlayers()
 
 bool DataManager::fileExists(const string &filename)
 {
+	// fixme: convert to wchar
 	struct stat buf;
 	int i = stat(filename.c_str(), &buf);
 	if (i == 0)
@@ -130,36 +132,38 @@ bool DataManager::fileExists(const string &filename)
 		return false;
 }
 
-string DataManager::findDataFile(const string &subDirectory, const string &lexicon, string file)
+string DataManager::findDataFile(const string &subDirectory, const string &lexicon, const string &file)
 {
-	string firstTry = makeDataFilename(subDirectory, lexicon, file);
-	if (fileExists(firstTry))
-		return firstTry;
-
-	string secondTry = makeDataFilename(subDirectory, m_backupLexicon, file);
-	if (fileExists(secondTry))
-		return secondTry;
+	string fname = makeDataFilename(subDirectory, lexicon, file, true);
+	if (!fileExists(fname))
+		fname = makeDataFilename(subDirectory, lexicon, file, false);
+	if (!fileExists(fname))
+		fname = makeDataFilename(subDirectory, m_backupLexicon, file, false);
+	if (!fileExists(fname))
+		fname = string();
 	
-	return string();
+	return fname;
 }
 
-string DataManager::findDataFile(const string &subDirectory, string file)
+string DataManager::findDataFile(const string &subDirectory, const string &file)
 {
-	string firstTry = makeDataFilename(subDirectory, file);
-	if (fileExists(firstTry))
-		return firstTry;
+	string fname = makeDataFilename(subDirectory, file, true);
+	if (!fileExists(fname))
+		fname = makeDataFilename(subDirectory, file, false);
+	if (!fileExists(fname))
+		fname = string();
 
-	return string();
+	return fname;
 }
 
-string DataManager::makeDataFilename(const string &subDirectory, const string &lexicon, string file)
+string DataManager::makeDataFilename(const string &subDirectory, const string &lexicon, const string &file, bool user)
 {
-	return m_dataDirectory + "/" + subDirectory + "/" + lexicon + "/" + file;
+	return (user ? m_userDataDirectory : m_appDataDirectory) + "/" + subDirectory + "/" + lexicon + "/" + file;
 }
 
-string DataManager::makeDataFilename(const string &subDirectory, string file)
+string DataManager::makeDataFilename(const string &subDirectory, const string &file, bool user)
 {
-	return m_dataDirectory + "/" + subDirectory + "/" + file;
+	return (user ? m_userDataDirectory : m_appDataDirectory) + "/" + subDirectory + "/" + file;
 }
 
 void DataManager::seedRandomNumbers(unsigned int seed)

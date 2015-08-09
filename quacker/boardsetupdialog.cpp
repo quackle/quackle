@@ -33,7 +33,7 @@
 
 BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 {
-	resize(600,450);
+	resize(700,550);
 	setSizeGripEnabled(true);
 	
 	// construct the board

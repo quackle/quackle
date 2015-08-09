@@ -45,6 +45,7 @@
 #include "boardsetupdialog.h"
 #include "customqsettings.h"
 #include "graphicalboard.h"
+#include "lexicondialog.h"
 
 Settings *Settings::m_self = 0;
 Settings *Settings::self()
@@ -80,17 +81,18 @@ Settings::Settings(QWidget *parent)
  #endif
 
 	if (QFile::exists("data"))
-		m_dataDir = "data";
+		m_appDataDir = "data";
 	else if (QFile::exists("../data"))
-		m_dataDir = "../data";
+		m_appDataDir = "../data";
 	else if (QFile::exists("Quackle.app/Contents/data"))
-		m_dataDir = "Quackle.app/Contents/data";
+		m_appDataDir = "Quackle.app/Contents/data";
 	else
 	{
 		if (!directory.cd("data") || !directory.cd("../data"))
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
-		m_dataDir = directory.absolutePath();
+		m_appDataDir = directory.absolutePath();
 	}
+	m_userDataDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 }
 
 void Settings::createGUI()
@@ -98,86 +100,69 @@ void Settings::createGUI()
 	if (m_lexiconNameCombo != 0)
 		return;
 
-	QVBoxLayout *vlayout = new QVBoxLayout(this);
+	QGridLayout *layout = new QGridLayout(this);
 
 	m_lexiconNameCombo = new QComboBox;
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
 
-	QStringList lexiconItems;
-	populateListFromFilenames(lexiconItems, "lexica");
-	m_lexiconNameCombo->addItems(lexiconItems);
+	populateComboFromFilenames(m_lexiconNameCombo, "lexica", "lexicon");
 
-	QHBoxLayout *lexiconLayout = new QHBoxLayout;
 	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon:"));
 	lexiconNameLabel->setBuddy(m_lexiconNameCombo);
 	m_editLexicon = new QPushButton(tr("Edit..."));
 	m_editLexicon->setMaximumWidth(60);
 	connect(m_editLexicon, SIGNAL(clicked()), this, SLOT(editLexicon()));
 
-	lexiconLayout->addWidget(lexiconNameLabel);
-	lexiconLayout->addWidget(m_lexiconNameCombo);
-	lexiconLayout->addWidget(m_editLexicon);
-
 	m_alphabetNameCombo = new QComboBox;
 	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
 
-	QStringList alphabetItems;
-	populateListFromFilenames(alphabetItems, "alphabets");
-	m_alphabetNameCombo->addItems(alphabetItems);
+	populateComboFromFilenames(m_alphabetNameCombo, "alphabets", "");
 
-	QHBoxLayout *alphabetLayout = new QHBoxLayout;
 	QLabel *alphabetNameLabel = new QLabel(tr("&Alphabet:"));
 	alphabetNameLabel->setBuddy(m_alphabetNameCombo);
 	m_editAlphabet = new QPushButton(tr("Edit..."));
 	m_editAlphabet->setMaximumWidth(60);
 	connect(m_editAlphabet, SIGNAL(clicked()), this, SLOT(editAlphabet()));
 
-	alphabetLayout->addWidget(alphabetNameLabel);
-	alphabetLayout->addWidget(m_alphabetNameCombo);
-	alphabetLayout->addWidget(m_editAlphabet);
-
 	m_themeNameCombo = new QComboBox;
 	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
 
-	QStringList themeItems;
-	populateListFromFilenames(themeItems, "themes");
-	m_themeNameCombo->addItems(themeItems);
+	populateComboFromFilenames(m_themeNameCombo, "themes", "");
 
-	QHBoxLayout *themeLayout = new QHBoxLayout;
 	QLabel *themeNameLabel = new QLabel(tr("&Theme:"));
 	themeNameLabel->setBuddy(m_themeNameCombo);
 	m_editTheme = new QPushButton(tr("Edit..."));
 	m_editTheme->setMaximumWidth(60);
 	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme()));
 
-	themeLayout->addWidget(themeNameLabel);
-	themeLayout->addWidget(m_themeNameCombo);
-	themeLayout->addWidget(m_editTheme);
-
 	m_boardNameCombo = new QComboBox;
 	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
 
-	QStringList boardItems;
-	populateListFromFilenames(boardItems, "boards");
-	m_boardNameCombo->addItems(boardItems);
-	m_boardNameCombo->addItem(tr("Add new board..."));
+	populateComboFromFilenames(m_boardNameCombo, "boards", "board");
 
-	QHBoxLayout *boardLayout = new QHBoxLayout;
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
 	boardNameLabel->setBuddy(m_boardNameCombo);
 	m_editBoard = new QPushButton(tr("Edit..."));
 	m_editBoard->setMaximumWidth(60);
 	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
 
-	boardLayout->addWidget(boardNameLabel);
-	boardLayout->addWidget(m_boardNameCombo);
-	boardLayout->addWidget(m_editBoard);
+	layout->addWidget(lexiconNameLabel, 0, 0, Qt::AlignRight);
+	layout->addWidget(m_lexiconNameCombo, 0, 1);
+	layout->addWidget(m_editLexicon, 0, 2);
+	layout->addWidget(alphabetNameLabel, 1, 0, Qt::AlignRight);
+	layout->addWidget(m_alphabetNameCombo, 1, 1);
+	// layout->addWidget(m_editAlphabet, 1, 2);
+	layout->addWidget(themeNameLabel, 2, 0, Qt::AlignRight);
+	layout->addWidget(m_themeNameCombo, 2, 1);
+	// layout->addWidget(m_editTheme, 2, 2);
+	layout->addWidget(boardNameLabel, 3, 0, Qt::AlignRight);
+	layout->addWidget(m_boardNameCombo, 3, 1);
+	layout->addWidget(m_editBoard, 3, 2);
 
-	vlayout->addLayout(lexiconLayout);
-	vlayout->addLayout(alphabetLayout);
-	vlayout->addLayout(themeLayout);
-	vlayout->addLayout(boardLayout);
-	vlayout->addStretch();
+	layout->setColumnMinimumWidth(3, 0);
+	layout->setColumnStretch(3, 1);
+	layout->setRowMinimumHeight(4, 0);
+	layout->setRowStretch(4, 1);
 
 	load();
 }
@@ -201,7 +186,8 @@ void Settings::initialize()
 	CustomQSettings settings;
 
 	QUACKLE_DATAMANAGER->setBackupLexicon("twl06");
-	QUACKLE_DATAMANAGER->setDataDirectory(m_dataDir.toStdString());
+	QUACKLE_DATAMANAGER->setAppDataDirectory(m_appDataDir.toStdString());
+	QUACKLE_DATAMANAGER->setUserDataDirectory(m_userDataDir.toStdString());
 
 	QString lexiconName = settings.value("quackle/settings/lexicon-name", QString("twl06")).toString();
 
@@ -272,11 +258,13 @@ void Settings::setQuackleToUseAlphabetName(const string &alphabetName)
 void Settings::setQuackleToUseThemeName(const QString &themeName)
 {
 	m_themeName = themeName;
-	QString themeFile = m_dataDir + "/themes/" + themeName + ".ini";
+	QString themeFile = m_userDataDir + "/themes/" + themeName + ".ini";
+	if (!QFile::exists(themeFile))
+		themeFile = m_appDataDir + "/themes/" + themeName + ".ini";
 	if (!QFile::exists(themeFile))
 	{
 		m_themeName = "traditional";
-		themeFile = m_dataDir + "/themes/traditional.ini";
+		themeFile = m_appDataDir + "/themes/traditional.ini";
 	}
 	PixmapCacher::self()->readTheme(themeFile);
 }
@@ -303,6 +291,11 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 
 void Settings::lexiconChanged(const QString &lexiconName)
 {
+	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
+	{
+		editLexicon();
+		return;
+	}
 	string lexiconNameString = QuackleIO::Util::qstringToStdString(lexiconName);
 	setQuackleToUseLexiconName(lexiconNameString);
 
@@ -314,6 +307,11 @@ void Settings::lexiconChanged(const QString &lexiconName)
 
 void Settings::alphabetChanged(const QString &alphabetName)
 {
+	if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
+	{
+		editAlphabet();
+		return;
+	}
 	string alphabetNameString = QuackleIO::Util::qstringToStdString(alphabetName);
 	setQuackleToUseAlphabetName(alphabetNameString);
 
@@ -325,6 +323,11 @@ void Settings::alphabetChanged(const QString &alphabetName)
 
 void Settings::themeChanged(const QString &themeName)
 {
+	if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
+	{
+		editTheme();
+		return;
+	}
 	setQuackleToUseThemeName(themeName);
 
 	CustomQSettings settings;
@@ -427,18 +430,62 @@ void Settings::loadBoardNameCombo()
 	m_boardNameCombo->setCurrentIndex(currentItemIndex);
 }
 
-void Settings::populateListFromFilenames(QStringList& list, const QString &path)
+void Settings::editLexicon()
+{
+	QString name = m_lexiconNameCombo->currentText();
+	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
+		name = "";
+	LexiconDialog dialog(this, name);
+	if (dialog.exec())
+	{
+		populateComboFromFilenames(m_lexiconNameCombo, "lexica", "lexicon");
+		load();
+	}
+}
+
+void Settings::editAlphabet()
+{
+#if 0
+	QString name = m_alphabetNameCombo->currentText();
+	if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
+		name = "";
+	AlphabetDialog dialog(this);
+	if (dialog.exec())
+	{
+		populateComboFromFilenames(m_alphabetNameCombo, "alphabets", "alphabet");
+		load();
+	}
+#endif // 0
+}
+
+void Settings::editTheme()
+{
+#if 0
+	QString name = m_themeNameCombo->currentText();
+	if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
+		name = "";
+	ThemeDialog dialog(this);
+	if (dialog.exec())
+	{
+		populateThemeFromFilenames(m_themeNameCombo, "themes", "theme");
+		load();
+	}
+#endif // 0
+}
+
+void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label)
 {
 	QStringList fileList;
-	QDir dir(m_dataDir);
+	QDir dir(m_appDataDir);
 	if (dir.cd(path))
 		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
-	dir = QDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation));
+	dir = QDir(m_userDataDir);
 	if (dir.cd(path))
 		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
 
 	QStringListIterator i(fileList);
 	QString fileName;
+	QStringList list;
 	int periodPos;
 
 	while (i.hasNext())
@@ -452,4 +499,8 @@ void Settings::populateListFromFilenames(QStringList& list, const QString &path)
 		}
 	}
 	list.removeDuplicates();
+
+	combo->addItems(list);
+	if (label.size() > 0)
+		combo->addItem(QString(tr("Add new ")).append(path).append("..."));
 }

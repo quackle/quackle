@@ -65,6 +65,10 @@ protected slots:
 	void addBoard();
 	void editBoard();
 	
+	void editLexicon();
+	void editAlphabet();
+	void editTheme();
+
 	void setQuackleToUseLexiconName(const string &lexiconName);
 	void setQuackleToUseAlphabetName(const string &alphabetName);
 	void setQuackleToUseThemeName(const QString &themeName);
@@ -79,7 +83,8 @@ protected:
 	QPushButton *m_editAlphabet;
 	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
-	QString m_dataDir;
+	QString m_appDataDir;
+	QString m_userDataDir;
 	QString m_themeName;
 
 private:
@@ -87,7 +92,7 @@ private:
 	void loadBoardNameCombo();
 
 	// load up an item list based on a list of filenames
-	void populateListFromFilenames(QStringList& list, const QString &path);
+	void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label);
 	
 	static Settings *m_self;
 };

@@ -191,7 +191,7 @@ void TestHarness::startUp()
 	UVcout << "Starting up.";
 
 	m_dataManager.setBackupLexicon("twl06");
-	m_dataManager.setDataDirectory("../data");
+	m_dataManager.setAppDataDirectory("../data");
 
 	QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(m_alphabet) + ".quackle_alphabet"));
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
