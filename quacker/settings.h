@@ -39,6 +39,9 @@ public:
 
 	static Settings *self();
 
+	// load up an item list based on a list of filenames
+	static void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label);
+
 signals:
 	void refreshViews();
 
@@ -91,9 +94,6 @@ private:
 	// populate the popup based on what's in QSettings
 	void loadBoardNameCombo();
 
-	// load up an item list based on a list of filenames
-	void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label);
-	
 	static Settings *m_self;
 };
 

@@ -476,10 +476,10 @@ void Settings::editTheme()
 void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label)
 {
 	QStringList fileList;
-	QDir dir(m_appDataDir);
+	QDir dir(self()->m_appDataDir);
 	if (dir.cd(path))
 		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
-	dir = QDir(m_userDataDir);
+	dir = QDir(self()->m_userDataDir);
 	if (dir.cd(path))
 		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
 

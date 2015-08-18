@@ -23,6 +23,7 @@
 
 #include "lexicondialog.h"
 #include "customqsettings.h"
+#include "settings.h"
 #include "geometry.h"
 
 
@@ -60,7 +61,7 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	Geometry::setupInnerLayout(addRemoveWordsRow);
 	QHBoxLayout * buttonRow = new QHBoxLayout;
 	Geometry::setupInnerLayout(buttonRow);
-	QGroupBox * lexiconInformationGroup = new QGroupBox(tr("Lexicon information:"));
+	QGroupBox * lexiconInformationGroup = new QGroupBox(tr("Lexicon information"));
 	QVBoxLayout * lexiconInformationLayout = new QVBoxLayout(lexiconInformationGroup);
 
 	// build the layout
@@ -97,6 +98,8 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	connect(m_deleteLexicon, SIGNAL(clicked()), this, SLOT(deleteLexicon()));
 	
 	setWindowTitle(tr("Configure Lexicon - Quackle"));
+
+	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", "");
 	updateLexiconInformation();
 
 	// sync game board with control states and draw board
@@ -125,10 +128,10 @@ void LexiconDialog::accept()
 void LexiconDialog::updateLexiconInformation()
 {
 	QString text;
-	text.append(tr("File name:"));
-	text.append(tr("\n\nFile size:"));
-	text.append(tr("\n\nWord count:"));
-	text.append(tr("\n\nLexicon hash:"));
+	text.append(tr("File name: "));
+	text.append(tr("\n\nFile size: "));
+	text.append(tr("\n\nWord count: "));
+	text.append(tr("\n\nLexicon hash: "));
 
 	m_lexiconInformation->setText(text);
 }
