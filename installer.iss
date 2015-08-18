@@ -3,14 +3,14 @@
 
 [Setup]
 AppName=Quackle
-AppVerName=Quackle 0.98
+AppVerName=Quackle 1.0
 DefaultDirName={pf}\Quackle
 DefaultGroupName=Quackle
 ChangesAssociations=yes
 UninstallDisplayIcon={app}\Quackle.exe
 
 [Icons]
-Name: "{group}\Quackle 0.98"; Filename: "{app}\Quackle.exe"; WorkingDir: "{app}"
+Name: "{group}\Quackle 1.0"; Filename: "{app}\Quackle.exe"; WorkingDir: "{app}"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Quackle.org"

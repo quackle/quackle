@@ -2120,10 +2120,10 @@ void TopLevel::firstTimeRun()
 
 void TopLevel::about()
 {
-	QMessageBox::about(this, tr("About Quackle 0.98"), dialogText(tr(
-"<p><b>Quackle</b> 0.98 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+	QMessageBox::about(this, tr("About Quackle 1.0"), dialogText(tr(
+"<p><b>Quackle</b> 1.0 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2014 by</p>"
+"<p>Copyright 2005-2015 by</p>"
 "<ul>"
 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
