@@ -24,8 +24,8 @@ QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
 QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
 
 # Input
-HEADERS += minidawgmaker.h
-SOURCES += minidawgmaker.cpp makeminidawgmain.cpp
+HEADERS += 
+SOURCES += makeminidawgmain.cpp
 
 
 macx-g++ {
