@@ -88,7 +88,8 @@ int main(int argc, char **argv)
 		if (stream.atEnd())
 			break;
 
-		factory.pushWord(originalQString);
+		if (!factory.pushWord(originalQString))
+			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(originalQString) << endl;
 	}
 	
 	UVcout << "Sorting " << factory.wordCount() << " words..." << endl;

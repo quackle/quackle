@@ -16,6 +16,9 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef QUACKLE_GADDAGFACTORY_H
+#define QUACKLE_GADDAGFACTORY_H
+
 #include "flexiblealphabet.h"
 
 
@@ -25,13 +28,14 @@ public:
 	static const Quackle::Letter internalSeparatorRepresentation = QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE;
 
 	GaddagFactory(const QString& alphabetFile);
+	~GaddagFactory();
 
 	int wordCount() const { return gaddagizedWords.size(); };
 	int nodeCount() const { return nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 
-	void pushWord(const QString& word);
+	bool pushWord(const QString& word);
 	void sortWords() { sort(gaddagizedWords.begin(), gaddagizedWords.end()); };
 	void generate();
 	void writeIndex(const QString& fname);
@@ -44,8 +48,8 @@ private:
 			vector<Node> children;
 			int pointer;
 			bool lastchild;
-			void pushWord(Quackle::LetterString word);
-			void print(vector< Node* > nodelist, Quackle::LetterString prefix);
+			void pushWord(const Quackle::LetterString& word);
+			void print(vector< Node* >& nodelist);
 	};
 
 	int m_encodableWords;
@@ -57,3 +61,6 @@ private:
 
 
 };
+
+#endif
+

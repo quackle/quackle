@@ -36,7 +36,12 @@ GaddagFactory::GaddagFactory(const QString& alphabetFile)
 	root.lastchild = true;
 }
 
-void GaddagFactory::pushWord(const QString& word)
+GaddagFactory::~GaddagFactory()
+{
+	delete alphas;
+}
+
+bool GaddagFactory::pushWord(const QString& word)
 {
 	UVString originalString = QuackleIO::Util::qstringToString(word);
 
@@ -61,12 +66,11 @@ void GaddagFactory::pushWord(const QString& word)
 			}
 			gaddagizedWords.push_back(newword);
 		}
+		return true;
 	}
-	else
-	{
-		UVcout << "not encodable without leftover: " << originalString << endl;
-		++m_unencodableWords;
-	}
+
+	++m_unencodableWords;
+	return false;
 }
 
 void GaddagFactory::generate()
@@ -82,7 +86,7 @@ void GaddagFactory::writeIndex(const QString& fname)
 {
 	nodelist.push_back(&root);
 
-	root.print(nodelist, "");    
+	root.print(nodelist);    
 
 	ofstream out(QuackleIO::Util::qstringToStdString(fname).c_str(), ios::out | ios::binary);
 
@@ -114,7 +118,7 @@ void GaddagFactory::writeIndex(const QString& fname)
 }
 
 
-void GaddagFactory::Node::print(vector< Node* > nodelist, Quackle::LetterString prefix)
+void GaddagFactory::Node::print(vector< Node* >& nodelist)
 {
 	if (children.size() > 0)
 	{
@@ -126,11 +130,11 @@ void GaddagFactory::Node::print(vector< Node* > nodelist, Quackle::LetterString 
 		nodelist.push_back(&children[i]);
 
 	for (size_t i = 0; i < children.size(); i++)
-		children[i].print(nodelist, prefix + children[i].c);
+		children[i].print(nodelist);
 }
 
 
-void GaddagFactory::Node::pushWord(Quackle::LetterString word)
+void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
 {
 	if (word.length() == 0)
 	{
