@@ -25,6 +25,64 @@
 
 using namespace Quackle;
 
+class V0DawgInterpreter : public DawgInterpreter
+{
+
+	virtual void loadDawg(ifstream &file, unsigned char *dawg)
+	{
+		int i = 0;
+		while (!file.eof())
+		{
+			file.read((char*)(dawg) + i, 7);
+			i += 7;
+		}
+	}
+
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
+	{
+		index *= 7;
+		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
+		letter = dawg[index + 3];
+		
+		t = (letter & 32) != 0;
+		lastchild = (letter & 64) != 0;
+		british = !(letter & 128);
+		letter = (letter & 31) + QUACKLE_FIRST_LETTER;
+
+		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
+	}
+	virtual int versionNumber() const { return 0; }
+};
+
+class V1DawgInterpreter : public DawgInterpreter
+{
+
+	virtual void loadDawg(ifstream &file, unsigned char *dawg)
+	{
+		int i = 0;
+		while (!file.eof())
+		{
+			file.read((char*)(dawg) + i, 7);
+			i += 7;
+		}
+	}
+
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
+	{
+		index *= 7;
+		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
+		letter = dawg[index + 3];
+		
+		t = (letter & 32) != 0;
+		lastchild = (letter & 64) != 0;
+		british = !(letter & 128);
+		letter = (letter & 31) + QUACKLE_FIRST_LETTER;
+
+		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
+	}
+	virtual int versionNumber() const { return 1; }
+};
+
 LexiconParameters::LexiconParameters()
 	: m_dawg(0), m_gaddag(0)
 {
@@ -45,6 +103,7 @@ void LexiconParameters::unloadDawg()
 {
 	delete[] m_dawg;
 	m_dawg = 0;
+	delete m_interpreter;
 }
 
 void LexiconParameters::unloadGaddag()
@@ -64,14 +123,24 @@ void LexiconParameters::loadDawg(const string &filename)
 		return;
 	}
 
+	char versionByte = file.get();
+	file.unget();
+	switch(versionByte)
+	{
+		case 0:
+			m_interpreter = new V0DawgInterpreter();
+			break;
+		case 1:
+			m_interpreter = new V1DawgInterpreter();
+			break;
+		default:
+			UVcout << "couldn't open dawg " << filename.c_str() << endl;
+			return;
+	}
+
 	m_dawg = new unsigned char[7000000];
 
-	int i = 0;
-	while (!file.eof())
-	{
-		file.read((char*)(m_dawg) + i, 7);
-		i += 7;
-	}
+	m_interpreter->loadDawg(file, m_dawg);
 }
 
 void LexiconParameters::loadGaddag(const string &filename)

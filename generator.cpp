@@ -440,16 +440,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 
 void Generator::readFromDawg(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
 {
-	index *= 7;
-	p = (QUACKLE_LEXICON_PARAMETERS->dawgAt(index) << 16) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 1) << 8) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 2));
-	letter = QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 3);
-	
-	t = (letter & 32) != 0;
-	lastchild = (letter & 64) != 0;
-	british = !(letter & 128);
-	letter = (letter & 31) + QUACKLE_FIRST_LETTER;
-
-	playability = (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 4) << 16) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 5) << 8) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 6));
+	QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);
 }
 
 bool Generator::checksuffix(int i, const LetterString &suffix) {
