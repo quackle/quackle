@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <QtCore>
+#include <QCryptographicHash>
 
 #include "dawgfactory.h"
 #include "util.h"
@@ -28,19 +29,20 @@ DawgFactory::DawgFactory(const QString& alphabetFile)
 {
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 	flexure->load(alphabetFile);
-	alphas = flexure;
+	m_alphas = flexure;
 
-	root.t = false;
-	root.insmallerdict = false;
-	root.playability = 0;
-	root.c = QUACKLE_BLANK_MARK;
-	root.pointer = 0;
-	root.lastchild = true;
+	m_root.insmallerdict = false;
+	m_root.playability = 0;
+	m_root.c = QUACKLE_BLANK_MARK;
+	m_root.pointer = 0;
+	m_root.lastchild = true;
+
+	m_hash.int32ptr[0] = m_hash.int32ptr[1] = m_hash.int32ptr[2] = m_hash.int32ptr[3] = 0;
 }
 
 DawgFactory::~DawgFactory()
 {
-	delete alphas;
+	delete m_alphas;
 }
 
 bool DawgFactory::pushWord(const QString& word, bool inSmaller, int playability)
@@ -48,16 +50,32 @@ bool DawgFactory::pushWord(const QString& word, bool inSmaller, int playability)
 	UVString originalString = QuackleIO::Util::qstringToString(word);
 
 	UVString leftover;
-	Quackle::LetterString encodedWord = alphas->encode(originalString, &leftover);
+	Quackle::LetterString encodedWord = m_alphas->encode(originalString, &leftover);
 	if (leftover.empty())
 	{
-		++m_encodableWords;
-		root.pushWord(encodedWord, inSmaller, playability);
-		return true;
+		if (m_root.pushWord(encodedWord, inSmaller, playability))
+		{
+			++m_encodableWords;
+			hashWord(encodedWord);
+			return true;
+		}
+		++m_duplicateWords;
+		return false;
 	}
 
 	++m_unencodableWords;
 	return false;
+}
+
+void DawgFactory::hashWord(const Quackle::LetterString &word)
+{
+	QCryptographicHash wordhash(QCryptographicHash::Md5);
+	wordhash.addData(word.constData(), word.length());
+	QByteArray wordhashbytes = wordhash.result();
+	m_hash.int32ptr[0] ^= ((const int32_t*)wordhashbytes.constData())[0];
+	m_hash.int32ptr[1] ^= ((const int32_t*)wordhashbytes.constData())[1];
+	m_hash.int32ptr[2] ^= ((const int32_t*)wordhashbytes.constData())[2];
+	m_hash.int32ptr[3] ^= ((const int32_t*)wordhashbytes.constData())[3];
 }
 
 void DawgFactory::generate()
@@ -65,19 +83,19 @@ void DawgFactory::generate()
 	const int bucketcount = 2000;
 	vector< int > bucket[bucketcount];
 
-	nodelist.clear();
-	nodelist.push_back(&root);
-	root.print(nodelist);
+	m_nodelist.clear();
+	m_nodelist.push_back(&m_root);
+	m_root.print(m_nodelist);
 
-	nodelist[0]->letterSum();
+	m_nodelist[0]->letterSum();
 
-	for (unsigned int i = 0; i < nodelist.size(); i++)
+	for (unsigned int i = 0; i < m_nodelist.size(); i++)
 	{
-		bucket[nodelist[i]->sum % bucketcount].push_back(i);
-		nodelist[i]->pointer = 0;
-		nodelist[i]->written = false;
-		nodelist[i]->deleted = false;
-		nodelist[i]->cloneof = NULL;
+		bucket[m_nodelist[i]->sum % bucketcount].push_back(i);
+		m_nodelist[i]->pointer = 0;
+		m_nodelist[i]->written = false;
+		m_nodelist[i]->deleted = false;
+		m_nodelist[i]->cloneof = NULL;
 	}
 
 	for (int b = 0; b < bucketcount; b++)
@@ -86,19 +104,19 @@ void DawgFactory::generate()
 			continue;
 		for (vector<int>::iterator it = bucket[b].begin(); it != bucket[b].end() - 1; it++)
 		{
-			if (!nodelist[(*it)]->deleted)
+			if (!m_nodelist[(*it)]->deleted)
 			{	
 				for (vector<int>::iterator jt = it + 1; jt != bucket[b].end(); jt++)
 				{
-					if (!nodelist[(*jt)]->deleted)
+					if (!m_nodelist[(*jt)]->deleted)
 					{
 						// cout << "Comparing " << (*it) << " and " << (*jt) << endl;
-						if (nodelist[(*it)]->equals(nodelist[(*jt)][0]))
+						if (m_nodelist[(*it)]->equals(m_nodelist[(*jt)][0]))
 						{
 							//cout << "Hey! " << (*it) << " == " << (*jt) << endl;
 							// ones[l].erase(jt);
-							nodelist[(*jt)]->deleted = true;
-							nodelist[(*jt)]->cloneof = nodelist[(*it)];
+							m_nodelist[(*jt)]->deleted = true;
+							m_nodelist[(*jt)]->cloneof = m_nodelist[(*it)];
 						}
 					}
 				}
@@ -106,51 +124,53 @@ void DawgFactory::generate()
 		}
 	}
 	
-	nodelist.clear();
-	nodelist.push_back(&root);
-	root.print(nodelist);
+	m_nodelist.clear();
+	m_nodelist.push_back(&m_root);
+	m_root.print(m_nodelist);
 }
 
 void DawgFactory::writeIndex(const QString& filename)
 {
 	ofstream out(QuackleIO::Util::qstringToStdString(filename).c_str(), ios::out | ios::binary);
+	unsigned char bytes[7];
 
-	for (unsigned int i = 0; i < nodelist.size(); i++) {
-		//cout << nodelist[i]->c << " " << nodelist[i]->pointer << " " << nodelist[i]->t << " " << nodelist[i]->lastchild << endl;
-		Node* n = nodelist[i];
+	bytes[0] = (m_encodableWords & 0x00FF0000) >> 16;
+	bytes[1] = (m_encodableWords & 0x0000FF00) >>  8;
+	bytes[2] = (m_encodableWords & 0x000000FF);
+
+	out.write(m_hash.charptr, sizeof(m_hash.charptr));
+	out.write((char*)bytes, 3);
+
+	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
+		//cout << m_nodelist[i]->c << " " << m_nodelist[i]->pointer << " " << m_nodelist[i]->t << " " << m_nodelist[i]->lastchild << endl;
+		Node* n = m_nodelist[i];
 		unsigned int p;
-		if (nodelist[i]->deleted)
+		if (m_nodelist[i]->deleted)
 		{
-			p = (unsigned int)(nodelist[i]->cloneof->pointer);
-			// n = nodelist[i]->cloneof;
+			p = (unsigned int)(m_nodelist[i]->cloneof->pointer);
+			// n = m_nodelist[i]->cloneof;
 		}
 		else
-			p = (unsigned int)(nodelist[i]->pointer);
+			p = (unsigned int)(m_nodelist[i]->pointer);
 
-		char bytes[7];
-		unsigned char n1 = (p & 0x00FF0000) >> 16;
-		unsigned char n2 = (p & 0x0000FF00) >>  8;
-		unsigned char n3 = (p & 0x000000FF);
-		unsigned char n4 = n->c - QUACKLE_FIRST_LETTER;
+		bytes[0] = (p & 0x00FF0000) >> 16;
+		bytes[1] = (p & 0x0000FF00) >>  8;
+		bytes[2] = (p & 0x000000FF);
+		bytes[3] = n->c - QUACKLE_FIRST_LETTER;
 				
 		unsigned int pb = n->playability;
-		unsigned char n5 = (pb & 0x00FF0000) >> 16;
-		unsigned char n6 = (pb & 0x0000FF00) >>  8;
-		unsigned char n7 = (pb & 0x000000FF);
+		bytes[4] = (pb & 0x00FF0000) >> 16;
+		bytes[5] = (pb & 0x0000FF00) >>  8;
+		bytes[6] = (pb & 0x000000FF);
 
-		if (n->t) {
-			n4 |= 32;
-		}
 		if (n->lastchild) {
-			n4 |= 64;
+			bytes[3] |= 64;
 		}
 		if (n->insmallerdict) {
-				n4 |= 128;
+			bytes[3] |= 128;
 		}
 
-		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
-				bytes[4] = n5; bytes[5] = n6; bytes[6] = n7;
-		out.write(bytes, 7);
+		out.write((char*)bytes, 7);
 	}
 }
 
@@ -193,11 +213,13 @@ void DawgFactory::Node::print(vector< Node* >& nodelist)
 }
 
 
-void DawgFactory::Node::pushWord(const Quackle::LetterString& word, bool inSmaller, int pb)
+// returns true if the word was actually added...false if it's a duplicate.
+bool DawgFactory::Node::pushWord(const Quackle::LetterString& word, bool inSmaller, int pb)
 {
+	bool added;
 	if (word.length() == 0) {
-		t = true;
-		playability = pb;
+		added = (playability == 0);
+		playability = (pb == 0) ? 1 : pb; // word terminators nodes are marked by nonzero playability in the v1 DAWG format
 		insmallerdict = inSmaller;
 	}
 	else {
@@ -217,7 +239,6 @@ void DawgFactory::Node::pushWord(const Quackle::LetterString& word, bool inSmall
 		if (index == -1) {
 			Node n;
 			n.c = first;
-			n.t = false;
 			n.playability = 0;
 			n.insmallerdict = false;
 			n.pointer = 0;
@@ -226,12 +247,13 @@ void DawgFactory::Node::pushWord(const Quackle::LetterString& word, bool inSmall
 			index = children.size() - 1;
 		}
 
-		children[index].pushWord(rest, inSmaller, pb);
+		added = children[index].pushWord(rest, inSmaller, pb);
 	}
 
 	sumexplored = false;
 	deleted = false;
 	written = false;
+	return added;
 }
 
 
@@ -242,8 +264,6 @@ bool DawgFactory::Node::equals(const Node &n) const
 	if (c != n.c)
 		return false;
 	if (children.size() != n.children.size())
-		return false;
-	if (t != n.t)
 		return false;
 	if (insmallerdict != n.insmallerdict)
 		return false;
@@ -259,7 +279,7 @@ bool DawgFactory::Node::equals(const Node &n) const
 
 int DawgFactory::Node::wordCount() const
 {
-	int wordCount = (t ? 0 : 1);
+	int wordCount = ((playability == 0) ? 0 : 1);
 	for (size_t i = 0; i < children.size(); i++)
 		wordCount += children[i].wordCount();
 	return wordCount;

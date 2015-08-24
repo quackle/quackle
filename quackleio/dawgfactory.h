@@ -29,29 +29,30 @@ public:
 	DawgFactory(const QString& alphabetFile);
 	~DawgFactory();
 
-	int wordCount() const { return root.wordCount(); };
-	int nodeCount() const { return nodelist.size(); };
+	int wordCount() const { return m_root.wordCount(); };
+	int nodeCount() const { return m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
+	int duplicateWords() const { return m_duplicateWords; };
 
 	bool pushWord(const QString& word, bool inSmaller, int playability);
+	void hashWord(const Quackle::LetterString &word);
 	void generate();
 	void writeIndex(const QString& fname);
 
 private:
 	class Node {
 	public:
-		void pushWord(const Quackle::LetterString& word, bool inSmaller, int pb);
-		void print(vector< Node* >& nodelist);
+		bool pushWord(const Quackle::LetterString& word, bool inSmaller, int pb);
+		void print(vector< Node* >& m_nodelist);
 
 		int letterSum() const;
 		int wordCount() const;
 		bool equals(const Node &n) const;
 
 		Quackle::Letter c;
-		bool t;
 		bool insmallerdict;
-		int playability;
+		int playability; // if nonzero, then terminates word
 
 		vector<Node> children;
 		int pointer;
@@ -69,9 +70,16 @@ private:
 
 	int m_encodableWords;
 	int m_unencodableWords;
-	vector< Node* > nodelist;
-	Quackle::AlphabetParameters *alphas;
-	Node root;
+	int m_duplicateWords;
+	vector< Node* > m_nodelist;
+	Quackle::AlphabetParameters *m_alphas;
+	Node m_root;
+	union {
+		char charptr[16];
+		int32_t int32ptr[4];
+	} m_hash;
+
+	static const char m_versionNumber = 1;
 };
 
 #endif

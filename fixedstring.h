@@ -54,6 +54,7 @@ class FixedLengthString
     size_type size() const { return length(); }
     void clear() { m_end = m_data; }
     void push_back(char c);
+    const char* constData() const { return m_data; }
 
     int compare(const FixedLengthString& s) const;
 

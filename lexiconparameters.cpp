@@ -25,15 +25,16 @@
 
 using namespace Quackle;
 
-class V0DawgInterpreter : public DawgInterpreter
+class Quackle::V0DawgInterpreter : public DawgInterpreter
 {
 
-	virtual void loadDawg(ifstream &file, unsigned char *dawg)
+	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
 	{
 		int i = 0;
+		file.unget(); // version 0 doesn't have a version byte...it's just the node byte which is always set to 0
 		while (!file.eof())
 		{
-			file.read((char*)(dawg) + i, 7);
+			file.read((char*)(lexparams.m_dawg) + i, 7);
 			i += 7;
 		}
 	}
@@ -54,15 +55,19 @@ class V0DawgInterpreter : public DawgInterpreter
 	virtual int versionNumber() const { return 0; }
 };
 
-class V1DawgInterpreter : public DawgInterpreter
+class Quackle::V1DawgInterpreter : public DawgInterpreter
 {
 
-	virtual void loadDawg(ifstream &file, unsigned char *dawg)
+	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
 	{
 		int i = 0;
+		unsigned char bytes[3];
+		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
+		file.read((char*)bytes, 3);
+		lexparams.m_wordcount = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
 		while (!file.eof())
 		{
-			file.read((char*)(dawg) + i, 7);
+			file.read((char*)(lexparams.m_dawg) + i, 7);
 			i += 7;
 		}
 	}
@@ -73,10 +78,10 @@ class V1DawgInterpreter : public DawgInterpreter
 		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
 		letter = dawg[index + 3];
 		
-		t = (letter & 32) != 0;
-		lastchild = (letter & 64) != 0;
+		t = (p != 0);
+		lastchild = ((letter & 64) != 0);
 		british = !(letter & 128);
-		letter = (letter & 31) + QUACKLE_FIRST_LETTER;
+		letter = (letter & 63) + QUACKLE_FIRST_LETTER;
 
 		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
 	}
@@ -84,8 +89,9 @@ class V1DawgInterpreter : public DawgInterpreter
 };
 
 LexiconParameters::LexiconParameters()
-	: m_dawg(0), m_gaddag(0)
+	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL), m_wordcount(0)	
 {
+	memset(m_hash, 0, sizeof(m_hash));
 }
 
 LexiconParameters::~LexiconParameters()
@@ -124,7 +130,6 @@ void LexiconParameters::loadDawg(const string &filename)
 	}
 
 	char versionByte = file.get();
-	file.unget();
 	switch(versionByte)
 	{
 		case 0:
@@ -140,7 +145,7 @@ void LexiconParameters::loadDawg(const string &filename)
 
 	m_dawg = new unsigned char[7000000];
 
-	m_interpreter->loadDawg(file, m_dawg);
+	m_interpreter->loadDawg(file, *this);
 }
 
 void LexiconParameters::loadGaddag(const string &filename)
