@@ -207,16 +207,6 @@ void Settings::setQuackleToUseLexiconName(const string &lexiconName)
 	{
 		QUACKLE_LEXICON_PARAMETERS->setLexiconName(lexiconName);
 
-		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".gaddag");
-
-		if (gaddagFile.empty())
-		{
-			UVcout << "Gaddag for lexicon '" << lexiconName << "' does not exist." << endl;
-			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
-		}
-		else
-			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
-
 		string dawgFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".dawg");
 		if (dawgFile.empty())
 		{
@@ -225,6 +215,15 @@ void Settings::setQuackleToUseLexiconName(const string &lexiconName)
 		}
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadDawg(dawgFile);
+
+		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".gaddag");
+		if (gaddagFile.empty())
+		{
+			UVcout << "Gaddag for lexicon '" << lexiconName << "' does not exist." << endl;
+			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
+		}
+		else
+			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconName);
 	}

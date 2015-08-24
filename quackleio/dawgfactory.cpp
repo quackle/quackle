@@ -138,6 +138,7 @@ void DawgFactory::writeIndex(const QString& filename)
 	bytes[1] = (m_encodableWords & 0x0000FF00) >>  8;
 	bytes[2] = (m_encodableWords & 0x000000FF);
 
+	out.put(1); // DAWG format version 1
 	out.write(m_hash.charptr, sizeof(m_hash.charptr));
 	out.write((char*)bytes, 3);
 

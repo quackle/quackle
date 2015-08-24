@@ -25,22 +25,23 @@
 namespace Quackle
 {
 
-class DawgInterpreter
+class LexiconInterpreter
 {
 public:
 	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) = 0;
 	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const = 0;
 	virtual int versionNumber() const = 0;
-	virtual ~DawgInterpreter() {};
+	virtual ~LexiconInterpreter() {};
 };
 
-class V0DawgInterpreter;
-class V1DawgInterpreter;
+class V0LexiconInterpreter;
+class V1LexiconInterpreter;
 
 class LexiconParameters
 {
-	friend class Quackle::V0DawgInterpreter;
-	friend class Quackle::V1DawgInterpreter;
+	friend class Quackle::V0LexiconInterpreter;
+	friend class Quackle::V1LexiconInterpreter;
 
 public:
 	LexiconParameters();
@@ -79,7 +80,7 @@ protected:
 	unsigned char *m_dawg;
 	unsigned char *m_gaddag;
 	string m_lexiconName;
-	DawgInterpreter *m_interpreter;
+	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
 	int m_wordcount;
 };

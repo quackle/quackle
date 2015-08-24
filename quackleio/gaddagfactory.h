@@ -30,13 +30,14 @@ public:
 	GaddagFactory(const QString& alphabetFile);
 	~GaddagFactory();
 
-	int wordCount() const { return gaddagizedWords.size(); };
-	int nodeCount() const { return nodelist.size(); };
+	int wordCount() const { return m_gaddagizedWords.size(); };
+	int nodeCount() const { return m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 
 	bool pushWord(const QString& word);
-	void sortWords() { sort(gaddagizedWords.begin(), gaddagizedWords.end()); };
+	void hashWord(const Quackle::LetterString &word);
+	void sortWords() { sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end()); };
 	void generate();
 	void writeIndex(const QString& fname);
 
@@ -49,17 +50,19 @@ private:
 			int pointer;
 			bool lastchild;
 			void pushWord(const Quackle::LetterString& word);
-			void print(vector< Node* >& nodelist);
+			void print(vector< Node* >& m_nodelist);
 	};
 
 	int m_encodableWords;
 	int m_unencodableWords;
-	Quackle::WordList gaddagizedWords;
-	vector< Node* > nodelist;
-	Quackle::AlphabetParameters *alphas;
-	Node root;
-
-
+	Quackle::WordList m_gaddagizedWords;
+	vector< Node* > m_nodelist;
+	Quackle::AlphabetParameters *m_alphas;
+	Node m_root;
+	union {
+		char charptr[16];
+		int32_t int32ptr[4];
+	} m_hash;
 };
 
 #endif

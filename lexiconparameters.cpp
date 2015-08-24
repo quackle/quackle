@@ -19,13 +19,14 @@
 #include <iostream>
 #include <fstream>
 
+
 #include "datamanager.h"
 #include "lexiconparameters.h"
 #include "uv.h"
 
 using namespace Quackle;
 
-class Quackle::V0DawgInterpreter : public DawgInterpreter
+class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 {
 
 	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
@@ -36,6 +37,17 @@ class Quackle::V0DawgInterpreter : public DawgInterpreter
 		{
 			file.read((char*)(lexparams.m_dawg) + i, 7);
 			i += 7;
+		}
+	}
+
+	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
+	{
+		int i = 0;
+		file.unget();
+		while (!file.eof())
+		{
+			file.read((char*)(lexparams.m_gaddag) + i, 4);
+			i += 4;
 		}
 	}
 
@@ -55,7 +67,7 @@ class Quackle::V0DawgInterpreter : public DawgInterpreter
 	virtual int versionNumber() const { return 0; }
 };
 
-class Quackle::V1DawgInterpreter : public DawgInterpreter
+class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 {
 
 	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
@@ -69,6 +81,24 @@ class Quackle::V1DawgInterpreter : public DawgInterpreter
 		{
 			file.read((char*)(lexparams.m_dawg) + i, 7);
 			i += 7;
+		}
+	}
+
+	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
+	{
+		char hash[16];
+		file.read(hash, sizeof(hash));
+		if (memcmp(hash, lexparams.m_hash, sizeof(hash)))
+		{
+			lexparams.unloadGaddag(); // don't use a mismatched gaddag
+			return;
+		}
+
+		int i = 0;
+		while (!file.eof())
+		{
+			file.read((char*)(lexparams.m_gaddag) + i, 4);
+			i += 4;
 		}
 	}
 
@@ -108,14 +138,14 @@ void LexiconParameters::unloadAll()
 void LexiconParameters::unloadDawg()
 {
 	delete[] m_dawg;
-	m_dawg = 0;
+	m_dawg = NULL;
 	delete m_interpreter;
 }
 
 void LexiconParameters::unloadGaddag()
 {
 	delete[] m_gaddag;
-	m_gaddag = 0;
+	m_gaddag = NULL;
 }
 
 void LexiconParameters::loadDawg(const string &filename)
@@ -133,10 +163,10 @@ void LexiconParameters::loadDawg(const string &filename)
 	switch(versionByte)
 	{
 		case 0:
-			m_interpreter = new V0DawgInterpreter();
+			m_interpreter = new V0LexiconInterpreter();
 			break;
 		case 1:
-			m_interpreter = new V1DawgInterpreter();
+			m_interpreter = new V1LexiconInterpreter();
 			break;
 		default:
 			UVcout << "couldn't open dawg " << filename.c_str() << endl;
@@ -160,14 +190,12 @@ void LexiconParameters::loadGaddag(const string &filename)
 		return;
 	}
 
+	char versionByte = file.get();
+	if (versionByte != m_interpreter->versionNumber())
+		return;
 	m_gaddag = new unsigned char[40000000];
 
-	int i = 0;
-	while (!file.eof())
-	{
-		file.read((char*)(m_gaddag) + i, 4);
-		i += 4;
-	}
+	m_interpreter->loadGaddag(file, *this);
 }
 
 string LexiconParameters::findDictionaryFile(const string &lexicon)

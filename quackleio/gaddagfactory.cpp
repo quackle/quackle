@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <QtCore>
+#include <QCryptographicHash>
 
 #include "gaddagfactory.h"
 #include "util.h"
@@ -27,18 +28,20 @@ GaddagFactory::GaddagFactory(const QString& alphabetFile)
 {
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 	flexure->load(alphabetFile);
-	alphas = flexure;
+	m_alphas = flexure;
 
 	// So the separator is sorted to last.
-	root.t = false;
-	root.c = QUACKLE_NULL_MARK;  // "_"
-	root.pointer = 0;
-	root.lastchild = true;
+	m_root.t = false;
+	m_root.c = QUACKLE_NULL_MARK;  // "_"
+	m_root.pointer = 0;
+	m_root.lastchild = true;
+
+	m_hash.int32ptr[0] = m_hash.int32ptr[1] = m_hash.int32ptr[2] = m_hash.int32ptr[3] = 0;
 }
 
 GaddagFactory::~GaddagFactory()
 {
-	delete alphas;
+	delete m_alphas;
 }
 
 bool GaddagFactory::pushWord(const QString& word)
@@ -46,10 +49,14 @@ bool GaddagFactory::pushWord(const QString& word)
 	UVString originalString = QuackleIO::Util::qstringToString(word);
 
 	UVString leftover;
-    Quackle::LetterString encodedWord = alphas->encode(originalString, &leftover);
+    Quackle::LetterString encodedWord = m_alphas->encode(originalString, &leftover);
 	if (leftover.empty())
 	{
 		++m_encodableWords;
+		hashWord(encodedWord);
+		// FIXME: This hash will fail if duplicate words are passed in.
+		// But testing for duplicate words isn't so easy without keeping
+		// an entirely separate list.
 
 		for (unsigned i = 1; i <= encodedWord.length(); i++)
 		{
@@ -64,7 +71,7 @@ bool GaddagFactory::pushWord(const QString& word)
 				for (unsigned j = i; j < encodedWord.length(); j++)
 					newword.push_back(encodedWord[j]);
 			}
-			gaddagizedWords.push_back(newword);
+			m_gaddagizedWords.push_back(newword);
 		}
 		return true;
 	}
@@ -73,26 +80,40 @@ bool GaddagFactory::pushWord(const QString& word)
 	return false;
 }
 
-void GaddagFactory::generate()
+void GaddagFactory::hashWord(const Quackle::LetterString &word)
 {
-	Quackle::WordList::const_iterator wordsEnd = gaddagizedWords.end();
-	for (Quackle::WordList::const_iterator wordsIt = gaddagizedWords.begin(); wordsIt != wordsEnd; ++wordsIt)
-		root.pushWord(*wordsIt);
-	//	for (const auto& words : gaddaggizedWords)
-	//		root.pushWord(words);
+	QCryptographicHash wordhash(QCryptographicHash::Md5);
+	wordhash.addData(word.constData(), word.length());
+	QByteArray wordhashbytes = wordhash.result();
+	m_hash.int32ptr[0] ^= ((const int32_t*)wordhashbytes.constData())[0];
+	m_hash.int32ptr[1] ^= ((const int32_t*)wordhashbytes.constData())[1];
+	m_hash.int32ptr[2] ^= ((const int32_t*)wordhashbytes.constData())[2];
+	m_hash.int32ptr[3] ^= ((const int32_t*)wordhashbytes.constData())[3];
 }
 
-void GaddagFactory::writeIndex(const QString& fname)
+void GaddagFactory::generate()
 {
-	nodelist.push_back(&root);
+	Quackle::WordList::const_iterator wordsEnd = m_gaddagizedWords.end();
+	for (Quackle::WordList::const_iterator wordsIt = m_gaddagizedWords.begin(); wordsIt != wordsEnd; ++wordsIt)
+		m_root.pushWord(*wordsIt);
+	//	for (const auto& words : gaddaggizedWords)
+	//		m_root.pushWord(words);
+}
 
-	root.print(nodelist);    
+void GaddagFactory::writeIndex(const QString &fname)
+{
+	m_nodelist.push_back(&m_root);
+
+	m_root.print(m_nodelist);    
 
 	ofstream out(QuackleIO::Util::qstringToStdString(fname).c_str(), ios::out | ios::binary);
 
-	for (size_t i = 0; i < nodelist.size(); i++)
+	out.put(1); // GADDAG format version 1
+	out.write(m_hash.charptr, sizeof(m_hash.charptr));
+
+	for (size_t i = 0; i < m_nodelist.size(); i++)
 	{
-		unsigned int p = (unsigned int)(nodelist[i]->pointer);
+		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
 		if (p != 0)
 			p -= i; // offset indexing
 
@@ -102,14 +123,14 @@ void GaddagFactory::writeIndex(const QString& fname)
 		unsigned char n3 = (p & 0x000000FF) >> 0;
 		unsigned char n4; 
 
-		n4 = nodelist[i]->c;
+		n4 = m_nodelist[i]->c;
 		if (n4 == internalSeparatorRepresentation)
 			n4 = QUACKLE_NULL_MARK;
 
-		if (nodelist[i]->t)
+		if (m_nodelist[i]->t)
 			n4 |= 64;
 
-		if (nodelist[i]->lastchild)
+		if (m_nodelist[i]->lastchild)
 			n4 |= 128;
 
 		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
