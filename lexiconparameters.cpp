@@ -203,3 +203,7 @@ string LexiconParameters::findDictionaryFile(const string &lexicon)
 	return DataManager::self()->findDataFile("lexica", lexicon);
 }
 
+QString hashString() const
+{
+	return QString(QByteArray(m_hash, sizeof(m_hash)).toHex());
+}

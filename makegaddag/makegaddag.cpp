@@ -105,6 +105,8 @@ int main(int argc, char **argv)
 
 	UVcout << "Wrote " << factory.encodableWords() << " words over " << factory.nodeCount() << " nodes to " << QuackleIO::Util::qstringToString(outputFilename) << "." << endl;
 
+	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << endl;
+
 	if (factory.unencodableWords() > 0)
 		UVcout << "There were " << factory.unencodableWords() << " words left out." << endl;
 

@@ -40,6 +40,8 @@ public:
 	void generate();
 	void writeIndex(const QString& fname);
 
+	const char* hashBytes() { return m_hash.charptr; };
+
 private:
 	class Node {
 	public:

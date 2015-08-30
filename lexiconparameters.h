@@ -19,6 +19,7 @@
 #ifndef QUACKLE_LEXICONPARAMETERS_H
 #define QUACKLE_LEXICONPARAMETERS_H
 
+#include <QString>
 #include "alphabetparameters.h"
 #include "gaddag.h"
 
@@ -75,6 +76,8 @@ public:
 		m_interpreter->dawgAt(m_dawg, index, p, letter, t, lastchild, british, playability);
 	}
 	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
+
+	QString hashString() const;
 
 protected:
 	unsigned char *m_dawg;

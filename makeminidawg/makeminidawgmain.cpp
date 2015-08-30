@@ -138,6 +138,8 @@ int main(int argc, char **argv)
 	factory.generate();
 	UVcout << "Compressed nodelist.size(): " << factory.nodeCount() << endl;
 
+	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << endl;
+
 	factory.writeIndex("output.dawg");
 
 	return 0;
