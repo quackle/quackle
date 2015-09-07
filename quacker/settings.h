@@ -24,6 +24,8 @@
 #include <QWidget>
 #include <QSettings>
 
+#include "quackleio/gaddagfactory.h"
+
 class QComboBox;
 class QCheckBox;
 class QPushButton;
@@ -72,8 +74,8 @@ protected slots:
 	void editAlphabet();
 	void editTheme();
 
-	void setQuackleToUseLexiconName(const string &lexiconName);
-	void setQuackleToUseAlphabetName(const string &alphabetName);
+	void setQuackleToUseLexiconName(const QString &lexiconName);
+	void setQuackleToUseAlphabetName(const QString &alphabetName);
 	void setQuackleToUseThemeName(const QString &themeName);
 	void setQuackleToUseBoardName(const QString &lexiconName);
 
@@ -93,6 +95,9 @@ protected:
 private:
 	// populate the popup based on what's in QSettings
 	void loadBoardNameCombo();
+
+	void buildGaddag(const string &filename);
+	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index);
 
 	static Settings *m_self;
 };

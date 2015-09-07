@@ -32,7 +32,6 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
 	{
 		int i = 0;
-		file.unget(); // version 0 doesn't have a version byte...it's just the node byte which is always set to 0
 		while (!file.eof())
 		{
 			file.read((char*)(lexparams.m_dawg) + i, 7);
@@ -43,7 +42,6 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
 	{
 		int i = 0;
-		file.unget();
 		while (!file.eof())
 		{
 			file.read((char*)(lexparams.m_gaddag) + i, 4);
@@ -74,6 +72,7 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 	{
 		int i = 0;
 		unsigned char bytes[3];
+		file.get(); // skip past version byte
 		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
 		file.read((char*)bytes, 3);
 		lexparams.m_wordcount = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
@@ -87,14 +86,22 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
 	{
 		char hash[16];
+		file.get(); // skip past version byte
 		file.read(hash, sizeof(hash));
 		if (memcmp(hash, lexparams.m_hash, sizeof(hash)))
 		{
-			lexparams.unloadGaddag(); // don't use a mismatched gaddag
-			return;
+			// If we're using a v0 DAWG, then ignore the hash
+			for (size_t i = 0; i < sizeof(lexparams.m_hash); i++)
+			{
+				if (lexparams.m_hash[0] != 0)
+				{
+					lexparams.unloadGaddag(); // don't use a mismatched gaddag
+					return;
+				}
+			}
 		}
 
-		int i = 0;
+		size_t i = 0;
 		while (!file.eof())
 		{
 			file.read((char*)(lexparams.m_gaddag) + i, 4);
@@ -160,20 +167,16 @@ void LexiconParameters::loadDawg(const string &filename)
 	}
 
 	char versionByte = file.get();
-	switch(versionByte)
+	m_interpreter = createInterpreter(versionByte);
+	if (m_interpreter == NULL)
 	{
-		case 0:
-			m_interpreter = new V0LexiconInterpreter();
-			break;
-		case 1:
-			m_interpreter = new V1LexiconInterpreter();
-			break;
-		default:
-			UVcout << "couldn't open dawg " << filename.c_str() << endl;
-			return;
+		UVcout << "couldn't open file " << filename.c_str() << endl;
+		return;
 	}
 
-	m_dawg = new unsigned char[7000000];
+	file.seekg(0, ios_base::end);
+	m_dawg = new unsigned char[file.tellg()];
+	file.seekg(0, ios_base::beg);
 
 	m_interpreter->loadDawg(file, *this);
 }
@@ -191,19 +194,53 @@ void LexiconParameters::loadGaddag(const string &filename)
 	}
 
 	char versionByte = file.get();
-	if (versionByte != m_interpreter->versionNumber())
+	if (versionByte < m_interpreter->versionNumber())
 		return;
-	m_gaddag = new unsigned char[40000000];
+	file.seekg(0, ios_base::end);
+	m_gaddag = new unsigned char[file.tellg()];
+	file.seekg(0, ios_base::beg);
 
-	m_interpreter->loadGaddag(file, *this);
+	// must create a local interpreter because dawg/gaddag versions might not match
+	LexiconInterpreter* interpreter = createInterpreter(versionByte);
+	if (interpreter != NULL)
+	{
+		interpreter->loadGaddag(file, *this);
+		delete interpreter;
+	}
+	else
+		unloadGaddag();
 }
 
 string LexiconParameters::findDictionaryFile(const string &lexicon)
 {
-	return DataManager::self()->findDataFile("lexica", lexicon);
+	return QUACKLE_DATAMANAGER->findDataFile("lexica", lexicon);
 }
 
-QString hashString() const
+UVString LexiconParameters::hashString(bool shortened) const
 {
-	return QString(QByteArray(m_hash, sizeof(m_hash)).toHex());
+	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	string hashStr;
+	for (size_t i = 0; i < sizeof(m_hash); i++)
+	{
+		hashStr.push_back(hex[(m_hash[i] & 0xF0) >> 4]);
+		hashStr.push_back(hex[m_hash[i] & 0x0F]);
+		if (shortened && i == 5)
+			break;
+		if (i % 2 == 1)
+			hashStr.push_back('-');
+	}
+	return hashStr;
+}
+
+LexiconInterpreter* LexiconParameters::createInterpreter(char version) const
+{
+	switch(version)
+	{
+		case 0:
+			return new V0LexiconInterpreter();
+		case 1:
+			return new V1LexiconInterpreter();
+		default:
+			return NULL;
+	}
 }

@@ -19,8 +19,6 @@
 #ifndef QUACKLE_LEXICONPARAMETERS_H
 #define QUACKLE_LEXICONPARAMETERS_H
 
-#include <QString>
-#include "alphabetparameters.h"
 #include "gaddag.h"
 
 namespace Quackle
@@ -77,7 +75,7 @@ public:
 	}
 	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
 
-	QString hashString() const;
+	UVString hashString(bool shortened) const;
 
 protected:
 	unsigned char *m_dawg;
@@ -86,6 +84,8 @@ protected:
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
 	int m_wordcount;
+
+	LexiconInterpreter* createInterpreter(char version) const;
 };
 
 }

@@ -27,7 +27,7 @@ public:
 
 	static const Quackle::Letter internalSeparatorRepresentation = QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE;
 
-	GaddagFactory(const QString& alphabetFile);
+	GaddagFactory(const UVString &alphabetFile);
 	~GaddagFactory();
 
 	int wordCount() const { return m_gaddagizedWords.size(); };
@@ -35,11 +35,12 @@ public:
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 
-	bool pushWord(const QString& word);
+	bool pushWord(const UVString &word);
+	bool pushWord(const Quackle::LetterString &word);
 	void hashWord(const Quackle::LetterString &word);
 	void sortWords() { sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end()); };
 	void generate();
-	void writeIndex(const QString& fname);
+	void writeIndex(const string &fname);
 
 	const char* hashBytes() { return m_hash.charptr; };
 

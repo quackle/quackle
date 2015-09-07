@@ -26,7 +26,7 @@
 class DawgFactory {
 public:
 
-	DawgFactory(const QString& alphabetFile);
+	DawgFactory(const UVString& alphabetFile);
 	~DawgFactory();
 
 	int wordCount() const { return m_root.wordCount(); };
@@ -35,10 +35,10 @@ public:
 	int unencodableWords() const { return m_unencodableWords; };
 	int duplicateWords() const { return m_duplicateWords; };
 
-	bool pushWord(const QString& word, bool inSmaller, int playability);
+	bool pushWord(const UVString& word, bool inSmaller, int playability);
 	void hashWord(const Quackle::LetterString &word);
 	void generate();
-	void writeIndex(const QString& fname);
+	void writeIndex(const UVString& filename);
 
 	const char* hashBytes() { return m_hash.charptr; };
 

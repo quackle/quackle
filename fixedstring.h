@@ -54,6 +54,7 @@ class FixedLengthString
     size_type size() const { return length(); }
     void clear() { m_end = m_data; }
     void push_back(char c);
+    void pop_back();
     const char* constData() const { return m_data; }
 
     int compare(const FixedLengthString& s) const;
@@ -219,6 +220,13 @@ inline void
 FixedLengthString::push_back(char c)
 {
     *this += c;
+}
+
+inline void
+FixedLengthString::pop_back()
+{
+    assert(size() > 0);
+    m_end--;
 }
 
 inline int

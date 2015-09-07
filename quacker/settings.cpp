@@ -93,6 +93,8 @@ Settings::Settings(QWidget *parent)
 		m_appDataDir = directory.absolutePath();
 	}
 	m_userDataDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+	QDir qdir(m_userDataDir);
+	qdir.mkpath("lexica");
 }
 
 void Settings::createGUI()
@@ -195,49 +197,97 @@ void Settings::initialize()
 	if (lexiconName == "cswfeb07")
 		lexiconName = "cswapr07";
 
-	setQuackleToUseLexiconName(QuackleIO::Util::qstringToStdString(lexiconName));
-	setQuackleToUseAlphabetName(QuackleIO::Util::qstringToStdString(settings.value("quackle/settings/alphabet-name", QString("english")).toString()));
+	setQuackleToUseLexiconName(lexiconName);
+	setQuackleToUseAlphabetName(settings.value("quackle/settings/alphabet-name", QString("english")).toString());
 	setQuackleToUseThemeName(settings.value("quackle/settings/theme-name", QString("traditional")).toString());
 	setQuackleToUseBoardName(settings.value("quackle/settings/board-name", QString("")).toString());
 }
 
-void Settings::setQuackleToUseLexiconName(const string &lexiconName)
+void Settings::buildGaddag(const string &filename)
 {
-	if (QUACKLE_LEXICON_PARAMETERS->lexiconName() != lexiconName)
-	{
-		QUACKLE_LEXICON_PARAMETERS->setLexiconName(lexiconName);
+	GaddagFactory factory((UVString()));
+	Quackle::LetterString word;
 
-		string dawgFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".dawg");
+	pushIndex(factory, word, 1);
+	factory.generate();
+	factory.writeIndex(filename);
+}
+
+void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index)
+{
+	unsigned int p;
+	Quackle::Letter letter;
+	bool t;
+	bool lastchild;
+	bool british;
+	int playability;
+
+	do
+	{
+		QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);
+		word.push_back(letter);
+		if (t)
+			factory.pushWord(word);
+		if (p)
+			pushIndex(factory, word, p);
+		index++;
+		word.pop_back();
+	} while (!lastchild);
+}
+
+
+void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
+{
+	string lexiconNameStr = lexiconName.toStdString();
+	if (QUACKLE_LEXICON_PARAMETERS->lexiconName() != lexiconNameStr)
+	{
+		QUACKLE_LEXICON_PARAMETERS->setLexiconName(lexiconNameStr);
+
+		string dawgFile = Quackle::LexiconParameters::findDictionaryFile(lexiconNameStr + ".dawg");
 		if (dawgFile.empty())
 		{
-			UVcout << "Dawg for lexicon '" << lexiconName << "' does not exist." << endl;
+			UVcout << "Dawg for lexicon '" << lexiconNameStr << "' does not exist." << endl;
 			QUACKLE_LEXICON_PARAMETERS->unloadDawg();
 		}
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadDawg(dawgFile);
 
-		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".gaddag");
+		if (!QUACKLE_LEXICON_PARAMETERS->hasDawg())
+		{
+			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
+			return;
+		}
+
+		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconNameStr + ".gaddag");
 		if (gaddagFile.empty())
 		{
-			UVcout << "Gaddag for lexicon '" << lexiconName << "' does not exist." << endl;
+			UVcout << "Gaddag for lexicon '" << lexiconNameStr << "' does not exist." << endl;
 			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
 		}
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 
-		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconName);
+		if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
+		{
+			gaddagFile = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".gaddag", true);
+			buildGaddag(gaddagFile);
+			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+		}
+
+		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
 	}
 }
 
-void Settings::setQuackleToUseAlphabetName(const string &alphabetName)
+void Settings::setQuackleToUseAlphabetName(const QString &alphabetName)
 {
-	if (QUACKLE_ALPHABET_PARAMETERS->alphabetName() != alphabetName)
+	string alphabetNameStr = alphabetName.toStdString();
+	if (QUACKLE_ALPHABET_PARAMETERS->alphabetName() != alphabetNameStr)
 	{
-		QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetName + ".quackle_alphabet"));
+		QString alphabetFileStr = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetNameStr + ".quackle_alphabet"));
 
 		QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-		flexure->setAlphabetName(alphabetName);
-		if (flexure->load(alphabetFile))
+		flexure->setAlphabetName(alphabetNameStr);
+		if (flexure->load(alphabetFileStr))
 		{
 			if (flexure->length() != QUACKLE_ALPHABET_PARAMETERS->length() && QUACKLE_ALPHABET_PARAMETERS->alphabetName() != "default")
 			{
@@ -295,8 +345,7 @@ void Settings::lexiconChanged(const QString &lexiconName)
 		editLexicon();
 		return;
 	}
-	string lexiconNameString = QuackleIO::Util::qstringToStdString(lexiconName);
-	setQuackleToUseLexiconName(lexiconNameString);
+	setQuackleToUseLexiconName(lexiconName);
 
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/lexicon-name", lexiconName);
@@ -311,8 +360,7 @@ void Settings::alphabetChanged(const QString &alphabetName)
 		editAlphabet();
 		return;
 	}
-	string alphabetNameString = QuackleIO::Util::qstringToStdString(alphabetName);
-	setQuackleToUseAlphabetName(alphabetNameString);
+	setQuackleToUseAlphabetName(alphabetName);
 
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/alphabet-name", alphabetName);

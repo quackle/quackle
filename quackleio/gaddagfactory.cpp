@@ -24,11 +24,15 @@
 #include "gaddagfactory.h"
 #include "util.h"
 
-GaddagFactory::GaddagFactory(const QString& alphabetFile)
+GaddagFactory::GaddagFactory(const UVString &alphabetFile)
+	: m_encodableWords(0), m_unencodableWords(0), m_alphas(NULL)
 {
-	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-	flexure->load(alphabetFile);
-	m_alphas = flexure;
+	if (!alphabetFile.empty())
+	{
+		QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
+		flexure->load(QuackleIO::Util::uvStringToQString(alphabetFile));
+		m_alphas = flexure;
+	}
 
 	// So the separator is sorted to last.
 	m_root.t = false;
@@ -44,40 +48,44 @@ GaddagFactory::~GaddagFactory()
 	delete m_alphas;
 }
 
-bool GaddagFactory::pushWord(const QString& word)
+bool GaddagFactory::pushWord(const UVString &word)
 {
-	UVString originalString = QuackleIO::Util::qstringToString(word);
-
 	UVString leftover;
-    Quackle::LetterString encodedWord = m_alphas->encode(originalString, &leftover);
+    Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
 	if (leftover.empty())
 	{
-		++m_encodableWords;
-		hashWord(encodedWord);
-		// FIXME: This hash will fail if duplicate words are passed in.
-		// But testing for duplicate words isn't so easy without keeping
-		// an entirely separate list.
-
-		for (unsigned i = 1; i <= encodedWord.length(); i++)
-		{
-			Quackle::LetterString newword;
-
-			for (int j = i - 1; j >= 0; j--)
-				newword.push_back(encodedWord[j]);
-
-			if (i < encodedWord.length())
-			{
-				newword.push_back(internalSeparatorRepresentation);  // "^"
-				for (unsigned j = i; j < encodedWord.length(); j++)
-					newword.push_back(encodedWord[j]);
-			}
-			m_gaddagizedWords.push_back(newword);
-		}
+		pushWord(encodedWord);
 		return true;
 	}
 
 	++m_unencodableWords;
 	return false;
+}
+
+bool GaddagFactory::pushWord(const Quackle::LetterString &word)
+{
+	++m_encodableWords;
+	hashWord(word);
+	// FIXME: This hash will fail if duplicate words are passed in.
+	// But testing for duplicate words isn't so easy without keeping
+	// an entirely separate list.
+
+	for (unsigned i = 1; i <= word.length(); i++)
+	{
+		Quackle::LetterString newword;
+
+		for (int j = i - 1; j >= 0; j--)
+			newword.push_back(word[j]);
+
+		if (i < word.length())
+		{
+			newword.push_back(internalSeparatorRepresentation);  // "^"
+			for (unsigned j = i; j < word.length(); j++)
+				newword.push_back(word[j]);
+		}
+		m_gaddagizedWords.push_back(newword);
+	}
+	return true;
 }
 
 void GaddagFactory::hashWord(const Quackle::LetterString &word)
@@ -93,6 +101,7 @@ void GaddagFactory::hashWord(const Quackle::LetterString &word)
 
 void GaddagFactory::generate()
 {
+	sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end());
 	Quackle::WordList::const_iterator wordsEnd = m_gaddagizedWords.end();
 	for (Quackle::WordList::const_iterator wordsIt = m_gaddagizedWords.begin(); wordsIt != wordsEnd; ++wordsIt)
 		m_root.pushWord(*wordsIt);
@@ -100,13 +109,13 @@ void GaddagFactory::generate()
 	//		m_root.pushWord(words);
 }
 
-void GaddagFactory::writeIndex(const QString &fname)
+void GaddagFactory::writeIndex(const string &fname)
 {
 	m_nodelist.push_back(&m_root);
 
 	m_root.print(m_nodelist);    
 
-	ofstream out(QuackleIO::Util::qstringToStdString(fname).c_str(), ios::out | ios::binary);
+	ofstream out(fname.c_str(), ios::out | ios::binary);
 
 	out.put(1); // GADDAG format version 1
 	out.write(m_hash.charptr, sizeof(m_hash.charptr));

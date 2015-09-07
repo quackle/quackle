@@ -25,10 +25,10 @@
 #include "util.h"
 
 
-DawgFactory::DawgFactory(const QString& alphabetFile)
+DawgFactory::DawgFactory(const UVString& alphabetFile)
 {
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-	flexure->load(alphabetFile);
+	flexure->load(QuackleIO::Util::uvStringToQString(alphabetFile));
 	m_alphas = flexure;
 
 	m_root.insmallerdict = false;
@@ -45,12 +45,10 @@ DawgFactory::~DawgFactory()
 	delete m_alphas;
 }
 
-bool DawgFactory::pushWord(const QString& word, bool inSmaller, int playability)
+bool DawgFactory::pushWord(const UVString& word, bool inSmaller, int playability)
 {
-	UVString originalString = QuackleIO::Util::qstringToString(word);
-
 	UVString leftover;
-	Quackle::LetterString encodedWord = m_alphas->encode(originalString, &leftover);
+	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
 	if (leftover.empty())
 	{
 		if (m_root.pushWord(encodedWord, inSmaller, playability))
@@ -129,9 +127,9 @@ void DawgFactory::generate()
 	m_root.print(m_nodelist);
 }
 
-void DawgFactory::writeIndex(const QString& filename)
+void DawgFactory::writeIndex(const UVString& filename)
 {
-	ofstream out(QuackleIO::Util::qstringToStdString(filename).c_str(), ios::out | ios::binary);
+	ofstream out(filename.c_str(), ios::out | ios::binary);
 	unsigned char bytes[7];
 
 	bytes[0] = (m_encodableWords & 0x00FF0000) >> 16;
