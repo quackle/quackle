@@ -744,8 +744,8 @@ void Board::prepareEmptyBoard()
 		{
 			m_letters[i][j] = QUACKLE_NULL_MARK;
 			m_isBlank[i][j] = false;
-			m_vcross[i][j] = Utility::Max;
-			m_hcross[i][j] = Utility::Max;
+			m_vcross[i][j].set();
+			m_hcross[i][j].set();
 		}
 	}
 }

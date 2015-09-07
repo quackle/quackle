@@ -20,6 +20,7 @@
 #define QUACKLE_BOARD_H
 
 #include <vector>
+#include <bitset>
 
 #include "alphabetparameters.h"
 #include "bag.h"
@@ -27,7 +28,9 @@
 #include "rack.h"
 
 using namespace std;
-    
+
+typedef bitset<QUACKLE_MAXIMUM_ALPHABET_SIZE> LetterBitset;
+
 #define QUACKLE_MAXIMUM_BOARD_SIZE LETTER_STRING_MAXIMUM_LENGTH
 #define QUACKLE_MINIMUM_BOARD_SIZE 7
 
@@ -122,11 +125,11 @@ public:
 	bool isBlank(int row, int col) const;
 	bool isBritish(int row, int col) const;
 
-	int vcross(int row, int col) const;
-	void setVCross(int row, int col, int vcross);
+	const LetterBitset &vcross(int row, int col) const;
+	void setVCross(int row, int col, const LetterBitset &vcross);
 
-	int hcross(int row, int col) const;
-	void setHCross(int row, int col, int hcross);
+	const LetterBitset &hcross(int row, int col) const;
+	void setHCross(int row, int col, const LetterBitset &hcross);
 
 protected:
 	int m_width;
@@ -137,8 +140,8 @@ protected:
 	bool m_isBlank[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 	bool m_isBritish[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 
-	int m_vcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
-	int m_hcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+	LetterBitset m_vcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
+	LetterBitset m_hcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 
 	inline bool isNonempty(int row, int column) const;
 };
@@ -163,22 +166,22 @@ inline bool Board::isBritish(int row, int col) const
 	return m_isBritish[row][col];
 }
 
-inline int Board::vcross(int row, int col) const
+inline const LetterBitset &Board::vcross(int row, int col) const
 {
 	return m_vcross[row][col];
 }
 
-inline void Board::setVCross(int row, int col, int vcross)
+inline void Board::setVCross(int row, int col, const LetterBitset &vcross)
 {
 	m_vcross[row][col] = vcross;
 }
 
-inline int Board::hcross(int row, int col) const
+inline const LetterBitset &Board::hcross(int row, int col) const
 {
 	return m_hcross[row][col];
 }
 
-inline void Board::setHCross(int row, int col, int hcross)
+inline void Board::setHCross(int row, int col, const LetterBitset &hcross)
 {
 	m_hcross[row][col] = hcross;
 }
