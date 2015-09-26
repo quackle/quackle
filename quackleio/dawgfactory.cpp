@@ -50,18 +50,21 @@ bool DawgFactory::pushWord(const UVString& word, bool inSmaller, int playability
 	UVString leftover;
 	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
 	if (leftover.empty())
-	{
-		if (m_root.pushWord(encodedWord, inSmaller, playability))
-		{
-			++m_encodableWords;
-			hashWord(encodedWord);
-			return true;
-		}
-		++m_duplicateWords;
-		return false;
-	}
+		return pushWord(encodedWord, inSmaller, playability);
 
 	++m_unencodableWords;
+	return false;
+}
+
+bool DawgFactory::pushWord(const Quackle::LetterString& word, bool inSmaller, int playability)
+{
+	if (m_root.pushWord(word, inSmaller, playability))
+	{
+		++m_encodableWords;
+		hashWord(word);
+		return true;
+	}
+	++m_duplicateWords;
 	return false;
 }
 
@@ -139,6 +142,14 @@ void DawgFactory::writeIndex(const UVString& filename)
 	out.put(1); // DAWG format version 1
 	out.write(m_hash.charptr, sizeof(m_hash.charptr));
 	out.write((char*)bytes, 3);
+	out.put((char)m_alphas->length());
+	for (Quackle::Letter i = m_alphas->firstLetter(); i <= m_alphas->lastLetter(); i++)
+	{
+		QString letterText = QuackleIO::Util::uvStringToQString(m_alphas->letterParameter(i).text());
+		QByteArray utf8bytes = letterText.toUtf8();
+		string utf8LetterText(utf8bytes.constData());
+		out << utf8LetterText << ' ';
+	}
 
 	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
 		//cout << m_nodelist[i]->c << " " << m_nodelist[i]->pointer << " " << m_nodelist[i]->t << " " << m_nodelist[i]->lastchild << endl;

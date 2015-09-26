@@ -20,17 +20,20 @@
 #define QUACKER_LEXICONDIALOG_H
 
 #include <string>
-#include <game.h>
+#include "game.h"
+#include "lexiconparameters.h"
 
 #include <QWidget>
 #include <QDialog>
 
 using namespace std;
+using namespace Quackle;
 
 class QComboBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class DawgFactory;
 
 class LexiconDialog : public QDialog
 {
@@ -47,6 +50,10 @@ protected slots:
 	void deleteLexicon();
 	void addWordsFromFile();
 
+protected:
+	void addWordsFromDawg(const string &dawgfile, const string &alphabetfile);
+	void addWordsFromDawgRecursive(const LexiconParameters &lexParams, Quackle::LetterString &word, int index);
+
 private:
 	QLineEdit *m_lexiconName;
 	QComboBox *m_alphabetCombo;
@@ -59,6 +66,8 @@ private:
 	QPushButton *m_deleteLexicon;
 	
 	QString m_originalName;
+
+	DawgFactory *m_wordFactory;
 };
 
 #endif

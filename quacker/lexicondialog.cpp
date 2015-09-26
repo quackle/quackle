@@ -25,9 +25,10 @@
 #include "customqsettings.h"
 #include "settings.h"
 #include "geometry.h"
+#include "quackleio/dawgfactory.h"
 
-
-LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDialog(parent)
+LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDialog(parent),
+	m_wordFactory(NULL)
 {
 	m_originalName = originalName;
 
@@ -117,7 +118,45 @@ void LexiconDialog::deleteLexicon()
 
 void LexiconDialog::addWordsFromFile()
 {
+	QFileDialog browser(this, tr("Choose a file containing words to be added to the lexicon..."));
+}
 
+void LexiconDialog::addWordsFromDawg(const string &dawgfile, const string &alphabetfile)
+{
+	delete m_wordFactory;
+	m_wordFactory = NULL;
+
+	LexiconParameters lexParams;
+	lexParams.loadDawg(dawgfile);
+	if (!lexParams.hasDawg())
+		return;
+
+	m_wordFactory = new DawgFactory(alphabetfile);
+	Quackle::LetterString word;
+
+	addWordsFromDawgRecursive(lexParams, word, 1);
+}
+
+void LexiconDialog::addWordsFromDawgRecursive(const LexiconParameters &lexParams, Quackle::LetterString &word, int index)
+{
+	unsigned int p;
+	Quackle::Letter letter;
+	bool t;
+	bool lastchild;
+	bool british;
+	int playability;
+
+	do
+	{
+		lexParams.dawgAt(index, p, letter, t, lastchild, british, playability);
+		word.push_back(letter);
+		if (t)
+			m_wordFactory->pushWord(word, !british, playability);
+		if (p)
+			addWordsFromDawgRecursive(lexParams, word, p);
+		index++;
+		word.pop_back();
+	} while (!lastchild);
 }
 
 void LexiconDialog::accept()

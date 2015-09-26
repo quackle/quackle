@@ -36,6 +36,7 @@ public:
 	int duplicateWords() const { return m_duplicateWords; };
 
 	bool pushWord(const UVString& word, bool inSmaller, int playability);
+	bool pushWord(const Quackle::LetterString& word, bool inSmaller, int playability);
 	void hashWord(const Quackle::LetterString &word);
 	void generate();
 	void writeIndex(const UVString& filename);

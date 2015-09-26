@@ -19,10 +19,14 @@
 #ifndef QUACKLE_LEXICONPARAMETERS_H
 #define QUACKLE_LEXICONPARAMETERS_H
 
+#include <vector>
+
 #include "gaddag.h"
 
 namespace Quackle
 {
+
+class LexiconParameters;
 
 class LexiconInterpreter
 {
@@ -84,6 +88,7 @@ protected:
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
 	int m_wordcount;
+	vector<string> m_utf8Alphabet;
 
 	LexiconInterpreter* createInterpreter(char version) const;
 };

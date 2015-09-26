@@ -75,6 +75,14 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		file.get(); // skip past version byte
 		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
 		file.read((char*)bytes, 3);
+
+		lexparams.m_utf8Alphabet.resize(file.get());
+		for (size_t i = 0; i < lexparams.m_utf8Alphabet.size(); i++)
+		{
+			file >> lexparams.m_utf8Alphabet[i];
+			file.get(); // separator space
+		}
+		file.get(); // whitespace separator
 		lexparams.m_wordcount = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
 		while (!file.eof())
 		{
