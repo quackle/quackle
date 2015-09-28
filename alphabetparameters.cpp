@@ -214,7 +214,7 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 		if (lookupIt == lookupEnd)
 		{
 			for (alphabetIt = m_alphabet.begin(); alphabetIt != alphabetEnd; ++alphabetIt)
-				if ((*alphabetIt).blankText() == query)
+				if (alphabetIt->blankText() == query)
 					break;
 
 			if (alphabetIt == alphabetEnd)
@@ -224,7 +224,7 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 			}
 
 			blank = true;
-			ret += blank? setBlankness((*alphabetIt).letter()) : (*alphabetIt).letter();
+			ret += blank? setBlankness(alphabetIt->letter()) : alphabetIt->letter();
 		} else {
 			ret += blank? setBlankness(m_alphabet[lookupIt->second].letter()) : m_alphabet[lookupIt->second].letter();
 		}
@@ -241,7 +241,7 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 
 string AlphabetParameters::findAlphabetFile(const string &alphabet)
 {
-	return DataManager::self()->findDataFile("alphabets", alphabet);
+	return DataManager::self()->findDataFile("alphabets", alphabet + ".quackle_alphabet");
 }
 
 ////////

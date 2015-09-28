@@ -283,7 +283,7 @@ void Settings::setQuackleToUseAlphabetName(const QString &alphabetName)
 	string alphabetNameStr = alphabetName.toStdString();
 	if (QUACKLE_ALPHABET_PARAMETERS->alphabetName() != alphabetNameStr)
 	{
-		QString alphabetFileStr = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetNameStr + ".quackle_alphabet"));
+		QString alphabetFileStr = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetNameStr));
 
 		QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 		flexure->setAlphabetName(alphabetNameStr);

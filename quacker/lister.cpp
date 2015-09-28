@@ -667,7 +667,6 @@ void NumAnagramsFilter::apply()
 	{
 		int twl = 0;
 		int british = 0;
-		int playability = 0;
 		QString alphagram(QuackleIO::DictFactory::querier()->alphagram((*it).word));
 
 		for (Dict::WordList::Iterator word = map[alphagram].begin(); word != map[alphagram].end(); ++word)
@@ -676,8 +675,6 @@ void NumAnagramsFilter::apply()
 				british++;
 			else
 				twl++;
-
-			playability += (*word).playability;
 		}
 
 		if ((twl == numTwlAnagrams) && (british == numOswOnlyAnagrams))
