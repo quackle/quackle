@@ -26,7 +26,7 @@
 class DawgFactory {
 public:
 
-	DawgFactory(const UVString& alphabetFile);
+	DawgFactory(const QString &alphabetFile);
 	~DawgFactory();
 
 	int wordCount() const { return m_root.wordCount(); };

@@ -49,10 +49,12 @@ public:
 protected slots:
 	void deleteLexicon();
 	void addWordsFromFile();
+	void alphabetChanged(const QString &);
 
 protected:
-	void addWordsFromDawg(const string &dawgfile, const string &alphabetfile);
+	void addWordsFromDawgFile(const QString &dawgfile, const QString &alphabetfile);
 	void addWordsFromDawgRecursive(const LexiconParameters &lexParams, Quackle::LetterString &word, int index);
+	void addWordsFromTextFile(const QString &textFile, const QString &alphabetfile);
 
 private:
 	QLineEdit *m_lexiconName;
@@ -66,6 +68,7 @@ private:
 	QPushButton *m_deleteLexicon;
 	
 	QString m_originalName;
+	QString m_alphabetFileName;
 
 	DawgFactory *m_wordFactory;
 };

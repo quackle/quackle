@@ -25,10 +25,10 @@
 #include "util.h"
 
 
-DawgFactory::DawgFactory(const UVString& alphabetFile)
+DawgFactory::DawgFactory(const QString &alphabetFile)
 {
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-	flexure->load(QuackleIO::Util::uvStringToQString(alphabetFile));
+	flexure->load(alphabetFile);
 	m_alphas = flexure;
 
 	m_root.insmallerdict = false;
