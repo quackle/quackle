@@ -30,7 +30,8 @@ public:
 	DawgFactory(const QString &alphabetFile);
 	~DawgFactory();
 
-	int wordCount() const;
+	void computeWordCount() const;
+	int wordCount() const { return m_wordCount; };
 	string letterCountString() const;
 	int nodeCount() const { return m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
@@ -78,6 +79,7 @@ private:
 	int m_unencodableWords;
 	int m_duplicateWords;
 	vector< Node* > m_nodelist;
+	mutable int m_wordCount;
 	mutable vector<unsigned int> m_countsByLength;
 	Quackle::AlphabetParameters *m_alphas;
 	Node m_root;

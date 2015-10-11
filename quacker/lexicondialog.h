@@ -34,6 +34,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 class DawgFactory;
+class FileNameValidator;
 
 class LexiconDialog : public QDialog
 {
@@ -44,9 +45,10 @@ public:
 	~LexiconDialog();
 	virtual void accept();
 
-	void updateLexiconInformation();
+	void updateLexiconInformation(bool firstTime = false);
 
 protected slots:
+	void parametersChanged(const QString &) { updateLexiconInformation(); };
 	void deleteLexicon();
 	void addWordsFromFile();
 	void alphabetChanged(const QString &);
@@ -62,6 +64,7 @@ private:
 	QPushButton *m_addWordsFromFile;
 	QPushButton *m_clearAllWords;
 	QLabel *m_lexiconInformation;
+	FileNameValidator * m_fileNameValidator;
 	
 	QPushButton *m_saveChanges;
 	QPushButton *m_cancel;
@@ -69,6 +72,8 @@ private:
 	
 	QString m_originalName;
 	QString m_alphabetFileName;
+	QByteArray m_originalHash;
+	QByteArray m_previousHash;
 
 	DawgFactory *m_wordFactory;
 };

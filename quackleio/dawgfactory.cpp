@@ -40,6 +40,7 @@ DawgFactory::DawgFactory(const QString &alphabetFile)
 	m_root.lastchild = true;
 
 	m_hash.int32ptr[0] = m_hash.int32ptr[1] = m_hash.int32ptr[2] = m_hash.int32ptr[3] = 0;
+	m_encodableWords = m_unencodableWords = m_duplicateWords = m_wordCount = 0;
 }
 
 DawgFactory::~DawgFactory()
@@ -186,10 +187,10 @@ void DawgFactory::writeIndex(const UVString& filename)
 	}
 }
 
-int DawgFactory::wordCount() const
+void DawgFactory::computeWordCount() const
 {
 	m_countsByLength.resize(0);
-	return m_root.wordCount(0, m_countsByLength);
+	m_wordCount = m_root.wordCount(0, m_countsByLength);
 }
 
 string DawgFactory::letterCountString() const
