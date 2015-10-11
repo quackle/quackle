@@ -52,9 +52,9 @@ protected slots:
 	void alphabetChanged(const QString &);
 
 protected:
-	void addWordsFromDawgFile(const QString &dawgfile, const QString &alphabetfile);
+	void addWordsFromDawgFile(const QString &dawgfile);
 	void addWordsFromDawgRecursive(const LexiconParameters &lexParams, Quackle::LetterString &word, int index);
-	void addWordsFromTextFile(const QString &textFile, const QString &alphabetfile);
+	void addWordsFromTextFile(const QString &textFile);
 
 private:
 	QLineEdit *m_lexiconName;

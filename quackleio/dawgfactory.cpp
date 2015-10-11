@@ -17,6 +17,8 @@
  */
 
 
+#include <iomanip>
+#include <ios>
 #include <iostream>
 #include <QtCore>
 #include <QCryptographicHash>
@@ -184,6 +186,34 @@ void DawgFactory::writeIndex(const UVString& filename)
 	}
 }
 
+int DawgFactory::wordCount() const
+{
+	m_countsByLength.resize(0);
+	return m_root.wordCount(0, m_countsByLength);
+}
+
+string DawgFactory::letterCountString() const
+{
+	ostringstream str;
+	if (m_countsByLength.size() < 16)
+		m_countsByLength.resize(16, 0);
+	str << "2s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[2];
+	str << "\t6s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[6];
+	str << "\t10s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[10];
+	str << "\t14s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[14];
+	str << "\n3s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[3];
+	str << "\t7s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[7];
+	str << "\t11s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[11];
+	str << "\t15s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[15];
+	str << "\n4s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[4];
+	str << "\t8s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[8];
+	str << "\t12s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[12];
+	str << "\n5s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[5];
+	str << "\t9s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[9];
+	str << "\t13s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[13];
+	str << "\n";
+	return str.str();
+}
 
 
 void DawgFactory::Node::print(vector< Node* >& nodelist)
@@ -287,11 +317,14 @@ bool DawgFactory::Node::equals(const Node &n) const
 	return true;
 }
 
-int DawgFactory::Node::wordCount() const
+int DawgFactory::Node::wordCount(unsigned int depth, vector<unsigned int> &countsByLength) const
 {
 	int wordCount = ((playability == 0) ? 0 : 1);
+	if (countsByLength.size() < depth + 1)
+		countsByLength.resize(depth + 1, 0);
+	countsByLength[depth] += wordCount;
 	for (size_t i = 0; i < children.size(); i++)
-		wordCount += children[i].wordCount();
+		wordCount += children[i].wordCount(depth + 1, countsByLength);
 	return wordCount;
 }
 

@@ -103,9 +103,21 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 
 	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", "");
 	alphabetChanged(m_alphabetCombo->currentText());
-	updateLexiconInformation();
 
-	// sync game board with control states and draw board
+	string dawgFileName = originalName.toStdString() + ".dawg";
+	QString dawgFullFileName;
+	if (!originalName.isEmpty())
+		dawgFullFileName = QString::fromStdString(Quackle::LexiconParameters::findDictionaryFile(dawgFileName));
+
+	if (!dawgFullFileName.isEmpty())
+	{
+		m_deleteLexicon->setEnabled(Quackle::LexiconParameters::hasUserDictionaryFile(dawgFileName));
+		addWordsFromDawgFile(dawgFullFileName);
+	}
+	else
+		m_deleteLexicon->setEnabled(false);
+
+	updateLexiconInformation();
 }
 
 LexiconDialog::~LexiconDialog()
@@ -134,9 +146,9 @@ void LexiconDialog::addWordsFromFile()
 	for (QList<QString>::const_iterator it = files.begin(); it != files.end(); it++)
 	{
 		if (it->endsWith(".dawg", Qt::CaseInsensitive))
-			addWordsFromDawgFile(*it, m_alphabetCombo->currentText());
+			addWordsFromDawgFile(*it);
 		else
-			addWordsFromTextFile(*it, m_alphabetCombo->currentText());
+			addWordsFromTextFile(*it);
 	}
 	updateLexiconInformation();
 }
@@ -149,7 +161,7 @@ void LexiconDialog::alphabetChanged(const QString &alphabet)
 	m_alphabetFileName = QString::fromStdString(AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(alphabet)));
 }
 
-void LexiconDialog::addWordsFromDawgFile(const QString &dawgfile, const QString &alphabetfile)
+void LexiconDialog::addWordsFromDawgFile(const QString &dawgfile)
 {
 	if (!m_wordFactory)
 		m_wordFactory = new DawgFactory(m_alphabetFileName);
@@ -185,7 +197,7 @@ void LexiconDialog::addWordsFromDawgRecursive(const LexiconParameters &lexParams
 	} while (!lastchild);
 }
 
-void LexiconDialog::addWordsFromTextFile(const QString &textFile, const QString &alphabetfile)
+void LexiconDialog::addWordsFromTextFile(const QString &textFile)
 {
 	if (!m_wordFactory)
 		m_wordFactory = new DawgFactory(m_alphabetFileName);
@@ -224,14 +236,20 @@ void LexiconDialog::accept()
 void LexiconDialog::updateLexiconInformation()
 {
 	int wordCount = m_wordFactory ? m_wordFactory->wordCount() : 0;
-	QByteArray hash = m_wordFactory ? QByteArray(m_wordFactory->hashBytes(), 16).toHex() : "";
+	QByteArray hash = (m_wordFactory && wordCount) ? QByteArray(m_wordFactory->hashBytes(), 16).toHex() : "";
 	QString text;
+	QString lengthText;
+ 	if (m_wordFactory)
+		lengthText = QString::fromStdString(m_wordFactory->letterCountString());
+
 	text.append(tr("File name: "));
 	text.append(tr("\n\nFile size: "));
 	text.append(tr("\n\nWord count: "));
 	text.append(QString("%L1").arg(wordCount));
-	text.append(tr("\n\nLexicon hash: "));
-	text.append(hash);
+	text.append("\n");
+	text.append(lengthText);
+	text.append(tr("\nLexicon hash: "));
+	text.append(hash.left(8));
 
 	m_lexiconInformation->setText(text);
 }

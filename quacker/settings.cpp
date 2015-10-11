@@ -172,9 +172,11 @@ void Settings::createGUI()
 void Settings::load()
 {
 	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName())));
+	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
+	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
 }
 
 void Settings::preInitialize()
@@ -343,9 +345,13 @@ void Settings::lexiconChanged(const QString &lexiconName)
 	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
 	{
 		editLexicon();
+		if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1 &&
+			m_lexiconNameCombo->currentIndex() != 0)
+			m_lexiconNameCombo->setCurrentIndex(m_lastGoodLexiconValue);
 		return;
 	}
 	setQuackleToUseLexiconName(lexiconName);
+	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/lexicon-name", lexiconName);
@@ -388,6 +394,9 @@ void Settings::boardChanged(const QString &boardName)
 	if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1)
 	{
 		addBoard();
+		if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1 &&
+			m_boardNameCombo->currentIndex() != 0)
+			m_boardNameCombo->setCurrentIndex(m_lastGoodBoardValue);
 		return;
 	}
 	CustomQSettings settings;
@@ -530,14 +539,14 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 	if (dir.cd(path))
 		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
 
-	QStringListIterator i(fileList);
+	QStringList::iterator i;
 	QString fileName;
 	QStringList list;
 	int periodPos;
 
-	while (i.hasNext())
+	for (i = fileList.begin(); i != fileList.end(); ++i)
 	{
-		fileName = i.next();
+		fileName = *i;
 		periodPos = fileName.indexOf('.');
 		if (periodPos)
 		{
@@ -545,7 +554,20 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 			list << fileName;
 		}
 	}
-	list.removeDuplicates();
+
+	for (i = fileList.begin(); i != fileList.end(); ++i)
+	{
+		QStringList::iterator j = i;
+		for (++j; j != fileList.end(); ++j)
+		{
+			if (*i == *j)
+			{
+				*i = "* " + *i;
+				list.erase(j);
+				break;
+			}
+		}
+	}
 
 	combo->addItems(list);
 	if (label.size() > 0)

@@ -100,6 +100,8 @@ private:
 	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index);
 
 	static Settings *m_self;
+	int m_lastGoodLexiconValue;
+	int m_lastGoodBoardValue;
 };
 
 #endif

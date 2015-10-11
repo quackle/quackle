@@ -156,6 +156,12 @@ string DataManager::findDataFile(const string &subDirectory, const string &file)
 	return fname;
 }
 
+bool DataManager::hasUserDataFile(const string &subDirectory, const string &file)
+{
+	string fname = makeDataFilename(subDirectory, file,	true);
+	return fileExists(fname);
+}
+
 string DataManager::makeDataFilename(const string &subDirectory, const string &lexicon, const string &file, bool user)
 {
 	return (user ? m_userDataDirectory : m_appDataDirectory) + "/" + subDirectory + "/" + lexicon + "/" + file;

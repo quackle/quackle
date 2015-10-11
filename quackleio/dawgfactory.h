@@ -19,6 +19,7 @@
 #ifndef QUACKLE_DAWGFACTORY_H
 #define QUACKLE_DAWGFACTORY_H
 
+#include <string>
 #include <vector>
 #include "flexiblealphabet.h"
 
@@ -29,7 +30,8 @@ public:
 	DawgFactory(const QString &alphabetFile);
 	~DawgFactory();
 
-	int wordCount() const { return m_root.wordCount(); };
+	int wordCount() const;
+	string letterCountString() const;
 	int nodeCount() const { return m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
@@ -50,7 +52,7 @@ private:
 		void print(vector< Node* >& m_nodelist);
 
 		int letterSum() const;
-		int wordCount() const;
+		int wordCount(unsigned int depth, vector<unsigned int> &countsByLength) const;
 		bool equals(const Node &n) const;
 
 		Quackle::Letter c;
@@ -65,6 +67,7 @@ private:
 
 		mutable bool sumexplored;
 		mutable int sum;
+		mutable vector<int> counts;
 			
 		bool deleted;
 		Node* cloneof;
@@ -75,6 +78,7 @@ private:
 	int m_unencodableWords;
 	int m_duplicateWords;
 	vector< Node* > m_nodelist;
+	mutable vector<unsigned int> m_countsByLength;
 	Quackle::AlphabetParameters *m_alphas;
 	Node m_root;
 	union {

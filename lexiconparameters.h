@@ -68,6 +68,7 @@ public:
 
 	// finds a file in the lexica data directory
 	static string findDictionaryFile(const string &lexicon);
+	static bool hasUserDictionaryFile(const string &lexicon);
 
 	// a convenience field; this is unused by libquackle
 	string lexiconName() const { return m_lexiconName; };

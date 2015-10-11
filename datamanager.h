@@ -105,6 +105,9 @@ public:
 	// Returns empty string if the file is not found.
 	string findDataFile(const string &subDirectory, const string &file);
 
+	// Returns true if the data file is in user-land.
+	bool hasUserDataFile(const string &subDirectory, const string &file);
+
 	// returns similarly-named file
 	string makeDataFilename(const string &subDirectory, const string &lexicon, const string &file, bool user);
 	string makeDataFilename(const string &subDirectory, const string &file, bool user);
