@@ -45,6 +45,9 @@ public:
 	~LexiconDialog();
 	virtual void accept();
 
+	bool itemWasDeleted() { return m_deleted; };
+	const QString &lexiconName() { return m_finalLexiconName; };
+
 	void updateLexiconInformation(bool firstTime = false);
 
 protected slots:
@@ -52,6 +55,7 @@ protected slots:
 	void deleteLexicon();
 	void addWordsFromFile();
 	void alphabetChanged(const QString &);
+	void loadOriginalDictionary();
 
 protected:
 	void addWordsFromDawgFile(const QString &dawgfile);
@@ -73,7 +77,8 @@ private:
 	QString m_originalName;
 	QString m_alphabetFileName;
 	QByteArray m_originalHash;
-	QByteArray m_previousHash;
+	QString m_finalLexiconName;
+	bool m_deleted;
 
 	DawgFactory *m_wordFactory;
 };

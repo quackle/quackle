@@ -28,6 +28,8 @@
 
 
 DawgFactory::DawgFactory(const QString &alphabetFile)
+	: m_encodableWords(0), m_unencodableWords(0), m_duplicateWords(0),
+	m_countsByLength(Quackle::FixedLengthString::maxSize, 0)
 {
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 	flexure->load(alphabetFile);
@@ -40,7 +42,6 @@ DawgFactory::DawgFactory(const QString &alphabetFile)
 	m_root.lastchild = true;
 
 	m_hash.int32ptr[0] = m_hash.int32ptr[1] = m_hash.int32ptr[2] = m_hash.int32ptr[3] = 0;
-	m_encodableWords = m_unencodableWords = m_duplicateWords = m_wordCount = 0;
 }
 
 DawgFactory::~DawgFactory()
@@ -48,7 +49,7 @@ DawgFactory::~DawgFactory()
 	delete m_alphas;
 }
 
-bool DawgFactory::pushWord(const UVString& word, bool inSmaller, int playability)
+bool DawgFactory::pushWord(const UVString &word, bool inSmaller, int playability)
 {
 	UVString leftover;
 	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
@@ -59,11 +60,12 @@ bool DawgFactory::pushWord(const UVString& word, bool inSmaller, int playability
 	return false;
 }
 
-bool DawgFactory::pushWord(const Quackle::LetterString& word, bool inSmaller, int playability)
+bool DawgFactory::pushWord(const Quackle::LetterString &word, bool inSmaller, int playability)
 {
 	if (m_root.pushWord(word, inSmaller, playability))
 	{
 		++m_encodableWords;
+		++m_countsByLength[word.length()];
 		hashWord(word);
 		return true;
 	}
@@ -133,7 +135,7 @@ void DawgFactory::generate()
 	m_root.print(m_nodelist);
 }
 
-void DawgFactory::writeIndex(const UVString& filename)
+void DawgFactory::writeIndex(const string &filename)
 {
 	ofstream out(filename.c_str(), ios::out | ios::binary);
 	unsigned char bytes[7];
@@ -187,37 +189,26 @@ void DawgFactory::writeIndex(const UVString& filename)
 	}
 }
 
-void DawgFactory::computeWordCount() const
-{
-	m_countsByLength.resize(0);
-	m_wordCount = m_root.wordCount(0, m_countsByLength);
-}
-
 string DawgFactory::letterCountString() const
 {
 	ostringstream str;
-	if (m_countsByLength.size() < 16)
-		m_countsByLength.resize(16, 0);
-	str << "2s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[2];
-	str << "\t6s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[6];
-	str << "\t10s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[10];
-	str << "\t14s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[14];
-	str << "\n3s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[3];
-	str << "\t7s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[7];
-	str << "\t11s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[11];
-	str << "\t15s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[15];
-	str << "\n4s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[4];
-	str << "\t8s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[8];
-	str << "\t12s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[12];
-	str << "\n5s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[5];
-	str << "\t9s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[9];
-	str << "\t13s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[13];
-	str << "\n";
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			const int letterCount = j * 4 + i + 2;
+			if (j != 0)
+				str << "\t";
+			if (m_countsByLength[letterCount] > 0)
+				str << letterCount << "s: " << std::setw(7) << std::right << std::setfill(' ') << m_countsByLength[letterCount];
+		}
+		str << "\n";
+	}
 	return str.str();
 }
 
 
-void DawgFactory::Node::print(vector< Node* >& nodelist)
+void DawgFactory::Node::print(vector< Node* > &nodelist)
 {
 	written = true;
 	
@@ -255,7 +246,7 @@ void DawgFactory::Node::print(vector< Node* >& nodelist)
 
 
 // returns true if the word was actually added...false if it's a duplicate.
-bool DawgFactory::Node::pushWord(const Quackle::LetterString& word, bool inSmaller, int pb)
+bool DawgFactory::Node::pushWord(const Quackle::LetterString &word, bool inSmaller, int pb)
 {
 	bool added;
 	if (word.length() == 0) {
@@ -316,17 +307,6 @@ bool DawgFactory::Node::equals(const Node &n) const
 			return false;
 	
 	return true;
-}
-
-int DawgFactory::Node::wordCount(unsigned int depth, vector<unsigned int> &countsByLength) const
-{
-	int wordCount = ((playability == 0) ? 0 : 1);
-	if (countsByLength.size() < depth + 1)
-		countsByLength.resize(depth + 1, 0);
-	countsByLength[depth] += wordCount;
-	for (size_t i = 0; i < children.size(); i++)
-		wordCount += children[i].wordCount(depth + 1, countsByLength);
-	return wordCount;
 }
 
 int DawgFactory::Node::letterSum() const

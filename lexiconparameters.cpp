@@ -82,8 +82,6 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 			file >> lexparams.m_utf8Alphabet[i];
 			file.get(); // separator space
 		}
-		file.get(); // whitespace separator
-		lexparams.m_wordcount = (bytes[0] << 16) | (bytes[1] << 8) | bytes[2];
 		while (!file.eof())
 		{
 			file.read((char*)(lexparams.m_dawg) + i, 7);
@@ -123,18 +121,18 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
 		letter = dawg[index + 3];
 		
-		t = (p != 0);
 		lastchild = ((letter & 64) != 0);
 		british = !(letter & 128);
 		letter = (letter & 63) + QUACKLE_FIRST_LETTER;
 
 		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
+		t = (playability != 0);
 	}
 	virtual int versionNumber() const { return 1; }
 };
 
 LexiconParameters::LexiconParameters()
-	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL), m_wordcount(0)	
+	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL), m_wordCount(0)
 {
 	memset(m_hash, 0, sizeof(m_hash));
 }
@@ -155,6 +153,7 @@ void LexiconParameters::unloadDawg()
 	delete[] m_dawg;
 	m_dawg = NULL;
 	delete m_interpreter;
+	m_interpreter = NULL;
 }
 
 void LexiconParameters::unloadGaddag()

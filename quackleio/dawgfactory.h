@@ -30,19 +30,18 @@ public:
 	DawgFactory(const QString &alphabetFile);
 	~DawgFactory();
 
-	void computeWordCount() const;
-	int wordCount() const { return m_wordCount; };
+	int wordCount() const { return m_encodableWords; };
 	string letterCountString() const;
 	int nodeCount() const { return m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 	int duplicateWords() const { return m_duplicateWords; };
 
-	bool pushWord(const UVString& word, bool inSmaller, int playability);
-	bool pushWord(const Quackle::LetterString& word, bool inSmaller, int playability);
+	bool pushWord(const UVString &word, bool inSmaller, int playability);
+	bool pushWord(const Quackle::LetterString &word, bool inSmaller, int playability);
 	void hashWord(const Quackle::LetterString &word);
 	void generate();
-	void writeIndex(const UVString& filename);
+	void writeIndex(const string &filename);
 
 	const char* hashBytes() { return m_hash.charptr; };
 
@@ -50,10 +49,9 @@ private:
 	class Node {
 	public:
 		bool pushWord(const Quackle::LetterString& word, bool inSmaller, int pb);
-		void print(vector< Node* >& m_nodelist);
+		void print(vector< Node* > &m_nodelist);
 
 		int letterSum() const;
-		int wordCount(unsigned int depth, vector<unsigned int> &countsByLength) const;
 		bool equals(const Node &n) const;
 
 		Quackle::Letter c;
@@ -67,7 +65,7 @@ private:
 		bool lastchild;
 
 		mutable bool sumexplored;
-		mutable int sum;
+		mutable unsigned int sum;
 		mutable vector<int> counts;
 			
 		bool deleted;
@@ -79,8 +77,7 @@ private:
 	int m_unencodableWords;
 	int m_duplicateWords;
 	vector< Node* > m_nodelist;
-	mutable int m_wordCount;
-	mutable vector<unsigned int> m_countsByLength;
+	vector<unsigned int> m_countsByLength;
 	Quackle::AlphabetParameters *m_alphas;
 	Node m_root;
 	union {

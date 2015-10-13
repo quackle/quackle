@@ -88,7 +88,7 @@ protected:
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
-	int m_wordcount;
+	int m_wordCount;
 	vector<string> m_utf8Alphabet;
 
 	LexiconInterpreter* createInterpreter(char version) const;

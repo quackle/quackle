@@ -107,7 +107,7 @@ void Settings::createGUI()
 	m_lexiconNameCombo = new QComboBox;
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
 
-	populateComboFromFilenames(m_lexiconNameCombo, "lexica", "lexicon");
+	populateComboFromFilenames(m_lexiconNameCombo, "lexica", ".dawg", "lexicon");
 
 	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon:"));
 	lexiconNameLabel->setBuddy(m_lexiconNameCombo);
@@ -118,7 +118,7 @@ void Settings::createGUI()
 	m_alphabetNameCombo = new QComboBox;
 	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
 
-	populateComboFromFilenames(m_alphabetNameCombo, "alphabets", "");
+	populateComboFromFilenames(m_alphabetNameCombo, "alphabets", ".quackle_alphabet", "");
 
 	QLabel *alphabetNameLabel = new QLabel(tr("&Alphabet:"));
 	alphabetNameLabel->setBuddy(m_alphabetNameCombo);
@@ -129,7 +129,7 @@ void Settings::createGUI()
 	m_themeNameCombo = new QComboBox;
 	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
 
-	populateComboFromFilenames(m_themeNameCombo, "themes", "");
+	populateComboFromFilenames(m_themeNameCombo, "themes", ".ini", "");
 
 	QLabel *themeNameLabel = new QLabel(tr("&Theme:"));
 	themeNameLabel->setBuddy(m_themeNameCombo);
@@ -140,7 +140,7 @@ void Settings::createGUI()
 	m_boardNameCombo = new QComboBox;
 	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
 
-	populateComboFromFilenames(m_boardNameCombo, "boards", "board");
+	populateComboFromFilenames(m_boardNameCombo, "boards", "", "board");
 
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
 	boardNameLabel->setBuddy(m_boardNameCombo);
@@ -172,6 +172,8 @@ void Settings::createGUI()
 void Settings::load()
 {
 	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName())));
+	if (m_lexiconNameCombo->currentIndex() == -1)
+		m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName()) + "*"));
 	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
@@ -269,12 +271,12 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 
-		if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
-		{
-			gaddagFile = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".gaddag", true);
-			buildGaddag(gaddagFile);
-			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
-		}
+		// if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
+		// {
+		// 	gaddagFile = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".gaddag", true);
+		// 	buildGaddag(gaddagFile);
+		// 	QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+		// }
 
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
 	}
@@ -342,6 +344,9 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 
 void Settings::lexiconChanged(const QString &lexiconName)
 {
+	QString lexicon = lexiconName;
+	if (lexicon.endsWith("*"))
+		lexicon.truncate(lexicon.size() - 1);
 	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
 	{
 		editLexicon();
@@ -350,11 +355,11 @@ void Settings::lexiconChanged(const QString &lexiconName)
 			m_lexiconNameCombo->setCurrentIndex(m_lastGoodLexiconValue);
 		return;
 	}
-	setQuackleToUseLexiconName(lexiconName);
+	setQuackleToUseLexiconName(lexicon);
 	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 
 	CustomQSettings settings;
-	settings.setValue("quackle/settings/lexicon-name", lexiconName);
+	settings.setValue("quackle/settings/lexicon-name", lexicon);
 
 	emit refreshViews();
 }
@@ -465,9 +470,6 @@ void Settings::editBoard()
 
 void Settings::loadBoardNameCombo()
 {
-	if (m_lexiconNameCombo == 0)
-		return;
-
 	while (m_boardNameCombo->count() > 0)
 		m_boardNameCombo->removeItem(0);
 
@@ -489,12 +491,30 @@ void Settings::loadBoardNameCombo()
 void Settings::editLexicon()
 {
 	QString name = m_lexiconNameCombo->currentText();
+	if (name.endsWith("*"))
+		name.truncate(name.size() - 1);
 	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
 		name = "";
 	LexiconDialog dialog(this, name);
 	if (dialog.exec())
 	{
-		populateComboFromFilenames(m_lexiconNameCombo, "lexica", "lexicon");
+		populateComboFromFilenames(m_lexiconNameCombo, "lexica", ".dawg", "lexicon");
+		qApp->processEvents();
+		if (dialog.itemWasDeleted())
+		{
+			m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(name));
+			QUACKLE_LEXICON_PARAMETERS->setLexiconName(""); // force lexicon to reload
+			QUACKLE_LEXICON_PARAMETERS->unloadAll();
+			if (m_lexiconNameCombo->currentIndex() != -1)
+				setQuackleToUseLexiconName(name);
+		}
+		else if (!dialog.lexiconName().isEmpty())
+		{
+			QUACKLE_LEXICON_PARAMETERS->setLexiconName(""); // force lexicon to reload
+			QUACKLE_LEXICON_PARAMETERS->unloadAll();
+			setQuackleToUseLexiconName(dialog.lexiconName());
+			m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(name + "*"));
+		}
 		load();
 	}
 }
@@ -508,7 +528,7 @@ void Settings::editAlphabet()
 	AlphabetDialog dialog(this);
 	if (dialog.exec())
 	{
-		populateComboFromFilenames(m_alphabetNameCombo, "alphabets", "alphabet");
+		populateComboFromFilenames(m_alphabetNameCombo, "alphabets", ".quackle_alphabet", "alphabet");
 		load();
 	}
 #endif // 0
@@ -529,8 +549,11 @@ void Settings::editTheme()
 #endif // 0
 }
 
-void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label)
+void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label)
 {
+	while (combo->count() > 0)
+		combo->removeItem(0);
+	
 	QStringList fileList;
 	QDir dir(self()->m_appDataDir);
 	if (dir.cd(path))
@@ -547,6 +570,8 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 	for (i = fileList.begin(); i != fileList.end(); ++i)
 	{
 		fileName = *i;
+		if (!fileName.endsWith(extension))
+			continue;
 		periodPos = fileName.indexOf('.');
 		if (periodPos)
 		{
@@ -555,14 +580,13 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 		}
 	}
 
-	for (i = fileList.begin(); i != fileList.end(); ++i)
+	for (i = list.begin(); i != list.end(); ++i)
 	{
-		QStringList::iterator j = i;
-		for (++j; j != fileList.end(); ++j)
+		for (QStringList::iterator j = i + 1; j != list.end(); ++j)
 		{
 			if (*i == *j)
 			{
-				*i = "* " + *i;
+				*i = *i + "*";
 				list.erase(j);
 				break;
 			}

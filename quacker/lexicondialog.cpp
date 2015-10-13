@@ -40,7 +40,7 @@ public:
 };
 
 LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDialog(parent),
-	m_wordFactory(NULL)
+	m_deleted(false), m_wordFactory(NULL)
 {
 	m_originalName = originalName;
 
@@ -57,6 +57,7 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 
 	m_lexiconInformation = new QLabel("");
 	m_lexiconInformation->setWordWrap(true);
+	m_lexiconInformation->setTextInteractionFlags(Qt::TextBrowserInteraction);
 
 	m_saveChanges = new QPushButton(tr("&Save Changes"));
 	m_cancel = new QPushButton(tr("&Cancel"));
@@ -107,6 +108,7 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	// hook up signals and slots
 	connect(m_lexiconName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(const QString &)));
 	connect(m_addWordsFromFile, SIGNAL(clicked()), this, SLOT(addWordsFromFile()));
+	connect(m_clearAllWords, SIGNAL(clicked()), this, SLOT(loadOriginalDictionary()));
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_deleteLexicon, SIGNAL(clicked()), this, SLOT(deleteLexicon()));
@@ -114,26 +116,13 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 
 	setWindowTitle(tr("Configure Lexicon - Quackle"));
 
-	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", "");
+	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", ".quackle_alphabet", "");
 	alphabetChanged(m_alphabetCombo->currentText());
-
-	string dawgFileName = originalName.toStdString() + ".dawg";
-	QString dawgFullFileName;
-	if (!originalName.isEmpty())
-		dawgFullFileName = QString::fromStdString(Quackle::LexiconParameters::findDictionaryFile(dawgFileName));
 
 	m_lexiconName->setValidator(m_fileNameValidator);
 	m_lexiconName->setText(m_originalName);
 
-	if (!dawgFullFileName.isEmpty())
-	{
-		m_deleteLexicon->setEnabled(Quackle::LexiconParameters::hasUserDictionaryFile(dawgFileName));
-		addWordsFromDawgFile(dawgFullFileName);
-	}
-	else
-		m_deleteLexicon->setEnabled(false);
-
-	updateLexiconInformation(true);
+	loadOriginalDictionary();
 }
 
 LexiconDialog::~LexiconDialog()
@@ -144,9 +133,11 @@ LexiconDialog::~LexiconDialog()
 
 void LexiconDialog::deleteLexicon()
 {
-	delete m_wordFactory;
-	m_wordFactory = NULL;
-	updateLexiconInformation();
+	string lexiconNameStr = m_originalName.toStdString();
+	string filename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".dawg", true);
+	QFile(QString::fromStdString(filename)).remove();
+	m_deleted = true;
+	QDialog::accept();
 }
 
 void LexiconDialog::addWordsFromFile()
@@ -245,8 +236,40 @@ void LexiconDialog::addWordsFromTextFile(const QString &textFile)
 	}
 }
 
+void LexiconDialog::loadOriginalDictionary()
+{
+	delete m_wordFactory;
+	m_wordFactory = NULL;
+	string dawgFileName = m_originalName.toStdString() + ".dawg";
+	QString dawgFullFileName;
+	if (!m_originalName.isEmpty())
+		dawgFullFileName = QString::fromStdString(Quackle::LexiconParameters::findDictionaryFile(dawgFileName));
+
+	if (!dawgFullFileName.isEmpty())
+	{
+		m_deleteLexicon->setEnabled(Quackle::LexiconParameters::hasUserDictionaryFile(dawgFileName));
+		m_lexiconInformation->setText(tr("Loading dictionary..."));
+		show();
+		qApp->processEvents();
+		addWordsFromDawgFile(dawgFullFileName);
+	}
+	else
+		m_deleteLexicon->setEnabled(false);
+
+	updateLexiconInformation(true);
+}
+
 void LexiconDialog::accept()
 {
+	string lexiconNameStr = m_lexiconName->text().toStdString();
+	string filename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".dawg", true);
+	m_lexiconInformation->setText(tr("Compressing and writing dictionary file...\nThis may take a few minutes."));
+	qApp->processEvents();
+	m_wordFactory->generate();
+	m_lexiconInformation->setText(tr("Writing dictionary file..."));
+	qApp->processEvents();
+	m_wordFactory->writeIndex(filename);
+	m_finalLexiconName = m_lexiconName->text();
 	QDialog::accept();
 }
 
@@ -256,12 +279,6 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 	QString text;
 	QString lengthText;
 
-	// only recompute word count when the dictionary changes
-	if (m_wordFactory && hash != m_previousHash)
-	{
-		m_wordFactory->computeWordCount();
-		m_previousHash = hash;
-	}
 	int wordCount = m_wordFactory ? m_wordFactory->wordCount() : 0;
 	if (wordCount == 0)
 	{
@@ -274,9 +291,7 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 	if (firstTime)
 		m_originalHash = hash;
 
-	text.append(tr("File name: "));
-	text.append(tr("\n\nFile size: "));
-	text.append(tr("\n\nWord count: "));
+	text.append(tr("Word count: "));
 	text.append(QString("%L1").arg(wordCount));
 	text.append("\n");
 	text.append(lengthText);
@@ -286,4 +301,5 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 	m_lexiconInformation->setText(text);
 
 	m_saveChanges->setEnabled(hash != m_originalHash && !m_lexiconName->text().isEmpty());
+	m_clearAllWords->setEnabled(hash != m_originalHash);
 }

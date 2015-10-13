@@ -42,7 +42,7 @@ public:
 	static Settings *self();
 
 	// load up an item list based on a list of filenames
-	static void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &label);
+	static void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label);
 
 signals:
 	void refreshViews();
