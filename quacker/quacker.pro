@@ -12,17 +12,12 @@ CONFIG += release
 
 debug {
   OBJECTS_DIR = obj/debug
+  QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
-}
-
-debug {
-	QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
-}
-release {
-	QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
+  QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
 }
 
 win32:!win32-g++ {
@@ -31,6 +26,8 @@ win32:!win32-g++ {
   LIBS += -lquackleio -lquackle
 }
 macx:LIBS += -framework CoreFoundation
+
+QMAKE_CXXFLAGS += -std=c++11
 
 # Input
 HEADERS += *.h

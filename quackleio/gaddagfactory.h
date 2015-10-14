@@ -19,6 +19,7 @@
 #ifndef QUACKLE_GADDAGFACTORY_H
 #define QUACKLE_GADDAGFACTORY_H
 
+#include <cstdint>
 #include "flexiblealphabet.h"
 
 
@@ -65,7 +66,7 @@ private:
 	Node m_root;
 	union {
 		char charptr[16];
-		int32_t int32ptr[4];
+		std::int32_t int32ptr[4];
 	} m_hash;
 };
 

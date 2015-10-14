@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 		if (stream.atEnd())
 			break;
 
-		if (!factory.pushWord(word, inSmaller, pb))
+		if (!factory.pushWord(QuackleIO::Util::qstringToString(word), inSmaller, pb))
 			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(word) << endl;
 	}
 

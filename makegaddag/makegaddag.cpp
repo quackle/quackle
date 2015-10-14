@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
 	QString alphabetFile = QString("../data/alphabets/%1.quackle_alphabet").arg(alphabet);
 	UVcout << "Using alphabet file: " << QuackleIO::Util::qstringToString(alphabetFile) << endl;
-	GaddagFactory factory(alphabetFile);
+	GaddagFactory factory(QuackleIO::Util::qstringToString(alphabetFile));
 
 	QFile file(inputFilename);
 	if (!file.exists())
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 		if (stream.atEnd())
 			break;
 
-		if (!factory.pushWord(originalQString))
+		if (!factory.pushWord(QuackleIO::Util::qstringToString(originalQString)))
 			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(originalQString) << endl;
 	}
 	
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	factory.generate();
 
 	UVcout << "Writing index...";
-	factory.writeIndex(outputFilename);
+	factory.writeIndex(outputFilename.toUtf8().constData());
 
 	UVcout << endl;
 
