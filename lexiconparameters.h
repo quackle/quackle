@@ -80,7 +80,8 @@ public:
 	}
 	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
 
-	UVString hashString(bool shortened) const;
+	string hashString(bool shortened) const;
+	string copyrightString() const;
 
 protected:
 	unsigned char *m_dawg;
@@ -88,7 +89,6 @@ protected:
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
-	int m_wordCount;
 	vector<string> m_utf8Alphabet;
 
 	LexiconInterpreter* createInterpreter(char version) const;

@@ -132,7 +132,7 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 };
 
 LexiconParameters::LexiconParameters()
-	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL), m_wordCount(0)
+	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL)
 {
 	memset(m_hash, 0, sizeof(m_hash));
 }
@@ -228,20 +228,35 @@ bool LexiconParameters::hasUserDictionaryFile(const string &lexicon)
 	return QUACKLE_DATAMANAGER->hasUserDataFile("lexica", lexicon);
 }
 
-UVString LexiconParameters::hashString(bool shortened) const
+string LexiconParameters::hashString(bool shortened) const
 {
-	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 	string hashStr;
 	for (size_t i = 0; i < sizeof(m_hash); i++)
 	{
 		hashStr.push_back(hex[(m_hash[i] & 0xF0) >> 4]);
 		hashStr.push_back(hex[m_hash[i] & 0x0F]);
-		if (shortened && i == 5)
+		if (shortened && i == 3)
 			break;
-		if (i % 2 == 1)
-			hashStr.push_back('-');
 	}
 	return hashStr;
+}
+
+string LexiconParameters::copyrightString() const
+{
+	string copyrightsFilename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false);
+	fstream copyrightsFile(copyrightsFilename, ios_base::in);
+	while (copyrightsFile.good() && !copyrightsFile.eof())
+	{
+		string line;
+		getline(copyrightsFile, line);
+		if (line.size() < 9 || line.find_first_of(':') != 8)
+			continue;
+		if (hashString(true).compare(line.substr(0,8)) != 0)
+			continue;
+		return line.substr(9, line.size());
+	}
+	return string();
 }
 
 LexiconInterpreter* LexiconParameters::createInterpreter(char version) const

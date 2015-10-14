@@ -148,6 +148,8 @@ void Settings::createGUI()
 	m_editBoard->setMaximumWidth(60);
 	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
 
+	m_copyrightLabel = new QLabel();
+
 	layout->addWidget(lexiconNameLabel, 0, 0, Qt::AlignRight);
 	layout->addWidget(m_lexiconNameCombo, 0, 1);
 	layout->addWidget(m_editLexicon, 0, 2);
@@ -160,25 +162,28 @@ void Settings::createGUI()
 	layout->addWidget(boardNameLabel, 3, 0, Qt::AlignRight);
 	layout->addWidget(m_boardNameCombo, 3, 1);
 	layout->addWidget(m_editBoard, 3, 2);
+	layout->addWidget(m_copyrightLabel, 4, 0, 1, -1, Qt::AlignTop);
 
 	layout->setColumnMinimumWidth(3, 0);
 	layout->setColumnStretch(3, 1);
 	layout->setRowMinimumHeight(4, 0);
 	layout->setRowStretch(4, 1);
 
+
 	load();
 }
 
 void Settings::load()
 {
-	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName())));
+	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str())));
 	if (m_lexiconNameCombo->currentIndex() == -1)
-		m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName()) + "*"));
+		m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str()) + "*"));
 	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
-	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
+	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QString::fromUtf8(QUACKLE_ALPHABET_PARAMETERS->alphabetName().c_str())));
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
 	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
+	m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 }
 
 void Settings::preInitialize()
@@ -279,6 +284,7 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		// }
 
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
+		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 	}
 }
 

@@ -6,8 +6,8 @@
 			"file_exclude_patterns" : ["*.tgz", "*.sublime-workspace", ".tags*", "dawginput.raw", 
 										"playabilities.raw", "smaller.raw", ".gitattributes",
 										"*.Debug", "*.Release", "*.pfx", "*.cer",
-										"makegaddag", "makeminidawg", "gaddagize", "Makefile"],
-			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", "lexica", 
+										"makegaddag", "makeminidawg", "gaddagize", "Makefile", "*.dawg", "*.gaddag"],
+			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", 
 										"strategy", "debug", "release", "makeswelexicon", "lisp", "DerivedData"]
 		}
 	]

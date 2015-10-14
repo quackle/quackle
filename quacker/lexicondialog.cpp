@@ -117,6 +117,7 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	setWindowTitle(tr("Configure Lexicon - Quackle"));
 
 	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", ".quackle_alphabet", "");
+	m_alphabetCombo->setCurrentIndex(m_alphabetCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
 	alphabetChanged(m_alphabetCombo->currentText());
 
 	m_lexiconName->setValidator(m_fileNameValidator);
@@ -300,6 +301,6 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 
 	m_lexiconInformation->setText(text);
 
-	m_saveChanges->setEnabled(hash != m_originalHash && !m_lexiconName->text().isEmpty());
+	m_saveChanges->setEnabled(true/*hash != m_originalHash && !m_lexiconName->text().isEmpty()*/);
 	m_clearAllWords->setEnabled(hash != m_originalHash);
 }

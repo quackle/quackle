@@ -29,6 +29,7 @@
 class QComboBox;
 class QCheckBox;
 class QPushButton;
+class QLabel;
 
 using namespace std;
 
@@ -88,6 +89,7 @@ protected:
 	QPushButton *m_editAlphabet;
 	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
+	QLabel *m_copyrightLabel;
 	QString m_appDataDir;
 	QString m_userDataDir;
 	QString m_themeName;
