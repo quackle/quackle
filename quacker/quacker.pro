@@ -1,5 +1,5 @@
 TEMPLATE = app
-VERSION = 0.99
+VERSION = 1.0
 TARGET = Quackle
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
@@ -10,19 +10,18 @@ MOC_DIR = moc
 #CONFIG += debug
 CONFIG += release
 
+#Um, why is this necessary?  I don't know.  But if this isn't here,
+#qmake messes up resulting Visual Studio project files.
+CONFIG -= debug
+
 debug {
   OBJECTS_DIR = obj/debug
+  QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
-}
-
-debug {
-	QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
-}
-release {
-	QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
+  QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
 }
 
 win32:!win32-g++ {
@@ -31,6 +30,8 @@ win32:!win32-g++ {
   LIBS += -lquackleio -lquackle
 }
 macx:LIBS += -framework CoreFoundation
+
+QMAKE_CXXFLAGS += -std=c++11
 
 # Input
 HEADERS += *.h

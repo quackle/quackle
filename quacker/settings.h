@@ -24,9 +24,12 @@
 #include <QWidget>
 #include <QSettings>
 
+#include "quackleio/gaddagfactory.h"
+
 class QComboBox;
 class QCheckBox;
 class QPushButton;
+class QLabel;
 
 using namespace std;
 
@@ -38,6 +41,9 @@ public:
 	Settings(QWidget *parent = 0);
 
 	static Settings *self();
+
+	// load up an item list based on a list of filenames
+	static void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label);
 
 signals:
 	void refreshViews();
@@ -64,10 +70,13 @@ protected slots:
 
 	void addBoard();
 	void editBoard();
-	void deleteBoard();
 	
-	void setQuackleToUseLexiconName(const string &lexiconName);
-	void setQuackleToUseAlphabetName(const string &alphabetName);
+	void editLexicon();
+	void editAlphabet();
+	void editTheme();
+
+	void setQuackleToUseLexiconName(const QString &lexiconName);
+	void setQuackleToUseAlphabetName(const QString &alphabetName);
 	void setQuackleToUseThemeName(const QString &themeName);
 	void setQuackleToUseBoardName(const QString &lexiconName);
 
@@ -76,20 +85,25 @@ protected:
 	QComboBox *m_alphabetNameCombo;
 	QComboBox *m_themeNameCombo;
 	QComboBox *m_boardNameCombo;
-	QPushButton *m_addBoard;
+	QPushButton *m_editLexicon;
+	QPushButton *m_editAlphabet;
+	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
-	QPushButton *m_deleteBoard;
-	QString m_dataDir;
+	QLabel *m_copyrightLabel;
+	QString m_appDataDir;
+	QString m_userDataDir;
 	QString m_themeName;
 
 private:
 	// populate the popup based on what's in QSettings
 	void loadBoardNameCombo();
 
-	// load up an item list based on a list of filenames
-	void populateListFromFilenames(QStringList& list, const QString &path);
-	
+	void buildGaddag(const string &filename);
+	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index);
+
 	static Settings *m_self;
+	int m_lastGoodLexiconValue;
+	int m_lastGoodBoardValue;
 };
 
 #endif

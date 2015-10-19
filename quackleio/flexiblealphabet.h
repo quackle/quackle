@@ -21,8 +21,6 @@
 
 #include "alphabetparameters.h"
 
-class QString;
-
 namespace QuackleIO
 {
 

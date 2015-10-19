@@ -19,14 +19,33 @@
 #ifndef QUACKLE_LEXICONPARAMETERS_H
 #define QUACKLE_LEXICONPARAMETERS_H
 
-#include "alphabetparameters.h"
+#include <vector>
+
 #include "gaddag.h"
 
 namespace Quackle
 {
 
+class LexiconParameters;
+
+class LexiconInterpreter
+{
+public:
+	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const = 0;
+	virtual int versionNumber() const = 0;
+	virtual ~LexiconInterpreter() {};
+};
+
+class V0LexiconInterpreter;
+class V1LexiconInterpreter;
+
 class LexiconParameters
 {
+	friend class Quackle::V0LexiconInterpreter;
+	friend class Quackle::V1LexiconInterpreter;
+
 public:
 	LexiconParameters();
 	~LexiconParameters();
@@ -34,68 +53,46 @@ public:
 	void unloadAll();
 
 	// true if we have a dawg or a gaddag
-	bool hasSomething() const;
+	bool hasSomething() const { return hasDawg() || hasGaddag(); };
 
 	// loadDawg unloads the dawg if filename can't be opened
 	void loadDawg(const string &filename);
 	void unloadDawg();
-	bool hasDawg() const;
+	bool hasDawg() const { return m_dawg != NULL; };
+	int dawgVersion() const { return m_interpreter->versionNumber(); };
 
 	// loadGaddag unloads the gaddag if filename can't be opened
 	void loadGaddag(const string &filename);
 	void unloadGaddag();
-	bool hasGaddag() const;
+	bool hasGaddag() const { return m_gaddag != NULL; };
 
 	// finds a file in the lexica data directory
 	static string findDictionaryFile(const string &lexicon);
+	static bool hasUserDictionaryFile(const string &lexicon);
 
 	// a convenience field; this is unused by libquackle
-	string lexiconName() const;
-	void setLexiconName(const string &name);
+	string lexiconName() const { return m_lexiconName; };
+	void setLexiconName(const string &name) { m_lexiconName = name; };
 
-	unsigned char dawgAt(int index) const;
-	const GaddagNode *gaddagRoot() const;
+	void dawgAt(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
+	{
+		m_interpreter->dawgAt(m_dawg, index, p, letter, t, lastchild, british, playability);
+	}
+	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
+
+	string hashString(bool shortened) const;
+	string copyrightString() const;
 
 protected:
 	unsigned char *m_dawg;
 	unsigned char *m_gaddag;
 	string m_lexiconName;
+	LexiconInterpreter *m_interpreter;
+	char m_hash[16];
+	vector<string> m_utf8Alphabet;
+
+	LexiconInterpreter* createInterpreter(char version) const;
 };
-
-inline bool LexiconParameters::hasSomething() const
-{
-	return hasDawg() || hasGaddag();
-}
-
-inline bool LexiconParameters::hasDawg() const
-{
-	return m_dawg != NULL;
-}
-
-inline bool LexiconParameters::hasGaddag() const
-{
-	return m_gaddag != NULL;
-}
-
-inline unsigned char LexiconParameters::dawgAt(int index) const
-{
-	return m_dawg[index];
-}
-
-inline const GaddagNode *LexiconParameters::gaddagRoot() const
-{
-    return (GaddagNode *) &m_gaddag[0];
-}
-
-inline string LexiconParameters::lexiconName() const
-{
-	return m_lexiconName;
-}
-
-inline void LexiconParameters::setLexiconName(const string &name)
-{
-	m_lexiconName = name;
-}
 
 }
 #endif

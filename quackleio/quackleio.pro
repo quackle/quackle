@@ -15,6 +15,8 @@ release {
 
 MOC_DIR = moc
 
+QMAKE_CXXFLAGS += -std=c++11
+
 # enable/disable debug symbols
 #CONFIG += debug staticlib
 CONFIG += release staticlib

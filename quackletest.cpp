@@ -45,9 +45,9 @@ int main()
 {
 	Quackle::DataManager dataManager;
 
-	dataManager.setDataDirectory("data");
+	dataManager.setAppDataDirectory("data");
 	dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile("twl06.dawg"));
-   	dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
+	dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
 	dataManager.strategyParameters()->initialize("twl06");
 	dataManager.setBoardParameters(new Quackle::EnglishBoard());
 
@@ -58,7 +58,7 @@ int main()
 	const int gameCnt = 1000;
 	//const int gameCnt = 1;
 	for (int game = 0; game < gameCnt; ++game) {
-	  testGame();
+		testGame();
 	}
 	
 	return 0;
