@@ -17,6 +17,8 @@ release {
   OBJECTS_DIR = obj/release
 }
 
+QMAKE_CXXFLAGS += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
+
 # Input
 SOURCES += gaddagize.cpp
 

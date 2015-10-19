@@ -27,6 +27,7 @@ win32:!win32-g++ {
   LIBS += -lquackleio -lquackle
 }
 
+QMAKE_CXXFLAGS += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 SOURCES += makegaddag.cpp

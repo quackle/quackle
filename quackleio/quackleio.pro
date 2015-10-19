@@ -22,6 +22,8 @@ QMAKE_CXXFLAGS += -std=c++11
 CONFIG += release staticlib
 CONFIG -= x11
 
+QMAKE_CXXFLAGS += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
+
 # Input
 HEADERS += *.h
 

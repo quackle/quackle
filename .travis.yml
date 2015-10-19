@@ -1,15 +1,33 @@
 language: cpp
-compiler: gcc
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install libqt4-dev
+compiler:
+  - gcc
+  - clang
+install:
+- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - clang
+    - libqt4-dev
 script: 
-  - qmake && make
-  - cd quackleio && qmake && make && cd ..
-  - cd quacker && qmake && make && cd ..
-  - cd encodeleaves && qmake && make && cd ..
-  - cd gaddagize && qmake && make && cd ..
-  - cd makegaddag && qmake && make && cd ..
-  - cd makeminidawg && qmake && make && cd ..
-  - cd quackleio/iotest && qmake && make && cd ../..
-  - cd test && qmake && make && cd ..
+  - qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd quackleio && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd quacker && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd encodeleaves && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd gaddagize && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd makegaddag && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd makeminidawg && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
+  - cd quackleio/iotest && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ../..
+  - cd test && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
