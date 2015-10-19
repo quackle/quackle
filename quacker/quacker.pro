@@ -1,5 +1,5 @@
 TEMPLATE = app
-VERSION = 0.99
+VERSION = 1.0
 TARGET = Quackle
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
@@ -9,6 +9,10 @@ MOC_DIR = moc
 # enable/disable debug symbols
 #CONFIG += debug
 CONFIG += release
+
+#Um, why is this necessary?  I don't know.  But if this isn't here,
+#qmake messes up resulting Visual Studio project files.
+CONFIG -= debug
 
 debug {
   OBJECTS_DIR = obj/debug
