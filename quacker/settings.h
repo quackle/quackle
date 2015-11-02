@@ -74,6 +74,7 @@ protected slots:
 	void editLexicon();
 	void editAlphabet();
 	void editTheme();
+	void buildGaddag();
 
 	void setQuackleToUseLexiconName(const QString &lexiconName);
 	void setQuackleToUseAlphabetName(const QString &alphabetName);
@@ -89,7 +90,9 @@ protected:
 	QPushButton *m_editAlphabet;
 	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
+	QPushButton *m_buildGaddag;
 	QLabel *m_copyrightLabel;
+	QLabel *m_buildGaddagLabel;
 	QString m_appDataDir;
 	QString m_userDataDir;
 	QString m_themeName;
@@ -98,8 +101,9 @@ private:
 	// populate the popup based on what's in QSettings
 	void loadBoardNameCombo();
 
-	void buildGaddag(const string &filename);
-	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index);
+	void setGaddagLabel();
+	void setGaddagLabel(const QString &label);
+	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index, int &wordCount);
 
 	static Settings *m_self;
 	int m_lastGoodLexiconValue;

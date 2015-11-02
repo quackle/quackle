@@ -148,7 +148,13 @@ void Settings::createGUI()
 	m_editBoard->setMaximumWidth(60);
 	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
 
+	m_buildGaddag = new QPushButton(tr("Build lexicon database..."));
+	connect(m_buildGaddag, SIGNAL(clicked()), this, SLOT(buildGaddag()));
+
+	m_buildGaddagLabel = new QLabel();
+	m_buildGaddagLabel->setWordWrap(true);
 	m_copyrightLabel = new QLabel();
+	m_copyrightLabel->setWordWrap(true);
 
 	layout->addWidget(lexiconNameLabel, 0, 0, Qt::AlignRight);
 	layout->addWidget(m_lexiconNameCombo, 0, 1);
@@ -162,12 +168,14 @@ void Settings::createGUI()
 	layout->addWidget(boardNameLabel, 3, 0, Qt::AlignRight);
 	layout->addWidget(m_boardNameCombo, 3, 1);
 	layout->addWidget(m_editBoard, 3, 2);
-	layout->addWidget(m_copyrightLabel, 4, 0, 1, -1, Qt::AlignTop);
+	layout->addWidget(m_buildGaddag, 4, 1);
+	layout->addWidget(m_buildGaddagLabel, 5, 1);
+	layout->addWidget(m_copyrightLabel, 6, 0, 1, -1, Qt::AlignTop);
 
 	layout->setColumnMinimumWidth(3, 0);
 	layout->setColumnStretch(3, 1);
-	layout->setRowMinimumHeight(4, 0);
-	layout->setRowStretch(4, 1);
+	layout->setRowMinimumHeight(6, 0);
+	layout->setRowStretch(6, 1);
 
 
 	load();
@@ -184,6 +192,7 @@ void Settings::load()
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
 	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
 	m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
+	setGaddagLabel();
 }
 
 void Settings::preInitialize()
@@ -212,17 +221,52 @@ void Settings::initialize()
 	setQuackleToUseBoardName(settings.value("quackle/settings/board-name", QString("")).toString());
 }
 
-void Settings::buildGaddag(const string &filename)
+void Settings::setGaddagLabel()
 {
-	GaddagFactory factory((UVString()));
-	Quackle::LetterString word;
+	QString gaddagLabelString;
+	if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
+	{
+		gaddagLabelString = tr("Lexicon database is not up to date.  Press the button to begin building the database.  This may take several minutes to complete.");
+		m_buildGaddag->setEnabled(true);
+	}
+	else
+	{
+		gaddagLabelString = tr("Lexicon database is up to date.");
+		m_buildGaddag->setEnabled(false);
+	}
 
-	pushIndex(factory, word, 1);
-	factory.generate();
-	factory.writeIndex(filename);
+	m_buildGaddagLabel->setText(gaddagLabelString);
 }
 
-void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index)
+void Settings::setGaddagLabel(const QString &label)
+{
+	m_buildGaddagLabel->setText(label);
+	qApp->processEvents();
+}
+
+void Settings::buildGaddag()
+{
+	const string gaddagFile(QUACKLE_DATAMANAGER->makeDataFilename("lexica", QUACKLE_LEXICON_PARAMETERS->lexiconName() + ".gaddag", true));
+	GaddagFactory factory((UVString()));
+	Quackle::LetterString word;
+	int wordCount = 0;
+
+	setGaddagLabel(tr("Words processed: 0"));
+	pushIndex(factory, word, 1, wordCount);
+	if (wordCount < QUACKLE_MAX_GADDAG_WORDCOUNT)
+	{
+		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Compressing...")).arg(wordCount));
+		factory.generate();
+		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Writing to disk...")).arg(wordCount));
+		factory.writeIndex(gaddagFile);
+		QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+		setGaddagLabel();
+	}
+	else
+		setGaddagLabel(tr("Your lexicon is too large to be represented using the internal database format.  Operation aborted."));
+}
+
+void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index, int &wordCount)
 {
 	unsigned int p;
 	Quackle::Letter letter;
@@ -236,9 +280,20 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 		QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);
 		word.push_back(letter);
 		if (t)
+		{
 			factory.pushWord(word);
+			wordCount++;
+			if (wordCount % 1000 == 0)
+				setGaddagLabel(QString(tr("Words processed: %1")).arg(wordCount));
+			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
+				return;
+		}
 		if (p)
-			pushIndex(factory, word, p);
+		{
+			pushIndex(factory, word, p, wordCount);
+			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
+				return;
+		}
 		index++;
 		word.pop_back();
 	} while (!lastchild);
@@ -276,15 +331,9 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 
-		// if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
-		// {
-		// 	gaddagFile = QUACKLE_DATAMANAGER->makeDataFilename("lexica", lexiconNameStr + ".gaddag", true);
-		// 	buildGaddag(gaddagFile);
-		// 	QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
-		// }
-
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
 		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
+		setGaddagLabel();
 	}
 }
 
@@ -601,5 +650,5 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 
 	combo->addItems(list);
 	if (label.size() > 0)
-		combo->addItem(QString(tr("Add new ")).append(path).append("..."));
+		combo->addItem(QString(tr("Add new ")).append(label).append("..."));
 }
