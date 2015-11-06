@@ -205,7 +205,6 @@ void Settings::initialize()
 {
 	CustomQSettings settings;
 
-	QUACKLE_DATAMANAGER->setBackupLexicon("twl06");
 	QUACKLE_DATAMANAGER->setAppDataDirectory(m_appDataDir.toStdString());
 	QUACKLE_DATAMANAGER->setUserDataDirectory(m_userDataDir.toStdString());
 
@@ -302,6 +301,8 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 
 void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 {
+	QUACKLE_DATAMANAGER->setBackupLexicon("default");
+
 	string lexiconNameStr = lexiconName.toStdString();
 	if (QUACKLE_LEXICON_PARAMETERS->lexiconName() != lexiconNameStr)
 	{
@@ -331,6 +332,24 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 
+		// Dirty test to see if we're working with an English-like dictionary, and if so, beef up
+		// strategy files with twl06 ones (until I can start generating better).  It's an imperfect
+		// test...it captures the ODS dictionary, for example, which seems pretty wrong.  But I
+		// don't want to hard-code lexicon names here, so this is about as good as I can do.
+		const vector<string> & alphabet = QUACKLE_LEXICON_PARAMETERS->utf8Alphabet();
+		if (alphabet.size() == 26)
+		{
+			vector<string>::const_iterator it;
+			for (it = alphabet.begin(); it != alphabet.end(); it++)
+			{
+				if (it->size() != 1)
+					break;
+				if (it->c_str()[0] < 'A' || it->c_str()[0] > 'Z')
+					break;
+			}
+			if (it == alphabet.end())
+				QUACKLE_DATAMANAGER->setBackupLexicon("default_english");
+		}
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
 		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 		setGaddagLabel();

@@ -82,6 +82,7 @@ public:
 
 	string hashString(bool shortened) const;
 	string copyrightString() const;
+	const vector<string> &utf8Alphabet() const { return m_utf8Alphabet; };
 
 protected:
 	unsigned char *m_dawg;
