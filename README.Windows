@@ -60,6 +60,12 @@ working executable...
 
 * You can now run quackle\quacker\release\Quackle.exe
 
+* If, when running Visual Studio builds, you get a "fatal error CVT1100",
+  then it can be fixed as follows:
+  + In the Solution Explorer, open up Quackle, then Generated Files
+  + Look for any copies of quacker.res
+  + Right-click on each one and choose Exclude From Project 
+
 
 Additional things to know:
 --------------------------

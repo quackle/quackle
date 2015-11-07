@@ -15,14 +15,12 @@ release {
 
 MOC_DIR = moc
 
-QMAKE_CXXFLAGS += -std=c++11
-
 # enable/disable debug symbols
 #CONFIG += debug staticlib
 CONFIG += release staticlib
 CONFIG -= x11
 
-QMAKE_CXXFLAGS += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
+QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 HEADERS += *.h
