@@ -2134,12 +2134,14 @@ void TopLevel::about()
 	if (file)
 	{
 		QTextStream strm(file);
-		while (!strm.atEnd())
+		strm.setCodec("UTF-8");
+		QString line = strm.readLine();
+		while (!line.isNull())
 		{
-			QString line = strm.readLine();
 			int pos = line.indexOf(':');
 			if (pos != -1 && pos + 1 < line.size())
 				aboutText += "<li>" + line.mid(pos + 1) + "</li>";
+			line = strm.readLine();
 		}
 		fclose(file);
 		aboutText += "</ul>";
