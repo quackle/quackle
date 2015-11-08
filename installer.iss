@@ -23,11 +23,10 @@ Root: HKCR; Subkey: "QuackleGameFile\shell\open\command"; ValueType: string; Val
 [Files]
 Source: "quacker\release\Quackle.exe"; DestDir: "{app}"
 Source: "LICENSE"; DestDir: "{app}"
-Source: "mingwm10.dll"; DestDir: "{app}"
-Source: "libgcc_s_dw2-1.dll"; DestDir: "{app}"
-Source: "libstdc++-6.dll"; DestDir: "{app}"
 Source: "QtCore4.dll"; DestDir: "{app}"
 Source: "QtGui4.dll"; DestDir: "{app}"
+Source: "msvcp120.dll"; DestDir: "{app}"
+Source: "msvcr120.dll"; DestDir: "{app}"
 
 Source: "data\themes\*"; DestDir: "{app}\data\themes"
 Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"

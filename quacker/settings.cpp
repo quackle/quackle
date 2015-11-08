@@ -555,6 +555,8 @@ void Settings::loadBoardNameCombo()
 	m_boardNameCombo->addItem("Add new board...");
 	settings.endGroup();
 
+	m_editBoard->setEnabled(!boardNames.empty());
+
 	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
 	int currentItemIndex = m_boardNameCombo->findText(currentItem);
 	if (m_boardNameCombo->count() > 0 && currentItemIndex < 0)
