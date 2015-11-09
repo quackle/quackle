@@ -31,4 +31,4 @@ Source: "msvcr120.dll"; DestDir: "{app}"
 Source: "data\themes\*"; DestDir: "{app}\data\themes"
 Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"
 Source: "data\lexica\*"; DestDir: "{app}\data\lexica"
-Source: "data\strategy\*"; DestDir: "{app}\data\strategy"
+Source: "data\strategy\*"; DestDir: "{app}\data\strategy"; Flags: recursesubdirs
