@@ -31,7 +31,4 @@ Source: "msvcr120.dll"; DestDir: "{app}"
 Source: "data\themes\*"; DestDir: "{app}\data\themes"
 Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"
 Source: "data\lexica\*"; DestDir: "{app}\data\lexica"
-
-Source: "data\strategy\ods5\*"; DestDir: "{app}\data\strategy\ods5"
-Source: "data\strategy\twl06\*"; DestDir: "{app}\data\strategy\twl06"
-Source: "data\strategy\twl98\*"; DestDir: "{app}\data\strategy\twl98"
+Source: "data\strategy\*"; DestDir: "{app}\data\strategy"
