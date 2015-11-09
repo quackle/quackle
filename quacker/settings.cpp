@@ -440,11 +440,12 @@ void Settings::lexiconChanged(const QString &lexiconName)
 
 void Settings::alphabetChanged(const QString &alphabetName)
 {
-	if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
-	{
-		editAlphabet();
-		return;
-	}
+	// Uncomment when we support an add/edit alphabet dialog
+	// if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
+	// {
+	// 	editAlphabet();
+	// 	return;
+	// }
 	setQuackleToUseAlphabetName(alphabetName);
 
 	CustomQSettings settings;
@@ -455,11 +456,12 @@ void Settings::alphabetChanged(const QString &alphabetName)
 
 void Settings::themeChanged(const QString &themeName)
 {
-	if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
-	{
-		editTheme();
-		return;
-	}
+	// Uncomment when we support an add/edit theme dialog
+	// if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
+	// {
+	// 	editTheme();
+	// 	return;
+	// }
 	setQuackleToUseThemeName(themeName);
 
 	CustomQSettings settings;
