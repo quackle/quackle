@@ -61,10 +61,6 @@ macx {
 	APP_THEME_FILES.path = Contents/Resources/data
 
 	QMAKE_BUNDLE_DATA += APP_ALPHABETS_FILES APP_LEXICA_FILES APP_STRATEGY_FILES APP_THEME_FILES
-
-	# plist gymnastics
-	QMAKE_POST_LINK += ;cp -n $$PWD/quacker.plist $${OUT_PWD}/$${TARGET}.app/Contents
-	QMAKE_POST_LINK += /usr/libexec/PlistBuddy -c \"Set :GIT_COMMIT_HASH $${HC_GITHASH}\" $${OUT_PWD}/$${TARGET}.app/Contents/Info.plist
 }
 
 macx-g++ {
