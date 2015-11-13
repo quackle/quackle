@@ -52,9 +52,8 @@ void Simulator::setPosition(const GamePosition &position)
 
 	m_consideredMoves.clear();
 	m_simmedMoves.clear();
-	MoveList::const_iterator end = m_originalGame.currentPosition().moves().end();
-	for (MoveList::const_iterator it = m_originalGame.currentPosition().moves().begin(); it != end; ++it)
-		m_simmedMoves.push_back(SimmedMove(*it));
+	for (const auto &it : m_originalGame.currentPosition().moves())
+		m_simmedMoves.push_back(SimmedMove(it));
 
 	resetNumbers();
 }
@@ -132,47 +131,46 @@ void Simulator::setDispatch(ComputerDispatch *dispatch)
 
 void Simulator::setIncludedMoves(const MoveList &moves)
 {
-	for (SimmedMoveList::iterator simmedMoveIt = m_simmedMoves.begin(); simmedMoveIt != m_simmedMoves.end(); ++simmedMoveIt)
-		(*simmedMoveIt).setIncludeInSimulation(false);
+	for (auto &simmedMoveIt : m_simmedMoves)
+		simmedMoveIt.setIncludeInSimulation(false);
 
-	MoveList::const_iterator end = moves.end();
-	for (MoveList::const_iterator it = moves.begin(); it != end; ++it)
+	for (auto &it : moves)
 	{
-		SimmedMoveList::iterator simmedMoveIt;
-		for (simmedMoveIt = m_simmedMoves.begin(); simmedMoveIt != m_simmedMoves.end(); ++simmedMoveIt)
+		bool found = false;
+		for (auto &simmedMoveIt : m_simmedMoves)
 		{
-			if ((*it) == (*simmedMoveIt).move)
+			if (it == simmedMoveIt.move)
 			{
-				(*simmedMoveIt).setIncludeInSimulation(true);
+				simmedMoveIt.setIncludeInSimulation(true);
+				found = true;
 				break;
 			}
 		}
 
-		// move wasn't found; add it
-		if (simmedMoveIt == m_simmedMoves.end())
-			m_simmedMoves.push_back(SimmedMove(*it));
+		if (!found)
+			m_simmedMoves.push_back(SimmedMove(it));
 	}
 }
 
 void Simulator::makeSureConsideredMovesAreIncluded()
 {
 	MoveList movesSuperset(moves(/* prune */ true, /* sort by win */ true));
-	for (MoveList::const_iterator it = m_consideredMoves.begin(); it != m_consideredMoves.end(); ++it)
-		if (!movesSuperset.contains(*it))
-			movesSuperset.push_back(*it);
+	for (const auto &it : m_consideredMoves)
+		if (!movesSuperset.contains(it))
+			movesSuperset.push_back(it);
 	setIncludedMoves(movesSuperset);
 }
 
 void Simulator::moveConsideredMovesToBeginning(MoveList &moves) const
 {
-	for (MoveList::const_iterator consideredIt = m_consideredMoves.begin(); consideredIt != m_consideredMoves.end(); ++consideredIt)
+	for (const auto &consideredIt : m_consideredMoves)
 	{
-		for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it)
+		for (auto it = moves.begin(); it != moves.end(); it++)
 		{
-			if (*consideredIt == *it)
+			if (consideredIt == *it)
 			{
-				moves.erase(it);
-				moves.insert(moves.begin(), *consideredIt);
+				it = moves.erase(it);
+				moves.insert(moves.begin(), consideredIt);
 			}
 		}
 	}
@@ -208,9 +206,8 @@ void Simulator::pruneTo(double equityThreshold, int maxNumberOfMoves)
 
 void Simulator::resetNumbers()
 {
-	SimmedMoveList::iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::iterator moveIt = m_simmedMoves.begin(); moveIt != end; ++moveIt)
-		(*moveIt).clear();
+	for (auto &moveIt : m_simmedMoves)
+		moveIt.clear();
 
 	m_iterations = 0;
 }
@@ -260,10 +257,9 @@ void Simulator::simulate(int plies)
 		m_xmlIndent += MARK_UV('\t');
 	}
 
-	SimmedMoveList::iterator moveEnd = m_simmedMoves.end();
-	for (SimmedMoveList::iterator moveIt = m_simmedMoves.begin(); moveIt != moveEnd; ++moveIt)
+	for (auto &moveIt : m_simmedMoves)
 	{
-		if (!(*moveIt).includeInSimulation())
+		if (!moveIt.includeInSimulation())
 			continue;
 
 #ifdef DEBUG_SIM
@@ -279,10 +275,10 @@ void Simulator::simulate(int plies)
 		m_simulatedGame = m_originalGame;
 		double residual = 0;
 
-		(*moveIt).setNumberLevels(levels + 1);
+		moveIt.setNumberLevels(levels + 1);
 
 		int levelNumber = 1;
-		for (LevelList::iterator levelIt = (*moveIt).levels.begin(); levelNumber <= levels + 1 && levelIt != (*moveIt).levels.end() && !m_simulatedGame.currentPosition().gameOver(); ++levelIt, ++levelNumber)
+		for (LevelList::iterator levelIt = moveIt.levels.begin(); levelNumber <= levels + 1 && levelIt != moveIt.levels.end() && !m_simulatedGame.currentPosition().gameOver(); ++levelIt, ++levelNumber)
 		{
 			const int decimal = levelNumber == levels + 1? decimalTurns : numberOfPlayers;
 			if (decimal == 0)
@@ -291,8 +287,11 @@ void Simulator::simulate(int plies)
 			(*levelIt).setNumberScores(decimal);
 
 			int playerNumber = 1;
-			for (PositionStatisticsList::iterator scoresIt = (*levelIt).statistics.begin(); scoresIt != (*levelIt).statistics.end() && !m_simulatedGame.currentPosition().gameOver(); ++scoresIt, ++playerNumber)
+			for (auto &scoresIt : (*levelIt).statistics)
 			{
+				if (m_simulatedGame.currentPosition().gameOver())
+					break;
+				++playerNumber;
 				const int playerId = m_simulatedGame.currentPosition().currentPlayer().id();
 
 				if (isLogging())
@@ -304,7 +303,7 @@ void Simulator::simulate(int plies)
 				Move move = Move::createNonmove();
 
 				if (playerId == startPlayerId && levelNumber == 1)
-					move = (*moveIt).move;
+					move = moveIt.move;
 				else if (m_ignoreOppos && playerId != startPlayerId)
 					move = Move::createPassMove();
 				else
@@ -320,8 +319,8 @@ void Simulator::simulate(int plies)
 					move.score += deadwoodScore;
 				}
 
-				(*scoresIt).score.incorporateValue(move.score);
-				(*scoresIt).bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
+				scoresIt.score.incorporateValue(move.score);
+				scoresIt.bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
 
 				if (isLogging())
 				{
@@ -378,15 +377,15 @@ void Simulator::simulate(int plies)
 			}
 		}
 
-		(*moveIt).residual.incorporateValue(residual);
+		moveIt.residual.incorporateValue(residual);
 
 		const int spread = m_simulatedGame.currentPosition().spread(startPlayerId);
-		(*moveIt).gameSpread.incorporateValue(spread);
+		moveIt.gameSpread.incorporateValue(spread);
 
 		if (m_simulatedGame.currentPosition().gameOver())
 		{
 			const float wins = spread > 0? 1 : spread == 0? 0.5F : 0;
-			(*moveIt).wins.incorporateValue(wins);
+			moveIt.wins.incorporateValue(wins);
 
 			if (isLogging())
 			{
@@ -396,9 +395,9 @@ void Simulator::simulate(int plies)
 		else
 		{
 			if (m_simulatedGame.currentPosition().currentPlayer().id() == startPlayerId)
-				(*moveIt).wins.incorporateValue(QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
+				moveIt.wins.incorporateValue(QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
 			else
-				(*moveIt).wins.incorporateValue(1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
+				moveIt.wins.incorporateValue(1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
 		}	
 		
 
@@ -426,10 +425,9 @@ void Simulator::randomizeOppoRacks()
 
 	Bag bag(m_originalGame.currentPosition().unseenBag());
 
-	const PlayerList::const_iterator end = m_originalGame.currentPosition().players().end();
-	for (PlayerList::const_iterator it = m_originalGame.currentPosition().players().begin(); it != end; ++it)
+	for (const auto &it : m_originalGame.currentPosition().players())
 	{
-		if (((*it) == m_originalGame.currentPosition().currentPlayer()))
+		if ((it == m_originalGame.currentPosition().currentPlayer()))
 			continue;
 
 		// TODO -- some kind of inference engine can be inserted here
@@ -440,7 +438,7 @@ void Simulator::randomizeOppoRacks()
 		bag.removeLetters(rack.tiles());
 		bag.refill(rack);
 
-		m_originalGame.currentPosition().setPlayerRack((*it).id(), rack, /* adjust bag */ true);
+		m_originalGame.currentPosition().setPlayerRack(it.id(), rack, /* adjust bag */ true);
 	}
 
 #ifdef DEBUG_SIM
@@ -466,18 +464,17 @@ MoveList Simulator::moves(bool prune, bool byWin) const
 
 	const bool useCalculatedEquity = hasSimulationResults();
 
-	const SimmedMoveList::const_iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::const_iterator it = m_simmedMoves.begin(); it != end; ++it)
+	for (const auto &it : m_simmedMoves)
 	{
-		if (prune && !(*it).includeInSimulation())
+		if (prune && !it.includeInSimulation())
 			continue;
 
-		Move move((*it).move);
+		Move move(it.move);
 
 		if (useCalculatedEquity)
 		{
-			move.equity = (*it).calculateEquity();
-			move.win = (*it).wins.averagedValue();
+			move.equity = it.calculateEquity();
+			move.win = it.wins.averagedValue();
 		}
 
 		ret.push_back(move);
@@ -493,10 +490,9 @@ MoveList Simulator::moves(bool prune, bool byWin) const
 
 const SimmedMove &Simulator::simmedMoveForMove(const Move &move) const
 {
-	const SimmedMoveList::const_iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::const_iterator it = m_simmedMoves.begin(); it != end; ++it)
-		if ((*it).move == move)
-			return *it;
+	for (const auto &it : m_simmedMoves)
+		if (it.move == move)
+			return it;
 	
 	return m_simmedMoves.back();
 }
@@ -544,11 +540,11 @@ double SimmedMove::calculateEquity() const
 
 	double equity = 0;
 
-	for (LevelList::const_iterator levelIt = levels.begin(); levelIt != levels.end(); ++levelIt)
+	for (const auto &levelIt : levels)
 	{
-		for (PositionStatisticsList::const_iterator scoresIt = (*levelIt).statistics.begin(); scoresIt != (*levelIt).statistics.end(); ++scoresIt)
+		for (PositionStatisticsList::const_iterator scoresIt = levelIt.statistics.begin(); scoresIt != levelIt.statistics.end(); scoresIt++)
 		{
-			if (scoresIt == (*levelIt).statistics.begin())
+			if (scoresIt == levelIt.statistics.begin())
 				equity += (*scoresIt).score.averagedValue();
 			else
 				equity -= (*scoresIt).score.averagedValue();
@@ -618,8 +614,8 @@ UVOStream& operator<<(UVOStream &o, const Quackle::PositionStatistics &value)
 
 UVOStream& operator<<(UVOStream &o, const Quackle::Level &level)
 {
-	for (Quackle::PositionStatisticsList::const_iterator it = level.statistics.begin(); it != level.statistics.end(); ++it)
-		o << *it;
+	for (const auto &it : level.statistics)
+		o << it;
     return o;
 }
 
@@ -627,9 +623,9 @@ UVOStream& operator<<(UVOStream &o, const Quackle::SimmedMove &move)
 {
 	o << "Simmed move " << move.move << ":";
 
-	int levelNumber = 1;
-	for (Quackle::LevelList::const_iterator it = move.levels.begin(); it != move.levels.end(); ++it, ++levelNumber)
-		o << endl << "level " << levelNumber << ": " << (*it);
+	int levelNumber = 0;
+	for (const auto &it : move.levels)
+		o << endl << "level " << ++levelNumber << ": " << it;
 	
 	o << endl;
 	o << "Being simmed: " << move.includeInSimulation() << endl;
@@ -641,9 +637,8 @@ UVOStream& operator<<(UVOStream &o, const Quackle::SimmedMove &move)
 
 UVOStream& operator<<(UVOStream& o, const Quackle::SimmedMoveList& moves)
 {
-	const Quackle::SimmedMoveList::const_iterator end(moves.end());
-	for (Quackle::SimmedMoveList::const_iterator it = moves.begin(); it != end; ++it)
-		o << (*it) << endl;
+	for (const auto &it : moves)
+		o << it << endl;
     return o;
 }
 
