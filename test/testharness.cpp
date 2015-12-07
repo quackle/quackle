@@ -717,59 +717,66 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		
 	        // alkamid's mod: output the best move and the difference between it and the next best that uses different letters (for calculating playability)
 		//TODO: exchange moves get written even if they shouldn't
-		Rack used = moves.front().usedTiles();
+
+		// store tiles used in the top move
+		//Rack used = moves.front().usedTiles();
 		Rack tempUsed;
 		double diff = 0.0;
-		std::vector<Quackle::Rack> bestMoves;
+		std::vector<Quackle::LetterString> bestMoves;
 
+		// only consider non-exchange moves (we're not interested what are the best racks to exchange)
 		if (moves.front().action != Move::Exchange) {
 
+		    // start from the top of the best moves list 
 		    for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
-			    tempUsed = (*it).usedTiles();
 
-			    if (tempUsed.equals(used) == false) {
+			    // what tiles are used in this move?
+			    tempUsed = (*it).usedTiles();
+			    // if tiles are different:
+			    //if (tempUsed.equals(used) == false) {
+
+				    // is there a difference in equity between this move and the top move?
 				    diff = moves.front().equity - (*it).equity;
+
+				    // if not:
 				    if (diff == 0) {
 					    int found = 0;
 
+					    
 					    if ((*it).action == Move::Exchange) {
 						    break;
 					    }
 
 					    for (uint j =0; j< bestMoves.size(); j++) {
-						    if (bestMoves[j].equals((*it).wordTiles())) {
-								    found = 1;
-								    break;
-							    }
+						    
+						    if (bestMoves[j] == (*it).wordTiles()) {
+						    found = 1;
+						    break;
+						    }
 					    }
 					    if (found == 0) {
 						    bestMoves.push_back((*it).wordTiles());
 					    }
 				    }
 				    else {
-					    for (uint j = 0; j < bestMoves.size(); j++) {
-						    UVcout << bestMoves[j] << " " << diff << endl;
-					    }
-					    break;
-				    }
-			    }
-			    else {
-				    diff = moves.front().equity - (*it).equity;
-				    if (diff == 0) {
 					    int found = 0;
 					    for (uint j =0; j< bestMoves.size(); j++) {
-						    if (bestMoves[j].equals((*it).wordTiles())) {
-								    found = 1;
-								    break;
-							    }
+						    if (bestMoves[j] == (*it).wordTiles()) {
+							    found = 1;
+							    break;
+						    }
 					    }
+
 					    if (found == 0) {
-						    bestMoves.push_back((*it).wordTiles());
+						    break;
 					    }
 				    }
-			    }
-
-			    }
+		    }
+		    for (uint j = 0; j < bestMoves.size(); j++) {
+			    // This is ridiculous, but I'm not entirely sure how to handle strings in Quackle
+			    UVcout << QuackleIO::Util::qstringToString(QuackleIO::Util::letterStringToQString(bestMoves[j])) << " " << diff/bestMoves.size() << endl;
+					    }
+	      
 		}
 		// end: alkamid's mod
                 

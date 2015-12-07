@@ -9,6 +9,6 @@ i=$2
 
 while true
 do
-    ./test --alphabet=polish --lexicon=polish --mode=playability --repetitions=1 --seed=$i >> output/playability-reps$reps-seed$i
+    ./test --alphabet=polish --lexicon=osps --mode=playability --repetitions=$reps --seed=$i >> output/playability-reps$reps-seed$i
     ((i++))
 done
