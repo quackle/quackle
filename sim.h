@@ -19,6 +19,7 @@
 #ifndef QUACKLE_SIM_H
 #define QUACKLE_SIM_H
 
+#include <atomic>
 #include <vector>
 
 #include "alphabetparameters.h"
@@ -113,11 +114,19 @@ struct Level
     PositionStatisticsList statistics;
 };
 
-typedef vector<Level> LevelList;
+class LevelList : public vector<Level>
+{
+public:
+    // expand the levels list to be at least number long
+    void setNumberLevels(unsigned int number);
+};
 
 struct SimmedMove
 {
-    SimmedMove(const Move &_move) : move(_move), m_includeInSimulation(true) { }
+    SimmedMove(const Move &_move) :
+        move(_move),
+        m_id(++objectIdCounter),
+        m_includeInSimulation(true) { }
 
     // + our scores - their scores + residual, except if we have no levels,
     // in which case returns move.equity
@@ -127,14 +136,13 @@ struct SimmedMove
     // in which case returns move.win
     double calculateWinPercentage() const;
 
-    // expand the levels list to be at least number long
-    void setNumberLevels(unsigned int number);
-
     // clear all level values
     void clear();
 
     bool includeInSimulation() const;
     void setIncludeInSimulation(bool includeInSimulation);
+
+    long id() const { return m_id; };
 
     Move move;
     LevelList levels;
@@ -145,7 +153,10 @@ struct SimmedMove
     PositionStatistics getPositionStatistics(int level, int playerIndex) const;
 
 private:
+    long m_id;
     bool m_includeInSimulation;
+
+    static std::atomic_long objectIdCounter;
 };
 
 inline bool SimmedMove::includeInSimulation() const
@@ -159,6 +170,19 @@ inline void SimmedMove::setIncludeInSimulation(bool includeInSimulation)
 }
 
 typedef vector<SimmedMove> SimmedMoveList;
+
+struct SimmedMoveMessage
+{
+    long id;
+    LevelList levels;
+    vector<double> score;
+    vector<double> bingos;
+    double residual;
+    double gameSpread;
+    double wins;
+
+    bool bogowin;
+};
 
 class Simulator
 {
@@ -234,6 +258,10 @@ public:
 
     // simulate one iteration
     void simulate(int plies);
+
+    // Incoporate the results of a single simulation into the
+    // cumulative results
+    void incorporateMessage(const struct SimmedMoveMessage &message);
 
     // Set oppo's rack to some partially-known tiles.
     // Set this to an empty rack if no tiles are known, so

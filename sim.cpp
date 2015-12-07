@@ -32,6 +32,8 @@
 
 using namespace Quackle;
 
+std::atomic_long SimmedMove::objectIdCounter{0};
+
 Simulator::Simulator()
 	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false)
 {
@@ -266,19 +268,18 @@ void Simulator::simulate(int plies)
 		UVcout << "simulating " << (*moveIt).move << ":" << endl;
 #endif
 
-		if (isLogging())
-		{
-			m_logfileStream << m_xmlIndent << "<playahead>" << endl;
-			m_xmlIndent += MARK_UV('\t');
-		}
-
 		m_simulatedGame = m_originalGame;
 		double residual = 0;
 
-		moveIt.setNumberLevels(levels + 1);
+		moveIt.levels.setNumberLevels(levels + 1);
+
+		struct SimmedMoveMessage message;
+		message.id = moveIt.id();
+		message.levels.setNumberLevels(levels + 1);
+		message.levels = moveIt.levels;
 
 		int levelNumber = 1;
-		for (LevelList::iterator levelIt = moveIt.levels.begin(); levelNumber <= levels + 1 && levelIt != moveIt.levels.end() && !m_simulatedGame.currentPosition().gameOver(); ++levelIt, ++levelNumber)
+		for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= levels + 1 && levelIt != message.levels.end() && !m_simulatedGame.currentPosition().gameOver(); ++levelIt, ++levelNumber)
 		{
 			const int decimal = levelNumber == levels + 1? decimalTurns : numberOfPlayers;
 			if (decimal == 0)
@@ -377,41 +378,60 @@ void Simulator::simulate(int plies)
 			}
 		}
 
-		moveIt.residual.incorporateValue(residual);
-
-		const int spread = m_simulatedGame.currentPosition().spread(startPlayerId);
-		moveIt.gameSpread.incorporateValue(spread);
+		message.residual = residual;
+		int spread = m_simulatedGame.currentPosition().spread(startPlayerId);
+		message.gameSpread = spread;
 
 		if (m_simulatedGame.currentPosition().gameOver())
 		{
-			const float wins = spread > 0? 1 : spread == 0? 0.5F : 0;
-			moveIt.wins.incorporateValue(wins);
-
-			if (isLogging())
-			{
-				m_logfileStream << m_xmlIndent << "<gameover win=\"" << wins << "\" />" << endl;
-			}
+			message.bogowin = false;
+			message.wins = spread > 0? 1 : spread == 0? 0.5 : 0;
 		}
 		else
 		{
+			message.bogowin = true;
 			if (m_simulatedGame.currentPosition().currentPlayer().id() == startPlayerId)
-				moveIt.wins.incorporateValue(QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
+				message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
 			else
-				moveIt.wins.incorporateValue(1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
-		}	
-		
-
-		if (isLogging())
-		{
-			m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
-			m_logfileStream << m_xmlIndent << "</playahead>" << endl;
+				message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
 		}
+		
+		incorporateMessage(message);
 	}
 
 	if (isLogging())
 	{
 		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
 		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
+	}
+}
+
+void Simulator::incorporateMessage(const struct SimmedMoveMessage &message)
+{
+	for (auto& moveIt : m_simmedMoves)
+	{
+		if (moveIt.id() == message.id)
+		{
+			if (isLogging())
+			{
+				m_logfileStream << m_xmlIndent << "<playahead>" << endl;
+				m_xmlIndent += MARK_UV('\t');
+			}
+
+			moveIt.levels = message.levels;
+			moveIt.residual.incorporateValue(message.residual);
+			moveIt.gameSpread.incorporateValue(message.gameSpread);
+			moveIt.wins.incorporateValue(message.wins);
+
+			if (isLogging())
+			{
+				if (!message.bogowin)
+					m_logfileStream << m_xmlIndent << "<gameover win=\"" << message.wins << "\" />" << endl;
+				m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
+				m_logfileStream << m_xmlIndent << "</playahead>" << endl;
+			}
+			break;
+		}
 	}
 }
 
@@ -561,10 +581,10 @@ double SimmedMove::calculateWinPercentage() const
 	return wins.hasValues()? wins.averagedValue() * 100 : move.win;
 }
 
-void SimmedMove::setNumberLevels(unsigned int number)
+void LevelList::setNumberLevels(unsigned int number)
 {
-	while (levels.size() < number)
-		levels.push_back(Level());
+	while (size() < number)
+		push_back(Level());
 }
 
 void SimmedMove::clear()
