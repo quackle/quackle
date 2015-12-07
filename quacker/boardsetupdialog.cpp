@@ -33,7 +33,7 @@
 
 BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 {
-	resize(600,450);
+	resize(700,550);
 	setSizeGripEnabled(true);
 	
 	// construct the board
@@ -58,6 +58,7 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	m_saveChanges = new QPushButton(tr("&Save Changes"));
 	m_cancel = new QPushButton(tr("&Cancel"));
 	m_undoAll = new QPushButton(tr("&Undo All Changes"));
+	m_deleteBoard = new QPushButton(tr("&Delete Board"));
 
 	QVBoxLayout * superLayout = new QVBoxLayout;
 	Geometry::setupFramedLayout(superLayout);
@@ -96,6 +97,8 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	leftSideLayout->addWidget(dimensionGroup);
 	leftSideLayout->addWidget(symmetryGroup);
 	leftSideLayout->addWidget(m_undoAll);
+	if (!m_originalName.isEmpty())
+		leftSideLayout->addWidget(m_deleteBoard);
 	leftSideLayout->addStretch();
 
 	mainLayout->addLayout(leftSideLayout);
@@ -118,6 +121,7 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_undoAll, SIGNAL(clicked()), this, SLOT(undoAllChanges()));
+	connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
 	connect(m_horizontalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	connect(m_verticalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	connect(m_diagonalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
@@ -239,3 +243,20 @@ void BoardSetupDialog::undoAllChanges()
 	QUACKLE_DATAMANAGER->setBoardParameters(Quackle::BoardParameters::Deserialize(boardStream));
 	parametersChanged(QString());
 }
+
+void BoardSetupDialog::deleteBoard()
+{
+	QString message = "Do you really want to delete the game board \"";
+	message += m_originalName;
+	message += "\"?";
+	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message,
+			QMessageBox::Yes | QMessageBox::Default,
+			QMessageBox::No | QMessageBox::Escape) == QMessageBox::Yes)
+	{
+		CustomQSettings settings;
+		settings.beginGroup("quackle/boardparameters");
+		settings.remove(m_originalName);
+		QDialog::reject();
+	}
+}
+

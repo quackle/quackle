@@ -1,4 +1,5 @@
 .sconsign
+.gitattributes
 obj
 Makefile
 Makefile.Debug
@@ -14,6 +15,9 @@ ChangeLog
 *.pfx
 *.cer
 *.dll
+*.vcxproj*
+*.*sdf
 dawginput.raw
 playabilities.raw
 smaller.raw
+DerivedData

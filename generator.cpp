@@ -132,7 +132,7 @@ void Generator::allCrosses()
 		int col = vcols[i];
 
 		if (QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col))) {
-			board().setVCross(row, col, 0);
+			board().setVCross(row, col, LetterBitset());
 		}
 		else { 
 			LetterString pre; 
@@ -167,7 +167,7 @@ void Generator::allCrosses()
 #endif
 
 			if (pre.empty() && suf.empty()) {
-				board().setVCross(row, col, Utility::Max);
+				board().setVCross(row, col, LetterBitset().set());
 			}
 			else {
 				board().setVCross(row, col, fitbetween(pre, suf));
@@ -184,7 +184,7 @@ void Generator::allCrosses()
 		int col = hcols[i];
 
 		if (QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col))) {
-			board().setHCross(row, col, 0);
+			board().setHCross(row, col, LetterBitset());
 		}
 		else { 
 			LetterString pre;
@@ -214,7 +214,7 @@ void Generator::allCrosses()
 				}
 			}
 			if (pre.empty() && suf.empty()) {
-				board().setHCross(row, col, Utility::Max);
+				board().setHCross(row, col, LetterBitset().set());
 			}
 			else {
 				board().setHCross(row, col, fitbetween(pre, suf));
@@ -340,7 +340,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 		int row = vrows[i];
 		int col = vcols[i];
 		if (QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col))) {
-			board().setVCross(row, col, 0);
+			board().setVCross(row, col, LetterBitset());
 		}
 		else { 
 			LetterString pre;
@@ -374,7 +374,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 #endif
 
 			if ((pre.empty()) && (suf.empty())) {
-				board().setVCross(row, col, Utility::Max);
+				board().setVCross(row, col, LetterBitset().set());
 			}
 			else {
 				board().setVCross(row, col, fitbetween(pre, suf));
@@ -391,7 +391,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 		int col = hcols[i];
 
 		if (QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col))) {
-			board().setHCross(row, col, 0);
+			board().setHCross(row, col, LetterBitset());
 		}
 		else { 
 			LetterString pre; 
@@ -425,7 +425,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 #endif
 
 			if ((pre.empty()) && (suf.empty())) {
-				board().setHCross(row, col, Utility::Max);
+				board().setHCross(row, col, LetterBitset().set());
 			}
 			else {
 				board().setHCross(row, col, fitbetween(pre, suf));
@@ -440,16 +440,7 @@ void Generator::makeMove(const Move &move, bool regenerateCrosses)
 
 void Generator::readFromDawg(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
 {
-	index *= 7;
-	p = (QUACKLE_LEXICON_PARAMETERS->dawgAt(index) << 16) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 1) << 8) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 2));
-	letter = QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 3);
-	
-	t = (letter & 32);
-	lastchild = (letter & 64);
-	british = !(letter & 128);
-	letter = (letter & 31) + QUACKLE_FIRST_LETTER;
-
-	playability = (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 4) << 16) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 5) << 8) + (QUACKLE_LEXICON_PARAMETERS->dawgAt(index + 6));
+	QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);
 }
 
 bool Generator::checksuffix(int i, const LetterString &suffix) {
@@ -495,13 +486,13 @@ bool Generator::checksuffix(int i, const LetterString &suffix) {
 	}
 }
 
-int Generator::gaddagFitbetween(const LetterString &pre, const LetterString &suf)
+LetterBitset Generator::gaddagFitbetween(const LetterString &pre, const LetterString &suf)
 {
 // 	UVcout << "fit " 
 // 		 << QUACKLE_ALPHABET_PARAMETERS->userVisible(pre)
 // 		 << "_" 
 // 		 << QUACKLE_ALPHABET_PARAMETERS->userVisible(suf) << endl;
-	int crosses = 0;
+	LetterBitset crosses;
 	/* process the suffix once */
 	const GaddagNode *sufNode = QUACKLE_LEXICON_PARAMETERS->gaddagRoot();
 	int sufLen = suf.length();
@@ -527,13 +518,13 @@ int Generator::gaddagFitbetween(const LetterString &pre, const LetterString &suf
 		}
 		
 		if (n && n->isTerminal()) {
-			crosses |= Utility::Bits[(int)(childLetter - QUACKLE_FIRST_LETTER)];
+			crosses.set(childLetter - QUACKLE_FIRST_LETTER);
 		}
 	}	
 	return crosses;
 }
 
-int Generator::fitbetween(const LetterString &pre, const LetterString &suf)
+LetterBitset Generator::fitbetween(const LetterString &pre, const LetterString &suf)
 {
  	if (QUACKLE_LEXICON_PARAMETERS->hasGaddag()) {
  		return gaddagFitbetween(pre, suf);
@@ -542,7 +533,7 @@ int Generator::fitbetween(const LetterString &pre, const LetterString &suf)
 	//UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(pre) << "_" <<
 	//          QUACKLE_ALPHABET_PARAMETERS->userVisible(suf) << endl;
 
-	int crosses = 0;
+	LetterBitset crosses;
 
 	for (Letter c = QUACKLE_FIRST_LETTER; c <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); c++) {
 /*
@@ -553,7 +544,7 @@ int Generator::fitbetween(const LetterString &pre, const LetterString &suf)
 */
 		if (checksuffix(1, pre + c + suf)) {
 			// subtract first letter because crosses hold values starting from zero
-			crosses |= Utility::Bits[c - QUACKLE_FIRST_LETTER];
+			crosses.set(c - QUACKLE_FIRST_LETTER);
 			//UVcout << "  that's a word" << endl;
 			// UVcout << c;
 		}
@@ -574,12 +565,12 @@ UVString Generator::counts2string()
 	return ret;
 }
 
-UVString Generator::cross2string(int cross)
+UVString Generator::cross2string(const LetterBitset &cross)
 {
 	UVString ret;
 
 	for (int i = 0; i < QUACKLE_ALPHABET_PARAMETERS->length(); i++)
-		if (cross & Utility::Bits[i])
+		if (cross.test(i))
 			ret += QUACKLE_ALPHABET_PARAMETERS->userVisible(QUACKLE_FIRST_LETTER + i);
 
 	return ret;
@@ -820,7 +811,7 @@ void Generator::gordongen(int pos, const LetterString &word, const GaddagNode *n
 		currow += pos;
 	}
 
-	int cross;
+	LetterBitset cross;
 	if (m_gordonhoriz) {
 		cross = board().vcross(currow, curcol);
 	}
@@ -844,7 +835,7 @@ void Generator::gordongen(int pos, const LetterString &word, const GaddagNode *n
 			Letter childLetter = child->letter();
 
 			if ((m_counts[childLetter] <= 0) 
-					|| !(cross & Utility::Bits[(int)(childLetter - QUACKLE_FIRST_LETTER)])) {
+					|| !cross.test(childLetter - QUACKLE_FIRST_LETTER)) {
 				continue;
 			}
 
@@ -871,7 +862,7 @@ void Generator::gordongen(int pos, const LetterString &word, const GaddagNode *n
 					break;
 				}
 
-				if (cross & Utility::Bits[(int)(childLetter - QUACKLE_FIRST_LETTER)]) {
+				if (cross.test(childLetter - QUACKLE_FIRST_LETTER)) {
 					m_counts[QUACKLE_BLANK_MARK]--;
 					m_laid++;
 					// UVcout << "    yeah that'll work" << endl;
@@ -926,14 +917,14 @@ void Generator::extendright(const LetterString &partial, int i,
 
 	if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(rowpos, colpos))) {
 		if (m_counts[c] >= 1) {
-			int cross;
+			LetterBitset cross;
 			if (horizontal) {
 				cross = board().vcross(rowpos, colpos);
 			}
 			else {
 				cross = board().hcross(rowpos, colpos);
 			}
-			if (cross & Utility::Bits[(int)(c - QUACKLE_FIRST_LETTER)])  {
+			if (cross.test(c - QUACKLE_FIRST_LETTER))  {
 				if (t) {
 					bool couldend = true;
 					if (dirpos < edgeDirpos) {
@@ -962,7 +953,7 @@ void Generator::extendright(const LetterString &partial, int i,
 
 						int laid = move.wordTilesWithNoPlayThru().length();
 						bool onetilevert = (!move.horizontal) && (laid == 1);
-						bool ignore = onetilevert && (board().hcross(row, col) != Utility::Max);
+						bool ignore = onetilevert && !board().hcross(row, col).all();
 						
 						if (1 || !ignore)
 						{
@@ -991,14 +982,14 @@ void Generator::extendright(const LetterString &partial, int i,
 			}
 		}       
 		if ((m_counts[QUACKLE_BLANK_MARK] >= 1)) {
-			int cross;
+			LetterBitset cross;
 			if (horizontal) {
 				cross = board().vcross(rowpos, colpos);
 			}
 			else {
 				cross = board().hcross(rowpos, colpos);
 			}
-			if (cross & Utility::Bits[(int)(c - QUACKLE_FIRST_LETTER)]) {
+			if (cross.test(c - QUACKLE_FIRST_LETTER)) {
 				if (t) {
 					bool couldend = true;
 					if (dirpos < edgeDirpos) {
@@ -1024,7 +1015,7 @@ void Generator::extendright(const LetterString &partial, int i,
 
 						int laid = move.wordTilesWithNoPlayThru().length();
 						bool onetilevert = (!move.horizontal) && (laid == 1);
-						bool ignore = onetilevert && (board().hcross(row, col) != Utility::Max);
+						bool ignore = onetilevert && !board().hcross(row, col).all();
 																								
 						if (1 || !ignore)
 						{
@@ -1115,7 +1106,7 @@ void Generator::extendright(const LetterString &partial, int i,
 						
 					int laid = move.wordTilesWithNoPlayThru().length();
 					bool onetilevert = (!move.horizontal) && (laid == 1);
-					bool ignore = onetilevert && (board().hcross(row, col) != Utility::Max);
+					bool ignore = onetilevert && !board().hcross(row, col).all();
 					
 					if (1 || !ignore)
 					{
@@ -1215,7 +1206,7 @@ Move Generator::generate()
 			// what defines an anchor square?
 
 			bool anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && (board().vcross(row, col) != Utility::Max)) {
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().vcross(row, col).all()) {
 				if (col == 0) {
 					anchor = true;
 				}
@@ -1238,7 +1229,7 @@ Move Generator::generate()
 				{
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
 					
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && (board().vcross(row, i) == Utility::Max)) {
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && board().vcross(row, i).all()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1265,7 +1256,7 @@ Move Generator::generate()
 			// what defines an anchor square?
 
 			anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && (board().hcross(row, col) != Utility::Max)) {
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().hcross(row, col).all()) {
 				if (row == 0) {
 					anchor = true;
 				}
@@ -1286,7 +1277,7 @@ Move Generator::generate()
 				int k = 0;
 				for (int i = row - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && (board().hcross(i, col) == Utility::Max)) {
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && board().hcross(i, col).all()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1322,7 +1313,7 @@ Move Generator::gordongenerate()
 			// generate horizontal plays
 			// what defines an anchor square?
 			bool anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && (board().vcross(row, col) != Utility::Max)) {
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().vcross(row, col).all()) {
 				if (col == 0) {
 					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col + 1))) {
 						anchor = true;
@@ -1359,7 +1350,7 @@ Move Generator::gordongenerate()
 				}
 				for (int i = col - k - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && (board().vcross(row, i) == Utility::Max)) {
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && board().vcross(row, i).all()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1389,7 +1380,7 @@ Move Generator::gordongenerate()
 			// what defines an anchor square?
 
 			anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && (board().hcross(row, col) != Utility::Max)) {
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().hcross(row, col).all()) {
 				if (row == 0) {
 					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row + 1, col))) {
 						anchor = true;
@@ -1426,7 +1417,7 @@ Move Generator::gordongenerate()
 				}
 				for (int i = row - k - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && (board().hcross(i, col) == Utility::Max)) {
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && board().hcross(i, col).all()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1618,7 +1609,7 @@ Move Generator::exchange()
 	{
 		LetterString thrown;
 		for (int j = 0; j < rackSize; j++)
-			if (i & Utility::Bits[j])
+			if (i & (1 << j))
 				thrown += rack().tiles()[j];
 
 		Move move;

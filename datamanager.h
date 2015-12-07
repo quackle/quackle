@@ -99,21 +99,27 @@ public:
 	// Find a file at datadir/subdir/lexicon/file.
 	// If this doesn't exist, tries backupLexicon instead of lexicon.
 	// Returns empty string if the file is not found.
-	string findDataFile(const string &subDirectory, const string &lexicon, string file);
+	string findDataFile(const string &subDirectory, const string &lexicon, const string &file);
 
 	// Find a file at datadir/subdir/file.
 	// Returns empty string if the file is not found.
-	string findDataFile(const string &subDirectory, string file);
+	string findDataFile(const string &subDirectory, const string &file);
+
+	// Returns true if the data file is in user-land.
+	bool hasUserDataFile(const string &subDirectory, const string &file);
 
 	// returns similarly-named file
-	string makeDataFilename(const string &subDirectory, const string &lexicon, string file);
-	string makeDataFilename(const string &subDirectory, string file);
+	string makeDataFilename(const string &subDirectory, const string &lexicon, const string &file, bool user);
+	string makeDataFilename(const string &subDirectory, const string &file, bool user);
 
 	void setBackupLexicon(string backupLexicon) { m_backupLexicon = backupLexicon; }
 	string backupLexicon() { return m_backupLexicon; }
 
-	void setDataDirectory(string directory) { m_dataDirectory = directory; }
-	string dataDirectory() { return m_dataDirectory; }
+	void setAppDataDirectory(string directory) { m_appDataDirectory = directory; }
+	string appDataDirectory() { return m_appDataDirectory; }
+
+	void setUserDataDirectory(string directory) { m_userDataDirectory = directory; }
+	string userDataDirectory() { return m_userDataDirectory; }
 
 	void seedRandomNumbers(unsigned int seed);
 	int randomNumber();
@@ -123,7 +129,9 @@ private:
 
 	bool fileExists(const string &filename);
 
-	string m_dataDirectory;
+	string m_appDataDirectory;
+
+	string m_userDataDirectory;
 
 	// lexicon that has all data files
 	string m_backupLexicon;

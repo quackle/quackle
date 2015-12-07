@@ -12,28 +12,26 @@ CONFIG += release
 
 debug {
   OBJECTS_DIR = obj/debug
+  QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
+  QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
 }
 
-LIBS += -lquackleio -lquackle
+win32:!win32-g++ {
+  LIBS += -lquackleio -llibquackle
+} else {
+  LIBS += -lquackleio -lquackle
+}
 
-QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
-QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
+QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 HEADERS += testharness.h trademarkedboards.h
 SOURCES += testharness.cpp testmain.cpp trademarkedboards.cpp
 
-
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
-}
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive

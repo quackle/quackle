@@ -45,6 +45,7 @@
 #include "boardsetupdialog.h"
 #include "customqsettings.h"
 #include "graphicalboard.h"
+#include "lexicondialog.h"
 
 Settings *Settings::m_self = 0;
 Settings *Settings::self()
@@ -80,17 +81,20 @@ Settings::Settings(QWidget *parent)
  #endif
 
 	if (QFile::exists("data"))
-		m_dataDir = "data";
+		m_appDataDir = "data";
 	else if (QFile::exists("../data"))
-		m_dataDir = "../data";
+		m_appDataDir = "../data";
 	else if (QFile::exists("Quackle.app/Contents/data"))
-		m_dataDir = "Quackle.app/Contents/data";
+		m_appDataDir = "Quackle.app/Contents/data";
 	else
 	{
 		if (!directory.cd("data") || !directory.cd("../data"))
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
-		m_dataDir = directory.absolutePath();
+		m_appDataDir = directory.absolutePath();
 	}
+	m_userDataDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+	QDir qdir(m_userDataDir);
+	qdir.mkpath("lexica");
 }
 
 void Settings::createGUI()
@@ -98,93 +102,97 @@ void Settings::createGUI()
 	if (m_lexiconNameCombo != 0)
 		return;
 
-	QVBoxLayout *vlayout = new QVBoxLayout(this);
+	QGridLayout *layout = new QGridLayout(this);
 
 	m_lexiconNameCombo = new QComboBox;
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
 
-	QStringList items;
-	populateListFromFilenames(items, m_dataDir + "/lexica");
-	m_lexiconNameCombo->addItems(items);
+	populateComboFromFilenames(m_lexiconNameCombo, "lexica", ".dawg", "lexicon");
 
-	QLabel *cswText = new QLabel(tr("The WESPA wordlist (CSW12) is copyright Harper Collins 2011."));
-
-	QHBoxLayout *lexiconLayout = new QHBoxLayout;
 	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon:"));
 	lexiconNameLabel->setBuddy(m_lexiconNameCombo);
-
-	lexiconLayout->addWidget(lexiconNameLabel);
-	lexiconLayout->addWidget(m_lexiconNameCombo);
+	m_editLexicon = new QPushButton(tr("Edit..."));
+	m_editLexicon->setMaximumWidth(60);
+	connect(m_editLexicon, SIGNAL(clicked()), this, SLOT(editLexicon()));
 
 	m_alphabetNameCombo = new QComboBox;
 	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
 
-	QStringList alphabetItems;
-	populateListFromFilenames(alphabetItems, m_dataDir + "/alphabets");
-	m_alphabetNameCombo->addItems(alphabetItems);
+	populateComboFromFilenames(m_alphabetNameCombo, "alphabets", ".quackle_alphabet", "");
 
-	QHBoxLayout *alphabetLayout = new QHBoxLayout;
 	QLabel *alphabetNameLabel = new QLabel(tr("&Alphabet:"));
 	alphabetNameLabel->setBuddy(m_alphabetNameCombo);
-
-	alphabetLayout->addWidget(alphabetNameLabel);
-	alphabetLayout->addWidget(m_alphabetNameCombo);
+	m_editAlphabet = new QPushButton(tr("Edit..."));
+	m_editAlphabet->setMaximumWidth(60);
+	connect(m_editAlphabet, SIGNAL(clicked()), this, SLOT(editAlphabet()));
 
 	m_themeNameCombo = new QComboBox;
 	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
 
-	QStringList themeItems;
-	populateListFromFilenames(themeItems, m_dataDir + "/themes");
-	m_themeNameCombo->addItems(themeItems);
+	populateComboFromFilenames(m_themeNameCombo, "themes", ".ini", "");
 
-	QHBoxLayout *themeLayout = new QHBoxLayout;
 	QLabel *themeNameLabel = new QLabel(tr("&Theme:"));
 	themeNameLabel->setBuddy(m_themeNameCombo);
+	m_editTheme = new QPushButton(tr("Edit..."));
+	m_editTheme->setMaximumWidth(60);
+	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme()));
 
-	themeLayout->addWidget(themeNameLabel);
-	themeLayout->addWidget(m_themeNameCombo);
-
-	m_boardNameCombo = new QComboBox();
+	m_boardNameCombo = new QComboBox;
 	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
 
-	m_addBoard = new QPushButton(tr("Add Board"));
-	connect(m_addBoard, SIGNAL(clicked()), this, SLOT(addBoard()));
+	populateComboFromFilenames(m_boardNameCombo, "boards", "", "board");
 
-	m_editBoard = new QPushButton(tr("&Edit Board"));
-	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
-
-	m_deleteBoard = new QPushButton(tr("&Delete Board"));
-	connect(m_deleteBoard, SIGNAL(clicked()), this, SLOT(deleteBoard()));
-
-	loadBoardNameCombo();
-
-	QGroupBox *boardGroup = new QGroupBox("Game Board Definitions");
-	QGridLayout *boardLayout = new QGridLayout(boardGroup);
 	QLabel *boardNameLabel = new QLabel(tr("&Board:"));
 	boardNameLabel->setBuddy(m_boardNameCombo);
+	m_editBoard = new QPushButton(tr("Edit..."));
+	m_editBoard->setMaximumWidth(60);
+	connect(m_editBoard, SIGNAL(clicked()), this, SLOT(editBoard()));
 
-	boardLayout->addWidget(boardNameLabel, 0, 0);
-	boardLayout->addWidget(m_boardNameCombo, 0, 1, 1, -1);
-	boardLayout->addWidget(m_addBoard, 1, 0);
-	boardLayout->addWidget(m_editBoard, 1, 1);
-	boardLayout->addWidget(m_deleteBoard, 1, 2);
+	m_buildGaddag = new QPushButton(tr("Build lexicon database..."));
+	connect(m_buildGaddag, SIGNAL(clicked()), this, SLOT(buildGaddag()));
 
-	vlayout->addWidget(cswText);
-	vlayout->addLayout(lexiconLayout);
-	vlayout->addLayout(alphabetLayout);
-	vlayout->addLayout(themeLayout);
-	vlayout->addWidget(boardGroup);
-	vlayout->addStretch();
+	m_buildGaddagLabel = new QLabel();
+	m_buildGaddagLabel->setWordWrap(true);
+	m_copyrightLabel = new QLabel();
+	m_copyrightLabel->setWordWrap(true);
+
+	layout->addWidget(lexiconNameLabel, 0, 0, Qt::AlignRight);
+	layout->addWidget(m_lexiconNameCombo, 0, 1);
+	layout->addWidget(m_editLexicon, 0, 2);
+	layout->addWidget(alphabetNameLabel, 1, 0, Qt::AlignRight);
+	layout->addWidget(m_alphabetNameCombo, 1, 1);
+	// layout->addWidget(m_editAlphabet, 1, 2);
+	layout->addWidget(themeNameLabel, 2, 0, Qt::AlignRight);
+	layout->addWidget(m_themeNameCombo, 2, 1);
+	// layout->addWidget(m_editTheme, 2, 2);
+	layout->addWidget(boardNameLabel, 3, 0, Qt::AlignRight);
+	layout->addWidget(m_boardNameCombo, 3, 1);
+	layout->addWidget(m_editBoard, 3, 2);
+	layout->addWidget(m_buildGaddag, 4, 1);
+	layout->addWidget(m_buildGaddagLabel, 5, 1);
+	layout->addWidget(m_copyrightLabel, 6, 0, 1, -1, Qt::AlignTop);
+
+	layout->setColumnMinimumWidth(3, 0);
+	layout->setColumnStretch(3, 1);
+	layout->setRowMinimumHeight(6, 0);
+	layout->setRowStretch(6, 1);
+
 
 	load();
 }
 
 void Settings::load()
 {
-	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_LEXICON_PARAMETERS->lexiconName())));
-	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
+	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str())));
+	if (m_lexiconNameCombo->currentIndex() == -1)
+		m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str()) + "*"));
+	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
+	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QString::fromUtf8(QUACKLE_ALPHABET_PARAMETERS->alphabetName().c_str())));
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
+	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
+	m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
+	setGaddagLabel();
 }
 
 void Settings::preInitialize()
@@ -197,8 +205,8 @@ void Settings::initialize()
 {
 	CustomQSettings settings;
 
-	QUACKLE_DATAMANAGER->setBackupLexicon("twl06");
-	QUACKLE_DATAMANAGER->setDataDirectory(m_dataDir.toStdString());
+	QUACKLE_DATAMANAGER->setAppDataDirectory(m_appDataDir.toStdString());
+	QUACKLE_DATAMANAGER->setUserDataDirectory(m_userDataDir.toStdString());
 
 	QString lexiconName = settings.value("quackle/settings/lexicon-name", QString("twl06")).toString();
 
@@ -206,50 +214,158 @@ void Settings::initialize()
 	if (lexiconName == "cswfeb07")
 		lexiconName = "cswapr07";
 
-	setQuackleToUseLexiconName(QuackleIO::Util::qstringToStdString(lexiconName));
-	setQuackleToUseAlphabetName(QuackleIO::Util::qstringToStdString(settings.value("quackle/settings/alphabet-name", QString("english")).toString()));
+	setQuackleToUseLexiconName(lexiconName);
+	setQuackleToUseAlphabetName(settings.value("quackle/settings/alphabet-name", QString("english")).toString());
 	setQuackleToUseThemeName(settings.value("quackle/settings/theme-name", QString("traditional")).toString());
 	setQuackleToUseBoardName(settings.value("quackle/settings/board-name", QString("")).toString());
 }
 
-void Settings::setQuackleToUseLexiconName(const string &lexiconName)
+void Settings::setGaddagLabel()
 {
-	if (QUACKLE_LEXICON_PARAMETERS->lexiconName() != lexiconName)
+	QString gaddagLabelString;
+	if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
 	{
-		QUACKLE_LEXICON_PARAMETERS->setLexiconName(lexiconName);
+		gaddagLabelString = tr("Lexicon database is not up to date.  Press the button to begin building the database.  This may take several minutes to complete.");
+		m_buildGaddag->setEnabled(true);
+	}
+	else
+	{
+		gaddagLabelString = tr("Lexicon database is up to date.");
+		m_buildGaddag->setEnabled(false);
+	}
 
-		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".gaddag");
+	m_buildGaddagLabel->setText(gaddagLabelString);
+}
 
-		if (gaddagFile.empty())
+void Settings::setGaddagLabel(const QString &label)
+{
+	m_buildGaddagLabel->setText(label);
+	qApp->processEvents();
+}
+
+void Settings::buildGaddag()
+{
+	const string gaddagFile(QUACKLE_DATAMANAGER->makeDataFilename("lexica", QUACKLE_LEXICON_PARAMETERS->lexiconName() + ".gaddag", true));
+	GaddagFactory factory((UVString()));
+	Quackle::LetterString word;
+	int wordCount = 0;
+
+	setGaddagLabel(tr("Words processed: 0"));
+	pushIndex(factory, word, 1, wordCount);
+	if (wordCount < QUACKLE_MAX_GADDAG_WORDCOUNT)
+	{
+		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Compressing...")).arg(wordCount));
+		factory.generate();
+		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Writing to disk...")).arg(wordCount));
+		factory.writeIndex(gaddagFile);
+		QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+		setGaddagLabel();
+	}
+	else
+		setGaddagLabel(tr("Your lexicon is too large to be represented using the internal database format.  Operation aborted."));
+}
+
+void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index, int &wordCount)
+{
+	unsigned int p;
+	Quackle::Letter letter;
+	bool t;
+	bool lastchild;
+	bool british;
+	int playability;
+
+	do
+	{
+		QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);
+		word.push_back(letter);
+		if (t)
 		{
-			UVcout << "Gaddag for lexicon '" << lexiconName << "' does not exist." << endl;
-			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
+			factory.pushWord(word);
+			wordCount++;
+			if (wordCount % 1000 == 0)
+				setGaddagLabel(QString(tr("Words processed: %1")).arg(wordCount));
+			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
+				return;
 		}
-		else
-			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+		if (p)
+		{
+			pushIndex(factory, word, p, wordCount);
+			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
+				return;
+		}
+		index++;
+		word.pop_back();
+	} while (!lastchild);
+}
 
-		string dawgFile = Quackle::LexiconParameters::findDictionaryFile(lexiconName + ".dawg");
+
+void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
+{
+	QUACKLE_DATAMANAGER->setBackupLexicon("default");
+
+	string lexiconNameStr = lexiconName.toStdString();
+	if (QUACKLE_LEXICON_PARAMETERS->lexiconName() != lexiconNameStr)
+	{
+		QUACKLE_LEXICON_PARAMETERS->setLexiconName(lexiconNameStr);
+
+		string dawgFile = Quackle::LexiconParameters::findDictionaryFile(lexiconNameStr + ".dawg");
 		if (dawgFile.empty())
 		{
-			UVcout << "Dawg for lexicon '" << lexiconName << "' does not exist." << endl;
+			UVcout << "Dawg for lexicon '" << lexiconNameStr << "' does not exist." << endl;
 			QUACKLE_LEXICON_PARAMETERS->unloadDawg();
 		}
 		else
 			QUACKLE_LEXICON_PARAMETERS->loadDawg(dawgFile);
 
-		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconName);
+		if (!QUACKLE_LEXICON_PARAMETERS->hasDawg())
+		{
+			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
+			return;
+		}
+
+		string gaddagFile = Quackle::LexiconParameters::findDictionaryFile(lexiconNameStr + ".gaddag");
+		if (gaddagFile.empty())
+		{
+			UVcout << "Gaddag for lexicon '" << lexiconNameStr << "' does not exist." << endl;
+			QUACKLE_LEXICON_PARAMETERS->unloadGaddag();
+		}
+		else
+			QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
+
+		// Dirty test to see if we're working with an English-like dictionary, and if so, beef up
+		// strategy files with twl06 ones (until I can start generating better).  It's an imperfect
+		// test...it captures the ODS dictionary, for example, which seems pretty wrong.  But I
+		// don't want to hard-code lexicon names here, so this is about as good as I can do.
+		const vector<string> & alphabet = QUACKLE_LEXICON_PARAMETERS->utf8Alphabet();
+		if (alphabet.size() == 26)
+		{
+			vector<string>::const_iterator it;
+			for (it = alphabet.begin(); it != alphabet.end(); it++)
+			{
+				if (it->size() != 1)
+					break;
+				if (it->c_str()[0] < 'A' || it->c_str()[0] > 'Z')
+					break;
+			}
+			if (it == alphabet.end())
+				QUACKLE_DATAMANAGER->setBackupLexicon("default_english");
+		}
+		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
+		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
+		setGaddagLabel();
 	}
 }
 
-void Settings::setQuackleToUseAlphabetName(const string &alphabetName)
+void Settings::setQuackleToUseAlphabetName(const QString &alphabetName)
 {
-	if (QUACKLE_ALPHABET_PARAMETERS->alphabetName() != alphabetName)
+	string alphabetNameStr = alphabetName.toStdString();
+	if (QUACKLE_ALPHABET_PARAMETERS->alphabetName() != alphabetNameStr)
 	{
-		QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetName + ".quackle_alphabet"));
+		QString alphabetFileStr = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(alphabetNameStr));
 
 		QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-		flexure->setAlphabetName(alphabetName);
-		if (flexure->load(alphabetFile))
+		flexure->setAlphabetName(alphabetNameStr);
+		if (flexure->load(alphabetFileStr))
 		{
 			if (flexure->length() != QUACKLE_ALPHABET_PARAMETERS->length() && QUACKLE_ALPHABET_PARAMETERS->alphabetName() != "default")
 			{
@@ -269,11 +385,13 @@ void Settings::setQuackleToUseAlphabetName(const string &alphabetName)
 void Settings::setQuackleToUseThemeName(const QString &themeName)
 {
 	m_themeName = themeName;
-	QString themeFile = m_dataDir + "/themes/" + themeName + ".ini";
+	QString themeFile = m_userDataDir + "/themes/" + themeName + ".ini";
+	if (!QFile::exists(themeFile))
+		themeFile = m_appDataDir + "/themes/" + themeName + ".ini";
 	if (!QFile::exists(themeFile))
 	{
 		m_themeName = "traditional";
-		themeFile = m_dataDir + "/themes/traditional.ini";
+		themeFile = m_appDataDir + "/themes/traditional.ini";
 	}
 	PixmapCacher::self()->readTheme(themeFile);
 }
@@ -300,19 +418,35 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 
 void Settings::lexiconChanged(const QString &lexiconName)
 {
-	string lexiconNameString = QuackleIO::Util::qstringToStdString(lexiconName);
-	setQuackleToUseLexiconName(lexiconNameString);
+	QString lexicon = lexiconName;
+	if (lexicon.endsWith("*"))
+		lexicon.truncate(lexicon.size() - 1);
+	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
+	{
+		editLexicon();
+		if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1 &&
+			m_lexiconNameCombo->currentIndex() != 0)
+			m_lexiconNameCombo->setCurrentIndex(m_lastGoodLexiconValue);
+		return;
+	}
+	setQuackleToUseLexiconName(lexicon);
+	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 
 	CustomQSettings settings;
-	settings.setValue("quackle/settings/lexicon-name", lexiconName);
+	settings.setValue("quackle/settings/lexicon-name", lexicon);
 
 	emit refreshViews();
 }
 
 void Settings::alphabetChanged(const QString &alphabetName)
 {
-	string alphabetNameString = QuackleIO::Util::qstringToStdString(alphabetName);
-	setQuackleToUseAlphabetName(alphabetNameString);
+	// Uncomment when we support an add/edit alphabet dialog
+	// if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
+	// {
+	// 	editAlphabet();
+	// 	return;
+	// }
+	setQuackleToUseAlphabetName(alphabetName);
 
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/alphabet-name", alphabetName);
@@ -322,6 +456,12 @@ void Settings::alphabetChanged(const QString &alphabetName)
 
 void Settings::themeChanged(const QString &themeName)
 {
+	// Uncomment when we support an add/edit theme dialog
+	// if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
+	// {
+	// 	editTheme();
+	// 	return;
+	// }
 	setQuackleToUseThemeName(themeName);
 
 	CustomQSettings settings;
@@ -332,6 +472,14 @@ void Settings::themeChanged(const QString &themeName)
 
 void Settings::boardChanged(const QString &boardName)
 {
+	if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1)
+	{
+		addBoard();
+		if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1 &&
+			m_boardNameCombo->currentIndex() != 0)
+			m_boardNameCombo->setCurrentIndex(m_lastGoodBoardValue);
+		return;
+	}
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/board-name", boardName);
 
@@ -358,6 +506,7 @@ void Settings::addBoard()
 							(const uchar *)boardParameterStream.str().data(),
 							boardParameterStream.str().size());
 		settings.setValue(boardName, QVariant(boardParameterBytes));
+		m_boardNameCombo->setCurrentIndex(-1);
 		boardChanged(boardName);
 	}
 	else
@@ -391,35 +540,12 @@ void Settings::editBoard()
 		boardChanged(newBoardName);
 	}
 	PixmapCacher::self()->invalidate();
-}
-
-void Settings::deleteBoard()
-{
-	int oldIndex = m_boardNameCombo->currentIndex();
-	QString boardName = m_boardNameCombo->currentText();
-	QString message = "Do you really want to delete the game board \"";
-	message += boardName;
-	message += "\"?";
-	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message,
-			QMessageBox::Yes | QMessageBox::Default,
-			QMessageBox::No | QMessageBox::Escape) == QMessageBox::Yes)
-	{
-		CustomQSettings settings;
-		settings.beginGroup("quackle/boardparameters");
-		settings.remove(boardName);
-		loadBoardNameCombo();
-		if (oldIndex != 0)
-			oldIndex--;
-		m_boardNameCombo->setCurrentIndex(oldIndex);
-		boardChanged(m_boardNameCombo->currentText());
-	}
+	loadBoardNameCombo();
+	emit refreshViews();
 }
 
 void Settings::loadBoardNameCombo()
 {
-	if (m_lexiconNameCombo == 0)
-		return;
-
 	while (m_boardNameCombo->count() > 0)
 		m_boardNameCombo->removeItem(0);
 
@@ -428,26 +554,102 @@ void Settings::loadBoardNameCombo()
 	QStringList boardNames = settings.childKeys();
 	boardNames.sort();
 	m_boardNameCombo->addItems(boardNames);
+	m_boardNameCombo->addItem("Add new board...");
 	settings.endGroup();
 
-	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
-	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(currentItem));
+	m_editBoard->setEnabled(!boardNames.empty());
 
-	m_editBoard->setEnabled(boardNames.count() > 0);
-	m_deleteBoard->setEnabled(boardNames.count() > 0);
+	QString currentItem = settings.value("quackle/settings/board-name", QString("")).toString();
+	int currentItemIndex = m_boardNameCombo->findText(currentItem);
+	if (m_boardNameCombo->count() > 0 && currentItemIndex < 0)
+		currentItemIndex = 0;
+	m_boardNameCombo->setCurrentIndex(currentItemIndex);
 }
 
-void Settings::populateListFromFilenames(QStringList& list, const QString &path)
+void Settings::editLexicon()
 {
-	QDir dir(path);
-	QStringList fileList = dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
-	QStringListIterator i(fileList);
+	QString name = m_lexiconNameCombo->currentText();
+	if (name.endsWith("*"))
+		name.truncate(name.size() - 1);
+	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
+		name = "";
+	LexiconDialog dialog(this, name);
+	if (dialog.exec())
+	{
+		populateComboFromFilenames(m_lexiconNameCombo, "lexica", ".dawg", "lexicon");
+		qApp->processEvents();
+		if (dialog.itemWasDeleted())
+		{
+			m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(name));
+			QUACKLE_LEXICON_PARAMETERS->setLexiconName(""); // force lexicon to reload
+			QUACKLE_LEXICON_PARAMETERS->unloadAll();
+			if (m_lexiconNameCombo->currentIndex() != -1)
+				setQuackleToUseLexiconName(name);
+		}
+		else if (!dialog.lexiconName().isEmpty())
+		{
+			QUACKLE_LEXICON_PARAMETERS->setLexiconName(""); // force lexicon to reload
+			QUACKLE_LEXICON_PARAMETERS->unloadAll();
+			setQuackleToUseLexiconName(dialog.lexiconName());
+			m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(name + "*"));
+		}
+		load();
+	}
+}
+
+void Settings::editAlphabet()
+{
+#if 0
+	QString name = m_alphabetNameCombo->currentText();
+	if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
+		name = "";
+	AlphabetDialog dialog(this);
+	if (dialog.exec())
+	{
+		populateComboFromFilenames(m_alphabetNameCombo, "alphabets", ".quackle_alphabet", "alphabet");
+		load();
+	}
+#endif // 0
+}
+
+void Settings::editTheme()
+{
+#if 0
+	QString name = m_themeNameCombo->currentText();
+	if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
+		name = "";
+	ThemeDialog dialog(this);
+	if (dialog.exec())
+	{
+		populateThemeFromFilenames(m_themeNameCombo, "themes", "theme");
+		load();
+	}
+#endif // 0
+}
+
+void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label)
+{
+	while (combo->count() > 0)
+		combo->removeItem(0);
+	
+	QStringList fileList;
+	QDir dir(self()->m_appDataDir);
+	if (dir.cd(path))
+		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+	dir = QDir(self()->m_userDataDir);
+	if (dir.cd(path))
+		fileList << dir.entryList(QDir::Files | QDir::Readable, QDir::Name);
+
+	QStringList::iterator i;
 	QString fileName;
+	QStringList list;
 	int periodPos;
 
-	while (i.hasNext())
+	for (i = fileList.begin(); i != fileList.end(); ++i)
 	{
-		fileName = i.next();
+		fileName = *i;
+		if (!fileName.endsWith(extension))
+			continue;
 		periodPos = fileName.indexOf('.');
 		if (periodPos)
 		{
@@ -455,5 +657,21 @@ void Settings::populateListFromFilenames(QStringList& list, const QString &path)
 			list << fileName;
 		}
 	}
-	list.removeDuplicates();
+
+	for (i = list.begin(); i != list.end(); ++i)
+	{
+		for (QStringList::iterator j = i + 1; j != list.end(); ++j)
+		{
+			if (*i == *j)
+			{
+				*i = *i + "*";
+				list.erase(j);
+				break;
+			}
+		}
+	}
+
+	combo->addItems(list);
+	if (label.size() > 0)
+		combo->addItem(QString(tr("Add new ")).append(label).append("..."));
 }

@@ -277,7 +277,7 @@ public:
 
 protected:
     QPixmap generateTilePixmap();
-    QFont scaledFont(float multiplier);
+    QFont scaledFont(double multiplier);
     static const double s_defaultLetterScale;
 
     virtual void setOurSize(const QSize &size);

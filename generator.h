@@ -125,7 +125,7 @@ private:
 	void readFromDawg(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const;
 
 	bool checksuffix(int i, const LetterString &suffix); 
-	int fitbetween(const LetterString &pre, const LetterString &suf);
+	LetterBitset fitbetween(const LetterString &pre, const LetterString &suf);
 	void extendright(const LetterString &partial, int i,  
 			int row, int col, int edge, int righttiles, 
 			bool horizontal);
@@ -134,7 +134,7 @@ private:
 	void spit(int i, const LetterString &prefix, int flags);
 	void wordspit(int i, const LetterString &prefix, int flags);
 
-	int gaddagFitbetween(const LetterString &pre, const LetterString &suf);
+	LetterBitset gaddagFitbetween(const LetterString &pre, const LetterString &suf);
 	void gaddagAnagram(const GaddagNode *node, const LetterString &prefix, int flags);
 	void gordongen(int pos, const LetterString &word, const GaddagNode *node);
 	void gordongoon(int pos, char L, LetterString word, const GaddagNode *node);
@@ -143,7 +143,7 @@ private:
 
 	// debug stuff
 	UVString counts2string();
-	UVString cross2string(int cross);
+	UVString cross2string(const LetterBitset &cross);
 
 	Move best;
 
@@ -167,46 +167,6 @@ private:
 	int m_anchorrow, m_anchorcol;
 };
 
-namespace Utility
-{
-    const int Max = 0xFFFFFFFF;
-
-    const int Bits[32] =
-	{
-        1 <<  0,
-        1 <<  1,
-        1 <<  2,
-        1 <<  3,
-        1 <<  4,
-        1 <<  5,
-        1 <<  6,
-        1 <<  7,
-        1 <<  8, 
-        1 <<  9,
-        1 << 10,
-        1 << 11,
-        1 << 12,
-        1 << 13,
-        1 << 14,
-        1 << 15,
-        1 << 16,
-        1 << 17,
-        1 << 18, 
-        1 << 19,
-        1 << 20,
-        1 << 21,
-        1 << 22,
-        1 << 23,
-        1 << 24,
-        1 << 25,
-        1 << 26,
-        1 << 27,
-        1 << 28, 
-        1 << 29,
-        1 << 30,
-        1 << 31
-    };
-};
 
 inline void Generator::setPosition(const GamePosition &position)
 {

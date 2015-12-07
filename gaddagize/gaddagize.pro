@@ -17,16 +17,11 @@ release {
   OBJECTS_DIR = obj/release
 }
 
+QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
+
 # Input
 SOURCES += gaddagize.cpp
 
-
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
-}
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive

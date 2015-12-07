@@ -5,10 +5,12 @@ CONFIG += release
 
 debug {
   OBJECTS_DIR = obj/debug
+  QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
 }
 
 release {
   OBJECTS_DIR = obj/release
+  QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
 }
 
 MOC_DIR = moc
@@ -19,10 +21,14 @@ MOC_DIR = moc
 CONFIG += console
 CONFIG -= app_bundle
 
-LIBS += -lquackleio -lquackle
+win32:!win32-g++ {
+  LIBS += -lquackleio -llibquackle
+} else {
+  LIBS += -lquackleio -lquackle
+}
 
-QMAKE_LFLAGS_RELEASE += -L../lib/release -L../quackleio/lib/release
-QMAKE_LFLAGS_DEBUG += -L../lib/debug -L../quackleio/lib/debug
+QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 SOURCES += makegaddag.cpp

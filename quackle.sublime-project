@@ -3,11 +3,12 @@
 	[
 		{
 			"path": ".",
-			"file_exclude_patterns" : ["*.tgz", "*.sublime-workspace", ".tags*", "dawginput.raw", 
+			"file_exclude_patterns" : ["*.tgz", "*.sublime-workspace", ".tags*", "dawginput.raw",  "superleaves",
 										"playabilities.raw", "smaller.raw", ".gitattributes",
-										"*.Debug", "*.Release", "*.pfx", "*.cer"],
-			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", "lexica", 
-										"strategy", "debug", "release", "makeswelexicon", "lisp"]
+										"*.Debug", "*.Release", "*.pfx", "*.cer",
+										"makegaddag", "makeminidawg", "gaddagize", "Makefile", "*.dawg", "*.gaddag"],
+			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", 
+										"debug", "release", "makeswelexicon", "lisp", "DerivedData"]
 		}
 	]
 }

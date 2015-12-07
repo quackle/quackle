@@ -20,17 +20,13 @@ MOC_DIR = moc
 CONFIG += release staticlib
 CONFIG -= x11
 
+QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+
 # Input
 HEADERS += *.h
 
 SOURCES += *.cpp
-
-win32:!win32-g++ {
-	QMAKE_CFLAGS_DEBUG     ~= s/-MDd/-MTd/
-	QMAKE_CXXFLAGS_DEBUG   ~= s/-MDd/-MTd/
-	QMAKE_CFLAGS_RELEASE   ~= s/-MD/-MT/
-	QMAKE_CXXFLAGS_RELEASE ~= s/-MD/-MT/
-}
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive

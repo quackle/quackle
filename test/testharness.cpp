@@ -191,9 +191,9 @@ void TestHarness::startUp()
 	UVcout << "Starting up.";
 
 	m_dataManager.setBackupLexicon("twl06");
-	m_dataManager.setDataDirectory("../data");
+	m_dataManager.setAppDataDirectory("../data");
 
-	QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(m_alphabet) + ".quackle_alphabet"));
+	QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(m_alphabet)));
 	QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 	if (flexure->load(alphabetFile))
 	{
@@ -207,13 +207,13 @@ void TestHarness::startUp()
 
 	m_dataManager.setBoardParameters(new ScrabbleBoard());
 
+	m_dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
+	UVcout << ".";
+
    	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
 	UVcout << ".";
 
-	m_dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
-
 	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
-	UVcout << ".";
 
 	UVcout << endl;
 
