@@ -753,6 +753,10 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				}
 			    }
 			    if (found == 0) {
+				MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
+				for (uint j = 1; j < allwords.size(); j++) {
+				    UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(allwords[j].prettyTiles()) << endl;
+				}
 				bestMoves.push_back((*it).wordTiles());
 			    }
 			}
