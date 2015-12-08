@@ -733,26 +733,50 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 			// is there a difference in equity between this move and the top move?
 			diff = moves.front().equity - (*it).equity;
 
+			// used for checking if move is already in bestMoves
+			int found = 0;
+
 			// if not:
 			if (diff == 0) {
-			    int found = 0;
-				    
-			    if ((*it).action == Move::Exchange)
-				break;
 
-			    if (std::find(bestMoves.begin(), bestMoves.end(), (*it).wordTiles()) == bestMoves.end())
-				bestMoves.push_back((*it).wordTiles());
-			}
-			Else {
-			    int found = 0;
-			    if (std::find(bestMoves.begin(), bestMoves.end(), (*it).wordTiles()) == bestMoves.end())
+			    // if move is an exchange, write out whatever moves we have so far and don't look further down the list of moves 
+			    if ((*it).action == Move::Exchange) {
 				break;
+			    }
+
+			    // if the difference in equity is 0 and this move doesn't exist in bestMoves, add it
+			    for (uint j =0; j< bestMoves.size(); j++) {
+						    
+				if (bestMoves[j] == (*it).wordTiles()) {
+				    found = 1;
+				    break;
+				}
+			    }
+			    if (found == 0) {
+				bestMoves.push_back((*it).wordTiles());
+			    }
+			}
+
+			// when diff != 0, we are only interested if the next word is one that we already saved but in a different position
+			// if so, we'll go further down the list of moves
+			else {
+  
+			    for (uint j =0; j< bestMoves.size(); j++) {
+				if (bestMoves[j] == (*it).wordTiles()) {
+				    found = 1;
+				    break;
+				}
+			    }
+			    
+			    if (found == 0) {
+				break;
+			    }
 			}
 		    }
 		    for (uint j = 0; j < bestMoves.size(); j++) {
-			    // This is ridiculous, but I'm not entirely sure how to handle strings in Quackle
-			    UVcout << QuackleIO::Util::qstringToString(QuackleIO::Util::letterStringToQString(bestMoves[j])) << " " << diff/bestMoves.size() << endl;
-					    }
+			    
+			    UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(bestMoves[j]) << " " << diff/bestMoves.size() << endl;
+		    }
 	      
 		}
 		// end: alkamid's mod
