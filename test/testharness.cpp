@@ -730,47 +730,24 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		    // start from the top of the best moves list 
 		    for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
 
-			    // what tiles are used in this move?
-			    tempUsed = (*it).usedTiles();
-			    // if tiles are different:
-			    //if (tempUsed.equals(used) == false) {
+			// is there a difference in equity between this move and the top move?
+			diff = moves.front().equity - (*it).equity;
 
-				    // is there a difference in equity between this move and the top move?
-				    diff = moves.front().equity - (*it).equity;
+			// if not:
+			if (diff == 0) {
+			    int found = 0;
+				    
+			    if ((*it).action == Move::Exchange)
+				break;
 
-				    // if not:
-				    if (diff == 0) {
-					    int found = 0;
-
-					    
-					    if ((*it).action == Move::Exchange) {
-						    break;
-					    }
-
-					    for (uint j =0; j< bestMoves.size(); j++) {
-						    
-						    if (bestMoves[j] == (*it).wordTiles()) {
-						    found = 1;
-						    break;
-						    }
-					    }
-					    if (found == 0) {
-						    bestMoves.push_back((*it).wordTiles());
-					    }
-				    }
-				    else {
-					    int found = 0;
-					    for (uint j =0; j< bestMoves.size(); j++) {
-						    if (bestMoves[j] == (*it).wordTiles()) {
-							    found = 1;
-							    break;
-						    }
-					    }
-
-					    if (found == 0) {
-						    break;
-					    }
-				    }
+			    if (std::find(bestMoves.begin(), bestMoves.end(), (*it).wordTiles()) == bestMoves.end())
+				bestMoves.push_back((*it).wordTiles());
+			}
+			Else {
+			    int found = 0;
+			    if (std::find(bestMoves.begin(), bestMoves.end(), (*it).wordTiles()) == bestMoves.end())
+				break;
+			}
 		    }
 		    for (uint j = 0; j < bestMoves.size(); j++) {
 			    // This is ridiculous, but I'm not entirely sure how to handle strings in Quackle
