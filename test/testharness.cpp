@@ -723,6 +723,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		Rack tempUsed;
 		double diff = 0.0;
 		std::vector<Quackle::LetterString> bestMoves;
+		std::vector<Quackle::LetterString> hooks;
 
 		// only consider non-exchange moves (we're not interested what are the best racks to exchange)
 		if (moves.front().action != Move::Exchange) {
@@ -730,11 +731,13 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 		    // start from the top of the best moves list 
 		    for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
 
+			
 			// is there a difference in equity between this move and the top move?
 			diff = moves.front().equity - (*it).equity;
 
 			// used for checking if move is already in bestMoves
 			int found = 0;
+			int found_hook = 0;
 
 			// if not:
 			if (diff == 0) {
@@ -753,11 +756,24 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				}
 			    }
 			    if (found == 0) {
-				MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
-				for (uint j = 1; j < allwords.size(); j++) {
-				    UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(allwords[j].prettyTiles()) << endl;
-				}
-				bestMoves.push_back((*it).wordTiles());
+				if (i != 0) {
+				    MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
+								
+				    for (uint k = 1; k < allwords.size(); k++) {
+					found_hook = 0;
+					for (uint l = 0; l < hooks.size(); l++) {
+
+					    if (allwords[k].prettyTiles() == hooks[l]) {
+						found_hook = 1;
+						break;
+					    }
+					}
+					if (found_hook == 0) {
+					    hooks.push_back(allwords[k].prettyTiles());
+					}
+				    }
+				    }
+			    bestMoves.push_back((*it).wordTiles());
 			    }
 			}
 
@@ -771,15 +787,37 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				    break;
 				}
 			    }
+
+			    if (found == 1) {
+				MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
+								
+				    for (uint k = 1; k < allwords.size(); k++) {
+					found_hook = 0;
+					for (uint l = 0; l < hooks.size(); l++) {
+
+					    if (allwords[k].prettyTiles() == hooks[l]) {
+						found_hook = 1;
+						break;
+					    }
+					}
+					if (found_hook == 0) {
+					    hooks.push_back(allwords[k].prettyTiles());
+					}
+				    }
+			    }
 			    
 			    if (found == 0) {
 				break;
 			    }
 			}
+			
+		    }
+		    for (uint j = 0; j < hooks.size(); j++) {
+			UVcout << '#' << QUACKLE_ALPHABET_PARAMETERS->userVisible(hooks[j]) << ' ' << diff/bestMoves.size() << endl;
 		    }
 		    for (uint j = 0; j < bestMoves.size(); j++) {
 			    
-			    UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(bestMoves[j]) << " " << diff/bestMoves.size() << endl;
+			UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(bestMoves[j]) << " " << diff/bestMoves.size() << endl;
 		    }
 	      
 		}
