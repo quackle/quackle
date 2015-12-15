@@ -738,6 +738,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 			// used for checking if move is already in bestMoves
 			int found = 0;
 			int found_hook = 0;
+			int add_hooks = 1;
 
 			// if not:
 			if (diff == 0) {
@@ -757,23 +758,10 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 			    }
 			    if (found == 0) {
 				if (i != 0) {
-				    MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
-								
-				    for (uint k = 1; k < allwords.size(); k++) {
-					found_hook = 0;
-					for (uint l = 0; l < hooks.size(); l++) {
-
-					    if (allwords[k].prettyTiles() == hooks[l]) {
-						found_hook = 1;
-						break;
-					    }
-					}
-					if (found_hook == 0) {
-					    hooks.push_back(allwords[k].prettyTiles());
-					}
-				    }
-				    }
-			    bestMoves.push_back((*it).wordTiles());
+				    add_hooks = 1;
+				}
+				
+				bestMoves.push_back((*it).wordTiles());
 			    }
 			}
 
@@ -784,30 +772,31 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 			    for (uint j =0; j< bestMoves.size(); j++) {
 				if (bestMoves[j] == (*it).wordTiles()) {
 				    found = 1;
+				    add_hooks = 1;
 				    break;
 				}
 			    }
-
-			    if (found == 1) {
-				MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
-								
-				    for (uint k = 1; k < allwords.size(); k++) {
-					found_hook = 0;
-					for (uint l = 0; l < hooks.size(); l++) {
-
-					    if (allwords[k].prettyTiles() == hooks[l]) {
-						found_hook = 1;
-						break;
-					    }
-					}
-					if (found_hook == 0) {
-					    hooks.push_back(allwords[k].prettyTiles());
-					}
-				    }
-			    }
-			    
+			    		    
 			    if (found == 0) {
 				break;
+			    }
+			}
+			// adding hooks, for analysing hook playability. All hooked words are preceded by # in the output file
+			if (add_hooks == 1) {
+			    MoveList allwords = game.currentPosition().board().allWordsFormedBy((*it));
+								
+			    for (uint k = 1; k < allwords.size(); k++) {
+				found_hook = 0;
+				for (uint l = 0; l < hooks.size(); l++) {
+				    
+				    if (allwords[k].prettyTiles() == hooks[l]) {
+					found_hook = 1;
+					break;
+				    }
+				}
+				if (found_hook == 0) {
+				    hooks.push_back(allwords[k].prettyTiles());
+				}
 			    }
 			}
 			
