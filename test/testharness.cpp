@@ -393,9 +393,13 @@ void TestHarness::enumerateAll()
 	Quackle::Bag B;
 	Enumerator E(B);
 	ProbableRackList racks;
-	E.enumerate(&racks);
-	for (ProbableRackList::iterator it = racks.begin(); it != racks.end(); ++it)
+	// alkamid's mod: enumerate racks from 2 to 7 letters
+	for (uint num_letters = 2; num_letters <= 7; num_letters++) {
+	    E.enumerate(&racks, num_letters);
+	    UVcout << num_letters << " letter racks" << endl;
+	    for (ProbableRackList::iterator it = racks.begin(); it != racks.end(); ++it)
 		UVcout << (*it).rack << " " << (*it).probability << endl;
+	}
 }
 
 struct PowerRack
