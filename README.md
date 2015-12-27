@@ -19,7 +19,7 @@ Clone the repo or download the tarball and untar.  Use qmake to build quackle.pr
 
 Finally, build the main binary.
 
-	cd quacker && qmake
+	cd quacker && qmake && make
 
 The binary will build as 'Quackle'.  It might be found in the quacker directory or in the release subdirectory.
 
