@@ -30,6 +30,24 @@ GCGIO::GCGIO()
 {
 }
 
+Quackle::Game *GCGIO::read(const QString &filename, int flags)
+{
+    QFile file(filename);
+    Quackle::Game *ret = new Quackle::Game;
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
+        return ret;
+    }
+
+    QTextStream in(&file);
+    ret = read(in, flags);
+    file.close();
+
+    return ret;
+}
+
 Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 {
 	Quackle::Game *ret = new Quackle::Game;
