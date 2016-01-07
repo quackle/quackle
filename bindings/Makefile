@@ -19,10 +19,10 @@ python: python/quackle_wrap.o
 	$(CC) -std=c++11 -shared ../lib/release/libquackle.so ../quackleio/lib/release/libquackleio.so $< -o python/_quackle.so
 
 go:
-	@test -d go || mkdir go
+	ln -sf ../quackle.i go/quackle.swigcxx
 	ln -sf ../../lib/release/libquackle.so.0 go/libquackle.so.0
 	ln -sf ../../quackleio/lib/release/libquackleio.so.0 go/libquackleio.so.0
-	swig -c++ -o go/quackle_wrap.cxx -I../ $(QTFLAGS) -go -cgo -intgosize 64 quackle.i
+	go build ./go/...
 
 lua/quackle_wrap.cxx:
 	@test -d lua || mkdir lua
@@ -36,7 +36,7 @@ lua: lua/quackle_wrap.o
 	ln -sf ../../quackleio/lib/release/libquackleio.so.0 lua/libquackleio.so.0
 	$(CC) -std=c++11 -shared $(LUAFLAGS) ../lib/release/libquackle.so ../quackleio/lib/release/libquackleio.so $< -o lua/quackle.so
 
-.PHONY: clean
+.PHONY: clean go
 
 clean:
 	-rm -rf python/libquackle.*
@@ -51,4 +51,6 @@ clean:
 	-rm -rf */*.pyc
 	-rm -rf */*.so
 	-rm -rf lua
-	-rm -rf go
+	-rm -rf go/quackle.swigcxx
+	-rm -rf go/libquackle.*
+	-rm -rf go/libquackleio.*
