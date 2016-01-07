@@ -2,40 +2,57 @@
 
 import quackle
 
-# Set up the data manager
-dm = quackle.DataManager()
-dm.setComputerPlayers(quackle.ComputerPlayerCollection.fullCollection())
-dm.setBackupLexicon('twl06')
-dm.setAppDataDirectory('../../data')
+def startUp(lexicon='twl06',
+            alphabet='english',
+            datadir='../../data'):
 
-# Set up the alphabet
-abc = quackle.AlphabetParameters.findAlphabetFile('english')
-fa = quackle.FlexibleAlphabetParameters()
-assert fa.load(quackle.Util.stdStringToQString(abc))
-dm.setAlphabetParameters(fa)
+    # Set up the data manager
+    dm = quackle.DataManager()
+    dm.setComputerPlayers(quackle.ComputerPlayerCollection.fullCollection())
+    dm.setBackupLexicon(lexicon)
+    dm.setAppDataDirectory(datadir)
 
-# Set up the board
-board = quackle.BoardParameters()
-dm.setBoardParameters(board)
+    # Set up the alphabet
+    abc = quackle.AlphabetParameters.findAlphabetFile(alphabet)
+    abc2 = quackle.Util.stdStringToQString(abc) #convert to qstring
+    fa = quackle.FlexibleAlphabetParameters()
+    fa.thisown = False
 
-# Find the lexicon
-dawg = quackle.LexiconParameters.findDictionaryFile('twl06.dawg')
-gaddag = quackle.LexiconParameters.findDictionaryFile('twl06.gaddag')
-dm.lexiconParameters().loadDawg(dawg)
-dm.lexiconParameters().loadGaddag(gaddag)
+    assert fa.load(abc2)
+    dm.setAlphabetParameters(fa)
 
-dm.strategyParameters().initialize('twl06')
+    # Set up the board
+    board = quackle.BoardParameters()
+    board.thisown = False
+    dm.setBoardParameters(board)
+
+    # Find the lexicon
+    dawg = quackle.LexiconParameters.findDictionaryFile(lexicon + '.dawg')
+    gaddag = quackle.LexiconParameters.findDictionaryFile(lexicon + '.gaddag')
+    dm.lexiconParameters().loadDawg(dawg)
+    dm.lexiconParameters().loadGaddag(gaddag)
+
+    dm.strategyParameters().initialize(lexicon)
+    return dm
+
+
+def getComputerPlayer(dm, name='Speedy Player'):
+    player, found = dm.computerPlayers().playerForName(name)
+    assert found
+    player = player.computerPlayer()
+    return player
+
+
+dm = startUp()
 
 # Create a computer player
-player1, found = dm.computerPlayers().playerForName('Speedy Player')
-assert found
-player1 = player1.computerPlayer()
+player1 = getComputerPlayer(dm)
 print player1.name()
 
 # Create the Game file (.gcg) reader
 gamereader = quackle.GCGIO()
-game = gamereader.read(quackle.Util.stdStringToQString('../../test/positions/short_game_with_bad_moves.gcg'),
-        quackle.Logania.MaintainBoardPreparation)
+gamePath = quackle.Util.stdStringToQString('../../test/positions/short_game_with_bad_moves.gcg')
+game = gamereader.read(gamePath, quackle.Logania.MaintainBoardPreparation)
 
 # Get the current position
 position = game.currentPosition()

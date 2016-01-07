@@ -49,6 +49,9 @@
 %include "fixedstring.h"
 %include "uv.h"
 %include "alphabetparameters.h"
+
+%template(LetterParameterVector) std::vector<Quackle::LetterParameter>;
+%template(LetterStringVector) std::vector<Quackle::LetterString>;
 %include "move.h"
 %include "rack.h"
 %include "bag.h"
