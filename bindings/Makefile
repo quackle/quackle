@@ -20,8 +20,8 @@ python: python/quackle_wrap.o
 
 go:
 	ln -sf ../quackle.i go/quackle.swigcxx
-	ln -sf ../../lib/release/libquackle.so.0 go/libquackle.so.0
-	ln -sf ../../quackleio/lib/release/libquackleio.so.0 go/libquackleio.so.0
+	ln -sf ../../lib/release/libquackle.so go/libquackle.so
+	ln -sf ../../quackleio/lib/release/libquackleio.so go/libquackleio.so
 	go build ./go/...
 
 lua/quackle_wrap.cxx:
