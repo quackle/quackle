@@ -38,14 +38,10 @@ def startUp(lexicon='twl06',
     return dm
 
 
-    return player
-
-
 def getComputerPlayer(dm, name='Speedy Player'):
     player, found = dm.computerPlayers().playerForName(name)
     assert found
     player = player.computerPlayer()
-    player.thisown = False
     return player
 
 
@@ -81,7 +77,6 @@ for i in range(50):
         break
 
     player = game.currentPosition().currentPlayer()
-    player.thisown =False
     move = game.haveComputerPlay()
     #print "Player: " + player.name()
     print "Rack : " + player.rack().toString()
