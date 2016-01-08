@@ -1,27 +1,25 @@
 CC=g++
 
 QTFLAGS := $(shell pkg-config QtCore --cflags)
+QTLIBS := $(shell pkg-config QtCore --libs)
 PYTHONFLAGS := $(shell pkg-config python2 --cflags)
 LUAFLAGS := $(shell pkg-config lua52 --cflags)
 
 INCLUDES=-I..
+QUACKLELIBS=../lib/release/libquackle.a ../quackleio/lib/release/libquackleio.a
 
 python/quackle_wrap.cxx:
 	@test -d python || mkdir python
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -python quackle.i
 
 python/quackle_wrap.o: python/quackle_wrap.cxx
-	$(CC) -c -std=c++11 -fPIC $< $(QTFLAGS) $(PYTHONFLAGS) $(INCLUDES) -o $@
+	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(PYTHONFLAGS) $(INCLUDES) -c $< -o $@
 
 python: python/quackle_wrap.o
-	ln -sf ../../lib/release/libquackle.so.0 python/libquackle.so.0
-	ln -sf ../../quackleio/lib/release/libquackleio.so.0 python/libquackleio.so.0
-	$(CC) -std=c++11 -shared ../lib/release/libquackle.so ../quackleio/lib/release/libquackleio.so $< -o python/_quackle.so
+	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o python/_quackle.so
 
 go:
 	ln -sf ../quackle.i go/quackle.swigcxx
-	ln -sf ../../lib/release/libquackle.so go/libquackle.so
-	ln -sf ../../quackleio/lib/release/libquackleio.so go/libquackleio.so
 	go build ./go/...
 
 lua/quackle_wrap.cxx:
@@ -32,25 +30,14 @@ lua/quackle_wrap.o: lua/quackle_wrap.cxx
 	$(CC) -std=c++11 -fPIC $(LUAFLAGS) $(QTFLAGS) $(INCLUDES) -c $< -o $@
 
 lua: lua/quackle_wrap.o
-	ln -sf ../../lib/release/libquackle.so.0 lua/libquackle.so.0
-	ln -sf ../../quackleio/lib/release/libquackleio.so.0 lua/libquackleio.so.0
-	$(CC) -std=c++11 -shared $(LUAFLAGS) ../lib/release/libquackle.so ../quackleio/lib/release/libquackleio.so $< -o lua/quackle.so
+	$(CC) -std=c++11 -shared $(LUAFLAGS) -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o lua/quackle.so
 
 .PHONY: clean go
 
 clean:
-	-rm -rf python/libquackle.*
-	-rm -rf python/libquackleio.*
 	-rm -rf python/quackle.py
-	-rm -rf lua/libquackle.*
-	-rm -rf lua/libquackleio.*
-	-rm -rf go/libquackle.*
-	-rm -rf go/libquackleio.*
 	-rm -rf */*_wrap.cxx
 	-rm -rf */*.o
 	-rm -rf */*.pyc
-	-rm -rf */*.so
 	-rm -rf lua
 	-rm -rf go/quackle.swigcxx
-	-rm -rf go/libquackle.*
-	-rm -rf go/libquackleio.*

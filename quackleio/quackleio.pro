@@ -17,7 +17,7 @@ MOC_DIR = moc
 
 # enable/disable debug symbols
 #CONFIG += debug staticlib
-CONFIG += release staticlib dll
+CONFIG += release staticlib
 CONFIG -= x11
 
 QMAKE_CXXFLAGS += -std=c++11
