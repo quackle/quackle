@@ -38,6 +38,7 @@ clean:
 	-rm -rf python/quackle.py
 	-rm -rf */*_wrap.cxx
 	-rm -rf */*.o
+	-rm -rf */*.so
 	-rm -rf */*.pyc
 	-rm -rf lua
 	-rm -rf go/quackle.swigcxx
