@@ -180,6 +180,12 @@ GetOpt::GetOpt( int argc, char *argv[] )
 
 void GetOpt::init( const QStringList &argv, int offset )
 {
+    numReqArgs = numOptArgs = 0;
+    currArg = 1; // appname is not part of the arguments
+
+    // application name
+    aname = QFileInfo( argv[0] ).fileName();
+
     for ( int i = offset; i < argv.size(); ++i )
         args.append( argv[i] );
 }
