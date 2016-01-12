@@ -3,6 +3,8 @@ dist: trusty
 compiler:
   - gcc
   - clang
+install:
+  - export QT_SELECT=5
 addons:
   apt:
     packages:
@@ -11,7 +13,7 @@ addons:
     - clang
     - qtbase5-dev
     - qt5-qmake
-script: 
+script:
   - qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd quackleio && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd ..
