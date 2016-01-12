@@ -20,6 +20,8 @@
 #include <math.h>
 
 #include <QtGui>
+#include <QVBoxLayout>
+#include <QLabel>
 
 #include <game.h>
 #include <move.h>

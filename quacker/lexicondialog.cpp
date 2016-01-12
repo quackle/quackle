@@ -18,6 +18,15 @@
 
 #include <sstream>
 #include <QtGui>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QLabel>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QGroupBox>
+
 #include <datamanager.h>
 #include <quackleio/util.h>
 

@@ -17,6 +17,8 @@
  */
 
 #include <QtGui>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
 
 #include <game.h>
 

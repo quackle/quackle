@@ -17,6 +17,7 @@
  */
 
 #include <QtGui>
+#include <QBoxLayout>
 
 #include "geometry.h"
 

@@ -17,6 +17,13 @@
  */
 
 #include <QtGui>
+#include <QTextEdit>
+#include <QLineEdit>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QMessageBox>
 
 #include <alphabetparameters.h>
 #include <board.h>

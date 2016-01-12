@@ -17,6 +17,12 @@
  */
 
 #include <QtGui>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QListWidget>
+#include <QStackedWidget>
+#include <QCheckBox>
+#include <QPushButton>
 
 #include "configpages.h"
 #include "configdialog.h"
