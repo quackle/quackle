@@ -2077,6 +2077,7 @@ void TopLevel::writeAsciiToFile(const QString &text, const QString &filename)
 	}
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	stream << text << "\n";
 
 	file.close();
@@ -2102,6 +2103,7 @@ void TopLevel::print()
 	}
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	//stream << printer.html() << "\n";
 
 	file.close();
