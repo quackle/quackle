@@ -37,21 +37,23 @@
 #include "quackleio/gcgio.h"
 %}
 
+
 %include "std_string.i"
 %include "std_vector.i"
+%include "typemaps.i"
+
+%include "fixedstring.h"
+%include "uv.h"
+%include "alphabetparameters.h"
 
 /*Needed to generate proper iterable types */
 %template(MoveVector) std::vector<Quackle::Move>;
 %template(PlayerVector) std::vector<Quackle::Player>;
 %template(ProbableRackList) std::vector<Quackle::ProbableRack>;
 %template(PositionList) std::vector<Quackle::GamePosition>;
-
-%include "fixedstring.h"
-%include "uv.h"
-%include "alphabetparameters.h"
-
 %template(LetterParameterVector) std::vector<Quackle::LetterParameter>;
 %template(LetterStringVector) std::vector<Quackle::LetterString>;
+
 %include "move.h"
 %include "rack.h"
 %include "bag.h"
@@ -60,10 +62,6 @@
 %include "evaluator.h"
 %include "catchall.h"
 %include "player.h"
-
-/* handle output arguments of PlayerList methods using cool SWIG typemaps */
-/* what we do here is just to tell SWIG that last bool& argument is an output argument */
-%include "typemaps.i"
 
 using namespace std;
 namespace Quackle
@@ -83,6 +81,15 @@ namespace Quackle
 %include "sim.h"
 %include "computerplayer.h"
 %include "computerplayercollection.h"
+
+%apply SWIGTYPE *DISOWN {Quackle::AlphabetParameters *alphabetParameters};
+%apply SWIGTYPE *DISOWN {Quackle::BoardParameters *boardParameters};
+%apply SWIGTYPE *DISOWN {Quackle::StrategyParameters *lexiconParameters};
+%apply SWIGTYPE *DISOWN {Quackle::LexiconParameters *lexiconParameters};
+%apply SWIGTYPE *DISOWN {Quackle::Evaluator *evaluator};
+%apply SWIGTYPE *DISOWN {Quackle::GameParameters *parameters};
+%apply SWIGTYPE *DISOWN {const Quackle::PlayerList &playerList};
+
 %include "datamanager.h"
 %include "endgame.h"
 %include "endgameplayer.h"

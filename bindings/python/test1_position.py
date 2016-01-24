@@ -16,14 +16,12 @@ def startUp(lexicon='twl06',
     abc = quackle.AlphabetParameters.findAlphabetFile(alphabet)
     abc2 = quackle.Util.stdStringToQString(abc) #convert to qstring
     fa = quackle.FlexibleAlphabetParameters()
-    fa.thisown = False
 
     assert fa.load(abc2)
     dm.setAlphabetParameters(fa)
 
     # Set up the board
     board = quackle.BoardParameters()
-    board.thisown = False
     dm.setBoardParameters(board)
 
     # Find the lexicon
