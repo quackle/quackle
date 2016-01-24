@@ -2,9 +2,9 @@ require 'quackle'
 
 function startUp(lexicon, alphabet, datadir)
 
-    local lexicon = lexicon and lexicon or 'twl06'
-    local alphabet = alphabet and alphabet or 'english'
-    local datadir = datadir and datadir or '../../data'
+    local lexicon = lexicon or 'twl06'
+    local alphabet = alphabet or 'english'
+    local datadir = datadir or '../../data'
 
     -- Set up the data manager
     local dm = quackle.DataManager()
@@ -38,10 +38,12 @@ end
 
 function getComputerPlayer(dm, name)
 
-    local name = name and name or 'Speedy Player'
+    local name = name or 'Speedy Player'
+
     local player, found = dm:computerPlayers():playerForName(name)
     assert(found)
     player = player:computerPlayer()
+
     return player
 
 end
