@@ -3,7 +3,7 @@ CC=g++
 QTFLAGS := $(shell pkg-config QtCore --cflags)
 QTLIBS := $(shell pkg-config QtCore --libs)
 PYTHONFLAGS := $(shell pkg-config python2 --cflags)
-LUAFLAGS := $(shell pkg-config lua52 --cflags)
+LUAFLAGS := $(shell pkg-config lua5.1 --cflags)
 
 INCLUDES=-I..
 QUACKLELIBS=../lib/release/libquackle.a ../quackleio/lib/release/libquackleio.a
@@ -40,5 +40,4 @@ clean:
 	-rm -rf */*.o
 	-rm -rf */*.so
 	-rm -rf */*.pyc
-	-rm -rf lua
 	-rm -rf go/quackle.swigcxx
