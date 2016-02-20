@@ -3,10 +3,22 @@ CC=g++
 QTFLAGS := $(shell pkg-config QtCore --cflags)
 QTLIBS := $(shell pkg-config QtCore --libs)
 PYTHONFLAGS := $(shell pkg-config python2 --cflags)
+PHPFLAGS := $(shell php-config --includes)
+PHPLIBS := $(shell php-config --libs)
 LUAFLAGS := $(shell pkg-config lua5.1 --cflags)
 
 INCLUDES=-I..
 QUACKLELIBS=../lib/release/libquackle.a ../quackleio/lib/release/libquackleio.a
+
+php/quackle_wrap.cxx:
+	@test -d php || mkdir php
+	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -php quackle.i
+
+php/quackle_wrap.o: php/quackle_wrap.cxx
+	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(PHPFLAGS) $(PHPLIBS) $(INCLUDES) -c $< -o $@
+
+php: php/quackle_wrap.o
+	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o php/quackle.so
 
 python/quackle_wrap.cxx:
 	@test -d python || mkdir python
@@ -36,6 +48,7 @@ lua: lua/quackle_wrap.o
 
 clean:
 	-rm -rf python/quackle.py
+	-rm -rf php/*php*
 	-rm -rf */*_wrap.cxx
 	-rm -rf */*.o
 	-rm -rf */*.so
