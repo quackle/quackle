@@ -3,6 +3,7 @@ VERSION = 1.0.1
 TARGET = Quackle
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
+QT += widgets core gui
 
 MOC_DIR = moc
 
@@ -32,7 +33,7 @@ win32:!win32-g++ {
 macx:LIBS += -framework CoreFoundation
 
 QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+#QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 HEADERS += *.h

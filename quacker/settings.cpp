@@ -22,7 +22,12 @@
 #include <sstream>
 
 #include <QtGui>
+#include <QGridLayout>
+#include <QComboBox>
 #include <QMessageBox>
+#include <QLabel>
+#include <QPushButton>
+#include <QStandardPaths>
 
 #ifdef Q_WS_MAC
 #include <CoreFoundation/CoreFoundation.h>
@@ -92,7 +97,7 @@ Settings::Settings(QWidget *parent)
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
 		m_appDataDir = directory.absolutePath();
 	}
-	m_userDataDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+	m_userDataDir = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 	QDir qdir(m_userDataDir);
 	qdir.mkpath("lexica");
 }

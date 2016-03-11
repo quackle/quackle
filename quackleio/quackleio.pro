@@ -21,7 +21,7 @@ CONFIG += release staticlib
 CONFIG -= x11
 
 QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+#QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
 HEADERS += *.h

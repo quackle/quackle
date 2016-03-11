@@ -19,6 +19,12 @@
 #include <iostream>
 
 #include <QtGui>
+#include <QTabWidget>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QTextEdit>
+#include <QMessageBox>
 
 #include <quackleio/util.h>
 

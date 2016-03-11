@@ -17,6 +17,9 @@
  */
 
 #include <QtGui>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QHBoxLayout>
 
 #include "geometry.h"
 #include "oppothreadprogressbar.h"

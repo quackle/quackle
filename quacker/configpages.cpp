@@ -17,6 +17,13 @@
  */
 
 #include <QtGui>
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QSpinBox>
+#include <QComboBox>
+#include <QLabel>
+#include <QGridLayout>
+#include <QVBoxLayout>
 
 #include <uv.h>
 
