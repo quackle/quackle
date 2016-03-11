@@ -109,6 +109,28 @@ AlphabetParameters::AlphabetParameters()
 	setAlphabet(emptyAlphabet());
 }
 
+AlphabetParameters AlphabetParameters::makeScoringAlphabet() const {
+	AlphabetParameters ret;
+	map<int, vector<Letter>> byScore;
+	for (Letter letter = firstLetter(); letter <= lastLetter(); ++letter) {
+		const int score = this->score(letter);
+		byScore[score].push_back(letter);
+	}
+	Letter scoreLetter = QUACKLE_FIRST_LETTER;
+	for (const auto& pair : byScore) {
+		// Represent a "score-letter" by the first tile alphabetically that bears that score.
+		// In English, 0=?, 1=A, 2=D, 3=B, ... 10=Q
+		const UVString textUV = userVisible(pair.second[0]);
+		ret.setLetterParameter(scoreLetter, Quackle::LetterParameter(scoreLetter,
+																																 textUV,
+																																 textUV /* blank representation */,
+																																 pair.first /* score */,
+																																 0 /* count */,
+																																 false /* isVowel */));
+	}
+	return ret;
+}
+
 void AlphabetParameters::setAlphabet(const Alphabet &alphabet)
 {
 	m_alphabet = alphabet;

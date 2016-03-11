@@ -67,6 +67,7 @@ private:
 	Quackle::WordList m_gaddagizedWords;
 	vector< Node* > m_nodelist;
 	Quackle::AlphabetParameters *m_alphas;
+	Quackle::AlphabetParameters m_scoring;
 	Node m_root;
 	union {
 		char charptr[16];

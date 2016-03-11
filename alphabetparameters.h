@@ -220,6 +220,8 @@ class AlphabetParameters
 public:
 	AlphabetParameters();
 
+	AlphabetParameters makeScoringAlphabet() const;
+	
 	// Returns how many letters there are (excludes blanks and null letter).
 	// Thus this return value is how many letters there are inclusively between
 	// QUACKLE_FIRST_LETTER and lastLetter()
@@ -313,7 +315,7 @@ inline Letter AlphabetParameters::lastLetter() const
 
 inline const LetterParameter& AlphabetParameters::letterParameter(Letter letter) const
 {
-        assert(letter < m_alphabet.size());
+	assert(letter < m_alphabet.size());
 	return m_alphabet[letter];
 }
 

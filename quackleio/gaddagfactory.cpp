@@ -34,6 +34,8 @@ GaddagFactory::GaddagFactory(const UVString &alphabetFile)
 		m_alphas = flexure;
 	}
 
+	m_scoring = m_alphas.makeScoringAlphabet();
+	
 	// So the separator is sorted to last.
 	m_root.t = false;
 	m_root.c = QUACKLE_NULL_MARK;  // "_"

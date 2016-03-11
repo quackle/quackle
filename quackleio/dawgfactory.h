@@ -19,7 +19,6 @@
 #ifndef QUACKLE_DAWGFACTORY_H
 #define QUACKLE_DAWGFACTORY_H
 
-#include <cstdint>
 #include <string>
 #include <vector>
 #include "flexiblealphabet.h"
@@ -83,7 +82,7 @@ private:
 	Node m_root;
 	union {
 		char charptr[16];
-		std::int32_t int32ptr[4];
+		int32_t int32ptr[4];
 	} m_hash;
 
 	static const char m_versionNumber = 1;

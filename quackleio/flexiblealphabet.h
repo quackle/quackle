@@ -28,7 +28,6 @@ class FlexibleAlphabetParameters : public Quackle::AlphabetParameters
 {
 public:
 	FlexibleAlphabetParameters();
-
 	// Loads alphabet in our format.
 	// Lines of file should have format:
 	// <text (utf8)> <blank text (utf8)> <score (int)> <count (int)> <isVowel (0 or 1)>
