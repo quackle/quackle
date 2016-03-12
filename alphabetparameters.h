@@ -220,7 +220,9 @@ class AlphabetParameters
 public:
 	AlphabetParameters();
 
-	AlphabetParameters makeScoringAlphabet() const;
+	AlphabetParameters makeScoringAlphabet();
+	LetterString toScoreLetters(const LetterString& letterString) const;
+	Letter toScoreLetter(Letter letter) const;
 	
 	// Returns how many letters there are (excludes blanks and null letter).
 	// Thus this return value is how many letters there are inclusively between
@@ -242,12 +244,16 @@ public:
 	// this empty alphabet specifies no blanks in the bag
 	static Alphabet emptyAlphabet();
 
+	Letter blankScoreLetter() const { return m_blankScoreLetter; }
+	
 	// useful for setting number of blanks
 	void setCount(Letter letter, int count);
 
 	// useful for setting score of blanks
 	void setScore(Letter letter, int score);
 
+	void setBlankScoreLetter(Letter letter) { m_blankScoreLetter = letter; }
+	
 	// whether letter is between firstLetter + blank_offset
 	// and lastLetter + blank_offset
 	bool isBlankLetter(Letter letter) const;
@@ -289,13 +295,14 @@ public:
 
 protected:
 	void updateLength();
-
+  
 	int m_length;
 	Alphabet m_alphabet;
 	typedef map<UVString, int> LetterLookupMap;
 	LetterLookupMap m_letterLookup;
-
+  map<Letter, Letter> m_scoreMap;
 	string m_alphabetName;
+	Letter m_blankScoreLetter;
 };
 
 inline int AlphabetParameters::length() const

@@ -20,7 +20,9 @@
 	<string>public.app-category.word-games</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+  <key>NSHighResolutionCapable</key>
+	<string>True</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright &copy; 2005-2015 by Jason Katz-Brown & John O'Laughlin</string>
+	<string>Copyright &copy; 2005-2015 by Jason Katz-Brown &amp; John O'Laughlin</string>
 </dict>
 </plist>

@@ -245,7 +245,7 @@ string LexiconParameters::hashString(bool shortened) const
 string LexiconParameters::copyrightString() const
 {
 	string copyrightsFilename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false);
-	fstream copyrightsFile(copyrightsFilename, ios_base::in);
+	fstream copyrightsFile(copyrightsFilename.c_str(), ios_base::in);
 	while (copyrightsFile.good() && !copyrightsFile.eof())
 	{
 		string line;

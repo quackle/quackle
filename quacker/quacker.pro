@@ -47,7 +47,7 @@ macx {
 	DEFINES += FORCE_SECONDARY_ARROW_GLYPHS=1
 	ICON = quacker.icns
 	BUNDLEID = com.Quackle.Quackle
-	QMAKE_INFO_PLIST = Quackle.plist
+	QMAKE_INFO_PLIST = quacker.plist
 	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 
 	# copy data/ directory into app bundle

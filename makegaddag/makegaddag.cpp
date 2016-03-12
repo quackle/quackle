@@ -83,25 +83,31 @@ int main(int argc, char **argv)
 	while (!stream.atEnd())
 	{
 		QString originalQString;
-        stream >> originalQString;
+		stream >> originalQString;
 
 		if (stream.atEnd())
 			break;
 
-		if (!factory.pushWord(QuackleIO::Util::qstringToString(originalQString)))
-			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(originalQString) << endl;
+		const UVString uvString = QuackleIO::Util::qstringToString(originalQString);
+		if (!factory.pushWord(uvString) || !factory.addScoringPatterns(uvString)) {
+			UVcout << "not encodable without leftover: "
+						 << QuackleIO::Util::qstringToString(originalQString) << endl;
+		}
 	}
+
+	UVcout << "Gaddagizing " << factory.scoringPatternCount() << " scoring patterns..." << endl;
+	factory.gaddagizeScoringPatterns();
+	UVcout << "Sorting " << factory.gaddagizedScoringPatternCount() << " scoring patterns..." << endl;
+	factory.sortGaddagizedScoringPatterns();
 	
-	UVcout << "Sorting " << factory.wordCount() << " words..." << endl;
+	UVcout << "Sorting " << factory.wordCount() << " word patterns..." << endl;
 	factory.sortWords();
 
-	UVcout << "Generating nodes...";
+	UVcout << "Generating nodes..." << endl;
 	factory.generate();
 
-	UVcout << "Writing index...";
+	UVcout << "Writing index..." << endl;
 	factory.writeIndex(outputFilename.toUtf8().constData());
-
-	UVcout << endl;
 
 	UVcout << "Wrote " << factory.encodableWords() << " words over " << factory.nodeCount() << " nodes to " << QuackleIO::Util::qstringToString(outputFilename) << "." << endl;
 

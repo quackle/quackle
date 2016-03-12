@@ -19,7 +19,8 @@
 #ifndef QUACKLE_GADDAGFACTORY_H
 #define QUACKLE_GADDAGFACTORY_H
 
-#include <cstdint>
+#include <set>
+
 #include "flexiblealphabet.h"
 
 // This isn't a strict maximum...you can go higher...but too much higher, and you risk overflowing
@@ -44,9 +45,15 @@ public:
 	bool pushWord(const Quackle::LetterString &word);
 	void hashWord(const Quackle::LetterString &word);
 	void sortWords() { sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end()); };
+	void gaddagizeScoringPatterns();
+	int scoringPatternCount() const { return m_scoringPatterns.size(); }
+	int gaddagizedScoringPatternCount() const { return m_gaddagizedScoringPatterns.size(); }
+	void sortGaddagizedScoringPatterns() { sort (m_gaddagizedScoringPatterns.begin(),
+																							 m_gaddagizedScoringPatterns.end()); }
 	void generate();
 	void writeIndex(const string &fname);
-
+	bool addScoringPatterns(const UVString& word);
+	void addScoringPatterns(const Quackle::LetterString& word);
 	const char* hashBytes() { return m_hash.charptr; };
 
 
@@ -68,10 +75,13 @@ private:
 	vector< Node* > m_nodelist;
 	Quackle::AlphabetParameters *m_alphas;
 	Quackle::AlphabetParameters m_scoring;
+	set<Quackle::LetterString> m_scoringPatterns;
+	vector<Quackle::LetterString> m_gaddagizedScoringPatterns;
+	static vector<Quackle::LetterString> gaddagizeWord(const Quackle::LetterString& word);
 	Node m_root;
 	union {
 		char charptr[16];
-		std::int32_t int32ptr[4];
+		int32_t int32ptr[4];
 	} m_hash;
 };
 

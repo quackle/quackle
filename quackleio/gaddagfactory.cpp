@@ -32,9 +32,8 @@ GaddagFactory::GaddagFactory(const UVString &alphabetFile)
 		QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
 		flexure->load(QuackleIO::Util::uvStringToQString(alphabetFile));
 		m_alphas = flexure;
+		m_scoring = m_alphas->makeScoringAlphabet();
 	}
-
-	m_scoring = m_alphas.makeScoringAlphabet();
 	
 	// So the separator is sorted to last.
 	m_root.t = false;
@@ -50,10 +49,29 @@ GaddagFactory::~GaddagFactory()
 	delete m_alphas;
 }
 
+bool GaddagFactory::addScoringPatterns(const UVString &word) {
+	UVString leftover;
+	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
+	if (leftover.empty()) {
+		addScoringPatterns(encodedWord);
+		return true;
+	}
+	return false;
+}
+
+void GaddagFactory::gaddagizeScoringPatterns() {
+	for (const Quackle::LetterString &pattern : m_scoringPatterns) {
+		//UVcout << "pattern: " << m_scoring.userVisible(pattern) << endl;
+		for (const Quackle::LetterString &gaddagizedPattern : gaddagizeWord(pattern)) {
+			m_gaddagizedScoringPatterns.push_back(gaddagizedPattern);
+		}
+	}
+}
+
 bool GaddagFactory::pushWord(const UVString &word)
 {
 	UVString leftover;
-    Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
+	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
 	if (leftover.empty())
 	{
 		pushWord(encodedWord);
@@ -64,6 +82,24 @@ bool GaddagFactory::pushWord(const UVString &word)
 	return false;
 }
 
+vector<Quackle::LetterString> GaddagFactory::gaddagizeWord(const Quackle::LetterString& word) {
+	vector<Quackle::LetterString> ret;
+	for (unsigned i = 1; i <= word.length(); i++) {
+		Quackle::LetterString newword;
+
+		for (int j = i - 1; j >= 0; j--)
+			newword.push_back(word[j]);
+
+		if (i < word.length()) {
+			newword.push_back(internalSeparatorRepresentation);  // "^"
+			for (unsigned j = i; j < word.length(); j++)
+				newword.push_back(word[j]);
+		}
+		ret.push_back(newword);
+	}
+	return ret;	
+}
+
 bool GaddagFactory::pushWord(const Quackle::LetterString &word)
 {
 	++m_encodableWords;
@@ -72,21 +108,10 @@ bool GaddagFactory::pushWord(const Quackle::LetterString &word)
 	// But testing for duplicate words isn't so easy without keeping
 	// an entirely separate list.
 
-	for (unsigned i = 1; i <= word.length(); i++)
-	{
-		Quackle::LetterString newword;
-
-		for (int j = i - 1; j >= 0; j--)
-			newword.push_back(word[j]);
-
-		if (i < word.length())
-		{
-			newword.push_back(internalSeparatorRepresentation);  // "^"
-			for (unsigned j = i; j < word.length(); j++)
-				newword.push_back(word[j]);
-		}
-		m_gaddagizedWords.push_back(newword);
+	for (const Quackle::LetterString& gaddagizedWord : gaddagizeWord(word)) {
+		m_gaddagizedWords.push_back(gaddagizedWord);		
 	}
+
 	return true;
 }
 
@@ -165,6 +190,42 @@ void GaddagFactory::Node::print(vector< Node* >& nodelist)
 		children[i].print(nodelist);
 }
 
+void GaddagFactory::addScoringPatterns(const Quackle::LetterString& word) {
+	//UVcout << "addScoringPatterns(" << m_alphas->userVisible(word) << ")..." << endl;
+	int numBlanks = m_alphas->count(QUACKLE_BLANK_MARK);
+	const Quackle::Letter blank = QUACKLE_BLANK_MARK;
+	//UVcout << "numBlanks: " << numBlanks << endl;
+	vector<set<Quackle::LetterString>> patterns(numBlanks + 1);
+  const Quackle::LetterString wordPattern = m_alphas->toScoreLetters(word);
+	//UVcout <<	"wordPattern: " << m_scoring.userVisible(wordPattern) << endl;
+	patterns[0].insert(wordPattern);
+	for (int i = 1; i <= numBlanks; ++i) {
+		for (const Quackle::LetterString& pattern : patterns[i - 1]) {
+			//UVcout << "pattern: " << m_scoring.userVisible(pattern) << endl;
+			for (unsigned int j = 0; j < pattern.size(); ++j) {
+				Quackle::LetterString blankedPattern;
+				if (pattern[j] != blank) {
+					for (unsigned int k = 0; k < pattern.size(); ++k) {
+						if (j == k) {
+							blankedPattern.push_back(blank);
+						} else {
+							blankedPattern.push_back(pattern[k]);
+						}
+						//UVcout << "blankedPattern: " << m_scoring.userVisible(blankedPattern) << endl;
+					}
+					//UVcout << "final blankedPattern: " << m_scoring.userVisible(blankedPattern) << endl;
+					patterns[i].insert(blankedPattern);
+				}
+			}
+		}
+	}
+	for (const auto& patternSet : patterns) {
+		for (const Quackle::LetterString& pattern : patternSet) {
+			//UVcout << m_scoring.userVisible(pattern) << endl;
+			m_scoringPatterns.insert(pattern);
+		}
+	}
+}
 
 void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
 {

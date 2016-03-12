@@ -109,25 +109,35 @@ AlphabetParameters::AlphabetParameters()
 	setAlphabet(emptyAlphabet());
 }
 
-AlphabetParameters AlphabetParameters::makeScoringAlphabet() const {
+AlphabetParameters AlphabetParameters::makeScoringAlphabet() {
 	AlphabetParameters ret;
 	map<int, vector<Letter>> byScore;
 	for (Letter letter = firstLetter(); letter <= lastLetter(); ++letter) {
 		const int score = this->score(letter);
 		byScore[score].push_back(letter);
 	}
+	byScore[0].push_back(QUACKLE_BLANK_MARK);
 	Letter scoreLetter = QUACKLE_FIRST_LETTER;
 	for (const auto& pair : byScore) {
 		// Represent a "score-letter" by the first tile alphabetically that bears that score.
-		// In English, 0=?, 1=A, 2=D, 3=B, ... 10=Q
-		const UVString textUV = userVisible(pair.second[0]);
+		// In English, 0=¿, 1=A, 2=D, 3=B, ... 10=Q
+		const UVString textUV = QUACKLE_BLANK_MARK == pair.second[0] ? "¿" : userVisible(pair.second[0]);
 		ret.setLetterParameter(scoreLetter, Quackle::LetterParameter(scoreLetter,
 																																 textUV,
 																																 textUV /* blank representation */,
 																																 pair.first /* score */,
 																																 0 /* count */,
 																																 false /* isVowel */));
+		for (const Letter& letter : pair.second) {
+			if (QUACKLE_BLANK_MARK == letter) {
+				ret.setBlankScoreLetter(scoreLetter);
+			}
+			m_scoreMap[letter] = scoreLetter;
+		}
+		++scoreLetter;
 	}
+	UVcout << "this alphabet: " << m_alphabet << endl;
+	UVcout << "scoring alphabet: " << ret.m_alphabet << endl;
 	return ret;
 }
 
@@ -212,6 +222,18 @@ UVString AlphabetParameters::userVisible(Letter letter) const
 		return letterParameter(letter - QUACKLE_BLANK_OFFSET).blankText();
 	else
 		return letterParameter(letter).text();
+}
+
+LetterString AlphabetParameters::toScoreLetters(const LetterString& letterString) const {
+	LetterString scores;
+	for (const Letter& letter : letterString) {
+		scores.push_back(toScoreLetter(letter));
+	}
+	return scores;
+}
+
+Letter AlphabetParameters::toScoreLetter(Letter letter) const {
+	return m_scoreMap.at(letter);
 }
 
 LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover) const
@@ -354,7 +376,9 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 
 UVOStream &operator<<(UVOStream& o, const Quackle::LetterParameter &letterParameter)
 {
-	o << letterParameter.letter() << " [" << letterParameter.text() << ", " << letterParameter.blankText() << "]";
+	o << static_cast<int>(letterParameter.letter())
+		<< " [" << letterParameter.text()
+		<< ", " << letterParameter.blankText() << "]";
 	return o;
 }
 

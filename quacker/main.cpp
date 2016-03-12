@@ -62,6 +62,7 @@ private:
 int main(int argc, char **argv)
 {
 	QuackerApplication a(argc, argv);
+	QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 	TopLevel topLevel;
 	a.setTopLevel(&topLevel);
 	topLevel.show();

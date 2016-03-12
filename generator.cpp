@@ -953,7 +953,8 @@ void Generator::extendright(const LetterString &partial, int i,
 
 						int laid = move.wordTilesWithNoPlayThru().length();
 						bool onetilevert = (!move.horizontal) && (laid == 1);
-						bool ignore = onetilevert && !board().hcross(row, col).all();
+						const auto& hcross = board().hcross(row, col);
+						bool ignore = onetilevert && hcross.count() != hcross.size();
 						
 						if (1 || !ignore)
 						{
@@ -1015,7 +1016,8 @@ void Generator::extendright(const LetterString &partial, int i,
 
 						int laid = move.wordTilesWithNoPlayThru().length();
 						bool onetilevert = (!move.horizontal) && (laid == 1);
-						bool ignore = onetilevert && !board().hcross(row, col).all();
+						const auto& hcross = board().hcross(row, col);
+						bool ignore = onetilevert && hcross.count() != hcross.size();
 																								
 						if (1 || !ignore)
 						{
@@ -1106,7 +1108,8 @@ void Generator::extendright(const LetterString &partial, int i,
 						
 					int laid = move.wordTilesWithNoPlayThru().length();
 					bool onetilevert = (!move.horizontal) && (laid == 1);
-					bool ignore = onetilevert && !board().hcross(row, col).all();
+					const auto& hcross = board().hcross(row, col);
+					bool ignore = onetilevert && hcross.count() != hcross.size();
 					
 					if (1 || !ignore)
 					{
@@ -1206,7 +1209,8 @@ Move Generator::generate()
 			// what defines an anchor square?
 
 			bool anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().vcross(row, col).all()) {
+			const auto& vcross = board().vcross(row, col);
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && vcross.count() != vcross.size()) {
 				if (col == 0) {
 					anchor = true;
 				}
@@ -1228,8 +1232,8 @@ Move Generator::generate()
 				for (int i = col - 1; i >= 0; i--)
 				{
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && board().vcross(row, i).all()) {
+					const auto& vcross = board().vcross(row, i);
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && vcross.count() == vcross.size()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1256,7 +1260,8 @@ Move Generator::generate()
 			// what defines an anchor square?
 
 			anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().hcross(row, col).all()) {
+			const auto& hcross = board().hcross(row, col);
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && hcross.count() != hcross.size()) {
 				if (row == 0) {
 					anchor = true;
 				}
@@ -1277,7 +1282,8 @@ Move Generator::generate()
 				int k = 0;
 				for (int i = row - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && board().hcross(i, col).all()) {
+					const auto& hcross = board().hcross(i, col);
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && hcross.count() == hcross.size()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1313,7 +1319,8 @@ Move Generator::gordongenerate()
 			// generate horizontal plays
 			// what defines an anchor square?
 			bool anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().vcross(row, col).all()) {
+			const auto& vcross = board().vcross(row, col);
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && vcross.count() != vcross.size()) {
 				if (col == 0) {
 					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col + 1))) {
 						anchor = true;
@@ -1350,7 +1357,8 @@ Move Generator::gordongenerate()
 				}
 				for (int i = col - k - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && board().vcross(row, i).all()) {
+					const auto& vcross = board().vcross(row, i);
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, i)) && vcross.count() == vcross.size()) {
 						if (i == 0) {
 							k++;
 						}
@@ -1380,7 +1388,8 @@ Move Generator::gordongenerate()
 			// what defines an anchor square?
 
 			anchor = false;
-			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && !board().hcross(row, col).all()) {
+			const auto& hcross = board().hcross(row, col);
+			if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row, col)) && hcross.count() != hcross.size()) {
 				if (row == 0) {
 					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(row + 1, col))) {
 						anchor = true;
@@ -1417,7 +1426,8 @@ Move Generator::gordongenerate()
 				}
 				for (int i = row - k - 1; i >= 0; i--) {
 					// UVcout << "board().vcross[" << row << "][" << i << "] = " << board().vcross(row, i) << endl;
-					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && board().hcross(i, col).all()) {
+					const auto& hcross = board().hcross(i, col);
+					if (!QUACKLE_ALPHABET_PARAMETERS->isSomeLetter(board().letter(i, col)) && hcross.count() == hcross.size()) {
 						if (i == 0) {
 							k++;
 						}

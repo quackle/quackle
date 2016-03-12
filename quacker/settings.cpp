@@ -251,7 +251,10 @@ void Settings::setGaddagLabel(const QString &label)
 void Settings::buildGaddag()
 {
 	const string gaddagFile(QUACKLE_DATAMANAGER->makeDataFilename("lexica", QUACKLE_LEXICON_PARAMETERS->lexiconName() + ".gaddag", true));
-	GaddagFactory factory((UVString()));
+	const string scoreGaddagFile(QUACKLE_DATAMANAGER->makeDataFilename("lexica", QUACKLE_LEXICON_PARAMETERS->lexiconName() + ".scoregaddag", true));
+	string alphabetNameStr = QUACKLE_ALPHABET_PARAMETERS->alphabetName();
+	string alphabetFileStr = Quackle::AlphabetParameters::findAlphabetFile(alphabetNameStr);
+	GaddagFactory factory(alphabetFileStr);
 	Quackle::LetterString word;
 	int wordCount = 0;
 
@@ -285,6 +288,7 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 		word.push_back(letter);
 		if (t)
 		{
+			factory.addScoringPatterns(word);
 			factory.pushWord(word);
 			wordCount++;
 			if (wordCount % 1000 == 0)
