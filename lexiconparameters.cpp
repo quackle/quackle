@@ -62,6 +62,7 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 
 		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
 	}
+
 	virtual int versionNumber() const { return 0; }
 };
 
@@ -128,7 +129,46 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
 		t = (playability != 0);
 	}
+	
 	virtual int versionNumber() const { return 1; }
+};
+
+class Quackle::V2LexiconInterpreter : public LexiconInterpreter {
+
+	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) {
+		UVcout << "V2 loadDawg not yet implemented." << endl;
+	}
+
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter,
+											bool &t, bool &lastchild, bool &british, int &playability) const {
+		UVcout << "V2 dawgAt not yet implemented." << endl;
+	}
+
+	virtual void unloadDawg() {
+		UVcout << "V2 unloadDawg not yet implemented." << endl;
+	}
+
+	virtual int versionNumber() const { return 2; }
+	
+	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) {
+		UVcout << "V2 loadGaddag..." << endl;
+		char hash[16];
+		file.get(); // skip past version byte
+		file.read(hash, sizeof(hash));  // skip past hash
+
+		size_t i = 0;
+		while (!file.eof()) {
+			file.read((char*)(lexparams.m_gaddag) + i, 1);
+			i++;
+		}
+		UVcout << "read " << (i - 1) << " bytes into m_gaddag." << endl;
+		lexparams.m_v2gaddag = new V2Gaddag(lexparams.m_gaddag,
+																				30 /* lastLetter (FIXME) */,
+																				4 /* bitsetSize (FIXME) */,
+																				4 /* indexSize (FIXME) */,
+																				1 /* indexUnit (FIXME) */);
+
+	}
 };
 
 LexiconParameters::LexiconParameters()
@@ -191,7 +231,7 @@ void LexiconParameters::loadDawg(const string &filename)
 void LexiconParameters::loadGaddag(const string &filename)
 {
 	unloadGaddag();
-
+	
 	ifstream file(filename.c_str(), ios::in | ios::binary);
 	if (!file.is_open())
 	{
@@ -201,10 +241,13 @@ void LexiconParameters::loadGaddag(const string &filename)
 	}
 
 	char versionByte = file.get();
-	if (versionByte < m_interpreter->versionNumber())
+	UVcout << "versionByte: " << static_cast<int>(versionByte) << endl;
+	if (m_interpreter != NULL && versionByte < m_interpreter->versionNumber())
 		return;
 	file.seekg(0, ios_base::end);
+	UVcout << "allocating " << file.tellg() << " bytes." << endl;
 	m_gaddag = new unsigned char[file.tellg()];
+	UVcout << "at m_gaddag: " << reinterpret_cast<unsigned long>(m_gaddag) << endl;
 	file.seekg(0, ios_base::beg);
 
 	// must create a local interpreter because dawg/gaddag versions might not match
@@ -214,8 +257,9 @@ void LexiconParameters::loadGaddag(const string &filename)
 		interpreter->loadGaddag(file, *this);
 		delete interpreter;
 	}
-	else
+	else {
 		unloadGaddag();
+	}
 }
 
 string LexiconParameters::findDictionaryFile(const string &lexicon)
@@ -261,13 +305,18 @@ string LexiconParameters::copyrightString() const
 
 LexiconInterpreter* LexiconParameters::createInterpreter(char version) const
 {
+	UVcout << "createInterpreter..." << endl;
 	switch(version)
 	{
-		case 0:
-			return new V0LexiconInterpreter();
-		case 1:
-			return new V1LexiconInterpreter();
-		default:
-			return NULL;
+	case 0:
+		return new V0LexiconInterpreter();
+	case 1:
+		return new V1LexiconInterpreter();
+	case 2:
+		return new V2LexiconInterpreter();
+	default:
+		UVcout << "Unknown LexiconInterpreter version: " << static_cast<int>(version) << endl;
+		return NULL;
+				
 	}
 }

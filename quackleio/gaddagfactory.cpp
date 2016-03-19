@@ -17,7 +17,10 @@
  */
 
 
+#include <bitset>
 #include <iostream>
+
+#include <QByteArray>
 #include <QtCore>
 #include <QCryptographicHash>
 
@@ -91,7 +94,7 @@ vector<Quackle::LetterString> GaddagFactory::gaddagizeWord(const Quackle::Letter
 			newword.push_back(word[j]);
 
 		if (i < word.length()) {
-			newword.push_back(internalSeparatorRepresentation);  // "^"
+			newword.push_back(QUACKLE_NULL_MARK);  // delimiter
 			for (unsigned j = i; j < word.length(); j++)
 				newword.push_back(word[j]);
 		}
@@ -126,29 +129,17 @@ void GaddagFactory::hashWord(const Quackle::LetterString &word)
 	m_hash.int32ptr[3] ^= ((const int32_t*)wordhashbytes.constData())[3];
 }
 
-void GaddagFactory::generate()
-{
+void GaddagFactory::generate() {
 	sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end());
-	Quackle::WordList::const_iterator wordsEnd = m_gaddagizedWords.end();
-	for (Quackle::WordList::const_iterator wordsIt = m_gaddagizedWords.begin(); wordsIt != wordsEnd; ++wordsIt)
-		m_root.pushWord(*wordsIt);
-	//	for (const auto& words : gaddaggizedWords)
-	//		m_root.pushWord(words);
+	for (const auto& word : m_gaddagizedWords) {
+		//UVcout << "pattern: " << m_alphas->userVisible(word) << endl;
+		m_root.pushWord(word);
+	}
 }
 
-void GaddagFactory::writeIndex(const string &fname)
-{
-	m_nodelist.push_back(&m_root);
-
-	m_root.print(m_nodelist);    
-
-	ofstream out(fname.c_str(), ios::out | ios::binary);
-
-	out.put(1); // GADDAG format version 1
-	out.write(m_hash.charptr, sizeof(m_hash.charptr));
-
-	for (size_t i = 0; i < m_nodelist.size(); i++)
-	{
+void GaddagFactory::writeV1(ofstream* out) const {
+	UVcout << "writeV1(...)" << endl;
+	for (size_t i = 0; i < m_nodelist.size(); i++) {
 		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
 		if (p != 0)
 			p -= i; // offset indexing
@@ -160,8 +151,6 @@ void GaddagFactory::writeIndex(const string &fname)
 		unsigned char n4; 
 
 		n4 = m_nodelist[i]->c;
-		if (n4 == internalSeparatorRepresentation)
-			n4 = QUACKLE_NULL_MARK;
 
 		if (m_nodelist[i]->t)
 			n4 |= 64;
@@ -170,15 +159,114 @@ void GaddagFactory::writeIndex(const string &fname)
 			n4 |= 128;
 
 		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
-		out.write(bytes, 4);
+		out->write(bytes, 4);
 	}
 }
 
+void GaddagFactory::writeV2(int numChildBytes, int numIndexBytes,
+														const Node& node, ofstream* out) const {
+	//UVcout << "writeV2(...)" << endl;
+	QByteArray bytes = node.v2(numChildBytes, numIndexBytes);
+	//UVcout << "bytes: " << bytes.toHex().data() << endl;
+	out->write(bytes.data(), bytes.size());
+	for (const Node& child : node.children) {
+		if (child.children.empty()) {
+			//UVcout << "no children. nothing to write." << endl;
+		} else if (child.duplicate != NULL) {
+			//UVcout << "is a duplicate, has already been written. " << endl;
+		} else {
+			writeV2(numChildBytes, numIndexBytes, child, out);
+		}
+	}
+}
 
-void GaddagFactory::Node::print(vector< Node* >& nodelist)
-{
-	if (children.size() > 0)
-	{
+void GaddagFactory::writeV2(ofstream* out) const {
+	int alphabetSize = m_alphas->lastLetter() + 1;
+	UVcout << "alphabetSize: " << alphabetSize << endl;
+	const int numChildBytes = (alphabetSize + 8 - 1) / 8;  // rounding up
+	UVcout << "numChildBytes: " << numChildBytes << endl;
+	writeV2(numChildBytes, 4, m_root, out);
+}
+
+void GaddagFactory::writeIndex(const string &fname, int version) {
+	m_nodelist.push_back(&m_root);
+
+	m_root.print(m_nodelist);    
+
+	ofstream out(fname.c_str(), ios::out | ios::binary);
+
+	out.put(version); // GADDAG format version
+	out.write(m_hash.charptr, sizeof(m_hash.charptr));
+
+	switch(version) {
+	case 1: writeV1(&out); break;
+	case 2:
+		int bitsets = 0;
+		int indices = 0;
+		map<int, vector<Node*>> byDepth;
+		Node::binByDepth(&m_root, &byDepth);
+		for (const auto& pair : byDepth) {
+			UVcout << "of depth " << pair.first << ": " << pair.second.size() << endl;
+		}
+		map<QByteArray, vector<Node*>> byHash;
+		Node::binByHash(&m_root, &byHash);
+		UVcout << "#unique hash keys: " << byHash.size() << endl;
+		Node::markDuplicates(byDepth, byHash);
+		UVcout << "Numbering gaddag nodes for v2 format..." << endl;
+		m_root.numberV2(&bitsets, &indices);
+		UVcout << "Found " << bitsets << " bitsets and "
+					 << indices << " indices." << endl;
+		writeV2(&out);
+		break;
+	}
+}
+
+void GaddagFactory::Node::binByDepth(Node* node, map<int, vector<Node*>>* byDepth) {
+	(*byDepth)[node->depth()].push_back(node);
+	for (Node& child : node->children) {
+		binByDepth(&child, byDepth);
+	}
+}
+
+void GaddagFactory::Node::binByHash(Node* node, map<QByteArray, vector<Node*>>* byHash) {
+	(*byHash)[node->hash()].push_back(node);
+	for (Node& child : node->children) {
+		binByHash(&child, byHash);
+	}
+}
+
+void GaddagFactory::Node::markDuplicates(const map<int, vector<Node*>>& byDepth,
+																				 const map<QByteArray, vector<Node*>>& byHash) {
+	for (const auto hashPair : byHash) {
+		for (unsigned int i = 0; i < hashPair.second.size(); ++i) {
+			Node* node_i = hashPair.second[i];
+			if (node_i->duplicate != NULL) continue;
+			for (unsigned int j = i + 1; j < hashPair.second.size(); ++j) {
+				Node* node_j = hashPair.second[j];
+				if (node_i->sameAs(*node_j)) {
+					node_j->duplicate = node_i;
+				} else {
+					UVcout << "collision... i: " << i << " j: " << j << endl;
+				}
+			}
+		}
+	}
+}
+
+bool GaddagFactory::Node::sameAs(const Node& other) const {
+	if (children.size() != other.children.size()) return false;
+	for (unsigned int i = 0; i < children.size(); ++i) {
+		if (children[i].c != other.children[i].c) return false;
+		if (children[i].t != other.children[i].t) return false;
+	}
+	for (unsigned int i = 0; i < children.size(); ++i) {
+		if (!children[i].sameAs(other.children[i])) return false;
+	}
+  return true;
+}
+
+void GaddagFactory::Node::print(vector<Node*>& nodelist) {
+	if (children.size() > 0) {
 		pointer = nodelist.size();
 		children[children.size() - 1].lastchild = true;
 	}
@@ -190,9 +278,100 @@ void GaddagFactory::Node::print(vector< Node* >& nodelist)
 		children[i].print(nodelist);
 }
 
+int GaddagFactory::Node::depth() {
+	if (m_depth >= 0) {
+		return m_depth;
+	}
+	m_depth = 0;
+	int maxChildDepth = -1;
+	for (Node& node : children) {
+		if (node.depth() > maxChildDepth) {
+			maxChildDepth = node.depth();
+		}
+	}
+	m_depth += maxChildDepth + 1;
+	return m_depth;
+}
+
+const QByteArray& GaddagFactory::Node::hash() {
+	if (m_hash.isEmpty()) {
+		QCryptographicHash h(QCryptographicHash::Md5);
+		h.addData("foo");
+		for (Node& node : children) {
+			QByteArray nodec;
+			nodec.append(node.c);
+			h.addData(nodec);
+			h.addData(node.t ? "." : "-");
+			h.addData(node.hash());
+		}
+		m_hash = h.result();
+	}
+	return m_hash;
+}
+
+void GaddagFactory::Node::numberV2(int* bitsets, int* indices) {
+	if (children.empty()) {
+		m_bitsets = 0;
+		m_indices = 0;
+		return;
+	}
+	m_bitsets = *bitsets;
+	m_indices = *indices;
+	++(*bitsets);
+	(*indices) += children.size();
+	for (Node& child : children) {
+		if (child.duplicate == NULL) {
+			child.numberV2(bitsets, indices);
+		}
+	}
+}
+
+namespace {
+
+	inline void ulongToBytes(unsigned long ulong, int length, char* bytes) {
+		for (int i = 0; i < length; ++i) {
+			const int shift = i * 8;
+			bytes[i] = (ulong >> shift) & 0xFF;
+		}
+	}
+	
+}
+
+QByteArray GaddagFactory::Node::v2(int numChildBytes, int numIndexBytes) const {
+	QByteArray ret;
+	int numChildPointerBytes = children.size() * numIndexBytes;
+	char childPointerBytes[numChildPointerBytes];
+	bitset<QUACKLE_MAXIMUM_ALPHABET_SIZE> childBits;
+	int offset = 0;
+	for (const Node& child : children) {
+		const Node& childForPointer =
+			(child.duplicate == NULL) ? child : *child.duplicate;
+		unsigned long childIndex =
+			numChildBytes * childForPointer.bitsets() +
+			numIndexBytes * childForPointer.indices();
+		ulongToBytes(childIndex, numIndexBytes, childPointerBytes + offset);
+		if (child.t) {
+			// set most significant bit to mark termination;
+			childPointerBytes[offset+numIndexBytes-1] |= 0b10000000; 
+		}
+		offset += numIndexBytes;
+		Quackle::Letter letter = child.c;
+		childBits.set(letter);
+	}
+	//UVcout << "childBits: " << childBits.to_string() << endl;
+	unsigned long childBitsInt = childBits.to_ulong();
+	//UVcout << "childBitsInt: " << childBitsInt << endl;
+	char childBytes[numChildBytes];
+	ulongToBytes(childBitsInt, numChildBytes, childBytes);
+	ret.append(childBytes, numChildBytes);
+  ret.append(childPointerBytes, numChildPointerBytes);
+	return ret;
+}
+
 void GaddagFactory::addScoringPatterns(const Quackle::LetterString& word) {
 	//UVcout << "addScoringPatterns(" << m_alphas->userVisible(word) << ")..." << endl;
 	int numBlanks = m_alphas->count(QUACKLE_BLANK_MARK);
+	numBlanks = 0;
 	const Quackle::Letter blank = QUACKLE_BLANK_MARK;
 	//UVcout << "numBlanks: " << numBlanks << endl;
 	vector<set<Quackle::LetterString>> patterns(numBlanks + 1);
@@ -253,6 +432,7 @@ void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
 		Node n;
 		n.c = first;
 		n.t = false;
+		n.duplicate = NULL;
 		n.pointer = 0;
 		n.lastchild = false;
 		children.push_back(n);

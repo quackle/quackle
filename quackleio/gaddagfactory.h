@@ -31,8 +31,6 @@ const int QUACKLE_MAX_GADDAG_WORDCOUNT = 500000;
 class GaddagFactory {
 public:
 
-	static const Quackle::Letter internalSeparatorRepresentation = QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE;
-
 	GaddagFactory(const UVString &alphabetFile);
 	~GaddagFactory();
 
@@ -51,7 +49,7 @@ public:
 	void sortGaddagizedScoringPatterns() { sort (m_gaddagizedScoringPatterns.begin(),
 																							 m_gaddagizedScoringPatterns.end()); }
 	void generate();
-	void writeIndex(const string &fname);
+	void writeIndex(const string &fname, int version);
 	bool addScoringPatterns(const UVString& word);
 	void addScoringPatterns(const Quackle::LetterString& word);
 	const char* hashBytes() { return m_hash.charptr; };
@@ -65,19 +63,47 @@ private:
 			vector<Node> children;
 			int pointer;
 			bool lastchild;
+      Node* duplicate;
+			
 			void pushWord(const Quackle::LetterString& word);
 			void print(vector< Node* >& m_nodelist);
+
+			int m_bitsets;
+			int m_indices;
+			int bitsets() const { return m_bitsets; }
+			int indices() const { return m_indices; }
+
+			int m_depth = -1;
+			int depth();
+
+			QByteArray m_hash;
+			const QByteArray& hash();
+			
+			static void binByDepth(Node* node, map<int, vector<Node*>>* byDepth);
+			static void binByHash(Node* node, map<QByteArray, vector<Node*>>* byHash);
+			static void markDuplicates(const map<int, vector<Node*>>& byDepth,
+																 const map<QByteArray, vector<Node*>>& byHash);
+			bool sameAs(const Node& other) const;
+			void numberV2(int* bitsets, int* indices);
+			QByteArray v2(int numChildBytes, int numIndexBytes) const;
 	};
+
+	void writeV1(ofstream* out) const;
+
+	void writeV2(int numChildBytes, int numIndexBytes,
+							 const Node& node, ofstream* out) const;
+	void writeV2(ofstream* out) const;
 
 	int m_encodableWords;
 	int m_unencodableWords;
 	Quackle::WordList m_gaddagizedWords;
-	vector< Node* > m_nodelist;
+	vector<Node*> m_nodelist;
 	Quackle::AlphabetParameters *m_alphas;
 	Quackle::AlphabetParameters m_scoring;
 	set<Quackle::LetterString> m_scoringPatterns;
 	vector<Quackle::LetterString> m_gaddagizedScoringPatterns;
-	static vector<Quackle::LetterString> gaddagizeWord(const Quackle::LetterString& word);
+	static vector<Quackle::LetterString>
+		gaddagizeWord(const Quackle::LetterString& word);
 	Node m_root;
 	union {
 		char charptr[16];

@@ -505,10 +505,10 @@ LetterBitset Generator::gaddagFitbetween(const LetterString &pre, const LetterSt
 
 	int preLen = pre.length();
 	for (const GaddagNode* node = sufNode->firstChild(); node; node = node->nextSibling()) {
-	    Letter childLetter = node->letter();
-	    if (childLetter == QUACKLE_GADDAG_SEPARATOR) {
+		Letter childLetter = node->letter();
+		if (childLetter == QUACKLE_GADDAG_SEPARATOR) {
 			break;
-	    }
+		}
 		const GaddagNode *n = node;
 		for (int i = preLen - 1; i >= 0; --i) {
 			n = n->child(pre[i]);
@@ -558,7 +558,7 @@ UVString Generator::counts2string()
 {
 	UVString ret;
 
-	for (Letter i = 0; i < QUACKLE_ALPHABET_PARAMETERS->lastLetter(); i++)
+	for (Letter i = 0; i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); i++)
 		for (int j = 0; j < m_counts[i]; j++)
 			ret += QUACKLE_ALPHABET_PARAMETERS->userVisible(i);
 
@@ -1687,7 +1687,7 @@ void Generator::gaddagAnagram(const GaddagNode *node, const LetterString &prefix
 	    Letter childLetter = child->letter();
 
 	    if (childLetter == QUACKLE_GADDAG_SEPARATOR) {
-			break;
+				break;
 	    }
 
 		if (m_counts[childLetter] <= 0) 

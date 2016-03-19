@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "gaddag.h"
+#include "v2gaddag.h"
 
 namespace Quackle
 {
@@ -40,11 +41,13 @@ public:
 
 class V0LexiconInterpreter;
 class V1LexiconInterpreter;
+class V2LexiconInterpreter;
 
 class LexiconParameters
 {
 	friend class Quackle::V0LexiconInterpreter;
 	friend class Quackle::V1LexiconInterpreter;
+	friend class Quackle::V2LexiconInterpreter;
 
 public:
 	LexiconParameters();
@@ -80,6 +83,8 @@ public:
 	}
 	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
 
+	const V2Gaddag *v2Gaddag() const { return m_v2gaddag; }
+	
 	string hashString(bool shortened) const;
 	string copyrightString() const;
 	const vector<string> &utf8Alphabet() const { return m_utf8Alphabet; };
@@ -87,6 +92,8 @@ public:
 protected:
 	unsigned char *m_dawg;
 	unsigned char *m_gaddag;
+  V2Gaddag* m_v2gaddag;
+	
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];

@@ -35,19 +35,20 @@
 
 using namespace std;
 
-
-
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	QCoreApplication a(argc, argv);
 
 	GetOpt opts;
 	QString alphabet;
 	QString inputFilename;
 	QString outputFilename;
+	QString versionString;
+	
 	opts.addOption('f', "input", &inputFilename);
 	opts.addOption('o', "output", &outputFilename);
 	opts.addOption('a', "alphabet", &alphabet);
+	opts.addOption('v', "version", &versionString);
+
 	if (!opts.parse())
 		return 1;
 
@@ -60,6 +61,11 @@ int main(int argc, char **argv)
 	if (outputFilename.isNull())
 		outputFilename = "output.gaddag";
 
+	int version = 1;
+	if (!versionString.isNull()) {
+		version = versionString.toInt();
+	}
+	
 	QString alphabetFile = QString("../data/alphabets/%1.quackle_alphabet").arg(alphabet);
 	UVcout << "Using alphabet file: " << QuackleIO::Util::qstringToString(alphabetFile) << endl;
 	GaddagFactory factory(QuackleIO::Util::qstringToString(alphabetFile));
@@ -67,7 +73,7 @@ int main(int argc, char **argv)
 	QFile file(inputFilename);
 	if (!file.exists())
 	{
-		UVcout << "Input gaddag does not exist: " << QuackleIO::Util::qstringToString(inputFilename) << endl;
+		UVcout << "Input dictionary does not exist: " << QuackleIO::Util::qstringToString(inputFilename) << endl;
 		return false;
 	}
 
@@ -107,9 +113,12 @@ int main(int argc, char **argv)
 	factory.generate();
 
 	UVcout << "Writing index..." << endl;
-	factory.writeIndex(outputFilename.toUtf8().constData());
+	factory.writeIndex(outputFilename.toUtf8().constData(), version);
 
-	UVcout << "Wrote " << factory.encodableWords() << " words over " << factory.nodeCount() << " nodes to " << QuackleIO::Util::qstringToString(outputFilename) << "." << endl;
+	UVcout << "Wrote " << factory.encodableWords()
+				 << " words over " << factory.nodeCount()
+				 << " nodes to " << QuackleIO::Util::qstringToString(outputFilename)
+				 << "." << endl;
 
 	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << endl;
 

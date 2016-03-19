@@ -84,9 +84,8 @@ LetterString Move::usedTiles() const
     return m_isChallengedPhoney? LetterString() : String::usedTiles(m_tiles);
 }
 
-LetterString Move::wordTiles() const
-{
-    LetterString word;
+LetterString Move::wordTiles() const {
+	LetterString word;
 
 	const LetterString::const_iterator end(m_prettyTiles.end());
 	for (LetterString::const_iterator it = m_prettyTiles.begin(); it != end; ++it)
