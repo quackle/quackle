@@ -42,10 +42,12 @@ int main(int argc, char **argv) {
 	QString alphabet;
 	QString inputFilename;
 	QString outputFilename;
+	QString scoringOutputFilename;
 	QString versionString;
 	
 	opts.addOption('f', "input", &inputFilename);
 	opts.addOption('o', "output", &outputFilename);
+	opts.addOption('o', "scoring", &scoringOutputFilename);
 	opts.addOption('a', "alphabet", &alphabet);
 	opts.addOption('v', "version", &versionString);
 
@@ -60,6 +62,9 @@ int main(int argc, char **argv) {
 
 	if (outputFilename.isNull())
 		outputFilename = "output.gaddag";
+
+	if (scoringOutputFilename.isNull())
+		scoringOutputFilename = "scoring.gaddag";
 
 	int version = 1;
 	if (!versionString.isNull()) {
@@ -103,6 +108,7 @@ int main(int argc, char **argv) {
 
 	UVcout << "Gaddagizing " << factory.scoringPatternCount() << " scoring patterns..." << endl;
 	factory.gaddagizeScoringPatterns();
+	
 	UVcout << "Sorting " << factory.gaddagizedScoringPatternCount() << " scoring patterns..." << endl;
 	factory.sortGaddagizedScoringPatterns();
 	
@@ -111,13 +117,15 @@ int main(int argc, char **argv) {
 
 	UVcout << "Generating nodes..." << endl;
 	factory.generate();
-
-	UVcout << "Writing index..." << endl;
-	factory.writeIndex(outputFilename.toUtf8().constData(), version);
+  factory.generateScoring();
+	
+	UVcout << "Writing indicies..." << endl;
+	factory.writeIndices(outputFilename.toUtf8().constData(),
+											 scoringOutputFilename.toUtf8().constData(),
+											 version);
 
 	UVcout << "Wrote " << factory.encodableWords()
-				 << " words over " << factory.nodeCount()
-				 << " nodes to " << QuackleIO::Util::qstringToString(outputFilename)
+				 << " words to " << QuackleIO::Util::qstringToString(outputFilename)
 				 << "." << endl;
 
 	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << endl;

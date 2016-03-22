@@ -137,10 +137,18 @@ void GaddagFactory::generate() {
 	}
 }
 
-void GaddagFactory::writeV1(ofstream* out) const {
+void GaddagFactory::generateScoring() {
+	sort(m_gaddagizedScoringPatterns.begin(), m_gaddagizedScoringPatterns.end());
+	for (const auto& word : m_gaddagizedScoringPatterns) {
+		//UVcout << "pattern: " << m_alphas->userVisible(word) << endl;
+		m_scoring_root.pushWord(word);
+	}
+}
+
+void GaddagFactory::writeV1(const vector<Node*>& nodelist, ofstream* out) const {
 	UVcout << "writeV1(...)" << endl;
-	for (size_t i = 0; i < m_nodelist.size(); i++) {
-		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
+	for (size_t i = 0; i < nodelist.size(); i++) {
+		unsigned int p = (unsigned int)(nodelist[i]->pointer);
 		if (p != 0)
 			p -= i; // offset indexing
 
@@ -150,12 +158,12 @@ void GaddagFactory::writeV1(ofstream* out) const {
 		unsigned char n3 = (p & 0x000000FF) >> 0;
 		unsigned char n4; 
 
-		n4 = m_nodelist[i]->c;
+		n4 = nodelist[i]->c;
 
-		if (m_nodelist[i]->t)
+		if (nodelist[i]->t)
 			n4 |= 64;
 
-		if (m_nodelist[i]->lastchild)
+		if (nodelist[i]->lastchild)
 			n4 |= 128;
 
 		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
@@ -163,8 +171,8 @@ void GaddagFactory::writeV1(ofstream* out) const {
 	}
 }
 
-void GaddagFactory::writeV2(int numChildBytes, int numIndexBytes,
-														const Node& node, ofstream* out) const {
+void GaddagFactory::writeV2(const Node& node, int numChildBytes,
+														int numIndexBytes, ofstream* out) const {
 	//UVcout << "writeV2(...)" << endl;
 	QByteArray bytes = node.v2(numChildBytes, numIndexBytes);
 	//UVcout << "bytes: " << bytes.toHex().data() << endl;
@@ -175,49 +183,74 @@ void GaddagFactory::writeV2(int numChildBytes, int numIndexBytes,
 		} else if (child.duplicate != NULL) {
 			//UVcout << "is a duplicate, has already been written. " << endl;
 		} else {
-			writeV2(numChildBytes, numIndexBytes, child, out);
+			writeV2(child, numChildBytes, numIndexBytes, out);
 		}
 	}
 }
 
-void GaddagFactory::writeV2(ofstream* out) const {
-	int alphabetSize = m_alphas->lastLetter() + 1;
+void GaddagFactory::writeV2(const Quackle::AlphabetParameters& alphabet,
+														const Node& root,
+														int bitsets, int indices, ofstream* out) const {
+	int alphabetSize = alphabet.lastLetter() + 1;
 	UVcout << "alphabetSize: " << alphabetSize << endl;
 	const int numChildBytes = (alphabetSize + 8 - 1) / 8;  // rounding up
 	UVcout << "numChildBytes: " << numChildBytes << endl;
-	writeV2(numChildBytes, 4, m_root, out);
+
+  int numIndexBytes = 1;
+	for (; numIndexBytes < 8; ++numIndexBytes) {
+		int64_t bytesAddressable  = 1L << (numIndexBytes * 8);
+		if (bytesAddressable > 2 * (numChildBytes * bitsets + numIndexBytes * indices)) {
+			break;
+		}
+	}
+	UVcout << "numIndexBytes: " << numIndexBytes << endl;
+	out->put(alphabet.lastLetter());
+  out->put(numChildBytes);
+	out->put(numIndexBytes);
+	writeV2(root, numChildBytes, numIndexBytes, out);
 }
 
-void GaddagFactory::writeIndex(const string &fname, int version) {
-	m_nodelist.push_back(&m_root);
+void GaddagFactory::writeIndices(const string& fname,
+																	const string& scoring_fname,
+																	int version) {
+	writeIndex(fname, *m_alphas, &m_root, version);
+	writeIndex(scoring_fname, m_scoring, &m_scoring_root, version);
+}
 
-	m_root.print(m_nodelist);    
-
+void GaddagFactory::writeIndex(const string &fname,
+															 const Quackle::AlphabetParameters& alphabet,
+															 GaddagFactory::Node* root,
+															 int version) {
 	ofstream out(fname.c_str(), ios::out | ios::binary);
 
 	out.put(version); // GADDAG format version
 	out.write(m_hash.charptr, sizeof(m_hash.charptr));
 
+	vector<Node*> nodelist;
 	switch(version) {
-	case 1: writeV1(&out); break;
+	case 1:
+		nodelist.push_back(root);
+		root->print(&nodelist);    
+		writeV1(nodelist, &out);
+		break;
 	case 2:
 		int bitsets = 0;
 		int indices = 0;
 		map<int, vector<Node*>> byDepth;
-		Node::binByDepth(&m_root, &byDepth);
+		Node::binByDepth(root, &byDepth);
 		for (const auto& pair : byDepth) {
 			UVcout << "of depth " << pair.first << ": " << pair.second.size() << endl;
 		}
 		map<QByteArray, vector<Node*>> byHash;
-		Node::binByHash(&m_root, &byHash);
+		Node::binByHash(root, &byHash);
 		UVcout << "#unique hash keys: " << byHash.size() << endl;
-		Node::markDuplicates(byDepth, byHash);
+		Node::markDuplicates(byHash);
 		UVcout << "Numbering gaddag nodes for v2 format..." << endl;
-		m_root.numberV2(&bitsets, &indices);
+		root->numberV2(&bitsets, &indices);
 		UVcout << "Found " << bitsets << " bitsets and "
 					 << indices << " indices." << endl;
-		writeV2(&out);
-		break;
+		writeV2(alphabet, *root, bitsets, indices, &out);
+    break;
 	}
 }
 
@@ -235,8 +268,7 @@ void GaddagFactory::Node::binByHash(Node* node, map<QByteArray, vector<Node*>>* 
 	}
 }
 
-void GaddagFactory::Node::markDuplicates(const map<int, vector<Node*>>& byDepth,
-																				 const map<QByteArray, vector<Node*>>& byHash) {
+void GaddagFactory::Node::markDuplicates(const map<QByteArray, vector<Node*>>& byHash) {
 	for (const auto hashPair : byHash) {
 		for (unsigned int i = 0; i < hashPair.second.size(); ++i) {
 			Node* node_i = hashPair.second[i];
@@ -265,14 +297,14 @@ bool GaddagFactory::Node::sameAs(const Node& other) const {
   return true;
 }
 
-void GaddagFactory::Node::print(vector<Node*>& nodelist) {
+void GaddagFactory::Node::print(vector<Node*>* nodelist) {
 	if (children.size() > 0) {
-		pointer = nodelist.size();
+		pointer = nodelist->size();
 		children[children.size() - 1].lastchild = true;
 	}
 
 	for (size_t i = 0; i < children.size(); i++)
-		nodelist.push_back(&children[i]);
+		nodelist->push_back(&children[i]);
 
 	for (size_t i = 0; i < children.size(); i++)
 		children[i].print(nodelist);
@@ -371,7 +403,7 @@ QByteArray GaddagFactory::Node::v2(int numChildBytes, int numIndexBytes) const {
 void GaddagFactory::addScoringPatterns(const Quackle::LetterString& word) {
 	//UVcout << "addScoringPatterns(" << m_alphas->userVisible(word) << ")..." << endl;
 	int numBlanks = m_alphas->count(QUACKLE_BLANK_MARK);
-	numBlanks = 0;
+	numBlanks = 2;
 	const Quackle::Letter blank = QUACKLE_BLANK_MARK;
 	//UVcout << "numBlanks: " << numBlanks << endl;
 	vector<set<Quackle::LetterString>> patterns(numBlanks + 1);

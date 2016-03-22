@@ -35,7 +35,7 @@ SOURCES -= \
 	quackletest.cpp
 
 macx-g++ {
-    QMAKE_CXXFLAGS += -fpermissive
+  QMAKE_CXXFLAGS += -fpermissive
 }
 
 macx-xcode {

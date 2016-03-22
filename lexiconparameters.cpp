@@ -156,6 +156,10 @@ class Quackle::V2LexiconInterpreter : public LexiconInterpreter {
 		file.get(); // skip past version byte
 		file.read(hash, sizeof(hash));  // skip past hash
 
+		char lastLetter = file.get();   // skip past gaddag format parameters
+		char bitsetSize = file.get();
+		char indexSize = file.get();
+
 		size_t i = 0;
 		while (!file.eof()) {
 			file.read((char*)(lexparams.m_gaddag) + i, 1);
@@ -163,11 +167,9 @@ class Quackle::V2LexiconInterpreter : public LexiconInterpreter {
 		}
 		UVcout << "read " << (i - 1) << " bytes into m_gaddag." << endl;
 		lexparams.m_v2gaddag = new V2Gaddag(lexparams.m_gaddag,
-																				30 /* lastLetter (FIXME) */,
-																				4 /* bitsetSize (FIXME) */,
-																				4 /* indexSize (FIXME) */,
-																				1 /* indexUnit (FIXME) */);
-
+																				lastLetter,
+																				bitsetSize,
+																				indexSize);
 	}
 };
 
