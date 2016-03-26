@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
 	//						 parameters.v2Gaddag()->root(), &results);
 
 	vector<Quackle::LetterString> anagrams;
-	anagram(alphabet, "ANESTRI", *parameters.v2Gaddag(), &anagrams);
+	anagram(alphabet, "AABDBXX", *parameters.v2Gaddag(), &anagrams);
 	UVcout << "Found " << anagrams.size() << " anagrams." << endl;
 	
 	//UVcout << "Found " << resultCount << " patterns." << endl;

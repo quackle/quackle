@@ -51,6 +51,7 @@ DataManager::DataManager()
 	m_boardParameters = new EnglishBoard;
 	m_lexiconParameters = new LexiconParameters;
 	m_strategyParameters = new StrategyParameters;
+	m_scoringAlphabet = m_alphabetParameters->makeScoringAlphabet();
 }
 
 DataManager::~DataManager()
@@ -86,6 +87,7 @@ void DataManager::setAlphabetParameters(AlphabetParameters *alphabetParameters)
 {
 	delete m_alphabetParameters;
 	m_alphabetParameters = alphabetParameters;
+	m_scoringAlphabet = m_alphabetParameters->makeScoringAlphabet();
 }
 
 void DataManager::setBoardParameters(BoardParameters *boardParameters)

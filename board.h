@@ -131,6 +131,8 @@ public:
 	const LetterBitset &hcross(int row, int col) const;
 	void setHCross(int row, int col, const LetterBitset &hcross);
 
+	inline bool isNonempty(int row, int column) const;
+
 protected:
 	int m_width;
 	int m_height;
@@ -142,8 +144,6 @@ protected:
 
 	LetterBitset m_vcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
 	LetterBitset m_hcross[QUACKLE_MAXIMUM_BOARD_SIZE][QUACKLE_MAXIMUM_BOARD_SIZE];
-
-	inline bool isNonempty(int row, int column) const;
 };
 
 inline bool Board::isEmpty() const

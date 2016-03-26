@@ -121,7 +121,7 @@ AlphabetParameters AlphabetParameters::makeScoringAlphabet() {
 	for (const auto& pair : byScore) {
 		// Represent a "score-letter" by the first tile alphabetically that bears that score.
 		// In English, 0=¿, 1=A, 2=D, 3=B, ... 10=Q
-		const UVString textUV = QUACKLE_BLANK_MARK == pair.second[0] ? "¿" : userVisible(pair.second[0]);
+		const UVString textUV = QUACKLE_BLANK_MARK == pair.second[0] ? "_" : userVisible(pair.second[0]);
 		ret.setLetterParameter(scoreLetter, Quackle::LetterParameter(scoreLetter,
 																																 textUV,
 																																 textUV /* blank representation */,

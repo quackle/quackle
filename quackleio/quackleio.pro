@@ -1,4 +1,4 @@
-TEMPLATE = lib
+template = lib
 INCLUDEPATH += . ..
 DEPENDPATH += . ..
 VERSION = 0.9

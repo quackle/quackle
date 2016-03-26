@@ -30,6 +30,7 @@ using namespace std;
 #define QUACKLE_EVALUATOR Quackle::DataManager::self()->evaluator()
 #define QUACKLE_PARAMETERS Quackle::DataManager::self()->parameters()
 #define QUACKLE_ALPHABET_PARAMETERS Quackle::DataManager::self()->alphabetParameters()
+#define QUACKLE_SCORING_ALPHABET Quackle::DataManager::self()->scoringAlphabet()
 #define QUACKLE_BOARD_PARAMETERS Quackle::DataManager::self()->boardParameters()
 #define QUACKLE_LEXICON_PARAMETERS Quackle::DataManager::self()->lexiconParameters()
 #define QUACKLE_STRATEGY_PARAMETERS Quackle::DataManager::self()->strategyParameters()
@@ -77,7 +78,8 @@ public:
 
 	AlphabetParameters *alphabetParameters();
 	void setAlphabetParameters(AlphabetParameters *alphabetParameters);
-
+	AlphabetParameters *scoringAlphabet();
+	
 	BoardParameters *boardParameters();
 	void setBoardParameters(BoardParameters *boardParameters);
 
@@ -143,6 +145,7 @@ private:
 	LexiconParameters *m_lexiconParameters;
 	StrategyParameters *m_strategyParameters;
 
+	AlphabetParameters m_scoringAlphabet;
 	PlayerList m_computerPlayers;
 };
 
@@ -169,6 +172,10 @@ inline GameParameters *DataManager::parameters()
 inline AlphabetParameters *DataManager::alphabetParameters()
 {
 	return m_alphabetParameters;
+}
+
+inline AlphabetParameters *DataManager::scoringAlphabet() {
+  return &m_scoringAlphabet;
 }
 
 inline BoardParameters *DataManager::boardParameters()

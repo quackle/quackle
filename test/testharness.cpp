@@ -24,6 +24,7 @@
 #include <limits>
 #include <algorithm>
 
+#include <boardparameters.h>
 #include <bogowinplayer.h>
 #include <computerplayercollection.h>
 #include <resolvent.h>
@@ -35,6 +36,7 @@
 #include <strategyparameters.h>
 #include <enumerator.h>
 #include <reporter.h>
+#include <v2generator.h>
 
 #include <quackleio/dictimplementation.h>
 #include <quackleio/flexiblealphabet.h>
@@ -663,6 +665,71 @@ void TestHarness::selfPlayGames(unsigned int seed, unsigned int reps, bool repor
 		selfPlayGame(i, reports, playability);
 }
 
+namespace {
+
+	bool hasAnyTilesInRow(const Quackle::Board& board, int row) {
+		if (row < 0 || row >= 15) return false;
+		for (int col = 0; col < 15; ++col) {
+			if (board.isNonempty(row, col)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	bool hasAnyTilesInCol(const Quackle::Board& board, int col) {
+		if (col < 0 || col >= 15) return false;
+		for (int row = 0; row < 15; ++row) {
+			if (board.isNonempty(row, col)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	void findPlayableRows(const Quackle::Board& board, vector<int>* rows) {
+    for (int row = 0; row < 15; ++row) {
+			if (hasAnyTilesInRow(board, row)) {
+				rows->push_back(row);
+			}
+		}
+	}
+
+	void findPlayableCols(const Quackle::Board& board, vector<int>* cols) {
+    for (int col = 0; col < 15; ++col) {
+			if (hasAnyTilesInCol(board, col)) {
+				cols->push_back(col);
+			}
+		}
+	}
+
+	UVString squareString(const Quackle::Board& board, int row, int col) {
+		if (board.isNonempty(row, col)) return ".";
+		if (QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) == 2) return "2";
+		if (QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) == 3) return "3";
+		if (QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) == 2) return "-";
+		if (QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) == 3) return "=";
+		return " ";
+	}
+	
+	UVString rowString(const Quackle::Board& board, int row) {
+	  UVStringStream ss;
+		for (int col = 0; col < 15; ++col) {
+			ss << squareString(board, row, col);
+		}
+		return ss.str();
+	}
+
+	UVString colString(const Quackle::Board& board, int row) {
+	  UVStringStream ss;
+		for (int col = 0; col < 15; ++col) {
+			ss << squareString(board, row, col);
+		}
+		return ss.str();		
+	}
+	
+}  // namespace
+
 void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playability)
 {
 	Quackle::Game game;
@@ -710,34 +777,58 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 		const Quackle::Player player(game.currentPosition().currentPlayer());
 
-   		if (!m_quiet) {
-            if (playability) {
-                game.currentPosition().kibitz(100);
-                Quackle::MoveList moves = game.currentPosition().moves();
-                float bestEquity = moves.front().equity - 0.0001f;
-                Quackle::MoveList tops;
-                for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
-                    if ((*it).equity >= bestEquity) {
-                        tops.push_back(*it);
-                    }
-                }
-                int numTops = tops.size();
-                for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
-                    MoveList words = game.currentPosition().allWordsFormedBy(*it);
-                    for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
-                        Rack word = (*it2).prettyTiles();
-                        UVcout << word << " " << numTops << endl;
-                    }
-                }
-                int toPlay = rand() % numTops;
-                //UVcout << "playing move #" << toPlay << endl;
-                game.commitMove(tops[toPlay]);
-            } else {
-                Quackle::Move compMove(game.haveComputerPlay());
-                UVcout << "with " << player.rack() << ", " << player.name()
-                       << " commits to " << compMove << endl;
-            }
-        }
+		if (!m_quiet) {
+			if (playability) {
+				game.currentPosition().kibitz(100);
+				Quackle::MoveList moves = game.currentPosition().moves();
+				float bestEquity = moves.front().equity - 0.0001f;
+				Quackle::MoveList tops;
+				for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
+					if ((*it).equity >= bestEquity) {
+						tops.push_back(*it);
+					}
+				}
+				int numTops = tops.size();
+				for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
+					MoveList words = game.currentPosition().allWordsFormedBy(*it);
+					for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
+						Rack word = (*it2).prettyTiles();
+						UVcout << word << " " << numTops << endl;
+					}
+				}
+				int toPlay = rand() % numTops;
+				//UVcout << "playing move #" << toPlay << endl;
+				game.commitMove(tops[toPlay]);
+			} else {
+				/*
+				Quackle::Rack rackScores =
+					QUACKLE_ALPHABET_PARAMETERS->toScoreLetters(player.rack().tiles());
+				UVString scoreString =
+					QUACKLE_SCORING_ALPHABET->userVisible(rackScores.alphaTiles());
+				//UVcout << "scoreString: " << scoreString << endl;
+				
+				vector<int> playableRows;
+				const Quackle::Board& board = game.currentPosition().board();
+				findPlayableRows(board, &playableRows);
+				for (int row : playableRows) {
+					UVcout << "playable row: [";
+					UVcout << rowString(board, row) << "] + " << scoreString << endl;
+				}
+				vector<int> playableCols;
+				findPlayableCols(board, &playableCols);
+				for (int col : playableCols) {
+					UVcout << "playable col: [";
+					UVcout << colString(board, col) << "] + " << scoreString << endl;
+				}
+				*/
+				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+				v2gen.kibitz();
+				Quackle::Move compMove(game.haveComputerPlay());
+				UVcout << "with " << player.rack() << ", " << player.name()
+							 << " commits to " << compMove << endl;
+				UVcout << game.currentPosition() << endl;
+			}
+		}
 	}
 
 	int secondsElapsed = static_cast<int>(time.elapsed() / 1000);
