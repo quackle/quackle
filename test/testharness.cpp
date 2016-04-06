@@ -37,6 +37,7 @@
 #include <enumerator.h>
 #include <reporter.h>
 #include <v2generator.h>
+#include <primeset.h>
 
 #include <quackleio/dictimplementation.h>
 #include <quackleio/flexiblealphabet.h>
@@ -170,6 +171,8 @@ void TestHarness::executeFromArguments()
 		testReport(true);
 	else if (mode == "enumerate")
 		enumerateAll();
+	else if (mode == "superleaves")
+		superleaves();
 	else if (mode == "staticleaves")
 		staticLeaves(QString("racks"));
 	else if (mode == "randomracks")
@@ -398,6 +401,20 @@ void TestHarness::enumerateAll()
 	E.enumerate(&racks);
 	for (ProbableRackList::iterator it = racks.begin(); it != racks.end(); ++it)
 		UVcout << (*it).rack << " " << (*it).probability << endl;
+}
+
+void TestHarness::superleaves() {
+	ofstream out("leaves", ios::out | ios::binary);
+	for (const auto& pair : QUACKLE_STRATEGY_PARAMETERS->superleaves()) {
+		Rack rack(pair.first);
+		Product product = QUACKLE_PRIMESET->multiplyTiles(rack);
+		//UVcout << "rack: " << rack << " product: " << product
+		//			 << " leave: " << pair.second << endl;
+		out.write(reinterpret_cast<const char*>(&product),
+							sizeof(product));  // key, 8 bytes
+		float leave = pair.second;
+    out.write(reinterpret_cast<const char*>(&leave), sizeof(leave));
+	}
 }
 
 struct PowerRack

@@ -54,6 +54,8 @@ public:
 	// Enumerates all racks using a full bag
 	void enumerateAll();
 
+	void superleaves();
+	
 	// Compute bingo stems ala Baron's MMPR
 	void bingos();
 

@@ -211,8 +211,8 @@ void GaddagFactory::writeV2(const Quackle::AlphabetParameters& alphabet,
 }
 
 void GaddagFactory::writeIndices(const string& fname,
-																	const string& scoring_fname,
-																	int version) {
+																 const string& scoring_fname,
+																 int version) {
 	writeIndex(fname, *m_alphas, &m_root, version);
 	writeIndex(scoring_fname, m_scoring, &m_scoring_root, version);
 }

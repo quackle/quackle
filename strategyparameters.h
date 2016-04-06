@@ -21,6 +21,8 @@
 
 #include <map>
 #include "alphabetparameters.h"
+#include "boardparameters.h"
+#include "primeset.h"
 
 namespace Quackle
 {
@@ -38,7 +40,13 @@ public:
 	double tileWorth(Letter letter) const;
 	double vcPlace(int start, int length, int consbits);
 	double bogowin(int lead, int unseen, int blanks);
-	double superleave(LetterString leave);
+	bool loadPrimeleaves(const string &filename);
+	bool hasPrimeleaves() const;
+	double primeleave(const LetterString& leave) const;
+	double primeleave(Product leave) const;
+	double superleave(const LetterString& leave);
+	typedef map<LetterString, double> SuperLeavesMap;
+	const SuperLeavesMap& superleaves() const {return m_superleaves; }
 	
 protected:
 	bool loadSyn2(const string &filename);
@@ -46,7 +54,6 @@ protected:
 	bool loadVcPlace(const string &filename);
 	bool loadBogowin(const string &filename);
 	bool loadSuperleaves(const string &filename);
-	
 	int mapLetter(Letter letter) const;
 
 	double m_syn2[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE][QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
@@ -56,8 +63,8 @@ protected:
 	static const int m_bogowinArrayWidth = 601;
 	static const int m_bogowinArrayHeight = 94;
 	double m_bogowin[m_bogowinArrayWidth][m_bogowinArrayHeight];
-        typedef map<LetterString, double> SuperLeavesMap;
 	SuperLeavesMap m_superleaves;
+	map<Product, float> m_primeleaves;
 	bool m_initialized;
 };
 
@@ -109,7 +116,7 @@ inline double StrategyParameters::bogowin(int lead, int unseen, int /* blanks */
 	return m_bogowin[lead + 300][unseen];
 }
 
-inline double StrategyParameters::superleave(LetterString leave)
+inline double StrategyParameters::superleave(const LetterString& leave)
 {
 	if (leave.length() == 0)
 		return 0.0;

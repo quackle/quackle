@@ -7,7 +7,6 @@
 #include "quackleio/froggetopt.h"
 #include "quackleio/util.h"
 
-
 using namespace std;
 
 void findSubsetsFrom(unsigned int pos,
@@ -147,8 +146,16 @@ int main(int argc, char **argv) {
 		}
 		UVcout << "Marked " << primesetMap.size() << " racks." << endl;
 	}
+
+	
+	ofstream out(QuackleIO::Util::qstringToString(outputFilename).c_str(),
+							 ios::out | ios::binary);
   for (const auto& pair : primesetMap) {
-		UVcout << "primeset: " << pair.first << " stealMask: " << pair.second << endl;
+		out.write(reinterpret_cast<const char*>(&pair.first),
+							sizeof(pair.first));  // key, 8 bytes
+		out.write(reinterpret_cast<const char*>(&pair.second),
+							sizeof(pair.second)); // value, 2 bytes
+		//UVcout << "primeset: " << pair.first << " stealMask: " << pair.second << endl;
 	}
 	return 0;
 }

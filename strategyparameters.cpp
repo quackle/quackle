@@ -37,7 +37,10 @@ void StrategyParameters::initialize(const string &lexicon)
 	bool hasWorths = loadWorths(DataManager::self()->findDataFile("strategy", lexicon, "worths"));
 	bool hasVcPlace = loadVcPlace(DataManager::self()->findDataFile("strategy", lexicon, "vcplace"));
 	bool hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
-	bool hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves")); 	
+	bool hasSuperleaves = loadPrimeleaves(DataManager::self()->findDataFile("strategy", lexicon, "primeleaves"));
+	if (!hasSuperleaves) {
+		hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves"));
+	}
 	m_initialized = hasSyn2 && hasWorths && hasVcPlace && hasBogowin && hasSuperleaves;
 }
 
@@ -202,6 +205,56 @@ bool StrategyParameters::loadVcPlace(const string &filename)
 
 	file.close();
 	return true;	
+}
+
+bool StrategyParameters::hasPrimeleaves() const {
+	return !m_primeleaves.empty();
+}
+
+
+double StrategyParameters::primeleave(Product leave) const {
+	const auto& it = m_primeleaves.find(leave);
+	if (it == m_primeleaves.end()) {
+		UVcout << "Didn't find leave product " << leave << ", returning 0." << endl;
+		return 0;
+	}
+	//UVcout << "Found leave value: " << it->second << endl;
+	return it->second;
+
+}
+
+double StrategyParameters::primeleave(const LetterString& leave) const {
+	//UVcout << "primeLeave: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << endl;
+	const uint64_t product = QUACKLE_PRIMESET->multiplyTiles(leave);
+	const auto& it = m_primeleaves.find(product);
+	if (it == m_primeleaves.end()) {
+		// UVcout << "Didn't find leave " << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " (" << product << "), returning 0." << endl;
+		return 0;
+	}
+	//UVcout << "Found leave value: " << it->second << endl;
+	return it->second;
+}
+
+bool StrategyParameters::loadPrimeleaves(const string &filename) {
+	m_primeleaves.clear();
+
+	ifstream file(filename.c_str(), ios::in | ios::binary);
+
+	if (!file.is_open())
+	{
+		cerr << "Could not open " << filename
+				 << " to load primeset-keyed superleave heuristic" << endl;
+		return false;
+	}
+  uint64_t product;
+	float leaveValue;
+	while (!file.eof()) {
+		file.read(reinterpret_cast<char*>(&product), sizeof(product));
+		file.read(reinterpret_cast<char*>(&leaveValue), sizeof(leaveValue));
+		m_primeleaves[product] = leaveValue;
+	}
+	UVcout << "Loaded prime leaves!" << endl;
+	return true;
 }
 
 bool StrategyParameters::loadSuperleaves(const string &filename)

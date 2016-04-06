@@ -30,6 +30,7 @@
 #include "gameparameters.h"
 #include "lexiconparameters.h"
 #include "strategyparameters.h"
+#include "primeset.h"
 
 #define QUACKLDEBUG
 
@@ -59,6 +60,7 @@ DataManager::~DataManager()
 	delete m_evaluator;
 	delete m_parameters;
 	delete m_alphabetParameters;
+	delete m_primesetMaker;
 	delete m_boardParameters;
 	delete m_lexiconParameters;
 	delete m_strategyParameters;
@@ -88,6 +90,7 @@ void DataManager::setAlphabetParameters(AlphabetParameters *alphabetParameters)
 	delete m_alphabetParameters;
 	m_alphabetParameters = alphabetParameters;
 	m_scoringAlphabet = m_alphabetParameters->makeScoringAlphabet();
+	m_primesetMaker = new PrimesetMaker(*m_alphabetParameters);
 }
 
 void DataManager::setBoardParameters(BoardParameters *boardParameters)

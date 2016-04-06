@@ -75,6 +75,10 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 	if (!QUACKLE_STRATEGY_PARAMETERS->isInitialized())
 		return 0;
 
+	if (QUACKLE_STRATEGY_PARAMETERS->hasPrimeleaves()) {
+		return QUACKLE_STRATEGY_PARAMETERS->primeleave(leave);
+	}
+	
 	LetterString alphabetized = String::alphabetize(leave);
 	
 	if (QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized))
