@@ -38,6 +38,7 @@
 #include <reporter.h>
 #include <v2generator.h>
 #include <primeset.h>
+#include <anagrammap.h>
 
 #include <quackleio/dictimplementation.h>
 #include <quackleio/flexiblealphabet.h>
@@ -219,6 +220,7 @@ void TestHarness::startUp()
 	UVcout << ".";
 
 	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
+	m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
 
 	UVcout << endl;
 

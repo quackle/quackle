@@ -36,6 +36,7 @@ using namespace std;
 #define QUACKLE_STRATEGY_PARAMETERS Quackle::DataManager::self()->strategyParameters()
 #define QUACKLE_COMPUTER_PLAYERS Quackle::DataManager::self()->computerPlayers()
 #define QUACKLE_PRIMESET Quackle::DataManager::self()->primesetMaker()
+#define QUACKLE_ANAGRAMMAP Quackle::DataManager::self()->anagramMap()
 
 namespace Quackle
 {
@@ -53,6 +54,7 @@ class LexiconParameters;
 class PlayerList;
 class StrategyParameters;
 class PrimesetMaker;
+class AnagramMap;
 
 class DataManager
 {
@@ -82,6 +84,7 @@ public:
 	void setAlphabetParameters(AlphabetParameters *alphabetParameters);
 	AlphabetParameters *scoringAlphabet();
 	PrimesetMaker *primesetMaker();
+	AnagramMap *anagramMap();
 	
 	BoardParameters *boardParameters();
 	void setBoardParameters(BoardParameters *boardParameters);
@@ -148,7 +151,8 @@ private:
 	BoardParameters *m_boardParameters;
 	LexiconParameters *m_lexiconParameters;
 	StrategyParameters *m_strategyParameters;
-
+	AnagramMap *m_anagramMap;
+	
 	AlphabetParameters m_scoringAlphabet;
 	PlayerList m_computerPlayers;
 };
@@ -184,6 +188,10 @@ inline AlphabetParameters *DataManager::scoringAlphabet() {
 
 inline PrimesetMaker *DataManager::primesetMaker() {
 	return m_primesetMaker;
+}
+
+inline AnagramMap *DataManager::anagramMap() {
+	return m_anagramMap;
 }
  
 inline BoardParameters *DataManager::boardParameters()

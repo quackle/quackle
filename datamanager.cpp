@@ -31,6 +31,7 @@
 #include "lexiconparameters.h"
 #include "strategyparameters.h"
 #include "primeset.h"
+#include "anagrammap.h"
 
 #define QUACKLDEBUG
 
@@ -53,6 +54,7 @@ DataManager::DataManager()
 	m_lexiconParameters = new LexiconParameters;
 	m_strategyParameters = new StrategyParameters;
 	m_scoringAlphabet = m_alphabetParameters->makeScoringAlphabet();
+	m_anagramMap = new AnagramMap;
 }
 
 DataManager::~DataManager()
@@ -64,7 +66,8 @@ DataManager::~DataManager()
 	delete m_boardParameters;
 	delete m_lexiconParameters;
 	delete m_strategyParameters;
-
+        delete m_anagramMap;
+	
 	cleanupComputerPlayers();
 }
 
