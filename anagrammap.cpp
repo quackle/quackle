@@ -29,13 +29,12 @@ void AnagramMap::initialize(const string& lexicon) {
 
 namespace {
   void readNTileAnagrams(ifstream* file, NTileAnagrams* anagrams) {
-    char numPlayed;
-    file->read(reinterpret_cast<char*>(&numPlayed), sizeof(numPlayed));
-    //UVcout << "numPlayed: " << static_cast<int>(numPlayed) << endl;
+    file->read(reinterpret_cast<char*>(&(anagrams->numPlayed)),
+	       sizeof(anagrams->numPlayed));
     for (int i = 0; i < 6; ++i) {
       int length = i + 1;
       int mask = 1 << length;
-      if ((numPlayed & mask) != 0) {
+      if ((anagrams->numPlayed & mask) != 0) {
 	file->read(reinterpret_cast<char*>(&(anagrams->bestLeaves[i])),
 		   sizeof(anagrams->bestLeaves[i]));
 	float floatLeave =  anagrams->bestLeaves[i] / 256.0;
@@ -88,4 +87,11 @@ void AnagramMap::loadAnagrams(const string& filename) {
     //return;
   }
   UVcout << "found " << m_map.size() << " key-value pairs"  << endl;
+}
+
+const RackAnagrams* AnagramMap::lookUp(const Rack& rack) {
+  Product product = QUACKLE_PRIMESET->multiplyTiles(rack);
+  const auto it = m_map.find(product);
+  if (it == m_map.end()) return NULL;
+  return &(it->second);
 }

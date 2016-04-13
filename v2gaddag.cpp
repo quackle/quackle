@@ -106,6 +106,12 @@ const unsigned char* V2Gaddag::nextChild(const unsigned char* bitsetData,
 	*/
 }
 
+uint32_t V2Gaddag::intersection(const unsigned char* bitsetData,
+													 uint32_t rackBits) const {
+	const uint32_t& bitset = *(reinterpret_cast<const uint32_t*>(bitsetData));
+	return (bitset & rackBits); 
+}
+
 bool V2Gaddag::hasAnyChild(const unsigned char* bitsetData,
 													 uint32_t rackBits) const {
 	const uint32_t& bitset = *(reinterpret_cast<const uint32_t*>(bitsetData));
@@ -124,6 +130,10 @@ int V2Gaddag::numChildren(const unsigned char* bitsetData) const {
 	//UVcout << "numChildren()..." << endl;
 	std::bitset<32> bits(*(reinterpret_cast<const uint32_t*>(bitsetData)));
 	return bits.count();
+}
+
+const unsigned char* V2Gaddag::changeDirection(const unsigned char* bitsetData) const {
+	return child(bitsetData, QUACKLE_GADDAG_SEPARATOR);
 }
 
 const unsigned char* V2Gaddag::child(const unsigned char* bitsetData,

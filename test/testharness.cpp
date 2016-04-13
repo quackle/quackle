@@ -841,11 +841,12 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				}
 				*/
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
-				v2gen.kibitz();
-				Quackle::Move compMove(game.haveComputerPlay());
-				UVcout << "with " << player.rack() << ", " << player.name()
-							 << " commits to " << compMove << endl;
 				UVcout << game.currentPosition() << endl;
+				v2gen.kibitz();
+				break;
+				//Quackle::Move compMove(game.haveComputerPlay());
+				// UVcout << "with " << player.rack() << ", " << player.name()
+				// 			 << " commits to " << compMove << endl;
 			}
 		}
 	}

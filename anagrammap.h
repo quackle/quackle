@@ -20,10 +20,11 @@
 #define QUACKLE_ANAGRAMMAP_H
 
 #include "primeset.h"
+#include "rack.h"
 
 namespace Quackle {
   struct NTileAnagrams {
-    char numPlayed;
+    uint8_t numPlayed;
     // bestLeaves[0..5] map to {1, 2, 3, 4, 5, 6}
     int16_t bestLeaves[6]; // static_cast<int>(leave*256)
   };
@@ -42,6 +43,7 @@ namespace Quackle {
   class AnagramMap {
   public:
     void initialize(const string& lexicon);
+    const RackAnagrams* lookUp(const Rack& rack);
   private:
     void loadAnagrams(const string& filename);
     map<Product, RackAnagrams> m_map;

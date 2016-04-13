@@ -20,6 +20,9 @@
 #include <iostream>
 #include <math.h>
 
+#include <time.h>
+#include <sys/time.h>
+
 #include "datamanager.h"
 #include "evaluator.h"
 #include "generator.h"
@@ -1645,6 +1648,9 @@ Move Generator::exchange()
 
 Move Generator::findstaticbest(bool canExchange)
 {
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
+
 	best = Move::createPassMove();
 	m_moveList.clear();
 
@@ -1677,6 +1683,12 @@ Move Generator::findstaticbest(bool canExchange)
 
 	if (m_moveList.empty())
 		m_moveList.push_back(best);
+
+	gettimeofday(&end, NULL);
+
+	// UVcout << "Time in findStaticBest() was "
+	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
 	return best;
 }
