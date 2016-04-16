@@ -213,18 +213,17 @@ void TestHarness::startUp()
 
 	m_dataManager.setBoardParameters(new ScrabbleBoard());
 
-	m_dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
-	UVcout << ".";
+	//m_dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
+	//UVcout << ".";
 
-   	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
-	UVcout << ".";
+	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
 
 	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
-	m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
+	//m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
 
 	UVcout << endl;
 
-	m_gamesDir = QString("games_PLAYERNAME_%1").arg(QDateTime::currentDateTime().toString("dd.MM_hh.mm.ss"));
+	//m_gamesDir = QString("games_PLAYERNAME_%1").arg(QDateTime::currentDateTime().toString("dd.MM_hh.mm.ss"));
 }
 
 void TestHarness::testFromFile(const QString &file)
@@ -866,15 +865,16 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	Quackle::Reporter::reportGame(game, &playah, &report);
 	if (!m_quiet) { UVcout << report << endl; }
 
-	QString gamesDir = m_gamesDir;
-	gamesDir.replace("PLAYERNAME", QuackleIO::Util::uvStringToQString(m_computerPlayerToTest->name()));
-	gamesDir.replace(" ", "_");
-	QDir::current().mkdir(gamesDir);
+	//QString gamesDir = m_gamesDir;
+	//gamesDir.replace("PLAYERNAME", QuackleIO::Util::uvStringToQString(m_computerPlayerToTest->name()));
+	//gamesDir.replace(" ", "_");
+	//QDir::current().mkdir(gamesDir);
 
 	QString joinedCompyName = QuackleIO::Util::uvStringToQString(m_computerPlayer2ToTest->name());
 	joinedCompyName.replace(" ", "_");
-	QFile outFile(QString("%1/%2-game-%3.gcg").arg(gamesDir).arg(joinedCompyName).arg(gameNumber));
+	//QFile outFile(QString("%1/%2-game-%3.gcg").arg(gamesDir).arg(joinedCompyName).arg(gameNumber));
 
+	/*
 	if (!outFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		UVcout << "Could not open gcg output file" << endl;
@@ -898,6 +898,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 	outFile.close();
 	outFileReport.close();
+	*/
 }
 
 static void dumpGaddag(const GaddagNode *node, const LetterString &prefix)

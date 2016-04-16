@@ -109,11 +109,13 @@ void V2Generator::findMovesAt(const Spot& spot) {
 		if (m_counts[letter] > 0) rackBits |= (1 << letter);
 	}
 	if (!spot.canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
-		findBlankless(spot, spot.anchorRow, spot.anchorCol, 0, 0, -1, rackBits,
-									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
+		findBlankless(spot, 0, 0, 0, -1, rackBits,
+			      NULL);
+									// QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
 	} else {
-		findBlankable(spot, spot.anchorRow, spot.anchorCol, 0, 0, /*-1,*/ rackBits,
-									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
+		//		findBlankable(spot, spot.anchorRow, spot.anchorCol, 0, 0, /*-1,*/ rackBits,
+		//	      NULL);
+									// QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
 	}
 }
 
@@ -131,6 +133,9 @@ namespace {
 
 int V2Generator::scorePlay(const Spot& spot, int behind, int ahead) {
 	int mainScore = spot.throughScore;
+#ifdef DEBUG_V2GEN			
+	UVcout << "throughScore: " << spot.throughScore << endl;
+#endif
 	int wordMultiplier = 1;
 	int row = spot.anchorRow;
 	int col = spot.anchorCol;
@@ -146,6 +151,18 @@ int V2Generator::scorePlay(const Spot& spot, int behind, int ahead) {
 		pos = row;
 	}
 	for (; pos < anchorPos; ++pos) {
+		assert(pos >= 0);
+		assert(pos < 15);
+#ifdef DEBUG_V2GEN			
+		UVcout << "pos: " << pos << endl;
+		UVcout << "m_placed[pos]: " << static_cast<int>(m_placed[pos]) << endl;
+#endif
+
+#ifdef DEBUG_V2GEN			
+		UVcout << "QUACKLE_BOARD_PARAMETERS->wordMultiplier(" << row << ", "
+					 << col << "): "
+					 << QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) << endl;
+#endif
 		wordMultiplier *= QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 		if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(m_placed[pos])) {
 			int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
@@ -155,30 +172,42 @@ int V2Generator::scorePlay(const Spot& spot, int behind, int ahead) {
 			mainScore += letterMultiplier *
 				QUACKLE_ALPHABET_PARAMETERS->score(m_placed[pos]);
 		}
-		if (spot.horizontal) ++col; else ++row;
+		//UVcout << "col: " << col << ", row: " << row << endl;
+		//		if (spot.horizontal) ++col; else ++row;
+		col++;
+		//UVcout << "(incremented) col: " << col << ", row: " << row << endl;		
 	}
-	for (int i = 0; i < ahead;) {
-		if (m_placed[pos] != QUACKLE_NULL_MARK) {
-			wordMultiplier *= QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
-			if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(m_placed[pos])) {
-				int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+	for (int i = 0; i < ahead; ++i) {
+		//FIXME: needs to handle playThrough
+		//if (m_placed[pos] != QUACKLE_NULL_MARK) {
 #ifdef DEBUG_V2GEN			
-				UVcout << "letterMultiplier: " << letterMultiplier << endl;
+		UVcout << "QUACKLE_BOARD_PARAMETERS->wordMultiplier(" << row << " , "
+					 << col << "): "
+					 << QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) << endl;
 #endif
-				mainScore += letterMultiplier *
-					QUACKLE_ALPHABET_PARAMETERS->score(m_placed[pos]);
-			}
-			++i;
+		wordMultiplier *= QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
+		//UVcout << "pos: " << pos << " m_placed[pos]: " << pos << endl;
+		assert(QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(m_placed[pos]));
+		if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(m_placed[pos])) {
+			int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+#ifdef DEBUG_V2GEN			
+			UVcout << "letterMultiplier: " << letterMultiplier << endl;
+#endif
+			mainScore += letterMultiplier *
+				QUACKLE_ALPHABET_PARAMETERS->score(m_placed[pos]);
 		}
 		++pos;
-		if (spot.horizontal) ++col; else ++row;
+		//UVcout << "col: " << col << ", row: " << row << endl;
+		//if (spot.horizontal) ++col; else ++row;
+		col++;
+		//UVcout << "(incremented) col: " << col << ", row: " << row << endl;		
 	}
 #ifdef DEBUG_V2GEN			
 	UVcout << "wordMultiplier: " << wordMultiplier << endl;
 #endif	
 	mainScore *= wordMultiplier;
 	// TODO: add scores for hooks!
-	if (ahead + behind == QUACKLE_PARAMETERS->rackSize()) {
+	if (ahead + 1 + behind == QUACKLE_PARAMETERS->rackSize()) {
 		mainScore += QUACKLE_PARAMETERS->bingoBonus();
 	}
 	return mainScore;
@@ -193,17 +222,105 @@ double V2Generator::getLeave() const {
 	}
 	return QUACKLE_STRATEGY_PARAMETERS->primeleave(product);
 }
- 
+
+void V2Generator::findBlankless(const Spot& spot, int delta,
+																int ahead, int behind, int velocity,
+																uint32_t rackBits, const unsigned char* node) {
+#ifdef DEBUG_V2GEN
+	UVcout << "findBlankless(delta: " << delta
+				 << ", ahead: " << ahead << ", behind: " << behind
+				 << ", velocity: " << velocity << ")" << endl;
+#endif
+	// FIXME: this depends on type of anchor, hook vs through.
+	const int numPlaced = 1 + ahead + behind;
+	int col = spot.anchorCol;
+	int row = spot.anchorRow;
+	int pos;
+	if (spot.horizontal) {
+		col += delta;
+		pos = col;
+	} else {
+		row += delta;
+		pos = row;
+	}
+	assert(col >= 0);
+	assert(col < 15);
+	assert(row >= 0);
+	assert(row < 15);
+
+	//UVcout << "counts: " << counts2string() << endl;
+	Letter minLetter = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
+	//int childIndex = 0;
+	for (;;) {
+		Letter foundLetter = QUACKLE_NULL_MARK;
+		for (Letter letter = minLetter;
+				 letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter) {
+			if (m_counts[letter] > 0) {
+				foundLetter = letter;
+				break;
+			}
+		}
+		if (foundLetter == QUACKLE_NULL_MARK) {
+			break;
+		}
+		assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
+		assert(foundLetter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
+#ifdef DEBUG_V2GEN		
+		UVcout << "placing " << static_cast<int>(foundLetter)
+					 << " at m_placed[" << pos << "]" << endl;
+#endif
+		m_placed[pos] = foundLetter;
+		
+		assert(m_counts[foundLetter] > 0);
+		m_counts[foundLetter]--;
+		assert(m_counts[foundLetter] >= 0);
+
+		// FIXME: all this assumes horizontal
+		// FIXME: 1 is minimum if playing "through" tiles
+		if (numPlaced >= 2) {
+			int score = scorePlay(spot, behind, ahead);
+			LetterString word;
+			int startCol = spot.anchorCol - behind;
+			for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
+				assert(i >= 0);
+				assert(i < 15);
+				//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
+				word += m_placed[i];
+			}
+			Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
+			move.score = score;
+			move.equity = score; // FIXME
+			if (move.equity > m_best.equity) {
+				m_best = move;
+			}
+		}
+		// FIXME: all this assumes horizontal
+		if (velocity < 0) {
+			findBlankless(spot, delta - 1, 0, behind + 1, -1, rackBits /* FIXME */,
+										node);
+			findBlankless(spot, 1, 1, behind, 1, rackBits /* FIXME */,
+										node);
+
+		} else {
+			findBlankless(spot, delta + 1, ahead + 1, behind, 1, rackBits /* FIXME */,
+										node);
+		}
+
+		m_counts[foundLetter]++;
+		minLetter = foundLetter + 1;
+	}
+}
+
 // "behind" should come before "ahead" in the argument list
-void V2Generator::findBlankless(const Spot& spot, int row, int col,
+void V2Generator::findBlanklessOld(const Spot& spot, int row, int col,
 																int ahead, int behind, int velocity,
 																uint32_t rackBits, const unsigned char* node) {
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 
-#ifdef DEBUG_V2GEN
 	UVcout << "findBlankless(row: " << row << ", col: " << col
 				 << ", ahead: " << ahead << ", behind: " << behind
-				 << ", velocity: " << velocity << endl;
+				 << ", velocity: " << velocity << "...)" << endl;
+#ifdef DEBUG_V2GEN	
 	// This: only useful for debugging.
 	UVcout << "rackBits: " << debugLetterMask(rackBits) << endl;
 	const uint32_t rackChildren = gaddag.intersection(node, rackBits);
@@ -230,14 +347,23 @@ void V2Generator::findBlankless(const Spot& spot, int row, int col,
 		UVcout << "foundLetter: " << static_cast<int>(foundLetter) << endl;
 		UVcout << "childIndex: " << childIndex << endl;
 #endif
+		assert(col >= 0);
+		assert(col < 15);
+		assert(row >= 0);
+		assert(row < 15);
+		assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
+		assert(foundLetter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
 		m_placed[spot.horizontal ? col : row] = foundLetter;
 
-#ifdef DEBUG_V2GEN						
+		#ifdef DEBUG_V2GEN						
 		UVcout << "placing letter "
 					 << QUACKLE_ALPHABET_PARAMETERS->userVisible(foundLetter)
 		       << " at position " << (spot.horizontal ? col : row) << endl;
-#endif
+		#endif
+		assert(m_counts[foundLetter] > 0);
 		m_counts[foundLetter]--;
+		assert(m_counts[foundLetter] >= 0);
+		
 		uint32_t foundLetterMask = 1 << foundLetter;
 		if (m_counts[foundLetter] == 0) {
 			rackBits &= ~foundLetterMask;
@@ -250,41 +376,58 @@ void V2Generator::findBlankless(const Spot& spot, int row, int col,
 			double equity = score + leave;
 			if (equity >= m_best.equity) {
 				int startCol = spot.anchorCol - behind;
+				assert(startCol >= 0);
 				LetterString word;
 #ifdef DEBUG_V2GEN						
 				UVcout << "Found move: 8" << (char)('A' + startCol) << " ";
 #endif
 				for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
+					assert(i >= 0);
+					assert(i < 15);
+					//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
 					word += m_placed[i];
 #ifdef DEBUG_V2GEN						
 					UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_placed[i]);
 #endif						
 				}
-#ifdef DEBUG_V2GEN						
+				//#ifdef DEBUG_V2GEN						
 				UVcout << " score: " << score << " equity: " << equity << endl;
-#endif
+				//#endif
 				Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
 				move.score = score;
         move.equity = equity;
-#ifdef DEBUG_V2GEN						
+				//#ifdef DEBUG_V2GEN						
 				UVcout << "New best Move: " << move << endl;
-#endif
+				//#endif
 				m_best = move;
 			}
 		}
+		assert(col >= 0);
+		assert(col < 15);
 		const unsigned char* newNode = gaddag.followIndex(child);
 		if (newNode != NULL) {
 			int newRow = row;
 			int newCol = col;
+			assert(newCol >= 0);
+			assert(newCol < 15);
 			if (velocity < 0) {
 				if (behind < spot.maxTilesBehind) {
 					if (spot.horizontal) {
+						assert(newCol > 0);
+						assert(newCol < 15);
 						--newCol;
+#ifdef DEBUG_V2GEN											
+						UVcout << "still <-- newCol: " << newCol << endl;
+#endif
 					} else {
 						--newRow;
 					}
+					assert(newCol >= 0);
+					assert(newCol < 15);
+					/*
 					findBlankless(spot, newRow, newCol, ahead, behind + 1, velocity,
 												rackBits, newNode);
+					*/
 				} else {
 #ifdef DEBUG_V2GEN											
 					UVcout << "Out of room behind..." << endl;
@@ -299,11 +442,16 @@ void V2Generator::findBlankless(const Spot& spot, int row, int col,
 							// Also need to consume "playedThrough" letters here...
 							if (spot.horizontal) {
 								++newCol;
+#ifdef DEBUG_V2GEN											
+								UVcout << "changing --> newCol: " << newCol << endl;
+#endif
 							} else {
 								++newRow;
 							}
+							/*
 							findBlankless(spot, newRow, newCol, ahead + 1, behind, -velocity,
 														rackBits, newNode);
+							*/
 						}
 					}
 				}
@@ -311,11 +459,16 @@ void V2Generator::findBlankless(const Spot& spot, int row, int col,
 				if (ahead < spot.maxTilesAhead) {
 					if (spot.horizontal) {
 						++newCol;
+#ifdef DEBUG_V2GEN											
+								UVcout << "still --> newCol: " << newCol << endl;
+#endif
 					} else {
 						++newRow;
 					}
+					/*
 					findBlankless(spot, newRow, newCol, ahead + 1, behind, velocity,
 												rackBits, newNode);
+					*/
 				} else {
 #ifdef DEBUG_V2GEN																
 					UVcout << "Out of room ahead..." << endl;
@@ -442,7 +595,26 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 		}
 	}
 	const int numTiles = rack().size();
+
 	const int anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
+	Spot spot;
+	spot.anchorRow = anchorRow;
+	spot.anchorCol = QUACKLE_BOARD_PARAMETERS->startColumn();
+	spot.canUseBlank = true;
+	spot.horizontal = true;
+	spot.throughScore = 0;
+	spot.maxTilesBehind = numTiles - 1;
+	spot.minTilesAhead = 1;
+	spot.maxTilesAhead = numTiles;
+	scoreSpot(&spot);
+	if (spot.canMakeAnyWord) spots->push_back(spot);
+	if (rackHasBlank) {
+		spot.canUseBlank = false;
+		scoreSpot(&spot);
+		if (spot.canMakeAnyWord) spots->push_back(spot);
+	}
+
+	/*
 	const int firstCol =
 		QUACKLE_BOARD_PARAMETERS->startColumn() - (numTiles - 1);
 	const int lastCol = QUACKLE_BOARD_PARAMETERS->startColumn();
@@ -466,7 +638,8 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 			scoreSpot(&spot);
 			if (spot.canMakeAnyWord) spots->push_back(spot);
 		}
-	}
+		}*/
+	
 }
 
 void V2Generator::setUpCounts(const LetterString &letters) {

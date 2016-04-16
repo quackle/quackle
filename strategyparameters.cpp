@@ -36,7 +36,8 @@ void StrategyParameters::initialize(const string &lexicon)
 	bool hasSyn2 = loadSyn2(DataManager::self()->findDataFile("strategy", lexicon, "syn2"));
 	bool hasWorths = loadWorths(DataManager::self()->findDataFile("strategy", lexicon, "worths"));
 	bool hasVcPlace = loadVcPlace(DataManager::self()->findDataFile("strategy", lexicon, "vcplace"));
-	bool hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
+	//bool hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
+	bool hasBogowin = false;
 	bool hasSuperleaves = loadPrimeleaves(DataManager::self()->findDataFile("strategy", lexicon, "primeleaves"));
 	if (!hasSuperleaves) {
 		hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves"));

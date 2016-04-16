@@ -49,7 +49,10 @@ namespace Quackle {
     void scoreSpot(Spot* spot);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void findMovesAt(const Spot& spot);
-    void findBlankless(const Spot& spot, int row, int col,
+    void findBlankless(const Spot& spot, int delta,
+		       int ahead, int behind, int velocity, uint32_t rackBits,
+		       const unsigned char* node);
+    void findBlanklessOld(const Spot& spot, int row, int col,
 		       int ahead, int behind, int velocity, uint32_t rackBits,
 		       const unsigned char* node);
     void findBlankable(const Spot& spot, int row, int col,
