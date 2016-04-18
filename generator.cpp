@@ -1686,9 +1686,9 @@ Move Generator::findstaticbest(bool canExchange)
 
 	gettimeofday(&end, NULL);
 
-	// UVcout << "Time in findStaticBest() was "
-	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
-	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+	UVcout << "Time in findStaticBest() was "
+		   << ((end.tv_sec * 1000000 + end.tv_usec)
+			   - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
 	return best;
 }

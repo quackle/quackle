@@ -51,7 +51,7 @@ namespace Quackle {
     void findMovesAt(const Spot& spot);
     void findBlankless(const Spot& spot, int delta,
 		       int ahead, int behind, int velocity, uint32_t rackBits,
-		       const unsigned char* node);
+		       int wordMultiplier, const unsigned char* node);
     void findBlanklessOld(const Spot& spot, int row, int col,
 		       int ahead, int behind, int velocity, uint32_t rackBits,
 		       const unsigned char* node);
@@ -63,6 +63,7 @@ namespace Quackle {
     Move v2generate();
     void setUpCounts(const LetterString &letters);
 
+    int m_mainWordScore;
     char m_counts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     MoveList m_moveList;

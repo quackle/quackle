@@ -782,9 +782,12 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVcout << game.currentPosition() << endl;
 				v2gen.kibitz();
 				break;
-				//Quackle::Move compMove(game.haveComputerPlay());
-				// UVcout << "with " << player.rack() << ", " << player.name()
-				// 			 << " commits to " << compMove << endl;
+				/*
+				Quackle::Move compMove(game.haveComputerPlay());
+				UVcout << "with " << player.rack() << ", " << player.name()
+					   << " commits to " << compMove << endl;
+				if (i >= 10) break;
+				*/
 			}
 		}
 	}

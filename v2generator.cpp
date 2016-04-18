@@ -109,7 +109,8 @@ void V2Generator::findMovesAt(const Spot& spot) {
 		if (m_counts[letter] > 0) rackBits |= (1 << letter);
 	}
 	if (!spot.canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
-		findBlankless(spot, 0, 0, 0, -1, rackBits,
+		m_mainWordScore = spot.throughScore;
+		findBlankless(spot, 0, 0, 0, -1, rackBits, 1,
 									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
 	} else {
 		//		findBlankable(spot, spot.anchorRow, spot.anchorCol, 0, 0, /*-1,*/ rackBits,
@@ -224,7 +225,8 @@ double V2Generator::getLeave() const {
 
 void V2Generator::findBlankless(const Spot& spot, int delta,
 																int ahead, int behind, int velocity,
-																uint32_t rackBits, const unsigned char* node) {
+																uint32_t rackBits, int wordMultiplier,
+																const unsigned char* node) {
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 
 #ifdef DEBUG_V2GEN
@@ -251,6 +253,9 @@ void V2Generator::findBlankless(const Spot& spot, int delta,
 
 	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
 	int childIndex = 0;
+	int newWordMultiplier = wordMultiplier *
+		QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
+	int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
 	for (;;) {
 #ifdef DEBUG_V2GEN
 		UVcout << "counts: " << counts2string() << endl;
@@ -266,7 +271,9 @@ void V2Generator::findBlankless(const Spot& spot, int delta,
 		//assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
 		//assert(foundLetter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
 		m_placed[pos] = foundLetter;
-
+		const int letterScore = QUACKLE_ALPHABET_PARAMETERS->score(foundLetter);
+		const int tileMainScore = letterScore * letterMultiplier;
+    m_mainWordScore += tileMainScore;
 #ifdef DEBUG_V2GEN		
 		UVcout << "placing " << QUACKLE_ALPHABET_PARAMETERS->userVisible(foundLetter)
 					 << " at m_placed[" << pos << "]" << endl;
@@ -293,19 +300,29 @@ void V2Generator::findBlankless(const Spot& spot, int delta,
 		// FIXME: all this assumes horizontal
 		// Test it by making the empty-board spot vertie!
 		if (gaddag.completesWord(child)) {
-			int score = scorePlay(spot, behind, ahead);
-			LetterString word;
-			int startCol = spot.anchorCol - behind;
-			for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
-				//assert(i >= 0);
-				//assert(i < 15);
-				//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
-				word += m_placed[i];
+			//struct timeval start, end;
+			//gettimeofday(&start, NULL);
+			//int score = scorePlay(spot, behind, ahead);
+			int score = m_mainWordScore * newWordMultiplier;
+			if (numPlaced == QUACKLE_PARAMETERS->rackSize()) {
+				score += QUACKLE_PARAMETERS->bingoBonus();
 			}
-			Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
-			move.score = score;
-			move.equity = score; // FIXME
-			if (move.equity > m_best.equity) {
+			//gettimeofday(&end, NULL);
+			// UVcout << "Time scoring play was "
+			// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+			// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+			if (score > m_best.equity) { // FIXME
+				LetterString word;
+				int startCol = spot.anchorCol - behind;
+				for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
+					//assert(i >= 0);
+					//assert(i < 15);
+					//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
+					word += m_placed[i];
+				}
+				Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
+				move.score = score;
+				move.equity = score; // FIXME
 				m_best = move;
 			}
 		}
@@ -315,7 +332,7 @@ void V2Generator::findBlankless(const Spot& spot, int delta,
 			// FIXME: all this assumes horizontal
 			if (velocity < 0) {
 				findBlankless(spot, delta - 1, 0, behind + 1, -1, rackBits,
-											newNode);
+											newWordMultiplier, newNode);
 #ifdef V2GEN
 				UVcout << "changing direction..." << endl;
 #endif
@@ -326,189 +343,17 @@ void V2Generator::findBlankless(const Spot& spot, int delta,
 					// UVcout << "changeChild's newNode: "
 					// 			 << reinterpret_cast<uint64_t>(newNode) << endl;
 					if (newNode != NULL) { 
-						findBlankless(spot, 1, 1, behind, 1, rackBits, newNode);
+						findBlankless(spot, 1, 1, behind, 1, rackBits,
+													newWordMultiplier, newNode);
 					}
 				}
 			} else {
-				findBlankless(spot, delta + 1, ahead + 1, behind, 1, rackBits, newNode);
+				findBlankless(spot, delta + 1, ahead + 1, behind, 1, rackBits,
+											newWordMultiplier, newNode);
 			}
 		}
-		
-		m_counts[foundLetter]++;
-		rackBits |= foundLetterMask;
-		minLetter = foundLetter + 1;
-		++childIndex;
-	}
-}
 
-// "behind" should come before "ahead" in the argument list
-void V2Generator::findBlanklessOld(const Spot& spot, int row, int col,
-																int ahead, int behind, int velocity,
-																uint32_t rackBits, const unsigned char* node) {
-	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
-
-	UVcout << "findBlankless(row: " << row << ", col: " << col
-				 << ", ahead: " << ahead << ", behind: " << behind
-				 << ", velocity: " << velocity << "...)" << endl;
-#ifdef DEBUG_V2GEN	
-	// This: only useful for debugging.
-	UVcout << "rackBits: " << debugLetterMask(rackBits) << endl;
-	const uint32_t rackChildren = gaddag.intersection(node, rackBits);
-	UVcout << "rackChildren: " << debugLetterMask(rackChildren) << endl;
-#endif
-
-	// Now do it with nextRackChild(...)...
-	Letter minLetter = 0;
-	int childIndex = 0;
-	for (;;) {
-		Quackle::Letter foundLetter;
-		const unsigned char* child = gaddag.nextRackChild(node,
-																											minLetter,
-																											rackBits,
-																											&childIndex,
-																											&foundLetter);
-		if (child == NULL) {
-#ifdef DEBUG_V2GEN						
-			UVcout << "child is NULL" << endl;
-#endif			
-			return;
-		}
-#ifdef DEBUG_V2GEN						
-		UVcout << "foundLetter: " << static_cast<int>(foundLetter) << endl;
-		UVcout << "childIndex: " << childIndex << endl;
-#endif
-		assert(col >= 0);
-		assert(col < 15);
-		assert(row >= 0);
-		assert(row < 15);
-		assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
-		assert(foundLetter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
-		m_placed[spot.horizontal ? col : row] = foundLetter;
-
-		#ifdef DEBUG_V2GEN						
-		UVcout << "placing letter "
-					 << QUACKLE_ALPHABET_PARAMETERS->userVisible(foundLetter)
-		       << " at position " << (spot.horizontal ? col : row) << endl;
-		#endif
-		assert(m_counts[foundLetter] > 0);
-		m_counts[foundLetter]--;
-		assert(m_counts[foundLetter] >= 0);
-		
-		uint32_t foundLetterMask = 1 << foundLetter;
-		if (m_counts[foundLetter] == 0) {
-			rackBits &= ~foundLetterMask;
-		}
-		if (gaddag.completesWord(child) &&
-				(ahead + 1 >= spot.minTilesAhead)) {
-			// process move;
-			int score = scorePlay(spot, behind, ahead + 1);
-			double leave = getLeave();
-			double equity = score + leave;
-			if (equity >= m_best.equity) {
-				int startCol = spot.anchorCol - behind;
-				assert(startCol >= 0);
-				LetterString word;
-#ifdef DEBUG_V2GEN						
-				UVcout << "Found move: 8" << (char)('A' + startCol) << " ";
-#endif
-				for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
-					assert(i >= 0);
-					assert(i < 15);
-					//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
-					word += m_placed[i];
-#ifdef DEBUG_V2GEN						
-					UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_placed[i]);
-#endif						
-				}
-				//#ifdef DEBUG_V2GEN						
-				UVcout << " score: " << score << " equity: " << equity << endl;
-				//#endif
-				Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
-				move.score = score;
-        move.equity = equity;
-				//#ifdef DEBUG_V2GEN						
-				UVcout << "New best Move: " << move << endl;
-				//#endif
-				m_best = move;
-			}
-		}
-		assert(col >= 0);
-		assert(col < 15);
-		const unsigned char* newNode = gaddag.followIndex(child);
-		if (newNode != NULL) {
-			int newRow = row;
-			int newCol = col;
-			assert(newCol >= 0);
-			assert(newCol < 15);
-			if (velocity < 0) {
-				if (behind < spot.maxTilesBehind) {
-					if (spot.horizontal) {
-						assert(newCol > 0);
-						assert(newCol < 15);
-						--newCol;
-#ifdef DEBUG_V2GEN											
-						UVcout << "still <-- newCol: " << newCol << endl;
-#endif
-					} else {
-						--newRow;
-					}
-					assert(newCol >= 0);
-					assert(newCol < 15);
-					/*
-					findBlankless(spot, newRow, newCol, ahead, behind + 1, velocity,
-												rackBits, newNode);
-					*/
-				} else {
-#ifdef DEBUG_V2GEN											
-					UVcout << "Out of room behind..." << endl;
-#endif
-					const unsigned char* changeChild = gaddag.changeDirection(newNode);
-          if (changeChild != NULL) {
-						newNode = gaddag.followIndex(changeChild);
-						if (newNode != NULL) {
-#ifdef DEBUG_V2GEN											
-							UVcout << "but can change direction!" << endl;
-#endif
-							// Also need to consume "playedThrough" letters here...
-							if (spot.horizontal) {
-								++newCol;
-#ifdef DEBUG_V2GEN											
-								UVcout << "changing --> newCol: " << newCol << endl;
-#endif
-							} else {
-								++newRow;
-							}
-							/*
-							findBlankless(spot, newRow, newCol, ahead + 1, behind, -velocity,
-														rackBits, newNode);
-							*/
-						}
-					}
-				}
-			} else {
-				if (ahead < spot.maxTilesAhead) {
-					if (spot.horizontal) {
-						++newCol;
-#ifdef DEBUG_V2GEN											
-								UVcout << "still --> newCol: " << newCol << endl;
-#endif
-					} else {
-						++newRow;
-					}
-					/*
-					findBlankless(spot, newRow, newCol, ahead + 1, behind, velocity,
-												rackBits, newNode);
-					*/
-				} else {
-#ifdef DEBUG_V2GEN																
-					UVcout << "Out of room ahead..." << endl;
-#endif
-				}
-			}
-		}
-		// Maybe not needed eventually?
-		m_placed[spot.horizontal ? col : row] = QUACKLE_NULL_MARK;
-		
+		m_mainWordScore -= tileMainScore;
 		m_counts[foundLetter]++;
 		rackBits |= foundLetterMask;
 		minLetter = foundLetter + 1;
