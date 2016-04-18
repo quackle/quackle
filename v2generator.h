@@ -49,15 +49,29 @@ namespace Quackle {
     void scoreSpot(Spot* spot);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void findMovesAt(const Spot& spot);
+
+    // returns true if a letter at or after minLetter alphabetically exists
+    // at this node, updates childIndex (because it may skip over children that
+    // for which tiles aren't in the rack) foundLetter, child
+    bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
+		    Letter minLetter, int* childIndex, Letter* foundLetter,
+		    const unsigned char** child) const;
+    
+    int scoreLetter(int pos, Letter letter, int letterMultiplier);
+    
+    void debugPlaced(const Spot& spot, int behind, int ahead) const;
+    void useLetter(Letter letter, uint32_t* foundLetterMask);
+    void unuseLetter(Letter letter, uint32_t foundLetterMask);
+    void maybeRecordMove(const Spot& spot, int wordMultiplier,
+			 int behind, int ahead, int numPlaced);
+    void getSquare(const Spot& spot, int delta,
+		   int* row, int* col, int* pos) const;
+    void findMoreBlankless(const Spot& spot, int delta, int ahead,
+			   int behind, int velocity, int wordMultiplier,
+			   const V2Gaddag& gaddag, const unsigned char* node);
     void findBlankless(const Spot& spot, int delta,
-		       int ahead, int behind, int velocity, uint32_t rackBits,
+		       int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
-    void findBlanklessOld(const Spot& spot, int row, int col,
-		       int ahead, int behind, int velocity, uint32_t rackBits,
-		       const unsigned char* node);
-    void findBlankable(const Spot& spot, int row, int col,
-		       int ahead, int behind, uint32_t rackBits,
-		       const unsigned char* node);    
     bool couldMakeWord(const Spot& spot, int length) const;
     float bestLeave(const Spot& spot, int length) const;
     Move v2generate();
@@ -65,12 +79,13 @@ namespace Quackle {
 
     int m_mainWordScore;
     char m_counts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
+    uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     MoveList m_moveList;
     Move m_best;
 
     // debug stuff
-    UVString counts2string();
+    UVString counts2string() const;
     UVString cross2string(const LetterBitset &cross);
 
     GamePosition m_position;
