@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
 	if (scoringOutputFilename.isNull())
 		scoringOutputFilename = "scoring.gaddag";
 
-	int version = 1;
+	int version = 2;
 	if (!versionString.isNull()) {
 		version = versionString.toInt();
 	}

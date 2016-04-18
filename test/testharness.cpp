@@ -684,67 +684,6 @@ void TestHarness::selfPlayGames(unsigned int seed, unsigned int reps, bool repor
 }
 
 namespace {
-
-	bool hasAnyTilesInRow(const Quackle::Board& board, int row) {
-		if (row < 0 || row >= 15) return false;
-		for (int col = 0; col < 15; ++col) {
-			if (board.isNonempty(row, col)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool hasAnyTilesInCol(const Quackle::Board& board, int col) {
-		if (col < 0 || col >= 15) return false;
-		for (int row = 0; row < 15; ++row) {
-			if (board.isNonempty(row, col)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	void findPlayableRows(const Quackle::Board& board, vector<int>* rows) {
-    for (int row = 0; row < 15; ++row) {
-			if (hasAnyTilesInRow(board, row)) {
-				rows->push_back(row);
-			}
-		}
-	}
-
-	void findPlayableCols(const Quackle::Board& board, vector<int>* cols) {
-    for (int col = 0; col < 15; ++col) {
-			if (hasAnyTilesInCol(board, col)) {
-				cols->push_back(col);
-			}
-		}
-	}
-
-	UVString squareString(const Quackle::Board& board, int row, int col) {
-		if (board.isNonempty(row, col)) return ".";
-		if (QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) == 2) return "2";
-		if (QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) == 3) return "3";
-		if (QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) == 2) return "-";
-		if (QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col) == 3) return "=";
-		return " ";
-	}
-	
-	UVString rowString(const Quackle::Board& board, int row) {
-	  UVStringStream ss;
-		for (int col = 0; col < 15; ++col) {
-			ss << squareString(board, row, col);
-		}
-		return ss.str();
-	}
-
-	UVString colString(const Quackle::Board& board, int row) {
-	  UVStringStream ss;
-		for (int col = 0; col < 15; ++col) {
-			ss << squareString(board, row, col);
-		}
-		return ss.str();		
-	}
 	
 }  // namespace
 

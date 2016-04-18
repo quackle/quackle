@@ -133,7 +133,11 @@ int V2Gaddag::numChildren(const unsigned char* bitsetData) const {
 }
 
 const unsigned char* V2Gaddag::changeDirection(const unsigned char* bitsetData) const {
-	return child(bitsetData, QUACKLE_GADDAG_SEPARATOR);
+	if (hasChild(bitsetData, QUACKLE_GADDAG_SEPARATOR)) {
+		return bitsetData + m_bitsetSize;
+	} else {
+		return NULL;
+	}	 
 }
 
 const unsigned char* V2Gaddag::child(const unsigned char* bitsetData,

@@ -32,7 +32,9 @@ QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-de
 HEADERS += testharness.h trademarkedboards.h
 SOURCES += testharness.cpp testmain.cpp trademarkedboards.cpp
 
+QMAKE_CXXFLAGS += -std=c++11
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }
+    
