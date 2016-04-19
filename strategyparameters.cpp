@@ -212,18 +212,6 @@ bool StrategyParameters::hasPrimeleaves() const {
 	return !m_primeleaves.empty();
 }
 
-
-double StrategyParameters::primeleave(Product leave) const {
-	const auto& it = m_primeleaves.find(leave);
-	if (it == m_primeleaves.end()) {
-		UVcout << "Didn't find leave product " << leave << ", returning 0." << endl;
-		return 0;
-	}
-	//UVcout << "Found leave value: " << it->second << endl;
-	return it->second;
-
-}
-
 double StrategyParameters::primeleave(const LetterString& leave) const {
 	//UVcout << "primeLeave: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << endl;
 	const uint64_t product = QUACKLE_PRIMESET->multiplyTiles(leave);

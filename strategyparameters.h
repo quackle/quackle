@@ -43,7 +43,15 @@ public:
 	bool loadPrimeleaves(const string &filename);
 	bool hasPrimeleaves() const;
 	double primeleave(const LetterString& leave) const;
-	double primeleave(Product leave) const;
+	inline double primeleave(Product leave) const  {
+	  const auto& it = m_primeleaves.find(leave);
+	  if (it == m_primeleaves.end()) {
+	    UVcout << "Didn't find leave product " << leave << ", returning 0." << endl;
+	    return 0;
+	  }
+	  //UVcout << "Found leave value: " << it->second << endl;
+	  return it->second;
+	}
 	double superleave(const LetterString& leave);
 	typedef map<LetterString, double> SuperLeavesMap;
 	const SuperLeavesMap& superleaves() const {return m_superleaves; }

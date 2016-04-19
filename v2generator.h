@@ -49,26 +49,29 @@ namespace Quackle {
     void scoreSpot(Spot* spot);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void findMovesAt(const Spot& spot);
-
+    void findBestExchange();
+    void findExchanges(const uint64_t* rackPrimes, const LetterString& tiles,
+		       uint64_t product, int pos, int numExchanged);
+    
     // returns true if a letter at or after minLetter alphabetically exists
     // at this node, updates childIndex (because it may skip over children that
     // for which tiles aren't in the rack) foundLetter, child
-    bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
-		    Letter minLetter, int* childIndex, Letter* foundLetter,
-		    const unsigned char** child) const;
+    inline bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
+			   Letter minLetter, int* childIndex, Letter* foundLetter,
+			   const unsigned char** child) const;
     
-    int scoreLetter(int pos, Letter letter, int letterMultiplier);
+    inline int scoreLetter(int pos, Letter letter, int letterMultiplier);
     
     void debugPlaced(const Spot& spot, int behind, int ahead) const;
-    void useLetter(Letter letter, uint32_t* foundLetterMask);
-    void unuseLetter(Letter letter, uint32_t foundLetterMask);
-    void maybeRecordMove(const Spot& spot, int wordMultiplier,
-			 int behind, int ahead, int numPlaced);
-    void getSquare(const Spot& spot, int delta,
-		   int* row, int* col, int* pos) const;
-    void findMoreBlankless(const Spot& spot, int delta, int ahead,
-			   int behind, int velocity, int wordMultiplier,
-			   const V2Gaddag& gaddag, const unsigned char* node);
+    inline void useLetter(Letter letter, uint32_t* foundLetterMask);
+    inline void unuseLetter(Letter letter, uint32_t foundLetterMask);
+    inline void maybeRecordMove(const Spot& spot, int wordMultiplier,
+				int behind, int ahead, int numPlaced);
+    inline void getSquare(const Spot& spot, int delta,
+			  int* row, int* col, int* pos) const;
+    inline void findMoreBlankless(const Spot& spot, int delta, int ahead,
+				  int behind, int velocity, int wordMultiplier,
+				  const V2Gaddag& gaddag, const unsigned char* node);
     void findBlankless(const Spot& spot, int delta,
 		       int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
@@ -81,6 +84,7 @@ namespace Quackle {
     char m_counts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
+    double m_bestLeaves[8];
     MoveList m_moveList;
     Move m_best;
 

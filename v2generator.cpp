@@ -34,8 +34,18 @@ Move V2Generator::findStaticBest() {
 
   m_moveList.clear();
 
-  setUpCounts(rack().tiles());
 	struct timeval start, end;
+
+	// TODO: are enough tiles in the bag?
+  // TODO much later: would this end the game?
+	gettimeofday(&start, NULL);
+	findBestExchange();
+	gettimeofday(&end, NULL);
+	UVcout << "Time finding exchanges was "
+				 << ((end.tv_sec * 1000000 + end.tv_usec)
+						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+	UVcout << "best exchange: " << m_best << endl;
+  setUpCounts(rack().tiles());
 	gettimeofday(&start, NULL);
   m_anagrams = QUACKLE_ANAGRAMMAP->lookUp(rack());
 	gettimeofday(&end, NULL);
@@ -88,6 +98,90 @@ Move V2Generator::findStaticBest() {
 	}
 	UVcout << "best Move: " << m_best << endl;	
 	return m_best;
+}
+
+void V2Generator::findExchanges(const uint64_t* rackPrimes,
+																const LetterString& tiles,
+																uint64_t product,
+																int pos, int numExchanged) {
+	if (pos == 7) {
+    if (numExchanged == 0) return;
+		double leave = product == 1 ? 0 :
+			QUACKLE_STRATEGY_PARAMETERS->primeleave(product);
+		//UVcout << "leave: " << leave << endl;
+		// TODO: heuristics for num exchanged?
+		if (leave > m_best.equity) {
+			Move move;
+			move.action = Move::Exchange;
+			LetterString exchanged;
+			for (int i = 0; i < numExchanged; ++i) {
+				exchanged += m_placed[i];
+			}
+			move.setTiles(exchanged);
+			move.score = 0;
+			move.equity = leave;
+			m_best = move;
+		}
+		if (leave > m_bestLeaves[numExchanged]) {
+			m_bestLeaves[numExchanged] = leave;
+		}
+		return;
+	}
+	findExchanges(rackPrimes, tiles, product * rackPrimes[pos], pos + 1, numExchanged);
+	m_placed[numExchanged] = tiles[pos];
+	findExchanges(rackPrimes, tiles, product, pos + 1, numExchanged + 1);
+}
+
+void V2Generator::findBestExchange() {
+	assert(rack().size() == 7);
+	for (int i = 0; i <= 7; ++i) {
+		m_bestLeaves[i] = -9999;
+	}
+	double bestEquity = 0;
+	uint64_t primes[7];
+	int bestMask = 127;
+	const LetterString& tiles = rack().tiles();
+	for (int i = 0; i < 7; ++i) {
+		primes[i] = QUACKLE_PRIMESET->lookUpTile(tiles[i]);
+	}
+	uint64_t products[127];
+	for (int i = 1; i < 127; ++i) products[i] = 1;
+	int b = 1;
+	for (int i = 0; i < 7; ++i) {
+    for (int j = b; j < 127; j += b) {
+			for (int k = 0; k < b; ++j, ++k) {
+	      products[j] *= primes[i];
+			}
+		}
+		b *= 2;
+	}
+	for (int mask = 1; mask < 127; mask++) {
+#ifdef DEBUG_V2GEN
+		uint64_t product = 1;
+		int numExchanged = 7;
+		for (int i = 0; i < 7; ++i) {
+			if (((1 << i) & mask) != 0) {
+				--numExchanged;
+				product *= primes[i];
+			}
+		}
+		assert(numExchanged == (7 - __builtin_popcount(mask)));
+		assert(product == products[mask]);
+#endif
+		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);
+		if (leave > bestEquity) {
+			bestEquity = leave;
+			bestMask = mask;
+		}
+	}
+	LetterString exchanged;
+	for (int i = 0; i < 7; ++i) {
+		if (((1 << i) & bestMask) == 0) {
+			exchanged += tiles[i];
+		}
+	}			
+	m_best = Move::createExchangeMove(exchanged);
+	m_best.equity = bestEquity;
 }
 
 bool V2Generator::couldMakeWord(const Spot& spot, int length) const {
