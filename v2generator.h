@@ -71,7 +71,11 @@ namespace Quackle {
     inline bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
 			   Letter minLetter, int* childIndex, Letter* foundLetter,
 			   const unsigned char** child) const;
-    
+
+    inline bool nextBlankLetter(const V2Gaddag& gaddag, const unsigned char* node,
+				Letter minLetter, int* childIndex, Letter* foundLetter,
+				const unsigned char** child) const;
+
     inline int scoreLetter(int pos, Letter letter, int letterMultiplier);
     
     void debugPlaced(const Spot& spot, int behind, int ahead) const;
@@ -84,7 +88,12 @@ namespace Quackle {
     inline void findMoreBlankless(Spot* spot, int delta, int ahead,
 				  int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
+    inline void findMoreBlankable(Spot* spot, int delta, int ahead,
+				  int behind, int velocity, int wordMultiplier,
+				  const V2Gaddag& gaddag, const unsigned char* node);
     void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
+		       int wordMultiplier, const unsigned char* node);
+    void findBlankable(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
     bool couldMakeWord(const Spot& spot, int length) const;
     float bestLeave(const Spot& spot, int length) const;

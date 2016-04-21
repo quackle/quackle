@@ -225,18 +225,29 @@ void V2Generator::findMovesAt(Spot* spot) {
 		if (m_counts[letter] > 0) m_rackBits |= (1 << letter);
 	}
 	m_mainWordScore = spot->throughScore;
+	UVcout << "spot->canUseBlank: " << spot->canUseBlank
+				 << ", m_counts[QUACKLE_BLANK_MARK]: "
+				 << static_cast<int>(m_counts[QUACKLE_BLANK_MARK]) << endl;
 	if (!spot->canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
 		struct timeval start, end;
 		gettimeofday(&start, NULL);
 		findBlankless(spot, 0, 0, 0, -1, 1,
 									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
 		gettimeofday(&end, NULL);
-		UVcout << "Time finding moves was "
+		UVcout << "Time finding moves (without blank) was "
 					 << ((end.tv_sec * 1000000 + end.tv_usec)
 							 - (start.tv_sec * 1000000 + start.tv_usec))
 					 << " microseconds." << endl;
-
 	} else {
+		struct timeval start, end;
+		gettimeofday(&start, NULL);
+		findBlankable(spot, 0, 0, 0, -1, 1,
+									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
+		gettimeofday(&end, NULL);
+		UVcout << "Time finding moves (with blank) was "
+					 << ((end.tv_sec * 1000000 + end.tv_usec)
+							 - (start.tv_sec * 1000000 + start.tv_usec))
+					 << " microseconds." << endl;		
 	}
 }
 
@@ -358,6 +369,35 @@ bool V2Generator::nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
 	return *child != NULL;
 }
 
+bool V2Generator::nextBlankLetter(const V2Gaddag& gaddag, const unsigned char* node,
+																	Letter minLetter, int* childIndex,
+																	Letter* foundLetter,
+																	const unsigned char** child) const {
+	*child = gaddag.nextChild(node, minLetter, *childIndex, foundLetter);
+#ifdef DEBUG_V2GEN
+	if (*child == NULL) {
+		UVcout << "child == NULL; no more children." << endl;
+	} else {
+		UVcout << "foundLetter: " << static_cast<int>(*foundLetter) << endl;
+	}
+#endif
+
+	if (*child == NULL) return false;
+	if (*foundLetter == QUACKLE_GADDAG_SEPARATOR) {
+		(*childIndex)++;
+		*child = gaddag.nextChild(node, (*foundLetter) + 1, *childIndex, foundLetter);
+#ifdef DEBUG_V2GEN
+		if (*child == NULL) {
+			UVcout << "child == NULL; no child besides gaddag separator." << endl;
+		} else {
+			UVcout << "foundLetter: " << static_cast<int>(*foundLetter) << endl;
+		}
+#endif
+    if (*child == NULL) return false;
+	}
+	return true;
+}
+
 // updates m_mainWordScore, returns tile score so it can be subtracted later
 int V2Generator::scoreLetter(int pos, Letter letter, int letterMultiplier) {
 #ifdef DEBUG_V2GEN
@@ -466,6 +506,27 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 	}
 }
 
+void V2Generator::findMoreBlankable(Spot* spot, int delta, int ahead,
+																		int behind, int velocity, int wordMultiplier,
+																		const V2Gaddag& gaddag, const unsigned char* node) {
+	// FIXME: all this assumes horizontal
+	if (velocity < 0) {
+		findBlankable(spot, delta - 1, 0, behind + 1, -1, wordMultiplier, node);
+#ifdef V2GEN
+		UVcout << "changing direction..." << endl;
+#endif
+		const unsigned char* changeChild = gaddag.changeDirection(node);
+		if (changeChild != NULL) {
+			node = gaddag.followIndex(changeChild);
+			if (node != NULL) { 
+				findBlankable(spot, 1, 1, behind, 1, wordMultiplier, node);
+			}
+		}
+	} else {
+		findBlankable(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier, node);
+	}
+}
+
 void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
 																const unsigned char* node) {
@@ -491,6 +552,133 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 		if (child == NULL) UVcout << "child is still NULL!" << endl;
 		//uint64_t childOffset = child - gaddag.root();
 		//UVcout << "child: m_data+" << childOffset << endl;
+    const int tileMainScore = scoreLetter(pos, foundLetter, letterMultiplier);		
+		uint32_t foundLetterMask; // reused below in unuseLetter
+    useLetter(foundLetter, &foundLetterMask);
+#ifdef DEBUG_V2GEN
+		debugPlaced(*spot, behind, ahead);
+#endif		
+		// FIXME: all this assumes horizontal
+		// Test it by making the empty-board spot vertie!
+		if (spot->viableAtLength(numPlaced) &&
+				gaddag.completesWord(child) &&
+				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
+#ifdef DEBUG_V2GEN
+			UVcout << "better than " << m_best.equity;
+#endif
+			restrictByLength(spot);
+#ifdef DEBUG_V2GEN
+			UVcout << endl;
+#endif
+		}
+		if (numPlaced + 1 <= spot->longestViable) {
+			const unsigned char* newNode = gaddag.followIndex(child);
+			if (newNode != NULL) {
+				findMoreBlankless(spot, delta, ahead, behind, velocity, newWordMultiplier,
+													gaddag, newNode);
+			}
+		}
+#ifdef DEBUG_V2GEN
+		else {
+			UVcout << "don't need to check longer than " << numPlaced << endl;
+		}
+#endif
+		
+		m_mainWordScore -= tileMainScore;
+		unuseLetter(foundLetter, foundLetterMask);
+
+		if (numPlaced > spot->longestViable) {
+#ifdef DEBUG_V2GEN
+			UVcout << "don't need to check any more of length " << numPlaced << endl;
+#endif
+			break;
+		}
+		minLetter = foundLetter + 1;
+		++childIndex;
+	}
+}
+
+
+void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
+																int velocity, int wordMultiplier,
+																const unsigned char* node) {
+	// TODO: use more specific gaddags based on min/max word length for this spot
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+#ifdef DEBUG_V2GEN
+	UVcout << "findBlankable(delta: " << delta<< ", ahead: " << ahead
+				 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
+#endif
+	int numPlaced, row, col, pos;
+	// Not true for "through" spots!
+  numPlaced =	1 + ahead + behind;
+	getSquare(*spot, delta, &row, &col, &pos);
+	int newWordMultiplier = wordMultiplier *
+		QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
+
+	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
+	int childIndex = 0;
+	Letter foundLetter;
+	assert(m_counts[QUACKLE_BLANK_MARK] > 0);
+	const unsigned char* child = NULL;
+	// TODO: since there might be hooks, should also have a version of this that
+	// is restricted to letters that can hook. (nextLetter already good enough?)
+  while (nextBlankLetter(gaddag, node, minLetter, &childIndex, &foundLetter,
+												 &child)) {
+		assert(child != NULL);
+    m_counts[QUACKLE_BLANK_MARK]--;
+		
+    Letter blankLetter = QUACKLE_ALPHABET_PARAMETERS->setBlankness(foundLetter);
+#ifdef DEBUG_V2GEN
+		assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
+		assert(foundletter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
+		UVcout << "placing " << QUACKLE_ALPHABET_PARAMETERS->userVisible(blankLetter)
+					 << " at m_placed[" << pos << "]" << endl;
+#endif
+		m_placed[pos] = blankLetter;
+
+		// FIXME: all this assumes horizontal
+		// Test it by making the empty-board spot vertie!
+		if (spot->viableAtLength(numPlaced) &&
+				gaddag.completesWord(child) &&
+				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
+#ifdef DEBUG_V2GEN
+			UVcout << "better than " << m_best.equity;
+#endif
+			restrictByLength(spot);
+#ifdef DEBUG_V2GEN
+			UVcout << endl;
+#endif
+		}
+		if (numPlaced + 1 <= spot->longestViable) {
+			const unsigned char* newNode = gaddag.followIndex(child);
+			if (newNode != NULL) {
+				if (m_counts[QUACKLE_BLANK_MARK] > 0) {
+					findMoreBlankable(spot, delta, ahead, behind, velocity,
+														newWordMultiplier, gaddag, newNode);
+
+				} else {
+					findMoreBlankless(spot, delta, ahead, behind, velocity,
+														newWordMultiplier, gaddag, newNode);
+				}
+			}
+		}
+#ifdef DEBUG_V2GEN
+		else {
+			UVcout << "don't need to check longer than " << numPlaced << endl;
+		}
+#endif
+
+		m_counts[QUACKLE_BLANK_MARK]++;
+		minLetter = foundLetter + 1;
+		++childIndex;
+	}
+	if (m_rackBits == 0) return;
+	minLetter = QUACKLE_GADDAG_SEPARATOR;
+	childIndex = 0;
+	child = NULL;
+	int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+	while (nextLetter(gaddag, node, minLetter, &childIndex, &foundLetter, &child)) {
+		assert(child != NULL);
     const int tileMainScore = scoreLetter(pos, foundLetter, letterMultiplier);		
 		uint32_t foundLetterMask; // reused below in unuseLetter
     useLetter(foundLetter, &foundLetterMask);
