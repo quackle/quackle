@@ -49,6 +49,7 @@ namespace {
   
   void readUsesTiles(ifstream* file, UsesTiles* usesTiles) {
     readNTileAnagrams(file, &(usesTiles->thruNone));
+    /*
     file->read(reinterpret_cast<char*>(&(usesTiles->anahooks)),
 	       sizeof(usesTiles->anahooks));
     const int numAnahooks = __builtin_popcount(usesTiles->anahooks);
@@ -57,6 +58,7 @@ namespace {
       readNTileAnagrams(file, &thruAnahook);
       usesTiles->thruOne.push_back(thruAnahook);
     }
+    */
   }
   
 }  // namespace

@@ -74,30 +74,46 @@ Move V2Generator::findStaticBest() {
 					 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
-		gettimeofday(&start, NULL);
-		for (const Spot& spot : spots) {
+		for (Spot& spot : spots) {
 			//#ifdef DEBUG_V2GEN
 			UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
 						 << ", " << "blank: " << spot.canUseBlank << "): "
-						 << spot.maxEquity << endl;
+						 << spot.maxEquity;
 			//#endif
+			restrictByLength(&spot);
+			UVcout << endl;
+
 			if (spot.maxEquity < m_best.equity) {
 #ifdef DEBUG_V2GEN
 				UVcout << "no need to check this spot!" << endl;
 #endif
 				continue;
-			} 
-			findMovesAt(spot);
+			}
+			findMovesAt(&spot);
 		}
-		gettimeofday(&end, NULL);
-		UVcout << "Time finding moves was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-							 - (start.tv_sec * 1000000 + start.tv_usec))
-					 << " microseconds." << endl;
 
 	}
 	UVcout << "best Move: " << m_best << endl;	
 	return m_best;
+}
+
+void V2Generator::restrictByLength(Spot* spot) {
+	int oldLongestViable = spot->longestViable;
+	for (int i = 1; i <= oldLongestViable; ++i) {
+		if (spot->worthChecking[i].couldBeBest &&
+				(spot->worthChecking[i].maxEquity > m_best.equity)) {
+			spot->longestViable = i;
+		} else {
+			spot->worthChecking[i].couldBeBest = false;
+		}
+	}
+#ifdef DEBUG_V2GEN
+	for (int i = 1; i <= 7; ++i) {
+		if (spot->worthChecking[i].couldBeBest) {
+			UVcout << ", [" << i << "]: " << spot->worthChecking[i].maxEquity;
+		}
+	}
+#endif
 }
 
 void V2Generator::findExchanges(const uint64_t* rackPrimes,
@@ -157,21 +173,27 @@ void V2Generator::findBestExchange() {
 	}
 	for (int mask = 1; mask < 127; mask++) {
 #ifdef DEBUG_V2GEN
-		uint64_t product = 1;
-		int numExchanged = 7;
-		for (int i = 0; i < 7; ++i) {
-			if (((1 << i) & mask) != 0) {
-				--numExchanged;
-				product *= primes[i];
+		{
+			uint64_t product = 1;
+			int numExchanged = 7;
+			for (int i = 0; i < 7; ++i) {
+				if (((1 << i) & mask) != 0) {
+					--numExchanged;
+					product *= primes[i];
+				}
 			}
+			assert(numExchanged == (7 - __builtin_popcount(mask)));
+			assert(product == products[mask]);
 		}
-		assert(numExchanged == (7 - __builtin_popcount(mask)));
-		assert(product == products[mask]);
 #endif
-		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);
+		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);		
 		if (leave > bestEquity) {
 			bestEquity = leave;
 			bestMask = mask;
+		}
+		int numExchanged = 7 - __builtin_popcount(mask);
+		if (leave > m_bestLeaves[numExchanged]) {
+			m_bestLeaves[numExchanged] = leave;
 		}
 	}
 	LetterString exchanged;
@@ -196,16 +218,24 @@ bool V2Generator::couldMakeWord(const Spot& spot, int length) const {
 	return (anagrams.numPlayed & lengthMask) != 0;
 }
 
-void V2Generator::findMovesAt(const Spot& spot) {
+void V2Generator::findMovesAt(Spot* spot) {
   m_rackBits = 0;
 	for (int letter = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
 			 letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter) {
 		if (m_counts[letter] > 0) m_rackBits |= (1 << letter);
 	}
-	m_mainWordScore = spot.throughScore;
-	if (!spot.canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
+	m_mainWordScore = spot->throughScore;
+	if (!spot->canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
+		struct timeval start, end;
+		gettimeofday(&start, NULL);
 		findBlankless(spot, 0, 0, 0, -1, 1,
 									QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->root());
+		gettimeofday(&end, NULL);
+		UVcout << "Time finding moves was "
+					 << ((end.tv_sec * 1000000 + end.tv_usec)
+							 - (start.tv_sec * 1000000 + start.tv_usec))
+					 << " microseconds." << endl;
+
 	} else {
 	}
 }
@@ -369,14 +399,16 @@ void V2Generator::unuseLetter(Letter letter, uint32_t foundLetterMask) {
 	m_rackBits |= foundLetterMask;	
 }
 
-void V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
+bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 																	int behind, int ahead, int numPlaced) {
 	int score = m_mainWordScore * wordMultiplier;
 	if (numPlaced == QUACKLE_PARAMETERS->rackSize()) {
 		score += QUACKLE_PARAMETERS->bingoBonus();
 	}
 	//assert(score == scorePlay(spot, behind, ahead));
-	if (score > m_best.equity) { // FIXME
+	double equity = score;
+	if (numPlaced < 7) equity += getLeave();
+	if (equity > m_best.equity) {
 		LetterString word;
 		int startCol = spot.anchorCol - behind;
 		for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
@@ -386,9 +418,11 @@ void V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		}
 		Move move = Move::createPlaceMove(7, startCol, spot.horizontal, word);
 		move.score = score;
-		move.equity = score; // FIXME
+		move.equity = equity;
 		m_best = move;
+		return true;
 	}
+	return false;
 }
 
 // TODO: Make this clever enough to handle all the "through" tiles.
@@ -411,7 +445,7 @@ void V2Generator::getSquare(const Spot& spot, int delta,
 #endif
 }
 
-void V2Generator::findMoreBlankless(const Spot& spot, int delta, int ahead,
+void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 																		int behind, int velocity, int wordMultiplier,
 																		const V2Gaddag& gaddag, const unsigned char* node) {
 	// FIXME: all this assumes horizontal
@@ -432,7 +466,7 @@ void V2Generator::findMoreBlankless(const Spot& spot, int delta, int ahead,
 	}
 }
 
-void V2Generator::findBlankless(const Spot& spot, int delta, int ahead, int behind,
+void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
 																const unsigned char* node) {
 	// TODO: use more specific gaddags based on min/max word length for this spot
@@ -444,7 +478,7 @@ void V2Generator::findBlankless(const Spot& spot, int delta, int ahead, int behi
 	int numPlaced, row, col, pos;
 	// Not true for "through" spots!
   numPlaced =	1 + ahead + behind;
-	getSquare(spot, delta, &row, &col, &pos);
+	getSquare(*spot, delta, &row, &col, &pos);
 	int newWordMultiplier = wordMultiplier *
 		QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 	int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
@@ -461,20 +495,43 @@ void V2Generator::findBlankless(const Spot& spot, int delta, int ahead, int behi
 		uint32_t foundLetterMask; // reused below in unuseLetter
     useLetter(foundLetter, &foundLetterMask);
 #ifdef DEBUG_V2GEN
-		debugPlaced(spot, behind, ahead);
+		debugPlaced(*spot, behind, ahead);
 #endif		
 		// FIXME: all this assumes horizontal
 		// Test it by making the empty-board spot vertie!
-		if (gaddag.completesWord(child)) {
-			maybeRecordMove(spot, newWordMultiplier, behind, ahead, numPlaced);
+		if (spot->viableAtLength(numPlaced) &&
+				gaddag.completesWord(child) &&
+				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
+#ifdef DEBUG_V2GEN
+			UVcout << "better than " << m_best.equity;
+#endif
+			restrictByLength(spot);
+#ifdef DEBUG_V2GEN
+			UVcout << endl;
+#endif
 		}
-		const unsigned char* newNode = gaddag.followIndex(child);
-		if (newNode != NULL) {
-			findMoreBlankless(spot, delta, ahead, behind, velocity, newWordMultiplier,
-												gaddag, newNode);
+		if (numPlaced + 1 <= spot->longestViable) {
+			const unsigned char* newNode = gaddag.followIndex(child);
+			if (newNode != NULL) {
+				findMoreBlankless(spot, delta, ahead, behind, velocity, newWordMultiplier,
+													gaddag, newNode);
+			}
 		}
+#ifdef DEBUG_V2GEN
+		else {
+			UVcout << "don't need to check longer than " << numPlaced << endl;
+		}
+#endif
+		
 		m_mainWordScore -= tileMainScore;
 		unuseLetter(foundLetter, foundLetterMask);
+
+		if (numPlaced > spot->longestViable) {
+#ifdef DEBUG_V2GEN
+			UVcout << "don't need to check any more of length " << numPlaced << endl;
+#endif
+			break;
+		}
 		minLetter = foundLetter + 1;
 		++childIndex;
 	}
@@ -483,6 +540,7 @@ void V2Generator::findBlankless(const Spot& spot, int delta, int ahead, int behi
 float V2Generator::bestLeave(const Spot& spot, int length) const {
 	assert(length > 0);
 	assert(length < 7);
+	// TODO: Handle single letter playedThrough too
 	assert(spot.playedThrough.length() == 0);
 	if (m_anagrams != NULL) {
 		const UsesTiles& usesTiles =
@@ -491,7 +549,7 @@ float V2Generator::bestLeave(const Spot& spot, int length) const {
 		int index = length - 1;
 		return anagrams.bestLeaves[index] / 256.0f;
 	}
-	return 9999;
+	return m_bestLeaves[length];
 }
 
 void V2Generator::scoreSpot(Spot* spot) {
@@ -513,6 +571,11 @@ void V2Generator::scoreSpot(Spot* spot) {
 		}
 	}
 	float maxEquity = -9999;
+	for (int i = 1; i <= 7; ++i) {
+		spot->worthChecking[i].maxEquity = maxEquity;
+		spot->worthChecking[i].couldBeBest = false;
+	}
+	
 	int wordMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int letterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int row = spot->anchorRow;
@@ -557,6 +620,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 				//UVcout << "can not make word of length " << played << endl;
 				continue;
 			} else {
+				spot->worthChecking[played].couldBeBest = true;
 				//UVcout << "can make word of length " << played << endl;
 			}
 			spot->canMakeAnyWord = true;
@@ -580,8 +644,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 				score += QUACKLE_PARAMETERS->bingoBonus();
 			}
 			float optimisticEquity = score;
-			//if (played < 7) optimisticEquity += bestLeave(*spot, played);
+			if (played < 7) optimisticEquity += bestLeave(*spot, played);
 			maxEquity = std::max(maxEquity, optimisticEquity);
+			spot->worthChecking[played].maxEquity =
+				std::max(spot->worthChecking[played].maxEquity, optimisticEquity);
 			// gettimeofday(&end, NULL);
 			// UVcout << "Time scoring behind: " << behind << " ahead: " << ahead << " "
 			// 	 << ((end.tv_sec * 1000000 + end.tv_usec)
@@ -616,6 +682,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.maxTilesBehind = numTiles - 1;
 	spot.minTilesAhead = 1;
 	spot.maxTilesAhead = numTiles;
+	spot.longestViable = 7;
 	//struct timeval start, end;
 	//gettimeofday(&start, NULL);
 	scoreSpot(&spot);

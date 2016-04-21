@@ -20,6 +20,8 @@
 #define QUACKLE_STRATEGYPARAMETERS_H
 
 #include <map>
+#include <unordered_map>
+
 #include "alphabetparameters.h"
 #include "boardparameters.h"
 #include "primeset.h"
@@ -72,7 +74,7 @@ protected:
 	static const int m_bogowinArrayHeight = 94;
 	double m_bogowin[m_bogowinArrayWidth][m_bogowinArrayHeight];
 	SuperLeavesMap m_superleaves;
-	map<Product, float> m_primeleaves;
+	unordered_map<Product, float> m_primeleaves;
 	bool m_initialized;
 };
 

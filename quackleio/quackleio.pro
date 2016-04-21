@@ -1,4 +1,4 @@
-template = lib
+TEMPLATE = lib
 INCLUDEPATH += . ..
 DEPENDPATH += . ..
 VERSION = 0.9
@@ -19,8 +19,9 @@ MOC_DIR = moc
 #CONFIG += debug staticlib
 CONFIG += release staticlib
 CONFIG -= x11
+CONFIG += c++11
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11 -Wno-inconsistent-missing-override
 #QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
@@ -28,6 +29,9 @@ HEADERS += *.h
 
 SOURCES += *.cpp
 
+macx-clang++ {
+    QMAKE_CXXFLAGS += -Wno-inconsistent-missing-override
+}
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }

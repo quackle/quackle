@@ -219,7 +219,7 @@ void TestHarness::startUp()
 	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
 
 	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
-	//m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
+	m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
 
 	UVcout << endl;
 

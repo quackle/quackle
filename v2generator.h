@@ -22,6 +22,11 @@ namespace Quackle {
     void kibitz();
 
   private:
+    struct WorthChecking {
+      bool couldBeBest;
+      float maxEquity;
+    };
+    
     struct Spot {
       int anchorRow;
       int anchorCol;
@@ -34,6 +39,8 @@ namespace Quackle {
       int maxTilesBehind;
       int minTilesAhead;
       int maxTilesAhead;
+      WorthChecking worthChecking[8];
+      int longestViable;
 
       bool operator<(const Spot& rhs) const {
 	if (maxEquity == rhs.maxEquity) {
@@ -41,14 +48,19 @@ namespace Quackle {
 	}
 	return maxEquity > rhs.maxEquity;
       }
+
+      bool viableAtLength(int length) const {
+	return worthChecking[length].couldBeBest;
+      }
     };
     
     Move findStaticBest();
     int scorePlay(const Spot& spot, int behind, int ahead);
-    double getLeave() const;
+    inline double getLeave() const;
     void scoreSpot(Spot* spot);
     void findEmptyBoardSpots(vector<Spot>* spots);
-    void findMovesAt(const Spot& spot);
+    void restrictByLength(Spot* spot);
+    void findMovesAt(Spot* spot);
     void findBestExchange();
     void findExchanges(const uint64_t* rackPrimes, const LetterString& tiles,
 		       uint64_t product, int pos, int numExchanged);
@@ -65,15 +77,14 @@ namespace Quackle {
     void debugPlaced(const Spot& spot, int behind, int ahead) const;
     inline void useLetter(Letter letter, uint32_t* foundLetterMask);
     inline void unuseLetter(Letter letter, uint32_t foundLetterMask);
-    inline void maybeRecordMove(const Spot& spot, int wordMultiplier,
+    inline bool maybeRecordMove(const Spot& spot, int wordMultiplier,
 				int behind, int ahead, int numPlaced);
     inline void getSquare(const Spot& spot, int delta,
 			  int* row, int* col, int* pos) const;
-    inline void findMoreBlankless(const Spot& spot, int delta, int ahead,
+    inline void findMoreBlankless(Spot* spot, int delta, int ahead,
 				  int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
-    void findBlankless(const Spot& spot, int delta,
-		       int ahead, int behind, int velocity,
+    void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
     bool couldMakeWord(const Spot& spot, int length) const;
     float bestLeave(const Spot& spot, int length) const;

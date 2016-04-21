@@ -1678,8 +1678,16 @@ Move Generator::findstaticbest(bool canExchange)
 		}
 	}
 
-	if (canExchange)
+	if (canExchange) {
+		struct timeval start2, end2;
+		gettimeofday(&start2, NULL);
 		exchange();
+		gettimeofday(&end2, NULL);
+		UVcout << "Time finding exchanges was "
+				 << ((end2.tv_sec * 1000000 + end2.tv_usec)
+						 - (start2.tv_sec * 1000000 + start2.tv_usec)) << " microseconds." << endl;
+
+	}
 
 	if (m_moveList.empty())
 		m_moveList.push_back(best);

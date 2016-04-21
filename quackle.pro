@@ -23,6 +23,7 @@ QMAKE_CXXFLAGS += -std=c++11
 #CONFIG += debug staticlib
 CONFIG += release staticlib
 CONFIG -= x11
+CONFIG += c++11
 
 # Input
 HEADERS += *.h

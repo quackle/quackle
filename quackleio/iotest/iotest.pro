@@ -4,7 +4,7 @@ INCLUDEPATH += . .. ../..
 
 # enable/disable debug symbols
 #CONFIG += debug
-CONFIG += release
+CONFIG += release c++11
 
 debug {
   OBJECTS_DIR = obj/debug

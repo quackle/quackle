@@ -9,6 +9,7 @@ CONFIG += console
 CONFIG -= x11
 CONFIG -= app_bundle
 CONFIG += release
+CONFIG += c++11
 
 debug {
   OBJECTS_DIR = obj/debug
@@ -32,7 +33,7 @@ QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-de
 HEADERS += testharness.h trademarkedboards.h
 SOURCES += testharness.cpp testmain.cpp trademarkedboards.cpp
 
-QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++11  -Wno-inconsistent-missing-override
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
