@@ -108,6 +108,8 @@ namespace Quackle {
     MoveList m_moveList;
     Move m_best;
 
+    double m_blankSpendingEpsilon = 0.01;
+    
     // debug stuff
     UVString counts2string() const;
     UVString cross2string(const LetterBitset &cross);

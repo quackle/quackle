@@ -878,11 +878,17 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	// UVcout << "Time scoring spot was "
 	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
 	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
-	if (spot.canMakeAnyWord) spots->push_back(spot);
-	if (rackHasBlank) {
-		spot.canUseBlank = false;
-		scoreSpot(&spot);
-		if (spot.canMakeAnyWord) spots->push_back(spot);
+	if (spot.canMakeAnyWord) {
+		if (rackHasBlank) {
+			Spot blankSavingSpot = spot;
+			blankSavingSpot.canUseBlank = false;
+			scoreSpot(&blankSavingSpot);
+			if (blankSavingSpot.canMakeAnyWord) {
+				spots->push_back(blankSavingSpot);
+				spot.maxEquity -= m_blankSpendingEpsilon;
+			}
+		} 
+		spots->push_back(spot);
 	}
 }
 
