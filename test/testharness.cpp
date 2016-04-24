@@ -24,6 +24,9 @@
 #include <limits>
 #include <algorithm>
 
+#include <time.h>
+#include <sys/time.h>
+
 #include <boardparameters.h>
 #include <bogowinplayer.h>
 #include <computerplayercollection.h>
@@ -780,13 +783,44 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				*/
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
-				v2gen.kibitz();
-				break;
+				if (i == 2) {
+					struct timeval start, end;
+					gettimeofday(&start, NULL);
+					uint32_t hooks = v2gen.horizontalHooks(7, 8);
+					gettimeofday(&end, NULL);
+					UVcout << "Time finding hooks between QI_LA was "
+				  			 << ((end.tv_sec * 1000000 + end.tv_usec)
+					 					 - (start.tv_sec * 1000000 + start.tv_usec))
+								 << " microseconds." << endl;				
+		      UVcout << "QI_LA hooks: " << hooks << endl;
+					/*
+					uint32_t hooks = v2gen.verticalHooks(8, 6);
+		      UVcout << "Q_ hooks: " << hooks << endl;
+					hooks = v2gen.horizontalHooks(7, 5);
+		      UVcout << "_QI hooks: " << hooks << endl;
+					hooks = v2gen.horizontalHooks(7, 8);
+		      UVcout << "QI_ hooks: " << hooks << endl;
+					*/
+				}
+				Quackle::Move move;// = v2gen.kibitz();
+				if (i == 0) {
+					UVString leftover;
+					LetterString letters =
+						QUACKLE_ALPHABET_PARAMETERS->encode("QI", &leftover);
+					move = Move::createPlaceMove(7, 6, true, letters);
+				} else if (i == 1) {
+					UVString leftover;
+					LetterString letters =
+						QUACKLE_ALPHABET_PARAMETERS->encode("LA", &leftover);
+					move = Move::createPlaceMove(7, 9, true, letters);
+				}
+				if (i >= 2) break;
+				game.currentPosition().addAndSetMoveMade(move);
+				game.commitMove(move);
 				/*
 				Quackle::Move compMove(game.haveComputerPlay());
 				UVcout << "with " << player.rack() << ", " << player.name()
 					   << " commits to " << compMove << endl;
-				if (i >= 10) break;
 				*/
 			}
 		}

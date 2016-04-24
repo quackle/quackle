@@ -44,7 +44,6 @@ const unsigned char* V2Gaddag::nextRackChild(const unsigned char* bitsetData,
 																						 Letter* nextLetter) const {
 	//uint64_t offset = bitsetData - m_data;
 	//UVcout << "nextRackChild(m_data+" << offset << ")..." << endl;
-	
 	const uint32_t& bitset = *(reinterpret_cast<const uint32_t*>(bitsetData));
 	//UVcout << "bitset: " << bitset << endl;
   for (;;) {
@@ -104,6 +103,13 @@ const unsigned char* V2Gaddag::nextChild(const unsigned char* bitsetData,
 	}
 	return NULL;
 	*/
+}
+
+uint32_t V2Gaddag::sharedChildren(const unsigned char* bitsetData1,
+																	const unsigned char* bitsetData2) const {
+	const uint32_t& bitset1 = *(reinterpret_cast<const uint32_t*>(bitsetData1));
+	const uint32_t& bitset2 = *(reinterpret_cast<const uint32_t*>(bitsetData2));
+	return bitset1 & bitset2;
 }
 
 uint32_t V2Gaddag::intersection(const unsigned char* bitsetData,

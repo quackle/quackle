@@ -28,6 +28,8 @@ class V2Gaddag {
 				 int childIndex,
 				 Letter* nextLetter) const;
 
+  uint32_t sharedChildren(const unsigned char* bitsetData1,
+			  const unsigned char* bitsetData2) const;
   uint32_t intersection(const unsigned char* bitsetData, uint32_t rackBits) const;
   bool hasAnyChild(const unsigned char* bitsetData, uint32_t rackBits) const;
   bool hasChild(const unsigned char* bitsetData, Letter letter) const;

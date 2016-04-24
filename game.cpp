@@ -438,9 +438,10 @@ void GamePosition::makeMove(const Move &move, bool maintainBoard)
 {
 	if (!move.isChallengedPhoney())
 	{
-		Generator generator(*this);
-		generator.makeMove(move, maintainBoard);
-		m_board = generator.position().board();
+		//Generator generator(*this);
+		//generator.makeMove(move, maintainBoard);
+		//m_board = generator.position().board();
+		m_board.makeMove(move);
 	}
 
 	if (move.action == Move::Exchange)

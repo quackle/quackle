@@ -24,8 +24,8 @@ V2Generator::V2Generator(const GamePosition &position)
 
 V2Generator::~V2Generator() {}
 
-void V2Generator::kibitz() {
-  findStaticBest();
+Move V2Generator::kibitz() {
+  return findStaticBest();
 }
 
 Move V2Generator::findStaticBest() {
@@ -60,6 +60,7 @@ Move V2Generator::findStaticBest() {
 		UVcout << static_cast<int>(m_anagrams->usesWhatever.thruNone.numPlayed) << endl;
 	}
 	vector<Spot> spots;
+	
 	if (board()->isEmpty()) {
 		gettimeofday(&start, NULL);
 		findEmptyBoardSpots(&spots);
@@ -67,31 +68,38 @@ Move V2Generator::findStaticBest() {
 		UVcout << "Time finding spots on empty board was "
 					 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+	} else {
 		gettimeofday(&start, NULL);
-		std::sort(spots.begin(), spots.end());
+		findSpots(&spots);
 		gettimeofday(&end, NULL);
-		UVcout << "Time sorting spots was "
+		UVcout << "Time finding spots on nonempty board was "
 					 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
-		for (Spot& spot : spots) {
-			//#ifdef DEBUG_V2GEN
-			UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-						 << ", " << "blank: " << spot.canUseBlank << "): "
-						 << spot.maxEquity;
-			//#endif
-			restrictByLength(&spot);
-			UVcout << endl;
+	}
+	gettimeofday(&start, NULL);
+	std::sort(spots.begin(), spots.end());
+	gettimeofday(&end, NULL);
+	UVcout << "Time sorting spots was "
+				 << ((end.tv_sec * 1000000 + end.tv_usec)
+						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
-			if (spot.maxEquity < m_best.equity) {
+	for (Spot& spot : spots) {
+		//#ifdef DEBUG_V2GEN
+		UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+					 << ", " << "blank: " << spot.canUseBlank << "): "
+					 << spot.maxEquity;
+		//#endif
+		restrictByLength(&spot);
+		UVcout << endl;
+
+		if (spot.maxEquity < m_best.equity) {
 #ifdef DEBUG_V2GEN
-				UVcout << "no need to check this spot!" << endl;
+			UVcout << "no need to check this spot!" << endl;
 #endif
-				continue;
-			}
-			findMovesAt(&spot);
+			continue;
 		}
-
+		findMovesAt(&spot);
 	}
 	UVcout << "best Move: " << m_best << endl;	
 	return m_best;
@@ -186,7 +194,7 @@ void V2Generator::findBestExchange() {
 			assert(product == products[mask]);
 		}
 #endif
-		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);		
+		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);
 		if (leave > bestEquity) {
 			bestEquity = leave;
 			bestMask = mask;
@@ -356,9 +364,11 @@ double V2Generator::getLeave() const {
 }
 
 bool V2Generator::nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
+														 uint32_t restriction,
 														 Letter minLetter, int* childIndex, Letter* foundLetter,
 														 const unsigned char** child) const {
-	*child = gaddag.nextRackChild(node, minLetter, m_rackBits, childIndex, foundLetter);
+	*child = gaddag.nextRackChild(node, minLetter, restriction, childIndex,
+																foundLetter);
 #ifdef DEBUG_V2GEN
 	if (*child == NULL) {
 		UVcout << "child == NULL; no more children on rack." << endl;
@@ -367,6 +377,13 @@ bool V2Generator::nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
 	}
 #endif
 	return *child != NULL;
+}
+
+bool V2Generator::nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
+														 Letter minLetter, int* childIndex, Letter* foundLetter,
+														 const unsigned char** child) const {
+	return nextLetter(gaddag, node, m_rackBits, minLetter, childIndex,
+										foundLetter, child);
 }
 
 bool V2Generator::nextBlankLetter(const V2Gaddag& gaddag, const unsigned char* node,
@@ -690,13 +707,13 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		if (spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
-#ifdef DEBUG_V2GEN
+			//#ifdef DEBUG_V2GEN
 			UVcout << "better than " << m_best.equity;
-#endif
+			//#endif
 			restrictByLength(spot);
-#ifdef DEBUG_V2GEN
+			//#ifdef DEBUG_V2GEN
 			UVcout << endl;
-#endif
+			//#endif
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -745,10 +762,13 @@ void V2Generator::scoreSpot(Spot* spot) {
 	const int numTiles = rack().size();
 	const LetterString& tiles = rack().tiles();
 	int tileScores[QUACKLE_MAXIMUM_BOARD_SIZE];
+	bool assumeBlankPlayed = false;
 	for (int i = 0; i < numTiles; ++i) {
 		tileScores[i] = QUACKLE_ALPHABET_PARAMETERS->score(tiles[i]);
+		if (tileScores[i] == 0) assumeBlankPlayed = true;
 	}
 	std::sort(tileScores, tileScores + numTiles, std::greater<int>());
+	if (!spot->canUseBlank) assumeBlankPlayed = false;
 	int throughScore = 0;
 	for (const Letter letter : spot->playedThrough) {
 		if (letter == QUACKLE_NULL_MARK) continue;
@@ -824,7 +844,9 @@ void V2Generator::scoreSpot(Spot* spot) {
 								usedLetterMultipliers + played,
 								std::greater<int>());
 			int playedScore = 0;
-			for (int i = 0; i < played; ++i) {
+			int maxNonBlankTiles = played;
+			if (assumeBlankPlayed) maxNonBlankTiles--;
+			for (int i = 0; i < maxNonBlankTiles; ++i) {
 				playedScore += usedLetterMultipliers[i] * tileScores[i];
 			}
 			int score = (throughScore + playedScore) * wordMultiplier;
@@ -832,7 +854,15 @@ void V2Generator::scoreSpot(Spot* spot) {
 				score += QUACKLE_PARAMETERS->bingoBonus();
 			}
 			float optimisticEquity = score;
-			if (played < 7) optimisticEquity += bestLeave(*spot, played);
+			if (played < 7) {
+				optimisticEquity += bestLeave(*spot, played);
+				/*
+				UVcout << "use?:" << spot->canUseBlank << ", played: " << played
+							 << ", minPos: " << minPos << ", score: " << score
+							 << ", leave: " << bestLeave(*spot, played)
+							 << ", optimisticEquity: " << optimisticEquity << endl;
+				*/
+			}
 			maxEquity = std::max(maxEquity, optimisticEquity);
 			spot->worthChecking[played].maxEquity =
 				std::max(spot->worthChecking[played].maxEquity, optimisticEquity);
@@ -848,6 +878,312 @@ void V2Generator::scoreSpot(Spot* spot) {
 	// UVcout << "Spot: (" << spot->anchorRow << ", " << spot->anchorCol
 	// 			 << ", blank: " << spot->canUseBlank << ") "
 	// 			 << spot->maxEquity << endl;
+}
+
+bool V2Generator::isEmpty(int row, int col) {
+	return board()->letter(row, col) == QUACKLE_NULL_MARK;
+}
+
+Letter V2Generator::boardLetter(int row, int col) {
+	return board()->letter(row, col);
+}
+
+const unsigned char* V2Generator::followLetter(const V2Gaddag& gaddag,
+																							 int row, int col,
+																							 const unsigned char* node) {
+	Letter letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(row, col));
+	if (!gaddag.hasChild(node, letter)) return NULL;
+	const unsigned char* child = gaddag.child(node, letter);
+	return gaddag.followIndex(child);
+}
+
+const unsigned char* V2Generator::vertBeforeNode(int anchorRow, int col,
+																								 int numLetters) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const unsigned char* node = gaddag.root();
+	int startRow = anchorRow - numLetters;
+	Letter letter = boardLetter(startRow, col);
+	letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(letter);
+	if (!gaddag.hasChild(node, letter)) return NULL;
+	const unsigned char* child = gaddag.child(node, letter);
+	node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(child);
+	const unsigned char* changeChild = gaddag.changeDirection(node);
+  node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(changeChild);	
+	for (int row = startRow + 1; row < anchorRow; ++row) {
+		node = followLetter(gaddag, row, col, node);
+		if (node == NULL) break;
+	}
+	return node;
+}
+
+const unsigned char* V2Generator::vertAfterNode(int anchorRow, int col,
+																								int numLetters) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const unsigned char* node = gaddag.root();
+	int startRow = anchorRow + numLetters;
+	Letter letter = boardLetter(startRow, col);
+	letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(letter);
+	if (!gaddag.hasChild(node, letter)) return NULL;
+	const unsigned char* child = gaddag.child(node, letter);
+	node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(child);
+	for (int row = startRow - 1; row > anchorRow; --row) {
+		node = followLetter(gaddag, row, col, node);
+		if (node == NULL) break;
+	}
+	return node;
+}
+
+const unsigned char* V2Generator::horizBeforeNode(int row, int anchorCol,
+																									int numLetters) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const unsigned char* node = gaddag.root();
+	int startCol = anchorCol - numLetters;
+	Letter letter = boardLetter(row, startCol);
+	letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(letter);
+	if (!gaddag.hasChild(node, letter)) return NULL;
+	const unsigned char* child = gaddag.child(node, letter);
+	node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(child);
+	const unsigned char* changeChild = gaddag.changeDirection(node);
+  node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(changeChild);	
+	for (int col = startCol + 1; col < anchorCol; ++col) {
+		node = followLetter(gaddag, row, col, node);
+		if (node == NULL) break;
+	}
+	return node;
+}
+
+const unsigned char* V2Generator::horizAfterNode(int row, int anchorCol,
+																								 int numLetters) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const unsigned char* node = gaddag.root();
+	int startCol = anchorCol + numLetters;
+	Letter letter = boardLetter(row, startCol);
+	letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(letter);
+	if (!gaddag.hasChild(node, letter)) return NULL;
+	const unsigned char* child = gaddag.child(node, letter);
+	node = QUACKLE_LEXICON_PARAMETERS->v2Gaddag()->followIndex(child);
+	for (int col = startCol - 1; col > anchorCol; --col) {
+		letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(row, col));
+		if (!gaddag.hasChild(node, letter)) return NULL;
+		child = gaddag.child(node, letter);
+		node = gaddag.followIndex(child);
+		if (node == NULL) break;
+	}
+	return node;
+}
+
+uint32_t V2Generator::wordCompleters(const unsigned char* node) {
+	uint32_t completers = 0;
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
+	int childIndex = 0;
+	Letter foundLetter;
+  const unsigned char* child;
+	while (nextBlankLetter(gaddag, node, minLetter, &childIndex, &foundLetter,
+												 &child)) {
+		assert(child != NULL);
+		if (gaddag.completesWord(child)) completers |= (1 << foundLetter);
+		minLetter = foundLetter + 1;
+		++childIndex;
+	}
+	return completers;
+}
+
+bool V2Generator::vertCompletesWord(const V2Gaddag& gaddag, int row, int col,
+																		const unsigned char* node,
+																		int numLettersAfter) {
+	for (int i = 0; i < numLettersAfter - 1; ++i) {
+		node = followLetter(gaddag, row, col, node);
+		if (node == NULL) return false;
+		row++;
+	}
+	Letter letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(row, col));
+	if (!gaddag.hasChild(node, letter)) return false;
+	const unsigned char* child = gaddag.child(node, letter);
+	if (child == NULL) return false;
+	return gaddag.completesWord(child);
+}
+
+bool V2Generator::horizCompletesWord(const V2Gaddag& gaddag, int row, int col,
+																		 const unsigned char* node,
+																		 int numLettersAfter) {
+	for (int i = 0; i < numLettersAfter - 1; ++i) {
+		node = followLetter(gaddag, row, col, node);
+		if (node == NULL) return false;
+		col++;
+	}
+	Letter letter = QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(row, col));
+	if (!gaddag.hasChild(node, letter)) return false;
+	const unsigned char* child = gaddag.child(node, letter);
+	if (child == NULL) return false;
+	return gaddag.completesWord(child);
+}
+
+uint32_t V2Generator::vertBetween(int row, int col, int numLettersAfter,
+																	const unsigned char* beforeNode,
+																	const unsigned char* afterNode) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	uint32_t between = 0;
+	const uint32_t restriction = gaddag.sharedChildren(beforeNode, afterNode);
+	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
+	int childIndex = 0;
+	Letter foundLetter;
+	const unsigned char* child = NULL;
+	while (nextLetter(gaddag, beforeNode, restriction, minLetter,
+										&childIndex, &foundLetter, &child)) {
+		const unsigned char* node = gaddag.followIndex(child);
+		if ((node != NULL) &&
+				vertCompletesWord(gaddag, row + 1, col, node, numLettersAfter)) {
+			between |= (1 << foundLetter);
+		}
+		minLetter = foundLetter + 1;
+		++childIndex;
+	}
+	return between;
+}
+
+uint32_t V2Generator::horizBetween(int row, int col, int numLettersAfter,
+																	const unsigned char* beforeNode,
+																	const unsigned char* afterNode) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	uint32_t between = 0;
+	uint32_t restriction = gaddag.sharedChildren(beforeNode, afterNode);
+	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
+	int childIndex = 0;
+	Letter foundLetter;
+	const unsigned char* child = NULL;
+	while (nextLetter(gaddag, beforeNode, restriction, minLetter,
+										&childIndex, &foundLetter, &child)) {
+		const unsigned char* node = gaddag.followIndex(child);
+		if ((node != NULL) &&
+				horizCompletesWord(gaddag, row, col + 1, node, numLettersAfter)) {
+			between |= (1 << foundLetter);
+		}
+		minLetter = foundLetter + 1;
+		++childIndex;
+	}
+	return between;
+}
+
+uint32_t V2Generator::verticalHooks(int row, int col) {
+	//UVcout << "row: " << row << ", col: " << col << endl;
+	assert(isEmpty(row, col));
+	int numLettersBefore = 0;
+	for (int beforeRow = row - 1; beforeRow >= 0; beforeRow--) {
+		if (isEmpty(beforeRow, col)) break;
+		++numLettersBefore;
+	}
+	int numLettersAfter = 0;
+	for (int afterRow = row + 1; afterRow < 15; afterRow++) {
+		if (isEmpty(afterRow, col)) break;
+		++numLettersAfter;
+	}
+	//UVcout << "numLettersBefore: " << numLettersBefore << endl;
+	//UVcout << "numLettersAfter: " << numLettersAfter << endl;
+	assert(numLettersBefore > 0 || numLettersAfter > 0);
+	const unsigned char* beforeNode = NULL;
+	if (numLettersBefore > 0) {
+		beforeNode = vertBeforeNode(row, col, numLettersBefore);
+		if (beforeNode == NULL) return 0;
+	}
+	const unsigned char* afterNode = NULL;
+	if (numLettersAfter > 0) {
+		afterNode = vertAfterNode(row, col, numLettersAfter);
+		if (afterNode == NULL) return 0;
+	}
+	if (numLettersAfter == 0) {
+		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
+					 << endl;
+		return wordCompleters(beforeNode);
+	}
+	if (numLettersBefore == 0) {
+		/*
+		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(afterNode))
+					 << endl;
+		*/
+		return wordCompleters(afterNode);
+	}
+	if (beforeNode == NULL || afterNode == NULL) return 0;
+	/*
+	UVcout << "between: "
+				 << debugLetterMask(vertBetween(row, col, numLettersAfter, beforeNode, afterNode))
+				 << endl;
+	*/
+	return vertBetween(row, col, numLettersAfter, beforeNode, afterNode);
+}
+
+uint32_t V2Generator::horizontalHooks(int row, int col) {
+	//UVcout << "row: " << row << ", col: " << col << endl;
+	assert(isEmpty(row, col));
+	int numLettersBefore = 0;
+	for (int beforeCol = col - 1; beforeCol >= 0; beforeCol--) {
+		if (isEmpty(row, beforeCol)) break;
+		++numLettersBefore;
+	}
+	int numLettersAfter = 0;
+	for (int afterCol = col + 1; afterCol < 15; afterCol++) {
+		if (isEmpty(row, afterCol)) break;
+		++numLettersAfter;
+	}
+	//UVcout << "numLettersBefore: " << numLettersBefore << endl;
+	//UVcout << "numLettersAfter: " << numLettersAfter << endl;
+	assert(numLettersBefore > 0 || numLettersAfter > 0);
+	const unsigned char* beforeNode = NULL;
+	if (numLettersBefore > 0) {
+		beforeNode = horizBeforeNode(row, col, numLettersBefore);
+	}
+	const unsigned char* afterNode = NULL;
+	if (numLettersAfter > 0) {
+		afterNode = horizAfterNode(row, col, numLettersAfter);
+	}
+	if (numLettersAfter == 0) {
+		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
+					 << endl;
+		return wordCompleters(beforeNode);
+	}
+	if (numLettersBefore == 0) {
+		//UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(afterNode))
+		//			 << endl;
+		return wordCompleters(afterNode);
+	}
+	if (beforeNode == NULL || afterNode == NULL) return 0;
+	/*
+	UVcout << "between: "
+				 << debugLetterMask(horizBetween(row, col, numLettersAfter, beforeNode, afterNode))
+				 << endl;
+	*/
+	return horizBetween(row, col, numLettersAfter, beforeNode, afterNode);
+}
+
+void V2Generator::addThroughSpots(bool horiz, vector<Spot>* spots,
+																	int* row, int* col) {
+}
+
+void V2Generator::maybeAddHookSpot(int row, int col, bool horiz,
+																	 vector<Spot>* spots) {
+}
+
+void V2Generator::findSpots(vector<Spot>* spots) {
+	UVcout << "findSpots()..." << endl;
+	bool rackHasBlank = false;
+	for (unsigned int i = 0; i < rack().size(); ++i) {
+		if (rack().tiles()[i] == QUACKLE_BLANK_MARK) {
+			rackHasBlank = true;
+			break;
+		}
+	}
+	const int numTiles = rack().size();
+	for (bool horiz : {false, true})  {
+		for (int row = 0; row < 15; ++row) {
+			for (int col = 0; col < 15; ++col) {
+				if (board()->isNonempty(row, col)) {
+					addThroughSpots(horiz, spots, &row, &col);
+				} else {
+					maybeAddHookSpot(row, col, horiz, spots);
+				}
+			}
+		}
+	}
 }
 
 void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
@@ -902,16 +1238,6 @@ UVString V2Generator::counts2string() const {
 	for (Letter i = 0; i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); i++)
 		for (int j = 0; j < m_counts[i]; j++)
 			ret += QUACKLE_ALPHABET_PARAMETERS->userVisible(i);
-
-	return ret;
-}
-
-UVString V2Generator::cross2string(const LetterBitset &cross) {
-	UVString ret;
-
-	for (int i = 0; i < QUACKLE_ALPHABET_PARAMETERS->length(); i++)
-		if (cross.test(i))
-			ret += QUACKLE_ALPHABET_PARAMETERS->userVisible(QUACKLE_FIRST_LETTER + i);
 
 	return ret;
 }
