@@ -24,8 +24,12 @@ namespace Quackle {
     const unsigned char* vertAfterNode(int row, int col, int numLetters);
     const unsigned char* horizBeforeNode(int row, int col, int numLetters);
     const unsigned char* horizAfterNode(int row, int col, int numLetters);
-    uint32_t verticalHooks(int row, int col);
-    uint32_t horizontalHooks(int row, int col);
+    void updateVerticalHooks(int row, int col);
+    void updateHorizontalHooks(int row, int col);
+    void computeHooks();
+    void debugHooks();
+    void debugVertHook(int row, int col);
+    void debugHorizHook(int row, int col);
 
   private:
     struct WorthChecking {
@@ -66,6 +70,8 @@ namespace Quackle {
     void scoreSpot(Spot* spot);
     void addThroughSpots(bool horiz, vector<Spot>* spots, int* row, int* col);
     void maybeAddHookSpot(int row, int col, bool horiz, vector<Spot>* spots);
+    bool blankOnRack() const;
+    void findHookSpotsInRow(int row, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void restrictByLength(Spot* spot);
@@ -73,11 +79,21 @@ namespace Quackle {
     void findBestExchange();
     void findExchanges(const uint64_t* rackPrimes, const LetterString& tiles,
 		       uint64_t product, int pos, int numExchanged);
-    Letter boardLetter(int row, int col);
-    bool isEmpty(int row, int col);
+    inline Letter boardLetter(int row, int col);
+    inline int tileScore(int row, int col);
+    inline bool isEmpty(int row, int col);
 
     const unsigned char* followLetter(const V2Gaddag& gaddag, int row, int col,
 				      const unsigned char* node);
+
+    struct Hook {
+      bool touches;
+      uint32_t letters;
+      int score;
+    };
+    Hook m_vertHooks[15][15];
+    Hook m_horizHooks[15][15];
+    
     uint32_t wordCompleters(const unsigned char* node);
     uint32_t vertBetween(int row, int col, int numLettersAfter,
 			 const unsigned char* beforeNode,

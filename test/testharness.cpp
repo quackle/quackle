@@ -784,15 +784,20 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
 				if (i == 2) {
+					v2gen.kibitz();
+					/*					
 					struct timeval start, end;
 					gettimeofday(&start, NULL);
-					uint32_t hooks = v2gen.horizontalHooks(7, 8);
+					v2gen.computeHooks();
+					//v2gen.updateHorizontalHooks(7, 8);
 					gettimeofday(&end, NULL);
-					UVcout << "Time finding hooks between QI_LA was "
+					UVcout << "Time computing hooks was "
 				  			 << ((end.tv_sec * 1000000 + end.tv_usec)
 					 					 - (start.tv_sec * 1000000 + start.tv_usec))
 								 << " microseconds." << endl;				
-		      UVcout << "QI_LA hooks: " << hooks << endl;
+		      UVcout << "QI_La hooks: " << endl;
+					//v2gen.debugHorizHook(7, 8);
+					v2gen.debugHooks();
 					/*
 					uint32_t hooks = v2gen.verticalHooks(8, 6);
 		      UVcout << "Q_ hooks: " << hooks << endl;
@@ -811,7 +816,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				} else if (i == 1) {
 					UVString leftover;
 					LetterString letters =
-						QUACKLE_ALPHABET_PARAMETERS->encode("LA", &leftover);
+						QUACKLE_ALPHABET_PARAMETERS->encode("La", &leftover);
 					move = Move::createPlaceMove(7, 9, true, letters);
 				}
 				if (i >= 2) break;

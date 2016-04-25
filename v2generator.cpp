@@ -34,6 +34,13 @@ Move V2Generator::findStaticBest() {
 
   m_moveList.clear();
 
+  setUpCounts(rack().tiles());
+	m_rackBits = 0;
+	for (int letter = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
+			 letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter) {
+		if (m_counts[letter] > 0) m_rackBits |= (1 << letter);
+	}
+
 	struct timeval start, end;
 
 	// TODO: are enough tiles in the bag?
@@ -45,7 +52,6 @@ Move V2Generator::findStaticBest() {
 				 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	UVcout << "best exchange: " << m_best << endl;
-  setUpCounts(rack().tiles());
 	gettimeofday(&start, NULL);
   m_anagrams = QUACKLE_ANAGRAMMAP->lookUp(rack());
 	gettimeofday(&end, NULL);
@@ -70,6 +76,8 @@ Move V2Generator::findStaticBest() {
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	} else {
 		gettimeofday(&start, NULL);
+		computeHooks();
+		
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
 		UVcout << "Time finding spots on nonempty board was "
@@ -227,11 +235,6 @@ bool V2Generator::couldMakeWord(const Spot& spot, int length) const {
 }
 
 void V2Generator::findMovesAt(Spot* spot) {
-  m_rackBits = 0;
-	for (int letter = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
-			 letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter) {
-		if (m_counts[letter] > 0) m_rackBits |= (1 << letter);
-	}
 	m_mainWordScore = spot->throughScore;
 	UVcout << "spot->canUseBlank: " << spot->canUseBlank
 				 << ", m_counts[QUACKLE_BLANK_MARK]: "
@@ -1065,102 +1068,222 @@ uint32_t V2Generator::horizBetween(int row, int col, int numLettersAfter,
 	return between;
 }
 
-uint32_t V2Generator::verticalHooks(int row, int col) {
+void V2Generator::updateVerticalHooks(int row, int col) {
 	//UVcout << "row: " << row << ", col: " << col << endl;
 	assert(isEmpty(row, col));
 	int numLettersBefore = 0;
+	Hook& hook = m_vertHooks[row][col];
+	hook.score = 0;
 	for (int beforeRow = row - 1; beforeRow >= 0; beforeRow--) {
 		if (isEmpty(beforeRow, col)) break;
+		hook.score += tileScore(beforeRow, col);
 		++numLettersBefore;
 	}
 	int numLettersAfter = 0;
 	for (int afterRow = row + 1; afterRow < 15; afterRow++) {
 		if (isEmpty(afterRow, col)) break;
+		hook.score += tileScore(afterRow, col);
 		++numLettersAfter;
 	}
 	//UVcout << "numLettersBefore: " << numLettersBefore << endl;
 	//UVcout << "numLettersAfter: " << numLettersAfter << endl;
-	assert(numLettersBefore > 0 || numLettersAfter > 0);
+	if (numLettersBefore + numLettersAfter == 0) {
+		hook.touches = false;
+		return;
+	}
+	hook.touches = true;
+	hook.letters = 0;
 	const unsigned char* beforeNode = NULL;
 	if (numLettersBefore > 0) {
 		beforeNode = vertBeforeNode(row, col, numLettersBefore);
-		if (beforeNode == NULL) return 0;
+		if (beforeNode == NULL) return;
 	}
 	const unsigned char* afterNode = NULL;
 	if (numLettersAfter > 0) {
 		afterNode = vertAfterNode(row, col, numLettersAfter);
-		if (afterNode == NULL) return 0;
+		if (afterNode == NULL) return;
 	}
 	if (numLettersAfter == 0) {
-		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
-					 << endl;
-		return wordCompleters(beforeNode);
+		//UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
+		//			 << endl;
+		hook.letters = wordCompleters(beforeNode);
+		return;
 	}
 	if (numLettersBefore == 0) {
 		/*
 		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(afterNode))
 					 << endl;
 		*/
-		return wordCompleters(afterNode);
+		hook.letters = wordCompleters(afterNode);
+		return;
 	}
-	if (beforeNode == NULL || afterNode == NULL) return 0;
+	if (beforeNode == NULL || afterNode == NULL) return;
 	/*
 	UVcout << "between: "
 				 << debugLetterMask(vertBetween(row, col, numLettersAfter, beforeNode, afterNode))
 				 << endl;
 	*/
-	return vertBetween(row, col, numLettersAfter, beforeNode, afterNode);
+	hook.letters = vertBetween(row, col, numLettersAfter, beforeNode, afterNode);
 }
 
-uint32_t V2Generator::horizontalHooks(int row, int col) {
+int V2Generator::tileScore(int row, int col) {
+	const Letter letter = boardLetter(row, col);
+	if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(letter)) {
+		return QUACKLE_ALPHABET_PARAMETERS->score(letter);
+	} else {
+		return 0;
+	}
+}
+
+void V2Generator::updateHorizontalHooks(int row, int col) {
 	//UVcout << "row: " << row << ", col: " << col << endl;
 	assert(isEmpty(row, col));
+	Hook& hook = m_horizHooks[row][col];
+	hook.score = 0;
 	int numLettersBefore = 0;
 	for (int beforeCol = col - 1; beforeCol >= 0; beforeCol--) {
 		if (isEmpty(row, beforeCol)) break;
+    hook.score += tileScore(row, beforeCol);
 		++numLettersBefore;
 	}
 	int numLettersAfter = 0;
 	for (int afterCol = col + 1; afterCol < 15; afterCol++) {
 		if (isEmpty(row, afterCol)) break;
+		hook.score += tileScore(row, afterCol);
 		++numLettersAfter;
 	}
 	//UVcout << "numLettersBefore: " << numLettersBefore << endl;
 	//UVcout << "numLettersAfter: " << numLettersAfter << endl;
-	assert(numLettersBefore > 0 || numLettersAfter > 0);
+	if (numLettersBefore + numLettersAfter == 0) {
+		hook.touches = false;
+		return;
+	}
+	hook.touches = true;
+	hook.letters = 0;
 	const unsigned char* beforeNode = NULL;
 	if (numLettersBefore > 0) {
 		beforeNode = horizBeforeNode(row, col, numLettersBefore);
+		if (beforeNode == NULL) return;
 	}
 	const unsigned char* afterNode = NULL;
 	if (numLettersAfter > 0) {
 		afterNode = horizAfterNode(row, col, numLettersAfter);
+		if (afterNode == NULL) return;
 	}
 	if (numLettersAfter == 0) {
-		UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
-					 << endl;
-		return wordCompleters(beforeNode);
+		//UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(beforeNode))
+		//			 << endl;
+		hook.letters = wordCompleters(beforeNode);
+		return;
 	}
 	if (numLettersBefore == 0) {
 		//UVcout << "wordCompleters: " << debugLetterMask(wordCompleters(afterNode))
 		//			 << endl;
-		return wordCompleters(afterNode);
+		hook.letters = wordCompleters(afterNode);
+		return;
 	}
-	if (beforeNode == NULL || afterNode == NULL) return 0;
+	if (beforeNode == NULL || afterNode == NULL) return;
 	/*
 	UVcout << "between: "
 				 << debugLetterMask(horizBetween(row, col, numLettersAfter, beforeNode, afterNode))
 				 << endl;
 	*/
-	return horizBetween(row, col, numLettersAfter, beforeNode, afterNode);
+	hook.letters = horizBetween(row, col, numLettersAfter, beforeNode, afterNode);
+}
+
+void V2Generator::debugVertHook(int row, int col) {
+	const Hook& hook = m_vertHooks[row][col];
+	UVcout << "  vert hooks at row: " << row << ", col: " << col << endl;
+	if (hook.touches) {
+		UVcout << "  touches something... ";
+	} else {
+		UVcout << "  touches nothing." << endl;
+		return;
+	}
+	UVcout << "hook letters: " << debugLetterMask(hook.letters);
+	if (hook.letters != 0) {
+		UVcout << ", score: " << hook.score;
+	}
+	UVcout << endl;
+}
+
+void V2Generator::debugHorizHook(int row, int col) {
+	const Hook& hook = m_horizHooks[row][col];
+	UVcout << "  horiz hooks at row: " << row << ", col: " << col << endl;
+	if (hook.touches) {
+		UVcout << "  touches something... "; 
+	} else {
+		UVcout << "  touches nothing." << endl;
+		return;
+	}
+	UVcout << "hook letters: " << debugLetterMask(hook.letters);
+	if (hook.letters != 0) {
+		UVcout << ", score: " << hook.score;
+	}
+	UVcout << endl;
+}
+
+void V2Generator::debugHooks() {
+	for (int row = 0; row < 15; ++row) {
+		for (int col = 0; col < 15; ++col) {
+			const Hook& hook = m_vertHooks[row][col];
+			if (hook.touches) {
+				debugVertHook(row, col);
+			}
+		}
+	}
+	for (int row = 0; row < 15; ++row) {
+		for (int col = 0; col < 15; ++col) {
+			const Hook& hook = m_horizHooks[row][col];
+			if (hook.touches) {
+				debugHorizHook(row, col);
+			}
+		}
+	}
 }
 
 void V2Generator::addThroughSpots(bool horiz, vector<Spot>* spots,
 																	int* row, int* col) {
 }
 
-void V2Generator::maybeAddHookSpot(int row, int col, bool horiz,
-																	 vector<Spot>* spots) {
+bool V2Generator::blankOnRack() const {
+	return m_counts[QUACKLE_BLANK_MARK] > 0;
+}
+void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
+	const int numTiles = rack().size();
+	int startCol = 0;
+	for (int col = 0; col < 15; col++) {
+		if (isEmpty(row, col)) {
+			const Hook& hook = m_vertHooks[row][col];
+			if (hook.touches) {
+				uint32_t rackHookBits = blankOnRack() ? 0xFFFF : m_rackBits;
+				if ((hook.letters & rackHookBits) != 0) {
+					Spot spot;
+					spot.anchorRow = row;
+					spot.anchorCol = col;
+					spot.canUseBlank = true;
+					spot.horizontal = true;
+					spot.throughScore = 0;
+					spot.maxTilesBehind = std::min(numTiles - 1, col - startCol);
+					spot.minTilesAhead = 1;
+					spot.maxTilesAhead = std::min(numTiles, 15 - col);
+					spot.longestViable = numTiles;
+					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
+								 << "maxBehind: " << spot.maxTilesBehind
+								 << ", maxAhead: " << spot.maxTilesAhead << endl;
+					scoreSpot(&spot);
+					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+								 << ", " << "blank: " << spot.canUseBlank << "): "
+								 << spot.maxEquity << endl;
+					
+				}
+				startCol = col + 1;
+			}
+		} else {
+			col += 2;
+			startCol = col;
+		}
+	}
 }
 
 void V2Generator::findSpots(vector<Spot>* spots) {
@@ -1172,17 +1295,8 @@ void V2Generator::findSpots(vector<Spot>* spots) {
 			break;
 		}
 	}
-	const int numTiles = rack().size();
-	for (bool horiz : {false, true})  {
-		for (int row = 0; row < 15; ++row) {
-			for (int col = 0; col < 15; ++col) {
-				if (board()->isNonempty(row, col)) {
-					addThroughSpots(horiz, spots, &row, &col);
-				} else {
-					maybeAddHookSpot(row, col, horiz, spots);
-				}
-			}
-		}
+	for (int row = 0; row < 15; ++row) {
+		findHookSpotsInRow(row, spots);
 	}
 }
 
@@ -1225,6 +1339,17 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 			}
 		} 
 		spots->push_back(spot);
+	}
+}
+
+void V2Generator::computeHooks() {
+	for (int row = 0; row < 15; row++) {
+		for (int col = 0; col < 15; col++) {
+			if (isEmpty(row, col)) {
+				updateVerticalHooks(row, col);
+				updateHorizontalHooks(row, col);
+			}
+		}
 	}
 }
 
