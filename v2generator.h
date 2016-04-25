@@ -71,6 +71,9 @@ namespace Quackle {
     void addThroughSpots(bool horiz, vector<Spot>* spots, int* row, int* col);
     void maybeAddHookSpot(int row, int col, bool horiz, vector<Spot>* spots);
     bool blankOnRack() const;
+    uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
+    bool restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
+				uint32_t rackHooks) const;
     void findHookSpotsInRow(int row, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);

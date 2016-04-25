@@ -1249,6 +1249,58 @@ void V2Generator::addThroughSpots(bool horiz, vector<Spot>* spots,
 bool V2Generator::blankOnRack() const {
 	return m_counts[QUACKLE_BLANK_MARK] > 0;
 }
+
+uint32_t V2Generator::otherRackBits(uint32_t rackBits, uint32_t rackHooks) const {
+	if (__builtin_popcount(rackHooks) == 1) {
+		Letter onlyHook = __builtin_ffs(rackHooks) - 1;
+		UVcout << "rackBits: " << debugLetterMask(rackBits)
+					 << ", counts: " << counts2string()
+					 << ", rackHooks: " << debugLetterMask(rackHooks)
+					 << ", only hook here is "
+					 << QUACKLE_ALPHABET_PARAMETERS->userVisible(onlyHook) << endl;
+		if (m_counts[onlyHook] > 1) return rackBits;
+		if (m_counts[onlyHook] == 1) {
+			if (blankOnRack()) {
+				return rackBits;
+			} else {
+				uint32_t hookLetterMask = 1 << onlyHook;
+				return rackBits & ~hookLetterMask;
+			}
+		} else {
+			assert(blankOnRack());
+			if (m_counts[QUACKLE_BLANK_MARK] > 1) {
+				return rackBits;
+			} else {
+				return m_rackBits;
+			}
+		}
+	}
+}
+
+bool V2Generator::restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
+																				 uint32_t rackHooks) const {
+	// Assumes no hooks behind. This may change if I try to optimize adjacent hook
+	// anchors such that the most restrictive of them (rather than always the
+	// first) is given room behind.
+
+	// If a single tile (natural or blank) is required to hook at the anchor
+	// square, remove it from the bit mask when checking other hooks.
+	rackBits = otherRackBits(rackBits, rackHooks);
+	
+	int row = spot->anchorRow;
+	int col = spot->anchorCol;
+	for (int ahead = 1; ahead <= spot->maxTilesAhead; ahead++) {
+		if (spot->horizontal) col++; else row++;
+		const Hook& hook =
+			spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
+		if (hook.touches && ((hook.letters & rackBits) == 0)) {
+			spot->maxTilesAhead = ahead;
+			return true;
+		}
+	}
+	return false;
+}
+																				 
 void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 	const int numTiles = rack().size();
 	int startCol = 0;
@@ -1256,8 +1308,9 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 		if (isEmpty(row, col)) {
 			const Hook& hook = m_vertHooks[row][col];
 			if (hook.touches) {
-				uint32_t rackHookBits = blankOnRack() ? 0xFFFF : m_rackBits;
-				if ((hook.letters & rackHookBits) != 0) {
+				uint32_t rackBitsOrBlank = blankOnRack() ? 0xFFFF : m_rackBits;
+				uint32_t rackHooks = hook.letters & rackBitsOrBlank;
+				if (rackHooks != 0) {
 					Spot spot;
 					spot.anchorRow = row;
 					spot.anchorCol = col;
@@ -1271,11 +1324,12 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
 								 << "maxBehind: " << spot.maxTilesBehind
 								 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					scoreSpot(&spot);
-					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-								 << ", " << "blank: " << spot.canUseBlank << "): "
-								 << spot.maxEquity << endl;
-					
+					if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+						UVcout << "restricted Spot: (" << spot.anchorRow << ", "
+									 << spot.anchorCol << "), "
+									 << "maxBehind: " << spot.maxTilesBehind
+									 << ", maxAhead: " << spot.maxTilesAhead << endl;
+					}
 				}
 				startCol = col + 1;
 			}
