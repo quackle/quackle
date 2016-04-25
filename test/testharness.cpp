@@ -783,7 +783,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				*/
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
-				if (i == 2) {
+				if (i == 3) {
 					v2gen.kibitz();
 					/*					
 					struct timeval start, end;
@@ -811,15 +811,20 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				if (i == 0) {
 					UVString leftover;
 					LetterString letters =
-						QUACKLE_ALPHABET_PARAMETERS->encode("QI", &leftover);
-					move = Move::createPlaceMove(7, 6, true, letters);
+						QUACKLE_ALPHABET_PARAMETERS->encode("NIDATED", &leftover);
+					move = Move::createPlaceMove(7, 1, true, letters);
 				} else if (i == 1) {
 					UVString leftover;
 					LetterString letters =
-						QUACKLE_ALPHABET_PARAMETERS->encode("La", &leftover);
-					move = Move::createPlaceMove(7, 9, true, letters);
+						QUACKLE_ALPHABET_PARAMETERS->encode("OTARINE", &leftover);
+					move = Move::createPlaceMove(8, 1, true, letters);
+				} else if (i == 2) {
+					UVString leftover;
+					LetterString letters =
+						QUACKLE_ALPHABET_PARAMETERS->encode("MALTESE", &leftover);
+					move = Move::createPlaceMove(9, 1, true, letters);
 				}
-				if (i >= 2) break;
+				if (i >= 3) break;
 				game.currentPosition().addAndSetMoveMade(move);
 				game.commitMove(move);
 				/*

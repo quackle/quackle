@@ -67,6 +67,7 @@ namespace Quackle {
     Move findStaticBest();
     int scorePlay(const Spot& spot, int behind, int ahead);
     inline double getLeave() const;
+    int bidiLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
     void addThroughSpots(bool horiz, vector<Spot>* spots, int* row, int* col);
     void maybeAddHookSpot(int row, int col, bool horiz, vector<Spot>* spots);

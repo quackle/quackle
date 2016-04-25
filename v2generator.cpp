@@ -77,6 +77,7 @@ Move V2Generator::findStaticBest() {
 	} else {
 		gettimeofday(&start, NULL);
 		computeHooks();
+		debugHooks();
 		
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
@@ -171,7 +172,7 @@ void V2Generator::findBestExchange() {
 	}
 	double bestEquity = 0;
 	uint64_t primes[7];
-	int bestMask = 127;
+	int bestMask = 0;
 	const LetterString& tiles = rack().tiles();
 	for (int i = 0; i < 7; ++i) {
 		primes[i] = QUACKLE_PRIMESET->lookUpTile(tiles[i]);
@@ -265,7 +266,8 @@ void V2Generator::findMovesAt(Spot* spot) {
 namespace {
 	UVString debugLetterMask(uint32_t letters) {
 		UVString ret;
-		for (Letter i = 0; i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++i) {
+		for (Letter i = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
+				 i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++i) {
 			if ((letters & (1 << i)) != 0) {
 				ret += QUACKLE_ALPHABET_PARAMETERS->userVisible(i);
 			}
@@ -760,6 +762,18 @@ float V2Generator::bestLeave(const Spot& spot, int length) const {
 	return m_bestLeaves[length];
 }
 
+int V2Generator::bidiLetterMultiplier(int row, int col, bool horiz) {
+	const Hook& hook =
+			horiz ? m_vertHooks[row][col] : m_horizHooks[row][col];
+	if (hook.touches) {
+		return
+			QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) +
+			QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col) *
+			QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
+	}
+	return QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+}
+
 void V2Generator::scoreSpot(Spot* spot) {
 	spot->canMakeAnyWord = false;
 	const int numTiles = rack().size();
@@ -789,6 +803,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 	
 	int wordMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int letterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
+	int hookScores[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int row = spot->anchorRow;
 	int col = spot->anchorCol;
 	int anchorPos = (spot->horizontal) ? col : row;
@@ -799,7 +814,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 			wordMultipliers[anchorPos + i] =
 				QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 			letterMultipliers[anchorPos + i] =
-				QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+				bidiLetterMultiplier(row, col, spot->horizontal);
+			const Hook& hook =
+				spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
+			hookScores[anchorPos + i] = hook.score;
 		}
 		if (spot->horizontal) col++; else row++;
 	}
@@ -813,7 +831,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 			wordMultipliers[anchorPos - i] =
 				QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 			letterMultipliers[anchorPos - i] =
-				QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+				bidiLetterMultiplier(row, col, spot->horizontal);
+			const Hook& hook =
+				spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
+			hookScores[anchorPos - i] = hook.score;
 		}
 	}
   for (int ahead = spot->minTilesAhead; ahead <= spot->maxTilesAhead; ++ahead) {
@@ -838,8 +859,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 			int wordMultiplier = 1;
 			int usedLetterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 			int minPos = anchorPos - behind;
+			int hookScore = 0;
 			for (int pos = minPos; pos < minPos + played; ++pos) {
 				wordMultiplier *= wordMultipliers[pos];
+				hookScore += hookScores[pos];
 			}
 			memcpy(&usedLetterMultipliers, &(letterMultipliers[minPos]),
 						 played * sizeof(int));
@@ -852,7 +875,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 			for (int i = 0; i < maxNonBlankTiles; ++i) {
 				playedScore += usedLetterMultipliers[i] * tileScores[i];
 			}
-			int score = (throughScore + playedScore) * wordMultiplier;
+			int score = (throughScore + playedScore) * wordMultiplier + hookScore;
 			if (played == QUACKLE_PARAMETERS->rackSize()) {
 				score += QUACKLE_PARAMETERS->bingoBonus();
 			}
@@ -1091,6 +1114,7 @@ void V2Generator::updateVerticalHooks(int row, int col) {
 		hook.touches = false;
 		return;
 	}
+	hook.score *= QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 	hook.touches = true;
 	hook.letters = 0;
 	const unsigned char* beforeNode = NULL;
@@ -1308,7 +1332,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 		if (isEmpty(row, col)) {
 			const Hook& hook = m_vertHooks[row][col];
 			if (hook.touches) {
-				uint32_t rackBitsOrBlank = blankOnRack() ? 0xFFFF : m_rackBits;
+				uint32_t rackBitsOrBlank = blankOnRack() ? 0xFFFFFFFF : m_rackBits;
 				uint32_t rackHooks = hook.letters & rackBitsOrBlank;
 				if (rackHooks != 0) {
 					Spot spot;
@@ -1329,6 +1353,12 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 									 << spot.anchorCol << "), "
 									 << "maxBehind: " << spot.maxTilesBehind
 									 << ", maxAhead: " << spot.maxTilesAhead << endl;
+					}
+					scoreSpot(&spot);
+					if (spot.canMakeAnyWord) {
+						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+									 << ", blank: " << spot.canUseBlank << ") "
+									 << spot.maxEquity << endl;
 					}
 				}
 				startCol = col + 1;
