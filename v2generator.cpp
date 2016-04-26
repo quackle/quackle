@@ -1412,26 +1412,20 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					spot.minTilesAhead = 1;
 					spot.maxTilesAhead = std::min(numTiles, 15 - col);
 					spot.longestViable = numTiles;
-					/*
 					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
 								 << "maxBehind: " << spot.maxTilesBehind
 								 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					*/
 					if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
-						/*
 						UVcout << "restricted Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
 									 << "maxBehind: " << spot.maxTilesBehind
 									 << ", maxAhead: " << spot.maxTilesAhead << endl;
-						*/
 					}
 					scoreSpot(&spot);
 					if (spot.canMakeAnyWord) {
-						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
 									 << ", blank: " << spot.canUseBlank << ") "
 									 << spot.maxEquity << endl;
-						*/
 						spots->push_back(spot);
 					}
 				}
@@ -1499,11 +1493,9 @@ void V2Generator::findSpots(vector<Spot>* spots) {
 			break;
 		}
 	}
-	/*
 	for (int row = 0; row < 15; ++row) {
 		findHookSpotsInRow(row, spots);
 	}
-	*/
 	for (int col = 0; col < 15; ++col) {
 		findHookSpotsInCol(col, spots);
 	}

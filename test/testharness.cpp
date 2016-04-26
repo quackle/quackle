@@ -787,7 +787,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				if (i == 0) {
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("ANESTRI", &leftover);
 				} else {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("??MMRET", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("TRONGLE", &leftover);
 				}
 				Rack rack(letters);
 				game.currentPosition().setCurrentPlayerRack(rack);
