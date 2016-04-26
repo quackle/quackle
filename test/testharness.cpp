@@ -781,39 +781,40 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					UVcout << colString(board, col) << "] + " << scoreString << endl;
 				}
 				*/
+				if (i == 2) break;
+				UVString leftover;
+				LetterString letters;
 				if (i == 0) {
-					UVString leftover;
-					LetterString letters =
-						QUACKLE_ALPHABET_PARAMETERS->encode("RATES??", &leftover);
-					Rack rack(letters);
-					game.currentPosition().setCurrentPlayerRack(rack);
-					Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
-					UVcout << game.currentPosition() << endl;
-					
-					v2gen.kibitz();
-					/*					
-					struct timeval start, end;
-					gettimeofday(&start, NULL);
-					v2gen.computeHooks();
-					//v2gen.updateHorizontalHooks(7, 8);
-					gettimeofday(&end, NULL);
-					UVcout << "Time computing hooks was "
-				  			 << ((end.tv_sec * 1000000 + end.tv_usec)
-					 					 - (start.tv_sec * 1000000 + start.tv_usec))
-								 << " microseconds." << endl;				
-		      UVcout << "QI_La hooks: " << endl;
-					//v2gen.debugHorizHook(7, 8);
-					v2gen.debugHooks();
-					/*
-					uint32_t hooks = v2gen.verticalHooks(8, 6);
-		      UVcout << "Q_ hooks: " << hooks << endl;
-					hooks = v2gen.horizontalHooks(7, 5);
-		      UVcout << "_QI hooks: " << hooks << endl;
-					hooks = v2gen.horizontalHooks(7, 8);
-		      UVcout << "QI_ hooks: " << hooks << endl;
-					*/
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("ANESTRI", &leftover);
+				} else {
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("??MMRET", &leftover);
 				}
-				Quackle::Move move;// = v2gen.kibitz();
+				Rack rack(letters);
+				game.currentPosition().setCurrentPlayerRack(rack);
+				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+				UVcout << game.currentPosition() << endl;
+				/*	
+				struct timeval start, end;
+				gettimeofday(&start, NULL);
+				v2gen.computeHooks();
+				//v2gen.updateHorizontalHooks(7, 8);
+				gettimeofday(&end, NULL);
+				UVcout << "Time computing hooks was "
+							 << ((end.tv_sec * 1000000 + end.tv_usec)
+									 - (start.tv_sec * 1000000 + start.tv_usec))
+							 << " microseconds." << endl;				
+				UVcout << "QI_La hooks: " << endl;
+				//v2gen.debugHorizHook(7, 8);
+				v2gen.debugHooks();
+				uint32_t hooks = v2gen.verticalHooks(8, 6);
+				UVcout << "Q_ hooks: " << hooks << endl;
+				hooks = v2gen.horizontalHooks(7, 5);
+				UVcout << "_QI hooks: " << hooks << endl;
+				hooks = v2gen.horizontalHooks(7, 8);
+				UVcout << "QI_ hooks: " << hooks << endl;
+				*/
+				Quackle::Move move = v2gen.kibitz();
+				/*
 				if (i == 0) {
 					UVString leftover;
 					LetterString letters =
@@ -830,7 +831,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 						QUACKLE_ALPHABET_PARAMETERS->encode("MALTESE", &leftover);
 					move = Move::createPlaceMove(9, 1, true, letters);
 				}
-				if (i >= 0) break;
+				*/
 				game.currentPosition().addAndSetMoveMade(move);
 				game.commitMove(move);
 				/*

@@ -76,6 +76,7 @@ namespace Quackle {
     bool restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
 				uint32_t rackHooks) const;
     void findHookSpotsInRow(int row, vector<Spot>* spots);
+    void findHookSpotsInCol(int col, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void restrictByLength(Spot* spot);

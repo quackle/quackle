@@ -77,7 +77,7 @@ Move V2Generator::findStaticBest() {
 	} else {
 		gettimeofday(&start, NULL);
 		computeHooks();
-		//debugHooks();
+		debugHooks();
 		
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
@@ -1245,6 +1245,7 @@ void V2Generator::updateHorizontalHooks(int row, int col) {
 		hook.touches = false;
 		return;
 	}
+	hook.score *= QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 	hook.touches = true;
 	hook.letters = 0;
 	const unsigned char* beforeNode = NULL;
@@ -1443,6 +1444,52 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 	}
 }
 
+void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
+	const int numTiles = rack().size();
+	int startRow = 0;
+	for (int row = 0; row < 15; row++) {
+		if (isEmpty(row, col)) {
+			const Hook& hook = m_horizHooks[row][col];
+			if (hook.touches) {
+				uint32_t rackBitsOrBlank = blankOnRack() ? m_everyLetter : m_rackBits;
+				uint32_t rackHooks = hook.letters & rackBitsOrBlank;
+				if (rackHooks != 0) {
+					Spot spot;
+					spot.anchorRow = row;
+					spot.anchorCol = col;
+					spot.canUseBlank = true;
+					spot.horizontal = false;
+					spot.throughScore = 0;
+					spot.maxTilesBehind = std::min(numTiles - 1, row - startRow);
+					spot.minTilesAhead = 1;
+					spot.maxTilesAhead = std::min(numTiles, 15 - row);
+					spot.longestViable = numTiles;
+					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
+								 << "maxBehind: " << spot.maxTilesBehind
+								 << ", maxAhead: " << spot.maxTilesAhead << endl;
+					if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+						UVcout << "restricted Spot: (" << spot.anchorRow << ", "
+									 << spot.anchorCol << "), "
+									 << "maxBehind: " << spot.maxTilesBehind
+									 << ", maxAhead: " << spot.maxTilesAhead << endl;
+					}
+					scoreSpot(&spot);
+					if (spot.canMakeAnyWord) {
+						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+									 << ", blank: " << spot.canUseBlank << ") "
+									 << spot.maxEquity << endl;
+						spots->push_back(spot);
+					}
+				}
+				startRow = row + 1;
+			}
+		} else {
+			row += 2;
+			startRow = row;
+		}
+	}
+}
+
 void V2Generator::findSpots(vector<Spot>* spots) {
 	UVcout << "findSpots()..." << endl;
 	bool rackHasBlank = false;
@@ -1452,8 +1499,13 @@ void V2Generator::findSpots(vector<Spot>* spots) {
 			break;
 		}
 	}
+	/*
 	for (int row = 0; row < 15; ++row) {
 		findHookSpotsInRow(row, spots);
+	}
+	*/
+	for (int col = 0; col < 15; ++col) {
+		findHookSpotsInCol(col, spots);
 	}
 }
 
