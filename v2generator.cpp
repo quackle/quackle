@@ -444,15 +444,21 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		LetterString word;
 		int startRow = spot.anchorRow;
 		int startCol = spot.anchorCol;
+		int startPos;
+		int anchorPos;
 		if (spot.horizontal) {
 			startCol -= behind;
+			startPos = startCol;
+			anchorPos = spot.anchorCol;
 		} else {
 			startRow -= behind;
+			startPos = startRow;
+			anchorPos = spot.anchorRow;
 		}
-		for (int i = startCol; i < spot.anchorCol + ahead + 1; ++i) {
+		for (int pos = startPos; pos < anchorPos + ahead + 1; ++pos) {
 			//assert(i >= 0); assert(i < 15);
 			//UVcout << "letter: " << static_cast<int>(m_placed[i]) << endl;
-			word += m_placed[i];
+			word += m_placed[pos];
 		}
 		Move move = Move::createPlaceMove(startRow, startCol, spot.horizontal, word);
 		move.score = score;
@@ -487,7 +493,6 @@ void V2Generator::getSquare(const Spot& spot, int delta,
 void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 																		int behind, int velocity, int wordMultiplier,
 																		const V2Gaddag& gaddag, const unsigned char* node) {
-	// FIXME: all this assumes horizontal
 	if (velocity < 0) {
 		if (behind < spot->maxTilesBehind) {
 			findBlankless(spot, delta - 1, 0, behind + 1, -1, wordMultiplier, node);
@@ -511,7 +516,6 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 void V2Generator::findMoreBlankable(Spot* spot, int delta, int ahead,
 																		int behind, int velocity, int wordMultiplier,
 																		const V2Gaddag& gaddag, const unsigned char* node) {
-	// FIXME: all this assumes horizontal
 	if (velocity < 0) {
 		if (behind < spot->maxTilesBehind) {
 			findBlankable(spot, delta - 1, 0, behind + 1, -1, wordMultiplier, node);
@@ -542,7 +546,13 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 				 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 #endif
 	int numPlaced, row, col, pos;
-	// Not true for "through" spots!
+  // I think actually I mean for "ahead" to include the anchor spot
+	// (for hooking spots) so ahead and behind maybe ought to initially
+	// be 1 and 0 respectively for hook spots (or empty board) in which
+	// case numPlaced would just be ahead + behind. Make that change at
+	// some point and be sure that everything is still correct. "Through"
+	// spots will start at 0 and 0 because there's nothing placed at the
+	// anchor.
   numPlaced =	1 + ahead + behind;
 	getSquare(*spot, delta, &row, &col, &pos);
 	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
@@ -578,8 +588,6 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 #ifdef DEBUG_V2GEN
 		debugPlaced(*spot, behind, ahead);
 #endif		
-		// FIXME: all this assumes horizontal
-		// Test it by making the empty-board spot vertie!
 		if (spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
@@ -674,8 +682,6 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 #endif
 		m_placed[pos] = blankLetter;
 
-		// FIXME: all this assumes horizontal
-		// Test it by making the empty-board spot vertie!
 		if (spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, ahead, numPlaced)) {
@@ -1461,12 +1467,12 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	}
 	const int numTiles = rack().size();
 
-	const int anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
 	Spot spot;
-	spot.anchorRow = anchorRow;
+	spot.anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
 	spot.anchorCol = QUACKLE_BOARD_PARAMETERS->startColumn();
 	spot.canUseBlank = true;
-	spot.horizontal = true;
+	//spot.horizontal = true;
+	spot.horizontal = false;
 	spot.throughScore = 0;
 	spot.maxTilesBehind = numTiles - 1;
 	spot.minTilesAhead = 1;

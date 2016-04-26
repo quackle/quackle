@@ -781,7 +781,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					UVcout << colString(board, col) << "] + " << scoreString << endl;
 				}
 				*/
-				if (i == 3) {
+				if (i == 0) {
 					UVString leftover;
 					LetterString letters =
 						QUACKLE_ALPHABET_PARAMETERS->encode("RATES??", &leftover);
@@ -830,7 +830,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 						QUACKLE_ALPHABET_PARAMETERS->encode("MALTESE", &leftover);
 					move = Move::createPlaceMove(9, 1, true, letters);
 				}
-				if (i >= 3) break;
+				if (i >= 0) break;
 				game.currentPosition().addAndSetMoveMade(move);
 				game.commitMove(move);
 				/*
