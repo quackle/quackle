@@ -781,9 +781,15 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					UVcout << colString(board, col) << "] + " << scoreString << endl;
 				}
 				*/
-				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
-				UVcout << game.currentPosition() << endl;
 				if (i == 3) {
+					UVString leftover;
+					LetterString letters =
+						QUACKLE_ALPHABET_PARAMETERS->encode("RATES??", &leftover);
+					Rack rack(letters);
+					game.currentPosition().setCurrentPlayerRack(rack);
+					Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+					UVcout << game.currentPosition() << endl;
+					
 					v2gen.kibitz();
 					/*					
 					struct timeval start, end;

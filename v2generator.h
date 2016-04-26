@@ -67,7 +67,7 @@ namespace Quackle {
     Move findStaticBest();
     int scorePlay(const Spot& spot, int behind, int ahead);
     inline double getLeave() const;
-    int bidiLetterMultiplier(int row, int col, bool horiz);
+    int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
     void addThroughSpots(bool horiz, vector<Spot>* spots, int* row, int* col);
     void maybeAddHookSpot(int row, int col, bool horiz, vector<Spot>* spots);
@@ -111,23 +111,14 @@ namespace Quackle {
     bool horizCompletesWord(const V2Gaddag& gaddag, int row, int col,
 			    const unsigned char* node,
 			    int numLettersAfter);
-    // returns true if a letter at or after minLetter alphabetically exists
-    // at this node, updates childIndex (because it may skip over children that
-    // for which tiles aren't in the rack) foundLetter, child
-    inline bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
-			   Letter minLetter, int* childIndex, Letter* foundLetter,
-			   const unsigned char** child) const;
-
-    // restriction is a letter index max, can be used to find hooks
+    
+    // restriction is a letter index mask, restricing to letters on rack
+    // that can hook in this context
     inline bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
 			   uint32_t restiction,
 			   Letter minLetter, int* childIndex, Letter* foundLetter,
 			   const unsigned char** child) const;
     
-    inline bool nextBlankLetter(const V2Gaddag& gaddag, const unsigned char* node,
-				Letter minLetter, int* childIndex, Letter* foundLetter,
-				const unsigned char** child) const;
-
     inline int scoreLetter(int pos, Letter letter, int letterMultiplier);
     
     void debugPlaced(const Spot& spot, int behind, int ahead) const;
@@ -152,8 +143,13 @@ namespace Quackle {
     Move v2generate();
     void setUpCounts(const LetterString &letters);
 
+    int m_hookScore;
     int m_mainWordScore;
     char m_counts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
+
+    // TODO: generate this from alphabet
+    uint32_t m_everyLetter = 0x7FFFFFE0;
+      
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     double m_bestLeaves[8];
