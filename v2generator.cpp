@@ -130,6 +130,7 @@ void V2Generator::restrictByLength(Spot* spot) {
 			UVcout << ", [" << i << "]: " << spot->worthChecking[i].maxEquity;
 		}
 	}
+	UVcout << endl;
 #endif
 }
 
@@ -226,7 +227,6 @@ void V2Generator::findBestExchange() {
 bool V2Generator::couldMakeWord(const Spot& spot, int length) const {
 	//assert(length > 0);
 	//assert(length <= 7);
-	//assert(spot.playedThrough.length() == 0);
 	if (m_anagrams == NULL) return true;
 	const int lengthMask = 1 << length;
 	const UsesTiles& usesTiles =
@@ -440,6 +440,9 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 	//assert(score == scorePlay(spot, behind, ahead));
 	double equity = score;
 	if (numPlaced < 7) equity += getLeave();
+	assert(equity <= spot.maxEquity);
+	assert(spot.worthChecking[numPlaced].couldBeBest);
+	assert(equity <= spot.worthChecking[numPlaced].maxEquity);
 	if (equity > m_best.equity) {
 		LetterString word;
 		int startRow = spot.anchorRow;
@@ -464,7 +467,14 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		move.score = score;
 		move.equity = equity;
 		m_best = move;
-		//UVcout << "new best: " << move << endl;
+		/*
+		UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
+					 << spot.worthChecking[numPlaced].maxEquity << endl;
+		if (equity > spot.worthChecking[numPlaced].maxEquity) {
+			UVcout << "equity > maxEquity, WTF?" << endl;
+		}
+		UVcout << "new best: " << move << endl;
+		*/
 		return true;
 	}
 	return false;
@@ -654,7 +664,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
 	int childIndex = 0;
 	Letter foundLetter;
-	assert(m_counts[QUACKLE_BLANK_MARK] > 0);
+	assert(blankOnRack());
 	uint32_t possibleLetters = m_everyLetter;
 	const Hook& hook =
 		spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
@@ -696,7 +706,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
 			if (newNode != NULL) {
-				if (m_counts[QUACKLE_BLANK_MARK] > 0) {
+				if (blankOnRack()) {
 					findMoreBlankable(spot, delta, ahead, behind, velocity,
 														newWordMultiplier, gaddag, newNode);
 
@@ -767,7 +777,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
 			if (newNode != NULL) {
-				if (m_counts[QUACKLE_BLANK_MARK] > 0) {
+				if (blankOnRack()) {
 					findMoreBlankable(spot, delta, ahead, behind, velocity,
 														newWordMultiplier, gaddag, newNode);
 
@@ -806,7 +816,7 @@ float V2Generator::bestLeave(const Spot& spot, int length) const {
 	assert(length > 0);
 	assert(length < 7);
 	// TODO: Handle single letter playedThrough too
-	assert(spot.playedThrough.length() == 0);
+  assert(spot.numThrough == 0);
 	if (m_anagrams != NULL) {
 		const UsesTiles& usesTiles =
 			spot.canUseBlank ? m_anagrams->usesWhatever : m_anagrams->usesNoBlanks;
@@ -833,14 +843,13 @@ void V2Generator::scoreSpot(Spot* spot) {
 	const int numTiles = rack().size();
 	const LetterString& tiles = rack().tiles();
 	int tileScores[QUACKLE_MAXIMUM_BOARD_SIZE];
-	bool assumeBlankPlayed = false;
 	for (int i = 0; i < numTiles; ++i) {
 		tileScores[i] = QUACKLE_ALPHABET_PARAMETERS->score(tiles[i]);
-		if (tileScores[i] == 0) assumeBlankPlayed = true;
 	}
 	std::sort(tileScores, tileScores + numTiles, std::greater<int>());
-	if (!spot->canUseBlank) assumeBlankPlayed = false;
 	int throughScore = 0;
+	// This will already be in the Spot, better to sum it as we go through the row
+	/*
 	for (const Letter letter : spot->playedThrough) {
 		if (letter == QUACKLE_NULL_MARK) continue;
 		if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter)) {
@@ -849,6 +858,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 			throughScore += QUACKLE_ALPHABET_PARAMETERS->score(letter);
 		}
 	}
+	*/
 	float maxEquity = -9999;
 	for (int i = 1; i <= 7; ++i) {
 		spot->worthChecking[i].maxEquity = maxEquity;
@@ -934,17 +944,28 @@ void V2Generator::scoreSpot(Spot* spot) {
 								std::greater<int>());
 			int playedScore = 0;
 			int maxNonBlankTiles = played;
+			//UVcout << "played: " << played << endl;
+			// We can do better, but need to make canUseBlank be mustUseBlank
+			bool assumeBlankPlayed = blankOnRack() && (played == 7);
 			if (assumeBlankPlayed) maxNonBlankTiles--;
 			for (int i = 0; i < maxNonBlankTiles; ++i) {
+				//UVcout << "playedScore += " << tileScores[i] << " * "
+				//			 << usedLetterMultipliers[i] << endl;
 				playedScore += usedLetterMultipliers[i] * tileScores[i];
 			}
+			//UVcout << "playedScore: " << playedScore << endl;
 			int score = (throughScore * wordMultiplier) + playedScore + hookScore;
+			//UVcout << "score: " << playedScore << " + " << hookScore
+			//			 << " = " << score << endl;
 			if (played == QUACKLE_PARAMETERS->rackSize()) {
 				score += QUACKLE_PARAMETERS->bingoBonus();
+				//UVcout << "score += 50 for bingo bonus";
 			}
 			float optimisticEquity = score;
 			if (played < 7) {
 				optimisticEquity += bestLeave(*spot, played);
+				//UVcout << "optimisticEquity += leave (" << bestLeave(*spot, played)
+				//			 << ")" << endl;
 				/*
 				UVcout << "use?:" << spot->canUseBlank << ", played: " << played
 							 << ", minPos: " << minPos << ", score: " << score
@@ -952,6 +973,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 							 << ", optimisticEquity: " << optimisticEquity << endl;
 				*/
 			}
+			//UVcout << "optimisticEquity: " << optimisticEquity << endl;
 			maxEquity = std::max(maxEquity, optimisticEquity);
 			spot->worthChecking[played].maxEquity =
 				std::max(spot->worthChecking[played].maxEquity, optimisticEquity);
@@ -1330,10 +1352,6 @@ void V2Generator::debugHooks() {
 	}
 }
 
-void V2Generator::addThroughSpots(bool horiz, vector<Spot>* spots,
-																	int* row, int* col) {
-}
-
 bool V2Generator::blankOnRack() const {
 	return m_counts[QUACKLE_BLANK_MARK] > 0;
 }
@@ -1408,25 +1426,51 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					spot.canUseBlank = true;
 					spot.horizontal = true;
 					spot.throughScore = 0;
+					spot.numThrough = 0;
 					spot.maxTilesBehind = std::min(numTiles - 1, col - startCol);
 					spot.minTilesAhead = 1;
 					spot.maxTilesAhead = std::min(numTiles, 15 - col);
-					spot.longestViable = numTiles;
-					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
-								 << "maxBehind: " << spot.maxTilesBehind
-								 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
-						UVcout << "restricted Spot: (" << spot.anchorRow << ", "
-									 << spot.anchorCol << "), "
+					for (int reachCol = col + 1;
+							 reachCol <= std::min(14, col + spot.maxTilesAhead); ++reachCol) {
+						if (!isEmpty(row, reachCol)) {
+							// 0 23456 8 
+							// Q TWIXT Z
+							//   ^     ^
+							//   col   reachCol
+							spot.maxTilesAhead = reachCol - col - 1;
+							break;
+						}
+					}
+					if ((spot.maxTilesAhead >= 1) &&
+							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
+						spot.longestViable = numTiles;
+						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
 									 << "maxBehind: " << spot.maxTilesBehind
 									 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					}
-					scoreSpot(&spot);
-					if (spot.canMakeAnyWord) {
-						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-									 << ", blank: " << spot.canUseBlank << ") "
-									 << spot.maxEquity << endl;
-						spots->push_back(spot);
+						if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+							UVcout << "restricted Spot: (" << spot.anchorRow << ", "
+										 << spot.anchorCol << "), "
+										 << "maxBehind: " << spot.maxTilesBehind
+										 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						}
+						scoreSpot(&spot);
+						if (spot.canMakeAnyWord) {
+							/*
+								UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+								<< ", blank: " << spot.canUseBlank << ") "
+								<< spot.maxEquity << endl;
+							*/
+							if (blankOnRack()) {
+								Spot blankSavingSpot = spot;
+								blankSavingSpot.canUseBlank = false;
+								scoreSpot(&blankSavingSpot);
+								if (blankSavingSpot.canMakeAnyWord) {
+									spots->push_back(blankSavingSpot);
+									spot.maxEquity -= m_blankSpendingEpsilon;
+								}
+							}
+							spots->push_back(spot);
+						}
 					}
 				}
 				startCol = col + 1;
@@ -1454,25 +1498,52 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 					spot.canUseBlank = true;
 					spot.horizontal = false;
 					spot.throughScore = 0;
+					spot.numThrough = 0;
 					spot.maxTilesBehind = std::min(numTiles - 1, row - startRow);
 					spot.minTilesAhead = 1;
 					spot.maxTilesAhead = std::min(numTiles, 15 - row);
-					spot.longestViable = numTiles;
-					UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
-								 << "maxBehind: " << spot.maxTilesBehind
-								 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
-						UVcout << "restricted Spot: (" << spot.anchorRow << ", "
+					for (int reachRow = row + 1;
+							 reachRow <= std::min(14, row + spot.maxTilesAhead); ++reachRow) {
+						if (!isEmpty(reachRow, col)) {
+							// 0 23456 8 
+							// Q TWIXT Z
+							//   ^     ^
+							//   row   reachRow
+							spot.maxTilesAhead = reachRow - row - 1;
+							break;
+						}
+					}
+					if ((spot.maxTilesAhead >= 1) &&
+							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
+						spot.longestViable = numTiles;
+						UVcout << "Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
 									 << "maxBehind: " << spot.maxTilesBehind
 									 << ", maxAhead: " << spot.maxTilesAhead << endl;
-					}
-					scoreSpot(&spot);
-					if (spot.canMakeAnyWord) {
-						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-									 << ", blank: " << spot.canUseBlank << ") "
-									 << spot.maxEquity << endl;
-						spots->push_back(spot);
+						if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+							UVcout << "restricted Spot: (" << spot.anchorRow << ", "
+										 << spot.anchorCol << "), "
+										 << "maxBehind: " << spot.maxTilesBehind
+										 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						}
+						scoreSpot(&spot);
+						if (spot.canMakeAnyWord) {
+							/*
+							UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
+										 << ", blank: " << spot.canUseBlank << ") "
+										 << spot.maxEquity << endl;
+							*/
+							if (blankOnRack()) {
+								Spot blankSavingSpot = spot;
+								blankSavingSpot.canUseBlank = false;
+								scoreSpot(&blankSavingSpot);
+								if (blankSavingSpot.canMakeAnyWord) {
+									spots->push_back(blankSavingSpot);
+									spot.maxEquity -= m_blankSpendingEpsilon;
+								}
+							}
+							spots->push_back(spot);
+						}
 					}
 				}
 				startRow = row + 1;
@@ -1484,17 +1555,17 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 	}
 }
 
+void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
+	//const int numTiles = rack().size();
+	for (int col = 0; col < 15; col++) {
+	}
+}
+
 void V2Generator::findSpots(vector<Spot>* spots) {
 	UVcout << "findSpots()..." << endl;
-	bool rackHasBlank = false;
-	for (unsigned int i = 0; i < rack().size(); ++i) {
-		if (rack().tiles()[i] == QUACKLE_BLANK_MARK) {
-			rackHasBlank = true;
-			break;
-		}
-	}
 	for (int row = 0; row < 15; ++row) {
 		findHookSpotsInRow(row, spots);
+		findThroughSpotsInRow(row, spots);
 	}
 	for (int col = 0; col < 15; ++col) {
 		findHookSpotsInCol(col, spots);
@@ -1502,22 +1573,15 @@ void V2Generator::findSpots(vector<Spot>* spots) {
 }
 
 void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
-	bool rackHasBlank = false;
-	for (unsigned int i = 0; i < rack().size(); ++i) {
-		if (rack().tiles()[i] == QUACKLE_BLANK_MARK) {
-			rackHasBlank = true;
-			break;
-		}
-	}
 	const int numTiles = rack().size();
 
 	Spot spot;
 	spot.anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
 	spot.anchorCol = QUACKLE_BOARD_PARAMETERS->startColumn();
 	spot.canUseBlank = true;
-	//spot.horizontal = true;
 	spot.horizontal = false;
 	spot.throughScore = 0;
+	spot.numThrough = 0;
 	spot.maxTilesBehind = numTiles - 1;
 	spot.minTilesAhead = 1;
 	spot.maxTilesAhead = numTiles;
@@ -1530,7 +1594,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
 	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	if (spot.canMakeAnyWord) {
-		if (rackHasBlank) {
+		if (blankOnRack()) {
 			Spot blankSavingSpot = spot;
 			blankSavingSpot.canUseBlank = false;
 			scoreSpot(&blankSavingSpot);

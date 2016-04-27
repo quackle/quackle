@@ -43,7 +43,7 @@ namespace Quackle {
       bool horizontal;
       bool canUseBlank;
       bool canMakeAnyWord;
-      LetterString playedThrough;
+      int numThrough;
       int throughScore;
       float maxEquity;
       int maxTilesBehind;
@@ -69,14 +69,13 @@ namespace Quackle {
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
-    void addThroughSpots(bool horiz, vector<Spot>* spots, int* row, int* col);
-    void maybeAddHookSpot(int row, int col, bool horiz, vector<Spot>* spots);
     bool blankOnRack() const;
     uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
     bool restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
 				uint32_t rackHooks) const;
     void findHookSpotsInRow(int row, vector<Spot>* spots);
     void findHookSpotsInCol(int col, vector<Spot>* spots);
+    void findThroughSpotsInRow(int row, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void restrictByLength(Spot* spot);
@@ -173,5 +172,3 @@ namespace Quackle {
 }  // namespace Quackle
 
 #endif
-
-    
