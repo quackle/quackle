@@ -1555,9 +1555,54 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 	}
 }
 
+// eventually make this findSpotsInRow
 void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 	//const int numTiles = rack().size();
+	int numThroughs = 0;
+	bool inThrough = false;
 	for (int col = 0; col < 15; col++) {
+		Through* through = &(m_throughs[numThroughs]);
+		if (inThrough && isEmpty(row, col)) {
+				through->end = col - 1;
+				numThroughs++;
+				inThrough = false;
+		} else if (!isEmpty(row, col)) {
+      if (!inThrough) {
+				inThrough = true;
+				through->start = col;
+				through->score = 0;
+			}
+			through->score += tileScore(row, col);
+		}
+		// else !inThrough and isEmpty(row, col), so nothing to do
+	}
+	// a "through" reaches the edge of the board, complete it
+	if (inThrough) {
+		m_throughs[numThroughs].end = 14;
+		numThroughs++;
+		assert(numThroughs <= 8);
+	}
+	if (numThroughs > 0) {
+		UVcout << "Throughs in row " << row << ":";
+		for (int i = 0; i < numThroughs; ++i) {
+			Through* through = &(m_throughs[i]);
+			assert(through->end >= through->start);
+			assert(through->score >= 0);
+			through->node = gaddag.root();
+      for (int col = through->end; col >= through->start; --col) {
+				through->node = followLetter(gaddag, row, col, through->node);
+				if (through->node == NULL) break;
+			}
+			UVcout << " [(" << through->start << " to " << through->end << ") for "
+						 << through->score << ", ";
+			if (through->node == NULL) {
+				UVcout << "NULL]";
+			} else {
+				UVcout << "NONNULL]";
+			}
+		}
+		UVcout << endl;
 	}
 }
 
@@ -1579,7 +1624,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
 	spot.anchorCol = QUACKLE_BOARD_PARAMETERS->startColumn();
 	spot.canUseBlank = true;
-	spot.horizontal = false;
+	spot.horizontal = true;
 	spot.throughScore = 0;
 	spot.numThrough = 0;
 	spot.maxTilesBehind = numTiles - 1;

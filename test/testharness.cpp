@@ -785,7 +785,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("RUCKSEX", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("QUIPUSS", &leftover);
 				} else {
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("DUBSTEP", &leftover);
 				}

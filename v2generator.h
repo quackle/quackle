@@ -32,6 +32,13 @@ namespace Quackle {
     void debugHorizHook(int row, int col);
 
   private:
+    struct Through {
+      int start;
+      int end;
+      int score;
+      const unsigned char* node;
+    };
+    
     struct WorthChecking {
       bool couldBeBest;
       float maxEquity;
@@ -153,6 +160,7 @@ namespace Quackle {
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     double m_bestLeaves[8];
+    Through m_throughs[8];
     MoveList m_moveList;
     Move m_best;
 

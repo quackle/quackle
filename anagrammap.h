@@ -19,7 +19,8 @@
 #ifndef QUACKLE_ANAGRAMMAP_H
 #define QUACKLE_ANAGRAMMAP_H
 
-#include <unordered_map>
+#include <map>
+//#include <unordered_map>
 
 #include "primeset.h"
 #include "rack.h"
@@ -48,7 +49,8 @@ namespace Quackle {
     const RackAnagrams* lookUp(const Rack& rack);
   private:
     void loadAnagrams(const string& filename);
-    unordered_map<Product, RackAnagrams> m_map;
+    map<Product, RackAnagrams> m_map;
+    //unordered_map<Product, RackAnagrams> m_map;
   };
 }
 
