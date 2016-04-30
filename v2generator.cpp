@@ -409,21 +409,22 @@ int V2Generator::scoreLetter(int pos, Letter letter, int letterMultiplier) {
 void V2Generator::debugPlaced(const Spot& spot, int behind, int ahead) const {
 	UVcout << "m_rackBits: " << debugLetterMask(m_rackBits) << endl;
 	UVcout << "counts: " << counts2string() << endl;
-	int startCol = spot.anchorCol - behind;
-	UVcout << "startCol: " << startCol << endl;
+	const int anchorPos = spot.horizontal ? spot.anchorCol : spot.anchorRow;
+	const int startPos = anchorPos - behind;
+	UVcout << "startPos: " << startPos << endl;
 	LetterString word;
-	int lastCol = spot.anchorCol + ahead;
-	if (spot.numTilesThrough == 0) lastCol--;
+	int lastPos = anchorPos + ahead;
+	if (spot.numTilesThrough == 0) lastPos--;
 	UVcout << "behind: " << behind << ", ahead: " << ahead << endl;
-	for (int i = startCol; i <= lastCol; ++i) {
+	for (int i = startPos; i <= lastPos; ++i) {
 		assert(i >= 0); assert(i < 15);
-		if (i == spot.anchorCol && spot.numTilesThrough != 0) {
+		if (i == anchorPos && spot.numTilesThrough != 0) {
 			word += QUACKLE_PLAYED_THRU_MARK;
 		}	else {
 			word += m_placed[i];
 		}
 	}
-	UVcout << "m_placed[" << startCol << " to " << lastCol
+	UVcout << "m_placed[" << startPos << " to " << lastPos
 				 << "]: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(word) << endl;
 }
 
@@ -529,10 +530,10 @@ void V2Generator::getSquare(const Spot& spot, int delta,
 		}
 		*col = spot.anchorCol;
 	}
-#ifdef DEBUG_V2GEN
+	#ifdef DEBUG_V2GEN
   UVcout << "row: " << *row << ", col: " << *col << ", pos: " << *pos << endl;
 	assert(*col >= 0); assert(*col < 15); assert(*row >= 0); assert(*row < 15);
-#endif
+	#endif
 }
 
 void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
@@ -1771,14 +1772,137 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 	}
 }
 
+// eventually make this findSpotsInCol
+void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const int numTiles = rack().size();
+	m_numThroughs = 0;
+	m_inThrough = false;
+	for (int row = 0; row < 15; row++) {
+		updateThroughAtSquare(row, col, row);
+	}
+	finishLastThrough();
+	if (m_numThroughs > 0) {
+		UVcout << "Throughs in col " << col << ":";
+		for (int i = 0; i < m_numThroughs; ++i) {
+			Through* through = &(m_throughs[i]);
+			assert(through->end >= through->start);
+			assert(through->score >= 0);
+			through->node = gaddag.root();
+      for (int row = through->end; row >= through->start; --row) {
+				through->node = followLetter(gaddag, row, col, through->node);
+				if (through->node == NULL) break;
+			}
+			UVcout << " [(" << through->start << " to " << through->end << ") for "
+						 << through->score << ", ";
+			if (through->node == NULL) {
+				UVcout << "NULL]";
+			} else {
+				UVcout << "NONNULL]";
+			}
+		}
+		UVcout << endl;
+	}
+	for (int i = 0; i < m_numThroughs; ++i) {
+		const Through& anchorThrough = m_throughs[i];
+		if (anchorThrough.node == NULL) continue;
+		UVcout << "anchorThrough: [(" << anchorThrough.start
+					 << " to " << anchorThrough.end << ") for "
+					 << anchorThrough.score << endl;
+		Spot spot;
+		spot.anchorRow = anchorThrough.start;
+		spot.anchorCol = col;
+		spot.anchorNode = anchorThrough.node;
+		spot.horizontal = false;
+		spot.throughScore = 0;
+		spot.numTilesThrough = 0;
+		if (i == 0) {
+			spot.maxTilesBehind = anchorThrough.start;
+		} else {
+			// 0123  6789
+			// PREV _ANCH
+			// spot.maxTilesBehind = anchorThrough.start - previousThrough.end - 2;
+			// spot.maxTilesBehind = 6 - 3 - 2  // 1
+			const Through& prevThrough = m_throughs[i - 1];
+			spot.maxTilesBehind = anchorThrough.start - prevThrough.end - 2;
+		}
+		spot.maxTilesBehind = std::min(spot.maxTilesBehind, numTiles);
+		// No tiles already on board behind anchor as things currently work,
+		// so realPosition is same as spot.anchorRow - behind
+		for (int behind = 1; behind <= spot.maxTilesBehind; ++behind) {
+			int row = spot.anchorRow - behind;
+			spot.realPositions[row] = row;
+		}
+		spot.minTilesAhead = 0;
+		spot.maxTilesAhead = 0;
+		spot.longestViable = numTiles;
+		for (int j = i; j < m_numThroughs; ++j) {
+			const Through& through = m_throughs[j];
+			UVcout << "through: [(" << through.start
+						 << " to " << through.end << ") for "
+						 << through.score << endl;
+			spot.throughScore += through.score;
+			spot.numTilesThrough += through.end - through.start + 1;
+			spot.canUseBlank = true;
+			int oldMaxTilesAhead = spot.maxTilesAhead;
+			if (j == m_numThroughs - 1) {
+				spot.maxTilesAhead += 14 - through.end;
+			} else {
+				// 0123  6789
+				// THRU_ NEXT
+				// spot.maxTilesAhead = nextThrough.start - through.end - 2;
+				// spot.maxTilesAhead = 6 - 3 - 2  // 1
+				const Through& nextThrough = m_throughs[j + 1];
+				spot.maxTilesAhead += nextThrough.start - through.end - 2;
+			}
+			spot.maxTilesAhead = std::min(spot.maxTilesAhead, numTiles);
+			int numNewAhead = spot.maxTilesAhead - oldMaxTilesAhead;
+			for (int newAhead = 1; newAhead <= numNewAhead; ++newAhead) {
+				const int pos = spot.anchorRow + oldMaxTilesAhead + newAhead;
+				const int row = through.end + newAhead;
+				assert(row < 15);
+				assert(pos <= row);
+        spot.realPositions[pos] = row;				
+			}
+			for (int delta = -1; delta >= -spot.maxTilesBehind; --delta) {
+				UVcout << "delta: " << delta << ", realPosition: "
+							 << spot.realPositions[spot.anchorRow + delta] << endl;
+			}
+			for (int delta = 1; delta <= spot.maxTilesAhead; ++delta) {
+				UVcout << "delta: " << delta << ", realPosition: "
+							 << spot.realPositions[spot.anchorRow + delta] << endl;
+			}
+			UVcout << endl;
+			scoreSpot(&spot);
+			if (spot.canMakeAnyWord) {
+				spots->push_back(spot);
+			}
+			if (j < m_numThroughs - 1) {
+				spot.maxTilesAhead++;
+				spot.minTilesAhead = spot.maxTilesAhead;
+				if (spot.minTilesAhead > numTiles) {
+					spot.maxTilesAhead--;
+					break;
+				}
+				const Through& nextThrough = m_throughs[j + 1];
+				spot.realPositions[spot.anchorRow + spot.maxTilesAhead] =
+					nextThrough.start - 1;					
+				spot.maxTilesBehind = std::min(spot.maxTilesBehind,
+																			 numTiles - spot.minTilesAhead);
+			}
+		}
+	}
+}
+
 void V2Generator::findSpots(vector<Spot>* spots) {
 	UVcout << "findSpots()..." << endl;
 	for (int row = 0; row < 15; ++row) {
 		//findHookSpotsInRow(row, spots);
-		findThroughSpotsInRow(row, spots);
+		//findThroughSpotsInRow(row, spots);
 	}
 	for (int col = 0; col < 15; ++col) {
 		//findHookSpotsInCol(col, spots);
+		findThroughSpotsInCol(col, spots);
 	}
 }
 

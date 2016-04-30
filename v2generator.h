@@ -87,6 +87,7 @@ namespace Quackle {
     void updateThroughAtSquare(int row, int col, int pos);
     void finishLastThrough();
     void findThroughSpotsInRow(int row, vector<Spot>* spots);
+    void findThroughSpotsInCol(int col, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void restrictByLength(Spot* spot);
