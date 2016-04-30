@@ -785,10 +785,10 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("FINESSE", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("PACKEDC", &leftover);
 				} else {
 					//letters = QUACKLE_ALPHABET_PARAMETERS->encode("DUBSTEP", &leftover);
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("DAFSZIN", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("J?M?RSS", &leftover);
 				}
 				Rack rack(letters);
 				game.currentPosition().setCurrentPlayerRack(rack);

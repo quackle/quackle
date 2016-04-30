@@ -84,6 +84,8 @@ namespace Quackle {
 				uint32_t rackHooks) const;
     void findHookSpotsInRow(int row, vector<Spot>* spots);
     void findHookSpotsInCol(int col, vector<Spot>* spots);
+    void updateThroughAtSquare(int row, int col, int pos);
+    void finishLastThrough();
     void findThroughSpotsInRow(int row, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
@@ -162,11 +164,13 @@ namespace Quackle {
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     double m_bestLeaves[8];
+    int m_numThroughs;
+    bool m_inThrough;
     Through m_throughs[8];
     MoveList m_moveList;
     Move m_best;
 
-    double m_blankSpendingEpsilon = 0.01;
+    double m_blankSpendingEpsilon = 0.00;
     
     // debug stuff
     UVString counts2string() const;
