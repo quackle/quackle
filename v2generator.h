@@ -50,7 +50,7 @@ namespace Quackle {
       bool horizontal;
       bool canUseBlank;
       bool canMakeAnyWord;
-      int numThrough;
+      int numTilesThrough;
       int throughScore;
       float maxEquity;
       int maxTilesBehind;
@@ -58,7 +58,9 @@ namespace Quackle {
       int maxTilesAhead;
       WorthChecking worthChecking[8];
       int longestViable;
-
+      const unsigned char* anchorNode;
+      int realPositions[15];
+      
       bool operator<(const Spot& rhs) const {
 	if (maxEquity == rhs.maxEquity) {
 	  return canUseBlank < rhs.canUseBlank;
@@ -132,7 +134,7 @@ namespace Quackle {
     inline void useLetter(Letter letter, uint32_t* foundLetterMask);
     inline void unuseLetter(Letter letter, uint32_t foundLetterMask);
     inline bool maybeRecordMove(const Spot& spot, int wordMultiplier,
-				int behind, int ahead, int numPlaced);
+				int behind, int numPlaced);
     inline void getSquare(const Spot& spot, int delta,
 			  int* row, int* col, int* pos) const;
     inline void findMoreBlankless(Spot* spot, int delta, int ahead,
