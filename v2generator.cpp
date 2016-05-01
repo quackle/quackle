@@ -65,8 +65,11 @@ Move V2Generator::findStaticBest() {
 		UVcout << "found rack anagrams!! usesWhatever.thruNone.numPlayed: ";
 		UVcout << static_cast<int>(m_anagrams->usesWhatever.thruNone.numPlayed) << endl;
 	}
+
+	computeHooks();
+	//debugHooks();
+
 	vector<Spot> spots;
-	
 	if (board()->isEmpty()) {
 		gettimeofday(&start, NULL);
 		findEmptyBoardSpots(&spots);
@@ -76,9 +79,6 @@ Move V2Generator::findStaticBest() {
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	} else {
 		gettimeofday(&start, NULL);
-		computeHooks();
-		//debugHooks();
-		
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
 		UVcout << "Time finding spots on nonempty board was "
@@ -111,7 +111,10 @@ Move V2Generator::findStaticBest() {
 		}
 		findMovesAt(&spot);
 	}
-	UVcout << "best Move: " << m_best << endl;	
+	UVcout << "best Move: " << m_best << endl;
+	if (board()->isEmpty()) {
+		assert(m_best.score % 2 == 0);
+	}
 	return m_best;
 }
 
