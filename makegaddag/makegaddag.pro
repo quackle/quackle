@@ -20,6 +20,7 @@ MOC_DIR = moc
 
 CONFIG += console
 CONFIG -= app_bundle
+CONFIG += c++11
 
 win32:!win32-g++ {
   LIBS += -lquackleio -llibquackle

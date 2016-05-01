@@ -171,7 +171,7 @@ namespace Quackle {
     MoveList m_moveList;
     Move m_best;
 
-    double m_blankSpendingEpsilon = 0.00;
+    double m_blankSpendingEpsilon = 0.0001;
     
     // debug stuff
     UVString counts2string() const;

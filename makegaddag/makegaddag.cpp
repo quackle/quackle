@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 	factory.generate();
   factory.generateScoring();
 	
-	UVcout << "Writing indicies..." << endl;
+	UVcout << "Writing indices..." << endl;
 	factory.writeIndices(outputFilename.toUtf8().constData(),
 											 scoringOutputFilename.toUtf8().constData(),
 											 version);

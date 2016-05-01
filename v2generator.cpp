@@ -77,7 +77,7 @@ Move V2Generator::findStaticBest() {
 	} else {
 		gettimeofday(&start, NULL);
 		computeHooks();
-		debugHooks();
+		//debugHooks();
 		
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
@@ -93,14 +93,15 @@ Move V2Generator::findStaticBest() {
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
 	for (Spot& spot : spots) {
-		//#ifdef DEBUG_V2GEN
+#ifdef DEBUG_V2GEN
 		UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
 					 << ", " << "blank: " << spot.canUseBlank
+					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
 					 << ", thru: " << spot.numTilesThrough << "): "
 					 << spot.maxEquity;
-		//#endif
+#endif
 		restrictByLength(&spot);
-		UVcout << endl;
+		//UVcout << endl;
 
 		if (spot.maxEquity < m_best.equity) {
 #ifdef DEBUG_V2GEN
@@ -443,22 +444,22 @@ void V2Generator::unuseLetter(Letter letter, uint32_t foundLetterMask) {
 
 bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 																	int behind, int numPlaced) {
-	UVcout << "m_mainWordScore: " << m_mainWordScore
-				 << ", wordMultiplier: " <<  wordMultiplier
-				 << ", m_hookScore: " << m_hookScore << endl;
+	// UVcout << "m_mainWordScore: " << m_mainWordScore
+	//  			 << ", wordMultiplier: " <<  wordMultiplier
+	//  			 << ", m_hookScore: " << m_hookScore << endl;
 	int score = m_mainWordScore * wordMultiplier + m_hookScore;
 	if (numPlaced == QUACKLE_PARAMETERS->rackSize()) {
 		score += QUACKLE_PARAMETERS->bingoBonus();
 	}
 	//assert(score == scorePlay(spot, behind, ahead));
 	double equity = score;
-	UVcout << "score: " << score << endl;
-	UVcout << "numPlaced: " << numPlaced << endl;
+	//UVcout << "score: " << score << endl;
+	//UVcout << "numPlaced: " << numPlaced << endl;
 	if (numPlaced < 7) equity += getLeave();
-	UVcout << "equity: " << equity << endl;
-	assert(equity <= spot.maxEquity);
+	//UVcout << "equity: " << equity << endl;
+	assert(equity <= spot.maxEquity + 2 * m_blankSpendingEpsilon);
 	assert(spot.worthChecking[numPlaced].couldBeBest);
-	assert(equity <= spot.worthChecking[numPlaced].maxEquity);
+	//assert(equity <= spot.worthChecking[numPlaced].maxEquity);
 	if (equity > m_best.equity) {
 		LetterString word;
 		int startRow = spot.anchorRow;
@@ -501,12 +502,12 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		move.equity = equity;
 		m_best = move;
 
-		UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
-					 << spot.worthChecking[numPlaced].maxEquity << endl;
+		//UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
+		//			 << spot.worthChecking[numPlaced].maxEquity << endl;
 		if (equity > spot.worthChecking[numPlaced].maxEquity) {
 			UVcout << "equity > maxEquity, WTF?" << endl;
 		}
-		UVcout << "new best: " << move << endl;
+		//UVcout << "new best: " << move << endl;
 		
 		return true;
 	}
@@ -585,12 +586,12 @@ void V2Generator::findMoreBlankable(Spot* spot, int delta, int ahead,
 void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
 																const unsigned char* node) {
-	//	#ifdef DEBUG_V2GEN
+	#ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
 		UVcout << "findBlankless(delta: " << delta << ", ahead: " << ahead
 					 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 	}
-	//#endif
+	#endif
 
 	// TODO: use more specific gaddags based on min/max word length for this spot
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
@@ -599,7 +600,7 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 		assert(node != NULL);
 		// This is a through spot, and there's nothing to be placed here at the
 		// anchor (a tile is already there). Look ahead and behind.
-		UVcout << "'Anchor' of through spot, nothing to place here..." << endl;
+		//UVcout << "'Anchor' of through spot, nothing to place here..." << endl;
 		findMoreBlankless(spot, delta, ahead, behind, velocity, wordMultiplier,
 											gaddag, node);
 		return;
@@ -608,7 +609,7 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 	int numPlaced, row, col, pos;
   numPlaced =	ahead + behind;
 	getSquare(*spot, delta, &row, &col, &pos);
-  UVcout << "row: " << row << ", col: " << col << endl;
+  //UVcout << "row: " << row << ", col: " << col << endl;
 	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
 	int childIndex = 0;
 	Letter foundLetter;
@@ -618,12 +619,12 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 	if (hook.touches) {
 		possibleLetters &= hook.letters;
 		if (possibleLetters == 0) {
-			UVcout << "no possible letters" << endl;
+			//UVcout << "no possible letters" << endl;
 			return;
 		}
-		UVcout << "possible letters: " << debugLetterMask(possibleLetters) << endl;
-		UVcout << "hook.score: " << hook.score << ", m_hookScore: "
-					 << m_hookScore << " -> " << (m_hookScore + hook.score) << endl;
+		//UVcout << "possible letters: " << debugLetterMask(possibleLetters) << endl;
+		//UVcout << "hook.score: " << hook.score << ", m_hookScore: "
+		//			 << m_hookScore << " -> " << (m_hookScore + hook.score) << endl;
 		m_hookScore += hook.score;
 	}
 	int newWordMultiplier = wordMultiplier *
@@ -637,25 +638,25 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
     const int tileMainScore = scoreLetter(pos, foundLetter, letterMultiplier);
 		const int tileHookScore =
 			hookMultiplier * QUACKLE_ALPHABET_PARAMETERS->score(foundLetter);
-		UVcout << "tileHookScore: " << tileHookScore
-		 			 << ", m_hookScore: " << m_hookScore << " -> "
-		 			 << (m_hookScore + tileHookScore) << endl;
+		// UVcout << "tileHookScore: " << tileHookScore
+		//  			 << ", m_hookScore: " << m_hookScore << " -> "
+		//  			 << (m_hookScore + tileHookScore) << endl;
 		m_hookScore += tileHookScore;
 		uint32_t foundLetterMask; // reused below in unuseLetter
     useLetter(foundLetter, &foundLetterMask);
 		//#ifdef DEBUG_V2GEN
-		debugPlaced(*spot, behind, ahead);
+		//debugPlaced(*spot, behind, ahead);
 		//#endif		
 		if (spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, numPlaced)) {
-#ifdef DEBUG_V2GEN
-			UVcout << "better than " << m_best.equity;
-#endif
+			//#ifdef DEBUG_V2GEN
+			//UVcout << "better than " << m_best.equity;
+			//#endif
 			restrictByLength(spot);
-#ifdef DEBUG_V2GEN
-			UVcout << endl;
-#endif
+			//#ifdef DEBUG_V2GEN
+			//UVcout << endl;
+			//#endif
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -697,12 +698,12 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
 																const unsigned char* node) {
-	//#ifdef DEBUG_V2GEN
+#ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
 		UVcout << "findBlankable(delta: " << delta << ", ahead: " << ahead
 					 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 	}
-	//#endif
+#endif
 	
 	// TODO: use more specific gaddags based on min/max word length for this spot
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
@@ -723,7 +724,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 	int numPlaced, row, col, pos;
   numPlaced =	ahead + behind;
 	getSquare(*spot, delta, &row, &col, &pos);
-  UVcout << "row: " << row << ", col: " << col << endl;
+  //UVcout << "row: " << row << ", col: " << col << endl;
 	int newWordMultiplier = wordMultiplier *
 		QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
@@ -734,12 +735,12 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 	const Hook& hook =
 		spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
 	if (hook.touches) {
-		UVcout << "hook touches at row: " << row << ", col: " << col << endl;
-		UVcout << "hook.letters: " << debugLetterMask(hook.letters) << endl;
+		//UVcout << "hook touches at row: " << row << ", col: " << col << endl;
+		//UVcout << "hook.letters: " << debugLetterMask(hook.letters) << endl;
 		possibleLetters &= hook.letters;
 		if (possibleLetters == 0) return;
-    UVcout << "hook.score: " << hook.score << ", m_hookScore: "
-					 << m_hookScore << " -> " << (m_hookScore + hook.score) << endl;
+    //UVcout << "hook.score: " << hook.score << ", m_hookScore: "
+		//			 << m_hookScore << " -> " << (m_hookScore + hook.score) << endl;
 		m_hookScore += hook.score;
 	}
 	const unsigned char* child = NULL;
@@ -752,22 +753,22 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		//#ifdef DEBUG_V2GEN
 		assert(foundLetter >= QUACKLE_ALPHABET_PARAMETERS->firstLetter());
 		assert(foundLetter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter());
-		UVcout << "placing " << QUACKLE_ALPHABET_PARAMETERS->userVisible(blankLetter)
-					 << " at m_placed[" << pos << "]" << endl;
+		// UVcout << "placing " << QUACKLE_ALPHABET_PARAMETERS->userVisible(blankLetter)
+		// 			 << " at m_placed[" << pos << "]" << endl;
 		m_placed[pos] = blankLetter;
-		debugPlaced(*spot, behind, ahead);
+		//debugPlaced(*spot, behind, ahead);
 		//#endif
 
 		if (spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, numPlaced)) {
-#ifdef DEBUG_V2GEN
+			//#ifdef DEBUG_V2GEN
 			UVcout << "better than " << m_best.equity;
-#endif
+			//#endif
 			restrictByLength(spot);
-#ifdef DEBUG_V2GEN
+			//#ifdef DEBUG_V2GEN
 			UVcout << endl;
-#endif
+			//#endif
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -793,9 +794,11 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 	}
 	m_counts[QUACKLE_BLANK_MARK]++;
 	if (m_rackBits == 0) {
+		/*
 		UVcout << "hook.score: " << hook.score
 					 << ", m_hookScore: " << m_hookScore << " -> "
 					 << (m_hookScore - hook.score) << endl;
+		*/
 		m_hookScore -= hook.score;
 		return;
 	}
@@ -809,9 +812,9 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		possibleLetters &= hook.letters;
 		//UVcout << "possibleLetters: " << debugLetterMask(possibleLetters) << endl;
 		if (possibleLetters == 0) {
-			UVcout << "hook.score: " << hook.score
-				 << ", m_hookScore: " << m_hookScore << " -> "
-				 << (m_hookScore - hook.score) << endl;
+			// UVcout << "hook.score: " << hook.score
+			// 	 << ", m_hookScore: " << m_hookScore << " -> "
+			// 	 << (m_hookScore - hook.score) << endl;
 			m_hookScore -= hook.score;
 			return;
 		}
@@ -824,9 +827,9 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
     const int tileMainScore = scoreLetter(pos, foundLetter, letterMultiplier);
 		const int tileHookScore =
 			hookMultiplier * QUACKLE_ALPHABET_PARAMETERS->score(foundLetter);
-		UVcout << "tileHookScore: " << tileHookScore
-					 << ", m_hookScore: " << m_hookScore << " -> "
-					 << (m_hookScore + tileHookScore) << endl;
+		// UVcout << "tileHookScore: " << tileHookScore
+		// 			 << ", m_hookScore: " << m_hookScore << " -> "
+		// 			 << (m_hookScore + tileHookScore) << endl;
 		m_hookScore += tileHookScore;
 		uint32_t foundLetterMask; // reused below in unuseLetter
     useLetter(foundLetter, &foundLetterMask);
@@ -865,9 +868,9 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		}
 #endif
 
-		UVcout << "tileHookScore: " << tileHookScore
-					 << ", m_hookScore: " << m_hookScore << " -> "
-					 << (m_hookScore - tileHookScore) << endl;
+		// UVcout << "tileHookScore: " << tileHookScore
+		// 			 << ", m_hookScore: " << m_hookScore << " -> "
+		// 			 << (m_hookScore - tileHookScore) << endl;
 		m_hookScore -= tileHookScore;
 		m_mainWordScore -= tileMainScore;
 		unuseLetter(foundLetter, foundLetterMask);
@@ -881,9 +884,9 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		minLetter = foundLetter + 1;
 		++childIndex;
 	}
-	UVcout << "hook.score: " << hook.score
-				 << ", m_hookScore: " << m_hookScore << " -> "
-				 << (m_hookScore - hook.score) << endl;
+	// UVcout << "hook.score: " << hook.score
+	// 			 << ", m_hookScore: " << m_hookScore << " -> "
+	// 			 << (m_hookScore - hook.score) << endl;
 	m_hookScore -= hook.score;
 }
 
@@ -1299,7 +1302,7 @@ void V2Generator::updateVerticalHooks(int row, int col) {
 }
 
 int V2Generator::tileScore(int row, int col) {
-	UVcout << "tileScore(" << row << ", " << col << ")" << endl;
+	//UVcout << "tileScore(" << row << ", " << col << ")" << endl;
 	const Letter letter = boardLetter(row, col);
 	if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(letter)) {
 		return QUACKLE_ALPHABET_PARAMETERS->score(letter);
@@ -1475,6 +1478,7 @@ bool V2Generator::restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
 }
 																				 
 void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
+	//UVcout << "findHookSpotsInRow(" << row << ", ...)" << endl;
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 	const int numTiles = rack().size();
 	int startCol = 0;
@@ -1510,14 +1514,17 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					if ((spot.maxTilesAhead >= 1) &&
 							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
 						spot.longestViable = numTiles;
-						UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol << "), "
-									 << "maxBehind: " << spot.maxTilesBehind
-									 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						// UVcout << "Spot: (" << spot.anchorRow << ", "
+						// 			 << spot.anchorCol << "), "
+						// 			 << "maxBehind: " << spot.maxTilesBehind
+						// 			 << ", maxAhead: " << spot.maxTilesAhead << endl;
 						if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+							/*
 							UVcout << "restricted Spot: (" << spot.anchorRow << ", "
 										 << spot.anchorCol << "), "
 										 << "maxBehind: " << spot.maxTilesBehind
 										 << ", maxAhead: " << spot.maxTilesAhead << endl;
+							*/
 						}
 						scoreSpot(&spot);
 						if (spot.canMakeAnyWord) {
@@ -1542,7 +1549,10 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 				startCol = col + 1;
 			}
 		} else {
-			col += 2;
+			while (!isEmpty(row, col)) {
+				col++;
+			}
+			col++;
 			startCol = col;
 		}
 	}
@@ -1584,15 +1594,19 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 					if ((spot.maxTilesAhead >= 1) &&
 							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
 						spot.longestViable = numTiles;
+						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
 									 << "maxBehind: " << spot.maxTilesBehind
 									 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						*/
 						if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
+							/*
 							UVcout << "restricted Spot: (" << spot.anchorRow << ", "
 										 << spot.anchorCol << "), "
 										 << "maxBehind: " << spot.maxTilesBehind
 										 << ", maxAhead: " << spot.maxTilesAhead << endl;
+							*/
 						}
 						scoreSpot(&spot);
 						if (spot.canMakeAnyWord) {
@@ -1617,7 +1631,10 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 				startRow = row + 1;
 			}
 		} else {
-			row += 2;
+			while (!isEmpty(row, col)) {
+				row++;
+			}
+			row++;
 			startRow = row;
 		}
 	}
@@ -1661,7 +1678,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 	}
 	finishLastThrough();
 	if (m_numThroughs > 0) {
-		UVcout << "Throughs in row " << row << ":";
+		//UVcout << "Throughs in row " << row << ":";
 		for (int i = 0; i < m_numThroughs; ++i) {
 			Through* through = &(m_throughs[i]);
 			assert(through->end >= through->start);
@@ -1671,6 +1688,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 				through->node = followLetter(gaddag, row, col, through->node);
 				if (through->node == NULL) break;
 			}
+			/*
 			UVcout << " [(" << through->start << " to " << through->end << ") for "
 						 << through->score << ", ";
 			if (through->node == NULL) {
@@ -1678,15 +1696,18 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			} else {
 				UVcout << "NONNULL]";
 			}
+			*/
 		}
-		UVcout << endl;
+		//UVcout << endl;
 	}
 	for (int i = 0; i < m_numThroughs; ++i) {
 		const Through& anchorThrough = m_throughs[i];
 		if (anchorThrough.node == NULL) continue;
+		/*
 		UVcout << "anchorThrough: [(" << anchorThrough.start
 					 << " to " << anchorThrough.end << ") for "
 					 << anchorThrough.score << endl;
+		*/
 		Spot spot;
 		spot.anchorRow = row;
 		spot.anchorCol = anchorThrough.start;
@@ -1716,9 +1737,11 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 		spot.longestViable = numTiles;
 		for (int j = i; j < m_numThroughs; ++j) {
 			const Through& through = m_throughs[j];
+			/*
 			UVcout << "through: [(" << through.start
 						 << " to " << through.end << ") for "
 						 << through.score << endl;
+			*/
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
 			spot.canUseBlank = true;
@@ -1742,6 +1765,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 				assert(pos <= col);
         spot.realPositions[pos] = col;				
 			}
+			/*
 			for (int delta = -1; delta >= -spot.maxTilesBehind; --delta) {
 				UVcout << "delta: " << delta << ", realPosition: "
 							 << spot.realPositions[spot.anchorCol + delta] << endl;
@@ -1751,8 +1775,18 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 							 << spot.realPositions[spot.anchorCol + delta] << endl;
 			}
 			UVcout << endl;
+			*/
 			scoreSpot(&spot);
 			if (spot.canMakeAnyWord) {
+				if (blankOnRack()) {
+					Spot blankSavingSpot = spot;
+					blankSavingSpot.canUseBlank = false;
+					scoreSpot(&blankSavingSpot);
+					if (blankSavingSpot.canMakeAnyWord) {
+						spots->push_back(blankSavingSpot);
+						spot.maxEquity -= m_blankSpendingEpsilon;
+					}
+				}
 				spots->push_back(spot);
 			}
 			if (j < m_numThroughs - 1) {
@@ -1783,7 +1817,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 	}
 	finishLastThrough();
 	if (m_numThroughs > 0) {
-		UVcout << "Throughs in col " << col << ":";
+		//UVcout << "Throughs in col " << col << ":";
 		for (int i = 0; i < m_numThroughs; ++i) {
 			Through* through = &(m_throughs[i]);
 			assert(through->end >= through->start);
@@ -1793,6 +1827,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 				through->node = followLetter(gaddag, row, col, through->node);
 				if (through->node == NULL) break;
 			}
+			/*
 			UVcout << " [(" << through->start << " to " << through->end << ") for "
 						 << through->score << ", ";
 			if (through->node == NULL) {
@@ -1800,15 +1835,18 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			} else {
 				UVcout << "NONNULL]";
 			}
+			*/
 		}
-		UVcout << endl;
+		//UVcout << endl;
 	}
 	for (int i = 0; i < m_numThroughs; ++i) {
 		const Through& anchorThrough = m_throughs[i];
 		if (anchorThrough.node == NULL) continue;
+		/*
 		UVcout << "anchorThrough: [(" << anchorThrough.start
 					 << " to " << anchorThrough.end << ") for "
 					 << anchorThrough.score << endl;
+		*/
 		Spot spot;
 		spot.anchorRow = anchorThrough.start;
 		spot.anchorCol = col;
@@ -1838,9 +1876,11 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 		spot.longestViable = numTiles;
 		for (int j = i; j < m_numThroughs; ++j) {
 			const Through& through = m_throughs[j];
+			/*
 			UVcout << "through: [(" << through.start
 						 << " to " << through.end << ") for "
 						 << through.score << endl;
+			*/
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
 			spot.canUseBlank = true;
@@ -1864,6 +1904,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 				assert(pos <= row);
         spot.realPositions[pos] = row;				
 			}
+			/*
 			for (int delta = -1; delta >= -spot.maxTilesBehind; --delta) {
 				UVcout << "delta: " << delta << ", realPosition: "
 							 << spot.realPositions[spot.anchorRow + delta] << endl;
@@ -1873,8 +1914,18 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 							 << spot.realPositions[spot.anchorRow + delta] << endl;
 			}
 			UVcout << endl;
+			*/
 			scoreSpot(&spot);
 			if (spot.canMakeAnyWord) {
+				if (blankOnRack()) {
+					Spot blankSavingSpot = spot;
+					blankSavingSpot.canUseBlank = false;
+					scoreSpot(&blankSavingSpot);
+					if (blankSavingSpot.canMakeAnyWord) {
+						spots->push_back(blankSavingSpot);
+						spot.maxEquity -= m_blankSpendingEpsilon;
+					}
+				}
 				spots->push_back(spot);
 			}
 			if (j < m_numThroughs - 1) {
@@ -1895,13 +1946,13 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 }
 
 void V2Generator::findSpots(vector<Spot>* spots) {
-	UVcout << "findSpots()..." << endl;
+	//UVcout << "findSpots()..." << endl;
 	for (int row = 0; row < 15; ++row) {
-		//findHookSpotsInRow(row, spots);
-		//findThroughSpotsInRow(row, spots);
+		findHookSpotsInRow(row, spots);
+		findThroughSpotsInRow(row, spots);
 	}
 	for (int col = 0; col < 15; ++col) {
-		//findHookSpotsInCol(col, spots);
+		findHookSpotsInCol(col, spots);
 		findThroughSpotsInCol(col, spots);
 	}
 }

@@ -781,17 +781,18 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					UVcout << colString(board, col) << "] + " << scoreString << endl;
 				}
 				*/
-				if (i == 2) break;
+				if (i == 3) break;
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("PACKEDC", &leftover);
-				} else {
-					//letters = QUACKLE_ALPHABET_PARAMETERS->encode("DUBSTEP", &leftover);
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("J?M?RSS", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("UTESATE", &leftover);
+				} else if (i == 1) {
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("HONGENS", &leftover);
+				} else if (i == 2) {
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("FAIREST", &leftover);
 				}
 				Rack rack(letters);
-				game.currentPosition().setCurrentPlayerRack(rack);
+				//game.currentPosition().setCurrentPlayerRack(rack);
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
 				/*	
