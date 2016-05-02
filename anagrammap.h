@@ -39,8 +39,8 @@ namespace Quackle {
   };
 
   struct RackAnagrams {
-    UsesTiles usesWhatever;
     UsesTiles usesNoBlanks;
+    UsesTiles mustUseBlank;
   };
 
   class AnagramMap {

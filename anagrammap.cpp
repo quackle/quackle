@@ -49,7 +49,6 @@ namespace {
   
   void readUsesTiles(ifstream* file, UsesTiles* usesTiles) {
     readNTileAnagrams(file, &(usesTiles->thruNone));
-    /*
     file->read(reinterpret_cast<char*>(&(usesTiles->anahooks)),
 	       sizeof(usesTiles->anahooks));
     const int numAnahooks = __builtin_popcount(usesTiles->anahooks);
@@ -58,7 +57,6 @@ namespace {
       readNTileAnagrams(file, &thruAnahook);
       usesTiles->thruOne.push_back(thruAnahook);
     }
-    */
   }
   
 }  // namespace
@@ -80,10 +78,10 @@ void AnagramMap::loadAnagrams(const string& filename) {
     file.read(reinterpret_cast<char*>(&product), sizeof(product));
     //UVcout << "product: " << product << endl;
     RackAnagrams anagrams;
-    readUsesTiles(&file, &anagrams.usesWhatever);
+    readUsesTiles(&file, &anagrams.usesNoBlanks);
     if (product % blankPrime == 0) {
       //UVcout << product << " has a blank! read usesNoBlanks!" << endl;
-      readUsesTiles(&file, &anagrams.usesNoBlanks);
+      readUsesTiles(&file, &anagrams.mustUseBlank);
     }
     m_map[product] = anagrams;
     //return;

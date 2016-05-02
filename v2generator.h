@@ -48,7 +48,7 @@ namespace Quackle {
       int anchorRow;
       int anchorCol;
       bool horizontal;
-      bool canUseBlank;
+      bool useBlank;
       bool canMakeAnyWord;
       int numTilesThrough;
       int throughScore;
@@ -63,7 +63,7 @@ namespace Quackle {
       
       bool operator<(const Spot& rhs) const {
 	if (maxEquity == rhs.maxEquity) {
-	  return canUseBlank < rhs.canUseBlank;
+	  return useBlank < rhs.useBlank;
 	}
 	return maxEquity > rhs.maxEquity;
       }
@@ -150,8 +150,8 @@ namespace Quackle {
 		       int wordMultiplier, const unsigned char* node);
     void findBlankable(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
-    bool couldMakeWord(const Spot& spot, int length) const;
-    float bestLeave(const Spot& spot, int length) const;
+    bool couldMakeWord(const Spot& spot, int length);
+    float bestLeave(const Spot& spot, int length);
     Move v2generate();
     void setUpCounts(const LetterString &letters);
 

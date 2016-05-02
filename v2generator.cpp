@@ -62,8 +62,8 @@ Move V2Generator::findStaticBest() {
 	if (m_anagrams == NULL) {
 		UVcout << "could not find rack anagrams!" << endl;
 	} else {
-		UVcout << "found rack anagrams!! usesWhatever.thruNone.numPlayed: ";
-		UVcout << static_cast<int>(m_anagrams->usesWhatever.thruNone.numPlayed) << endl;
+		UVcout << "found rack anagrams!! usesNoBlanks.thruNone.numPlayed: ";
+		UVcout << static_cast<int>(m_anagrams->usesNoBlanks.thruNone.numPlayed) << endl;
 	}
 
 	computeHooks();
@@ -95,7 +95,7 @@ Move V2Generator::findStaticBest() {
 	for (Spot& spot : spots) {
 #ifdef DEBUG_V2GEN
 		UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-					 << ", " << "blank: " << spot.canUseBlank
+					 << ", " << "blank: " << spot.useBlank
 					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
 					 << ", thru: " << spot.numTilesThrough << "): "
 					 << spot.maxEquity;
@@ -228,17 +228,28 @@ void V2Generator::findBestExchange() {
 	m_best.equity = bestEquity;
 }
 
-bool V2Generator::couldMakeWord(const Spot& spot, int length) const {
+bool V2Generator::couldMakeWord(const Spot& spot, int length) {
 	//assert(length > 0);
 	//assert(length <= 7);
   if (m_anagrams == NULL) return true;
 
-	// TODO: handle 1
-	if (spot.numTilesThrough > 0) return true;
-	
+	if (spot.numTilesThrough > 1) return true;
+
 	const int lengthMask = 1 << length;
 	const UsesTiles& usesTiles =
-		spot.canUseBlank ? m_anagrams->usesWhatever : m_anagrams->usesNoBlanks;
+		spot.useBlank ? m_anagrams->mustUseBlank : m_anagrams->usesNoBlanks;
+	if (spot.numTilesThrough == 1) {
+		Letter thruLetter =
+			QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(spot.anchorRow,
+																															spot.anchorCol));
+		uint32_t letterMask = 1 << thruLetter;
+		if ((usesTiles.anahooks & letterMask) == 0) return false;
+		uint32_t beforeLetterMask = (1 << thruLetter) - 1;
+		int index = __builtin_popcount(usesTiles.anahooks &
+																	 beforeLetterMask);
+		const NTileAnagrams& anagrams = usesTiles.thruOne[index];
+		return (anagrams.numPlayed & lengthMask) != 0;
+	}
 	const NTileAnagrams& anagrams = usesTiles.thruNone;
 	return (anagrams.numPlayed & lengthMask) != 0;
 }
@@ -247,11 +258,11 @@ void V2Generator::findMovesAt(Spot* spot) {
 	m_mainWordScore = spot->throughScore;
 	m_hookScore = 0;
 	//if (m_counts[QUACKLE_BLANK_MARK] == 0) return;
-	//UVcout << "spot->canUseBlank: " << spot->canUseBlank
+	//UVcout << "spot->useBlank: " << spot->useBlank
 	//			 << ", m_counts[QUACKLE_BLANK_MARK]: "
 	//			 << static_cast<int>(m_counts[QUACKLE_BLANK_MARK]) << endl;
 	const int ahead = (spot->numTilesThrough == 0) ? 1 : 0;
-	if (!spot->canUseBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
+	if (!spot->useBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
 		struct timeval start, end;
 		gettimeofday(&start, NULL);
 		findBlankless(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
@@ -766,11 +777,11 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, numPlaced)) {
 			//#ifdef DEBUG_V2GEN
-			UVcout << "better than " << m_best.equity;
+			//UVcout << "better than " << m_best.equity;
 			//#endif
 			restrictByLength(spot);
 			//#ifdef DEBUG_V2GEN
-			UVcout << endl;
+			//UVcout << endl;
 			//#endif
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
@@ -893,15 +904,26 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 	m_hookScore -= hook.score;
 }
 
-float V2Generator::bestLeave(const Spot& spot, int length) const {
+float V2Generator::bestLeave(const Spot& spot, int length) {
 	assert(length > 0);
 	assert(length < 7);
-	// TODO: Handle single letter playedThrough too
-	if (spot.numTilesThrough == 0 && m_anagrams != NULL) {
+	if (spot.numTilesThrough <= 1 && m_anagrams != NULL) {
 		const UsesTiles& usesTiles =
-			spot.canUseBlank ? m_anagrams->usesWhatever : m_anagrams->usesNoBlanks;
-		const NTileAnagrams& anagrams = usesTiles.thruNone;
+			spot.useBlank ? m_anagrams->mustUseBlank : m_anagrams->usesNoBlanks;
 		int index = length - 1;
+		if (spot.numTilesThrough == 1) {
+			Letter thruLetter =
+				QUACKLE_ALPHABET_PARAMETERS->clearBlankness(boardLetter(spot.anchorRow,
+																															spot.anchorCol));
+			uint32_t letterMask = 1 << thruLetter;
+			if ((usesTiles.anahooks & letterMask) == 0) return false;
+			uint32_t beforeLetterMask = (1 << thruLetter) - 1;
+			int anahookIndex = __builtin_popcount(usesTiles.anahooks &
+																						beforeLetterMask);
+			const NTileAnagrams& anagrams = usesTiles.thruOne[anahookIndex];
+			return anagrams.bestLeaves[index] / 256.0f;
+		}
+		const NTileAnagrams& anagrams = usesTiles.thruNone;
 		return anagrams.bestLeaves[index] / 256.0f;
 	}
 	return m_bestLeaves[length];
@@ -1013,9 +1035,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 			int playedScore = 0;
 			int maxNonBlankTiles = played;
 			//UVcout << "played: " << played << endl;
-			// We can do better, but need to make canUseBlank be mustUseBlank
-			bool assumeBlankPlayed = blankOnRack() && (played == 7);
-			if (assumeBlankPlayed) maxNonBlankTiles--;
+			if (spot->useBlank) maxNonBlankTiles--;
 			for (int i = 0; i < maxNonBlankTiles; ++i) {
 				//UVcout << "playedScore += " << tileScores[i] << " * "
 				//			 << usedLetterMultipliers[i] << endl;
@@ -1036,7 +1056,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 				//UVcout << "optimisticEquity += leave (" << bestLeave(*spot, played)
 				//			 << ")" << endl;
 				/*
-				UVcout << "use?:" << spot->canUseBlank << ", played: " << played
+				UVcout << "use?:" << spot->useBlank << ", played: " << played
 							 << ", minPos: " << minPos << ", score: " << score
 							 << ", leave: " << bestLeave(*spot, played)
 							 << ", optimisticEquity: " << optimisticEquity << endl;
@@ -1056,7 +1076,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 	if (!spot->canMakeAnyWord) return;
 	spot->maxEquity = maxEquity;
 	// UVcout << "Spot: (" << spot->anchorRow << ", " << spot->anchorCol
-	// 			 << ", blank: " << spot->canUseBlank << ") "
+	// 			 << ", blank: " << spot->useBlank << ") "
 	// 			 << spot->maxEquity << endl;
 }
 
@@ -1496,7 +1516,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					spot.anchorRow = row;
 					spot.anchorCol = col;
 					spot.anchorNode = gaddag.root();
-					spot.canUseBlank = true;
+					spot.useBlank = false;
 					spot.horizontal = true;
 					spot.throughScore = 0;
 					spot.numTilesThrough = 0;
@@ -1531,21 +1551,15 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 						}
 						scoreSpot(&spot);
 						if (spot.canMakeAnyWord) {
-							/*
-								UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-								<< ", blank: " << spot.canUseBlank << ") "
-								<< spot.maxEquity << endl;
-							*/
-							if (blankOnRack()) {
-								Spot blankSavingSpot = spot;
-								blankSavingSpot.canUseBlank = false;
-								scoreSpot(&blankSavingSpot);
-								if (blankSavingSpot.canMakeAnyWord) {
-									spots->push_back(blankSavingSpot);
-									spot.maxEquity -= m_blankSpendingEpsilon;
-								}
-							}
 							spots->push_back(spot);
+						}
+						if (blankOnRack()) {
+							Spot blankSpendingSpot = spot;
+							blankSpendingSpot.useBlank = true;
+							scoreSpot(&blankSpendingSpot);
+							if (blankSpendingSpot.canMakeAnyWord) {
+								spots->push_back(blankSpendingSpot);
+							}
 						}
 					}
 				}
@@ -1576,7 +1590,7 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 					spot.anchorRow = row;
 					spot.anchorCol = col;
 					spot.anchorNode = gaddag.root();
-					spot.canUseBlank = true;
+					spot.useBlank = false;
 					spot.horizontal = false;
 					spot.throughScore = 0;
 					spot.numTilesThrough = 0;
@@ -1615,19 +1629,18 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 						if (spot.canMakeAnyWord) {
 							/*
 							UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-										 << ", blank: " << spot.canUseBlank << ") "
+										 << ", blank: " << spot.useBlank << ") "
 										 << spot.maxEquity << endl;
 							*/
-							if (blankOnRack()) {
-								Spot blankSavingSpot = spot;
-								blankSavingSpot.canUseBlank = false;
-								scoreSpot(&blankSavingSpot);
-								if (blankSavingSpot.canMakeAnyWord) {
-									spots->push_back(blankSavingSpot);
-									spot.maxEquity -= m_blankSpendingEpsilon;
-								}
-							}
 							spots->push_back(spot);
+						}
+						if (blankOnRack()) {
+							Spot blankSpendingSpot = spot;
+							blankSpendingSpot.useBlank = true;
+							scoreSpot(&blankSpendingSpot);
+							if (blankSpendingSpot.canMakeAnyWord) {
+								spots->push_back(blankSpendingSpot);
+							}
 						}
 					}
 				}
@@ -1747,7 +1760,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			*/
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
-			spot.canUseBlank = true;
+			spot.useBlank = false;
 			int oldMaxTilesAhead = spot.maxTilesAhead;
 			if (j == m_numThroughs - 1) {
 				spot.maxTilesAhead += 14 - through.end;
@@ -1781,16 +1794,15 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			*/
 			scoreSpot(&spot);
 			if (spot.canMakeAnyWord) {
-				if (blankOnRack()) {
-					Spot blankSavingSpot = spot;
-					blankSavingSpot.canUseBlank = false;
-					scoreSpot(&blankSavingSpot);
-					if (blankSavingSpot.canMakeAnyWord) {
-						spots->push_back(blankSavingSpot);
-						spot.maxEquity -= m_blankSpendingEpsilon;
-					}
-				}
 				spots->push_back(spot);
+			}
+			if (blankOnRack()) {
+				Spot blankSpendingSpot = spot;
+				blankSpendingSpot.useBlank = true;
+				scoreSpot(&blankSpendingSpot);
+				if (blankSpendingSpot.canMakeAnyWord) {
+					spots->push_back(blankSpendingSpot);
+				}
 			}
 			if (j < m_numThroughs - 1) {
 				spot.maxTilesAhead++;
@@ -1886,7 +1898,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			*/
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
-			spot.canUseBlank = true;
+			spot.useBlank = false;
 			int oldMaxTilesAhead = spot.maxTilesAhead;
 			if (j == m_numThroughs - 1) {
 				spot.maxTilesAhead += 14 - through.end;
@@ -1920,16 +1932,15 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			*/
 			scoreSpot(&spot);
 			if (spot.canMakeAnyWord) {
-				if (blankOnRack()) {
-					Spot blankSavingSpot = spot;
-					blankSavingSpot.canUseBlank = false;
-					scoreSpot(&blankSavingSpot);
-					if (blankSavingSpot.canMakeAnyWord) {
-						spots->push_back(blankSavingSpot);
-						spot.maxEquity -= m_blankSpendingEpsilon;
-					}
-				}
 				spots->push_back(spot);
+			}
+			if (blankOnRack()) {
+				Spot blankSpendingSpot = spot;
+				blankSpendingSpot.useBlank = true;
+				scoreSpot(&blankSpendingSpot);
+				if (blankSpendingSpot.canMakeAnyWord) {
+					spots->push_back(blankSpendingSpot);
+				}
 			}
 			if (j < m_numThroughs - 1) {
 				spot.maxTilesAhead++;
@@ -1967,7 +1978,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.anchorRow = QUACKLE_BOARD_PARAMETERS->startRow();
 	spot.anchorCol = QUACKLE_BOARD_PARAMETERS->startColumn();
 	spot.anchorNode = gaddag.root();
-	spot.canUseBlank = true;
+	spot.useBlank = false;
 	spot.horizontal = true;
 	spot.throughScore = 0;
 	spot.numTilesThrough = 0;
@@ -1983,16 +1994,15 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
 	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	if (spot.canMakeAnyWord) {
-		if (blankOnRack()) {
-			Spot blankSavingSpot = spot;
-			blankSavingSpot.canUseBlank = false;
-			scoreSpot(&blankSavingSpot);
-			if (blankSavingSpot.canMakeAnyWord) {
-				spots->push_back(blankSavingSpot);
-				spot.maxEquity -= m_blankSpendingEpsilon;
-			}
-		} 
 		spots->push_back(spot);
+	}
+	if (blankOnRack()) {
+		Spot blankSpendingSpot = spot;
+		blankSpendingSpot.useBlank = true;
+		scoreSpot(&blankSpendingSpot);
+		if (blankSpendingSpot.canMakeAnyWord) {
+			spots->push_back(blankSpendingSpot);
+		} 
 	}
 }
 
