@@ -40,7 +40,7 @@ Move V2Generator::findStaticBest() {
 			 letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter) {
 		if (m_counts[letter] > 0) m_rackBits |= (1 << letter);
 	}
-
+		
 	struct timeval start, end;
 
 	// TODO: are enough tiles in the bag?
@@ -262,7 +262,16 @@ void V2Generator::findMovesAt(Spot* spot) {
 	//			 << ", m_counts[QUACKLE_BLANK_MARK]: "
 	//			 << static_cast<int>(m_counts[QUACKLE_BLANK_MARK]) << endl;
 	const int ahead = (spot->numTilesThrough == 0) ? 1 : 0;
-	if (!spot->useBlank || m_counts[QUACKLE_BLANK_MARK] == 0) {
+	if (spot->useBlank) {
+		struct timeval start, end;
+		gettimeofday(&start, NULL);
+		findBlankRequired(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
+		gettimeofday(&end, NULL);
+		UVcout << "Time finding moves (with blank) was "
+					 << ((end.tv_sec * 1000000 + end.tv_usec)
+							 - (start.tv_sec * 1000000 + start.tv_usec))
+					 << " microseconds." << endl;		
+	} else {
 		struct timeval start, end;
 		gettimeofday(&start, NULL);
 		findBlankless(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
@@ -271,15 +280,6 @@ void V2Generator::findMovesAt(Spot* spot) {
 					 << ((end.tv_sec * 1000000 + end.tv_usec)
 							 - (start.tv_sec * 1000000 + start.tv_usec))
 					 << " microseconds." << endl;
-	} else {
-		struct timeval start, end;
-		gettimeofday(&start, NULL);
-		findBlankable(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
-		gettimeofday(&end, NULL);
-		UVcout << "Time finding moves (with blank) was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-							 - (start.tv_sec * 1000000 + start.tv_usec))
-					 << " microseconds." << endl;		
 	}
 }
 
@@ -574,12 +574,12 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 	}
 }
 
-void V2Generator::findMoreBlankable(Spot* spot, int delta, int ahead,
-																		int behind, int velocity, int wordMultiplier,
-																		const V2Gaddag& gaddag, const unsigned char* node) {
+void V2Generator::findMoreBlankRequired(Spot* spot, int delta, int ahead,
+																				int behind, int velocity, int wordMultiplier,
+																				const V2Gaddag& gaddag, const unsigned char* node) {
 	if (velocity < 0) {
 		if (behind < spot->maxTilesBehind) {
-			findBlankable(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
+			findBlankRequired(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
 		}
 		if (ahead >= spot->maxTilesAhead) return;
 #ifdef V2GEN
@@ -589,11 +589,11 @@ void V2Generator::findMoreBlankable(Spot* spot, int delta, int ahead,
 		if (changeChild != NULL) {
 			node = gaddag.followIndex(changeChild);
 			if (node != NULL) { 
-				findBlankable(spot, 1, ahead + 1, behind, 1, wordMultiplier, node);
+				findBlankRequired(spot, 1, ahead + 1, behind, 1, wordMultiplier, node);
 			}
 		}
 	} else if (ahead < spot->maxTilesAhead) {
-		findBlankable(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier, node);
+		findBlankRequired(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier, node);
 	}
 }
 
@@ -709,12 +709,12 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 }
 
 
-void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
-																int velocity, int wordMultiplier,
-																const unsigned char* node) {
+void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind,
+																		int velocity, int wordMultiplier,
+																		const unsigned char* node) {
 #ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
-		UVcout << "findBlankable(delta: " << delta << ", ahead: " << ahead
+		UVcout << "findBlankRequired(delta: " << delta << ", ahead: " << ahead
 					 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 	}
 #endif
@@ -726,13 +726,13 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		assert(node != NULL);
 		// This is a through spot, and there's nothing to be placed here at the
 		// anchor (a tile is already there). Look ahead and behind.
-		findMoreBlankable(spot, delta, ahead, behind, velocity, wordMultiplier,
-											gaddag, node);
+		findMoreBlankRequired(spot, delta, ahead, behind, velocity, wordMultiplier,
+													gaddag, node);
 		return;
 	}
 	
 #ifdef DEBUG_V2GEN
-	UVcout << "findBlankable(delta: " << delta << ", ahead: " << ahead
+	UVcout << "findBlankRequired(delta: " << delta << ", ahead: " << ahead
 				 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 #endif
 	int numPlaced, row, col, pos;
@@ -779,7 +779,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 			//#ifdef DEBUG_V2GEN
 			//UVcout << "better than " << m_best.equity;
 			//#endif
-			restrictByLength(spot);
+			//restrictByLength(spot);
 			//#ifdef DEBUG_V2GEN
 			//UVcout << endl;
 			//#endif
@@ -788,8 +788,8 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 			const unsigned char* newNode = gaddag.followIndex(child);
 			if (newNode != NULL) {
 				if (blankOnRack()) {
-					findMoreBlankable(spot, delta, ahead, behind, velocity,
-														newWordMultiplier, gaddag, newNode);
+					findMoreBlankRequired(spot, delta, ahead, behind, velocity,
+																newWordMultiplier, gaddag, newNode);
 
 				} else {
 					findMoreBlankless(spot, delta, ahead, behind, velocity,
@@ -807,7 +807,11 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 		++childIndex;
 	}
 	m_counts[QUACKLE_BLANK_MARK]++;
-	if (m_rackBits == 0) {
+	if (m_rackBits == 0 ||
+			// We must use a blank. If it isn't possibly worth adding another letter
+			// after this one, then don't try using a non-blank letter here.
+			(!blankWasPlayed() &&
+			 (numPlaced + 1 > spot->longestViable))) {
 		/*
 		UVcout << "hook.score: " << hook.score
 					 << ", m_hookScore: " << m_hookScore << " -> "
@@ -850,9 +854,7 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 #ifdef DEBUG_V2GEN
 		debugPlaced(*spot, behind, ahead);
 #endif		
-		// FIXME: all this assumes horizontal
-		// Test it by making the empty-board spot vertie!
-		if (spot->viableAtLength(numPlaced) &&
+		if (blankWasPlayed() && spot->viableAtLength(numPlaced) &&
 				gaddag.completesWord(child) &&
 				maybeRecordMove(*spot, newWordMultiplier, behind, numPlaced)) {
 #ifdef DEBUG_V2GEN
@@ -867,8 +869,8 @@ void V2Generator::findBlankable(Spot* spot, int delta, int ahead, int behind,
 			const unsigned char* newNode = gaddag.followIndex(child);
 			if (newNode != NULL) {
 				if (blankOnRack()) {
-					findMoreBlankable(spot, delta, ahead, behind, velocity,
-														newWordMultiplier, gaddag, newNode);
+					findMoreBlankRequired(spot, delta, ahead, behind, velocity,
+																newWordMultiplier, gaddag, newNode);
 
 				} else {
 					findMoreBlankless(spot, delta, ahead, behind, velocity,
@@ -1446,6 +1448,10 @@ bool V2Generator::blankOnRack() const {
 	return m_counts[QUACKLE_BLANK_MARK] > 0;
 }
 
+bool V2Generator::blankWasPlayed() const {
+	return m_counts[QUACKLE_BLANK_MARK] < m_numBlanks;
+}
+
 uint32_t V2Generator::otherRackBits(uint32_t rackBits, uint32_t rackHooks) const {
 	if (__builtin_popcount(rackHooks) == 1) {
 		Letter onlyHook = __builtin_ffs(rackHooks) - 1;
@@ -2019,6 +2025,7 @@ void V2Generator::computeHooks() {
 
 void V2Generator::setUpCounts(const LetterString &letters) {
   String::counts(letters, m_counts);
+	m_numBlanks = m_counts[QUACKLE_BLANK_MARK];
 }
 
 UVString V2Generator::counts2string() const {

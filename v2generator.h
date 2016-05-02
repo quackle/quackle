@@ -79,6 +79,7 @@ namespace Quackle {
     int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
     bool blankOnRack() const;
+    bool blankWasPlayed() const;
     uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
     bool restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
 				uint32_t rackHooks) const;
@@ -143,13 +144,13 @@ namespace Quackle {
     inline void findMoreBlankless(Spot* spot, int delta, int ahead,
 				  int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
-    inline void findMoreBlankable(Spot* spot, int delta, int ahead,
-				  int behind, int velocity, int wordMultiplier,
+    inline void findMoreBlankRequired(Spot* spot, int delta, int ahead,
+				      int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
     void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const unsigned char* node);
-    void findBlankable(Spot* spot, int delta, int ahead, int behind, int velocity,
-		       int wordMultiplier, const unsigned char* node);
+    void findBlankRequired(Spot* spot, int delta, int ahead, int behind, int velocity,
+			   int wordMultiplier, const unsigned char* node);
     bool couldMakeWord(const Spot& spot, int length);
     float bestLeave(const Spot& spot, int length);
     Move v2generate();
@@ -157,8 +158,13 @@ namespace Quackle {
 
     int m_hookScore;
     int m_mainWordScore;
+
+    // decremented and incremented while finding moves
     char m_counts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
 
+    // constant while finding moves, allows us to check if a blank was played
+    int m_numBlanks;
+    
     // TODO: generate this from alphabet
     uint32_t m_everyLetter = 0x7FFFFFE0;
       

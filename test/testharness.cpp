@@ -785,19 +785,11 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					if (gameNumber == 0) {
-						letters = QUACKLE_ALPHABET_PARAMETERS->encode("COWTREE", &leftover);
-					} else {
-						letters = QUACKLE_ALPHABET_PARAMETERS->encode("GORGETE", &leftover);
-					}
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("JUDASVR", &leftover);
 				} else if (i == 1) {
-					if (gameNumber == 0) {
-						letters = QUACKLE_ALPHABET_PARAMETERS->encode("ANEURIN", &leftover);
-					} else {
-						letters = QUACKLE_ALPHABET_PARAMETERS->encode("HONGENS", &leftover);
-					}
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("?AACNTX", &leftover);
 				} else if (i == 2) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("FAIREST", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("ADFIRTV", &leftover);
 				}
 				Rack rack(letters);
 				//game.currentPosition().setCurrentPlayerRack(rack);
