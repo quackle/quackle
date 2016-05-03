@@ -760,37 +760,18 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				//UVcout << "playing move #" << toPlay << endl;
 				game.commitMove(tops[toPlay]);
 			} else {
-				/*
-				Quackle::Rack rackScores =
-					QUACKLE_ALPHABET_PARAMETERS->toScoreLetters(player.rack().tiles());
-				UVString scoreString =
-					QUACKLE_SCORING_ALPHABET->userVisible(rackScores.alphaTiles());
-				//UVcout << "scoreString: " << scoreString << endl;
-				
-				vector<int> playableRows;
-				const Quackle::Board& board = game.currentPosition().board();
-				findPlayableRows(board, &playableRows);
-				for (int row : playableRows) {
-					UVcout << "playable row: [";
-					UVcout << rowString(board, row) << "] + " << scoreString << endl;
-				}
-				vector<int> playableCols;
-				findPlayableCols(board, &playableCols);
-				for (int col : playableCols) {
-					UVcout << "playable col: [";
-					UVcout << colString(board, col) << "] + " << scoreString << endl;
-				}
-				*/
-				if (i == 3) break;
+				if (i == 12) break;
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("JUDASVR", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("AIIOOQT", &leftover);
 				} else if (i == 1) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("?AACNTX", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("DEEHNPT", &leftover);
 				} else if (i == 2) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("ADFIRTV", &leftover);
-				}
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("AAIOOTY", &leftover);
+				} else if (i == 3) {
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("THEREAT", &leftover);
+				} 
 				Rack rack(letters);
 				//game.currentPosition().setCurrentPlayerRack(rack);
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());

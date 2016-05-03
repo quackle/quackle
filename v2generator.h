@@ -140,7 +140,11 @@ namespace Quackle {
     inline bool maybeRecordMove(const Spot& spot, int wordMultiplier,
 				int behind, int numPlaced);
     inline void getSquare(const Spot& spot, int delta,
-			  int* row, int* col, int* pos) const;
+			  int* row, int* col, int* pos);
+    inline const unsigned char* followToRealChild(const V2Gaddag& gaddag,
+						  int row, int col,
+						  bool horizontal,
+						  const unsigned char* child);
     inline void findMoreBlankless(Spot* spot, int delta, int ahead,
 				  int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
