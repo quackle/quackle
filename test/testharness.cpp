@@ -95,6 +95,7 @@ const char *usage =
 "       'randomracks' spit out random racks (forever?).\n"
 "       'leavecalc' spit out roughish values of leaves in 'leaves' file.\n"
 "       'anagram' anagrams letters supplied in --letters.\n"
+"       'verifyplays'\n"																																					 
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'twl06').\n"
@@ -102,6 +103,7 @@ const char *usage =
 "--seed=integer; set the random seed for reproducability.\n"
 "--report; generate reports for selfplay games (default false).\n"
 "--letters; letters to anagram.\n"
+"--playlog;\n"																																					 
 "--build; when mode is anagram, do not require that all letters be used.\n"
 "--quiet; print nothing during selfplay games (default false).\n"
 "--repetitions=integer; the number of games for selfplay (default 1000).\n";
@@ -117,6 +119,7 @@ void TestHarness::executeFromArguments()
 	QString repString;
 	bool build;
 	QString letters;
+	QString playlog;
 	bool help;
 	bool report;
 	unsigned int seed = numeric_limits<unsigned int>::max();
@@ -130,6 +133,8 @@ void TestHarness::executeFromArguments()
 	opts.addOption('s', "seed", &seedString);
 	opts.addOption('r', "repetitions", &repString);
 	opts.addOption('t', "letters", &letters);
+  opts.addOption('p', "playlog", &playlog);
+
 	opts.addRepeatableOption("position", &m_positions);
 
 	opts.addSwitch("report", &report);
@@ -193,6 +198,8 @@ void TestHarness::executeFromArguments()
 		wordDump();
 	else if (mode == "bingos")
 		bingos();
+  else if (mode == "verifyplays")
+		verifyPlays(playlog);
 }
 
 void TestHarness::startUp()
@@ -583,6 +590,95 @@ void TestHarness::bingos()
     }
 }
 
+Move TestHarness::readMove(const QString& line, int startToken) {
+	QStringList tokens = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+	QString firstMoveToken = tokens.at(startToken);
+	Move ret;
+	int scoreToken;
+	if (firstMoveToken.startsWith("-")) {
+		const QString exchanged = firstMoveToken.right(firstMoveToken.length() - 1);
+		assert(exchanged.length() > 0);
+		ret = Move::createExchangeMove(QuackleIO::Util::encode(exchanged));
+		scoreToken = startToken + 3;
+	} else {
+		QString secondMoveToken = tokens.at(startToken + 1);
+		ret = Move::createPlaceMove(QuackleIO::Util::qstringToString(firstMoveToken),
+																QuackleIO::Util::encode(secondMoveToken));
+		scoreToken = startToken + 4;
+	}
+	QString score = tokens.at(scoreToken);
+	QString equity = tokens.at(scoreToken + 3);
+	ret.score = score.left(score.length() - 1).toInt();
+	ret.equity = equity.left(equity.length() - 1).toFloat();
+	//UVcout << "readMove: " << ret << endl;
+	return ret;
+}
+
+void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
+														 const vector<Quackle::MoveList>& bests,
+														 const vector<Quackle::Move>& played) {
+	
+}
+void TestHarness::verifyPlays(const QString& playlog) {
+  QFile file(playlog);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		UVcout << "Could not open file "
+					 << QuackleIO::Util::qstringToString(playlog) << endl;
+		return;
+	}
+	QTextStream in(&file);
+	MoveList tops;
+	int numPlays = 0;
+	vector<Rack> racks;
+	vector<MoveList> bests;
+	vector<Move> played;
+	while (!in.atEnd()) {
+		QString line = in.readLine();
+		//UVcout << "line: " << QuackleIO::Util::qstringToString(line) << endl;
+		QStringList tokens = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+		assert(tokens.at(0).startsWith("rack"));
+		const QString rackString = tokens.at(1);
+		const Rack rack(QuackleIO::Util::encode(rackString));
+		//UVcout << "rack: " << rack << endl;
+		racks.push_back(rack);
+		
+		line = in.readLine();
+		tokens = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+		assert(tokens.at(0).startsWith("numTops"));
+		const int numTops = tokens.at(1).toInt();
+		//UVcout << "numTops: " << numTops << endl;
+
+		MoveList turnBests;
+		for (int i = 0; i < numTops; ++i) {
+			line = in.readLine();
+			//UVcout << "move line: " << QuackleIO::Util::qstringToString(line) << endl;
+			Move move = readMove(line, 1);
+			turnBests.push_back(move);
+		}
+    bests.push_back(turnBests);
+		
+		// playing move...
+		line = in.readLine();
+		//UVcout << "playing move: " << QuackleIO::Util::qstringToString(line) << endl;
+		Move move = readMove(line, 3);
+		played.push_back(move);
+		
+		numPlays++;
+		//UVcout << "numPlays: " << numPlays << endl;
+		if (numPlays == 12) {
+			numPlays = 0;
+			line = in.readLine();
+			//UVcout << "Game Over line: "
+			//       << QuackleIO::Util::qstringToString(line) << endl;
+			verifyGame(racks, bests, played);
+			racks.clear();
+			bests.clear();
+			played.clear();
+		}
+	}
+	file.close();
+}
+
 void TestHarness::testPosition(const Quackle::GamePosition &position, Quackle::ComputerPlayer *player)
 {
 	player->setPosition(position);
@@ -692,6 +788,9 @@ namespace {
 
 void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playability)
 {
+	// This should make the selfplay games repeatable for testing.
+	Quackle::V2Generator::initializeTiebreaker();
+	
 	Quackle::Game game;
 
 	Quackle::PlayerList players;
@@ -739,6 +838,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 		if (!m_quiet) {
 			if (playability) {
+				if (i == 12) break;
 				game.currentPosition().kibitz(100);
 				Quackle::MoveList moves = game.currentPosition().moves();
 				float bestEquity = moves.front().equity - 0.0001f;
@@ -746,18 +846,12 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it) {
 					if ((*it).equity >= bestEquity) {
 						tops.push_back(*it);
+						UVcout << "move: " << (*it) << endl;
 					}
 				}
 				int numTops = tops.size();
-				for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
-					MoveList words = game.currentPosition().allWordsFormedBy(*it);
-					for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
-						Rack word = (*it2).prettyTiles();
-						UVcout << word << " " << numTops << endl;
-					}
-				}
 				int toPlay = rand() % numTops;
-				//UVcout << "playing move #" << toPlay << endl;
+				UVcout << "playing move #" << toPlay << ": " << tops[toPlay] << endl;
 				game.commitMove(tops[toPlay]);
 			} else {
 				if (i == 12) break;

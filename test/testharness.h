@@ -59,6 +59,13 @@ public:
 	// Compute bingo stems ala Baron's MMPR
 	void bingos();
 
+	Quackle::Move readMove(const QString& line, int startToken);
+
+	void verifyGame(const vector<Quackle::Rack>& racks,
+			const vector<Quackle::MoveList>& bests,
+			const vector<Quackle::Move>& played);
+	void verifyPlays(const QString& playlog);
+	
 	// Loads game from the file, and tests the final position,
 	// and cleans up the game.
 	void testFromFile(const QString &file);

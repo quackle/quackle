@@ -20,6 +20,9 @@ namespace Quackle {
     ~V2Generator();
 
     Move kibitz();
+    static void initializeTiebreaker() { m_tiebreakDividend = 0; }
+    static unsigned int m_tiebreakDividend;
+    
     const unsigned char* vertBeforeNode(int row, int col, int numLetters);
     const unsigned char* vertAfterNode(int row, int col, int numLetters);
     const unsigned char* horizBeforeNode(int row, int col, int numLetters);
@@ -73,7 +76,7 @@ namespace Quackle {
       }
     };
     
-    Move findStaticBest();
+    void findStaticBests();
     int scorePlay(const Spot& spot, int behind, int ahead);
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);
@@ -94,8 +97,6 @@ namespace Quackle {
     void restrictByLength(Spot* spot);
     void findMovesAt(Spot* spot);
     void findBestExchange();
-    void findExchanges(const uint64_t* rackPrimes, const LetterString& tiles,
-		       uint64_t product, int pos, int numExchanged);
     inline Letter boardLetter(int row, int col);
     inline int tileScore(int row, int col);
     inline bool isEmpty(int row, int col);
@@ -178,11 +179,14 @@ namespace Quackle {
     int m_numThroughs;
     bool m_inThrough;
     Through m_throughs[8];
-    MoveList m_moveList;
-    Move m_best;
 
+    bool bestEnough(double equity) const;
+    bool clearlyBetter(double equity) const;
+    MoveList m_bests;
+
+    double m_bestEquityEpsilon = 0.0001;
     double m_blankSpendingEpsilon = 0.0001;
-    
+
     // debug stuff
     UVString counts2string() const;
 
@@ -193,7 +197,6 @@ namespace Quackle {
     }
     const RackAnagrams* m_anagrams;
   };
-  
 }  // namespace Quackle
 
 #endif

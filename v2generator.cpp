@@ -24,15 +24,20 @@ V2Generator::V2Generator(const GamePosition &position)
 
 V2Generator::~V2Generator() {}
 
+unsigned int V2Generator::m_tiebreakDividend;
+
 Move V2Generator::kibitz() {
-  return findStaticBest();
+  findStaticBests();
+	assert(!m_bests.empty());
+	int index = m_tiebreakDividend++ % m_bests.size();
+	return m_bests[index];
 }
 
-Move V2Generator::findStaticBest() {
-  UVcout << "findStaticBest(): " << endl << m_position << endl;
-	m_best = Move::createPassMove();
-
-  m_moveList.clear();
+void V2Generator::findStaticBests() {
+  UVcout << "findStaticBests(): " << endl << m_position << endl;
+	m_bests.clear();
+	// Only do this if no exchanges exist
+	//m_bests.push_back(Move::createPassMove());
 
   setUpCounts(rack().tiles());
 	m_rackBits = 0;
@@ -51,7 +56,7 @@ Move V2Generator::findStaticBest() {
 	UVcout << "Time finding exchanges was "
 				 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
-	UVcout << "best exchange: " << m_best << endl;
+	UVcout << "best exchange: " << m_bests[0] << endl;
 	gettimeofday(&start, NULL);
   m_anagrams = QUACKLE_ANAGRAMMAP->lookUp(rack());
 	gettimeofday(&end, NULL);
@@ -66,7 +71,13 @@ Move V2Generator::findStaticBest() {
 		UVcout << static_cast<int>(m_anagrams->usesNoBlanks.thruNone.numPlayed) << endl;
 	}
 
+	gettimeofday(&start, NULL);
 	computeHooks();
+	gettimeofday(&end, NULL);
+	UVcout << "Time computing hooks was "
+					 << ((end.tv_sec * 1000000 + end.tv_usec)
+						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+			
 	//debugHooks();
 
 	vector<Spot> spots;
@@ -103,7 +114,7 @@ Move V2Generator::findStaticBest() {
 		restrictByLength(&spot);
 		//UVcout << endl;
 
-		if (spot.maxEquity < m_best.equity) {
+		if (!bestEnough(spot.maxEquity)) {
 			//#ifdef DEBUG_V2GEN
 			UVcout << "no need to check this spot!" << endl;
 			//#endif
@@ -111,18 +122,19 @@ Move V2Generator::findStaticBest() {
 		}
 		findMovesAt(&spot);
 	}
-	UVcout << "best Move: " << m_best << endl;
-	if (board()->isEmpty()) {
-		assert(m_best.score % 2 == 0);
+  int i = 0;
+	for (const Move& move : m_bests) {
+		i++;
+		UVcout << "best Move " << i << " of " << m_bests.size()
+					 << ": " << move << endl;
 	}
-	return m_best;
 }
 
 void V2Generator::restrictByLength(Spot* spot) {
 	int oldLongestViable = spot->longestViable;
 	for (int i = 1; i <= oldLongestViable; ++i) {
 		if (spot->worthChecking[i].couldBeBest &&
-				(spot->worthChecking[i].maxEquity > m_best.equity)) {
+				bestEnough(spot->worthChecking[i].maxEquity)) {
 			spot->longestViable = i;
 		} else {
 			spot->worthChecking[i].couldBeBest = false;
@@ -136,38 +148,6 @@ void V2Generator::restrictByLength(Spot* spot) {
 	}
 	UVcout << endl;
 #endif
-}
-
-void V2Generator::findExchanges(const uint64_t* rackPrimes,
-																const LetterString& tiles,
-																uint64_t product,
-																int pos, int numExchanged) {
-	if (pos == 7) {
-    if (numExchanged == 0) return;
-		double leave = product == 1 ? 0 :
-			QUACKLE_STRATEGY_PARAMETERS->primeleave(product);
-		//UVcout << "leave: " << leave << endl;
-		// TODO: heuristics for num exchanged?
-		if (leave > m_best.equity) {
-			Move move;
-			move.action = Move::Exchange;
-			LetterString exchanged;
-			for (int i = 0; i < numExchanged; ++i) {
-				exchanged += m_placed[i];
-			}
-			move.setTiles(exchanged);
-			move.score = 0;
-			move.equity = leave;
-			m_best = move;
-		}
-		if (leave > m_bestLeaves[numExchanged]) {
-			m_bestLeaves[numExchanged] = leave;
-		}
-		return;
-	}
-	findExchanges(rackPrimes, tiles, product * rackPrimes[pos], pos + 1, numExchanged);
-	m_placed[numExchanged] = tiles[pos];
-	findExchanges(rackPrimes, tiles, product, pos + 1, numExchanged + 1);
 }
 
 void V2Generator::findBestExchange() {
@@ -223,9 +203,13 @@ void V2Generator::findBestExchange() {
 		if (((1 << i) & bestMask) == 0) {
 			exchanged += tiles[i];
 		}
-	}			
-	m_best = Move::createExchangeMove(exchanged);
-	m_best.equity = bestEquity;
+	}
+	// Some exchanges might be tied, but I don't have a problem with breaking
+	// the tie arbitrarily.
+	//
+	// The exchange is definitely best: right now m_bests contains Pass
+	Move exchange = Move::createExchangeMove(exchanged);
+	m_bests.push_back(exchange);
 }
 
 bool V2Generator::couldMakeWord(const Spot& spot, int length) {
@@ -456,6 +440,16 @@ void V2Generator::unuseLetter(Letter letter, uint32_t foundLetterMask) {
 	m_rackBits |= foundLetterMask;	
 }
 
+bool V2Generator::bestEnough(double equity) const {
+	assert(!m_bests.empty());
+	return m_bests[0].equity <= equity + m_bestEquityEpsilon;
+}
+
+bool V2Generator::clearlyBetter(double equity) const {
+	assert(!m_bests.empty());
+	return m_bests[0].equity + m_bestEquityEpsilon <= equity;
+}
+
 bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 																	int behind, int numPlaced) {
 	// UVcout << "m_mainWordScore: " << m_mainWordScore
@@ -474,7 +468,7 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 	assert(equity <= spot.maxEquity + 2 * m_blankSpendingEpsilon);
 	assert(spot.worthChecking[numPlaced].couldBeBest);
 	//assert(equity <= spot.worthChecking[numPlaced].maxEquity);
-	if (equity > m_best.equity) {
+	if (bestEnough(equity)) {
 		LetterString word;
 		int startRow = spot.anchorRow;
 		int startCol = spot.anchorCol;
@@ -514,7 +508,8 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		Move move = Move::createPlaceMove(startRow, startCol, spot.horizontal, word);
 		move.score = score;
 		move.equity = equity;
-		m_best = move;
+		if (clearlyBetter(equity)) m_bests.clear();
+		m_bests.push_back(move);
 
 		//UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
 		//			 << spot.worthChecking[numPlaced].maxEquity << endl;
