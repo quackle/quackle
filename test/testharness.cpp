@@ -675,7 +675,7 @@ void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
     if (boardWasEmpty) continue;
 		double equityDiff = v2equity - v1equity;
 		bool someProblem = false;
-		if (equityDiff > 0.0001 || equityDiff < -0.0001) {
+		if (equityDiff > 0.01 || equityDiff < -0.01) {
 			UVcout << "Equities differ! v1: " << v1equity << ", v2: " << v2equity << endl;
 			someProblem = true;
 		}

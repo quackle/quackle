@@ -1592,8 +1592,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 							break;
 						}
 					}
-					if ((spot.maxTilesAhead >= 1) &&
-							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
+					if ((spot.maxTilesAhead >= 1)) {
 						spot.longestViable = numTiles;
 						// UVcout << "Spot: (" << spot.anchorRow << ", "
 						//  			 << spot.anchorCol << "), "
