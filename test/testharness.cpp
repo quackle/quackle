@@ -23,6 +23,7 @@
 #include <iostream>
 #include <limits>
 #include <algorithm>
+#include <set>
 
 #include <time.h>
 #include <sys/time.h>
@@ -617,8 +618,89 @@ Move TestHarness::readMove(const QString& line, int startToken) {
 void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
 														 const vector<Quackle::MoveList>& bests,
 														 const vector<Quackle::Move>& played) {
+	Quackle::V2Generator::initializeTiebreaker();
 	
+	Quackle::Game game;
+
+	Quackle::PlayerList players;
+
+	Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
+	compyA.setAbbreviatedName(MARK_UV("A"));
+	compyA.setComputerPlayer(m_computerPlayerToTest);
+	players.push_back(compyA);
+
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+	compyB.setAbbreviatedName(MARK_UV("B"));
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
+	players.push_back(compyB);
+
+	game.setPlayers(players);
+	game.associateKnownComputerPlayers();
+
+	game.addPosition();
+
+	for (unsigned int i = 0; i < racks.size(); ++i) {
+		game.currentPosition().setCurrentPlayerRack(racks[i]);
+		Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+    v2gen.findStaticBests();
+		game.currentPosition().addAndSetMoveMade(played[i]);
+		const MoveList& v2moves = v2gen.bestMoves();
+		set<Move> v2exch;
+		set<Move> v2place;
+		double v2equity = -9999;
+		for (const Move& move : v2moves) {
+			if (move.action == Move::Place) {
+				v2place.insert(move);
+			} else {
+				assert(move.action == Move::Exchange);
+				v2exch.insert(move);
+			}
+			if (move.equity > v2equity) v2equity = move.equity;
+		}
+		set<Move> v1exch;
+		set<Move> v1place;
+		double v1equity = -9999;
+		for (const Move& move : bests[i]) {
+			UVcout << "v1 best move: " << move << endl;
+			if (move.action == Move::Place) {
+				v1place.insert(move);
+			} else {
+				assert(move.action == Move::Exchange);
+				v1exch.insert(move);
+			}
+			if (move.equity > v1equity) v1equity = move.equity;
+		}
+		bool boardWasEmpty = game.currentPosition().board().isEmpty();
+		game.commitMove(played[i]);
+    if (boardWasEmpty) continue;
+		double equityDiff = v2equity - v1equity;
+		bool someProblem = false;
+		if (equityDiff > 0.0001 || equityDiff < -0.0001) {
+			UVcout << "Equities differ! v1: " << v1equity << ", v2: " << v2equity << endl;
+			someProblem = true;
+		}
+		for (const Move& move : v2exch) {
+			if (v1exch.count(move) == 0) {
+				UVcout << "Could not find exchange: " << move << endl;
+				someProblem = true;
+			}
+		}
+		for (const Move& move : v2place) {
+			if (v1place.count(move) == 0) {
+				UVcout << "Could not find place: " << move << endl;
+				someProblem = true;
+			}
+		}
+		for (const Move& move : v1place) {
+			if (v2place.count(move) == 0) {
+				UVcout << "Could not find place: " << move << endl;
+				someProblem = true;
+			}
+		}
+		UVcout << "some problem? " << someProblem << endl;
+	}
 }
+
 void TestHarness::verifyPlays(const QString& playlog) {
   QFile file(playlog);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {

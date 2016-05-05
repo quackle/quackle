@@ -20,6 +20,9 @@ namespace Quackle {
     ~V2Generator();
 
     Move kibitz();
+    void findStaticBests();
+
+    const MoveList& bestMoves() const { return m_bests; }
     static void initializeTiebreaker() { m_tiebreakDividend = 0; }
     static unsigned int m_tiebreakDividend;
     
@@ -76,7 +79,6 @@ namespace Quackle {
       }
     };
     
-    void findStaticBests();
     int scorePlay(const Spot& spot, int behind, int ahead);
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);

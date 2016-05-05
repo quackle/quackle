@@ -209,6 +209,7 @@ void V2Generator::findBestExchange() {
 	//
 	// The exchange is definitely best: right now m_bests contains Pass
 	Move exchange = Move::createExchangeMove(exchanged);
+	exchange.equity = bestEquity;
 	m_bests.push_back(exchange);
 }
 
