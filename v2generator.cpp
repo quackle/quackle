@@ -109,14 +109,13 @@ void V2Generator::findStaticBests() {
 					 << ", " << "blank: " << spot.useBlank
 					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
 					 << ", thru: " << spot.numTilesThrough << "): "
-					 << spot.maxEquity;
+					 << spot.maxEquity << endl;
 		//#endif
-		restrictByLength(&spot);
-		UVcout << endl;
+		restrictSpot(&spot);
 
 		if (!bestEnough(spot.maxEquity)) {
 			//#ifdef DEBUG_V2GEN
-			UVcout << "no need to check this spot!" << endl;
+			//UVcout << "no need to check this spot!" << endl;
 			//#endif
 			continue;
 		}
@@ -130,6 +129,11 @@ void V2Generator::findStaticBests() {
 	}
 }
 
+void V2Generator::restrictSpot(Spot* spot) {
+	restrictByLength(spot);
+	restrictByBehind(spot);
+}
+
 void V2Generator::restrictByLength(Spot* spot) {
 	int oldLongestViable = spot->longestViable;
 	for (int i = 1; i <= oldLongestViable; ++i) {
@@ -140,7 +144,7 @@ void V2Generator::restrictByLength(Spot* spot) {
 			spot->worthChecking[i].couldBeBest = false;
 		}
 	}
-	#ifdef DEBUG_V2GEN
+#ifdef DEBUG_V2GEN
 	for (int i = 1; i <= 7; ++i) {
 		if (spot->worthChecking[i].couldBeBest) {
 			UVcout << ", [" << i << "]: " << spot->worthChecking[i].maxEquity;
@@ -148,8 +152,30 @@ void V2Generator::restrictByLength(Spot* spot) {
 			UVcout << ", [" << i << "]: nope";
 		}
 	}
+#endif
+}
+
+void V2Generator::restrictByBehind(Spot* spot) {
+	int oldHindmostViable = spot->hindmostViable;
+	for (int i = 0; i <= oldHindmostViable; ++i) {
+		if (spot->worthCheckingBehind[i].couldBeBest &&
+				bestEnough(spot->worthCheckingBehind[i].maxEquity)) {
+			spot->hindmostViable = i;
+		} else {
+			spot->worthCheckingBehind[i].couldBeBest = false;
+		}
+	}
+#ifdef DEBUG_V2GEN
+	for (int i = 0; i <= 7; ++i) {
+		if (spot->worthCheckingBehind[i].couldBeBest) {
+			UVcout << ", [b" << i << "]: "
+						 << spot->worthCheckingBehind[i].maxEquity;
+		} else {
+			UVcout << ", [b" << i << "]: nope";
+		}
+	}
 	UVcout << endl;
-	#endif
+#endif	
 }
 
 void V2Generator::findBestExchange() {
@@ -511,7 +537,11 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		Move move = Move::createPlaceMove(startRow, startCol, spot.horizontal, word);
 		move.score = score;
 		move.equity = equity;
-		if (clearlyBetter(equity)) m_bests.clear();
+		bool wasClearlyBetter = false;
+		if (clearlyBetter(equity)) {
+			m_bests.clear();
+			wasClearlyBetter = true;
+		}
 		m_bests.push_back(move);
 
 		//UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
@@ -521,7 +551,7 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		}
 		//UVcout << "new best: " << move << endl;
 		
-		return true;
+		return wasClearlyBetter;
 	}
 	return false;
 }
@@ -556,10 +586,14 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 																		int behind, int velocity, int wordMultiplier,
 																		const V2Gaddag& gaddag, const unsigned char* node) {
 	if (velocity < 0) {
-		if (behind < spot->maxTilesBehind) {
+		if (behind < spot->maxTilesBehind &&
+				behind + 1 <= spot->hindmostViable) {
 			findBlankless(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
 		}
-		if (ahead >= spot->maxTilesAhead) return;
+		if (ahead >= spot->maxTilesAhead ||
+				!spot->viableWithBehind(behind)) {
+			return;
+		}
 #ifdef V2GEN
 		UVcout << "changing direction..." << endl;
 #endif
@@ -577,12 +611,17 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 
 void V2Generator::findMoreBlankRequired(Spot* spot, int delta, int ahead,
 																				int behind, int velocity, int wordMultiplier,
-																				const V2Gaddag& gaddag, const unsigned char* node) {
+																				const V2Gaddag& gaddag,
+																				const unsigned char* node) {
 	if (velocity < 0) {
-		if (behind < spot->maxTilesBehind) {
+		if (behind < spot->maxTilesBehind &&
+				behind + 1 <= spot->hindmostViable) {
 			findBlankRequired(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
 		}
-		if (ahead >= spot->maxTilesAhead) return;
+		if (ahead >= spot->maxTilesAhead ||
+				!spot->viableWithBehind(behind)) {
+			return;
+		}
 #ifdef V2GEN
 		UVcout << "changing direction..." << endl;
 #endif
@@ -703,10 +742,7 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 			//#ifdef DEBUG_V2GEN
 			//UVcout << "better than " << m_best.equity;
 			//#endif
-			restrictByLength(spot);
-			//#ifdef DEBUG_V2GEN
-			//UVcout << endl;
-			//#endif
+			restrictSpot(spot);
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -823,10 +859,7 @@ void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind
 			//#ifdef DEBUG_V2GEN
 			//UVcout << "better than " << m_best.equity;
 			//#endif
-			restrictByLength(spot);
-			//#ifdef DEBUG_V2GEN
-			//UVcout << endl;
-			//#endif
+			restrictSpot(spot);
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -914,10 +947,7 @@ void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind
 #ifdef DEBUG_V2GEN
 			UVcout << "better than " << m_best.equity;
 #endif
-			restrictByLength(spot);
-#ifdef DEBUG_V2GEN
-			UVcout << endl;
-#endif
+			restrictSpot(spot);
 		}
 		if (numPlaced + 1 <= spot->longestViable) {
 			const unsigned char* newNode = gaddag.followIndex(child);
@@ -1010,7 +1040,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 		spot->worthChecking[i].maxEquity = maxEquity;
 		spot->worthChecking[i].couldBeBest = false;
 	}
-	
+	for (int i = 0; i <= 7; ++i) {
+		spot->worthCheckingBehind[i].maxEquity = maxEquity;
+		spot->worthCheckingBehind[i].couldBeBest = false;
+	}
 	int wordMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int hookLetterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int letterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
@@ -1073,6 +1106,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 				continue;
 			} else {
 				spot->worthChecking[played].couldBeBest = true;
+				spot->worthCheckingBehind[behind].couldBeBest = true;
 				//UVcout << "can make word of length " << played << endl;
 			}
 			spot->canMakeAnyWord = true;
@@ -1127,6 +1161,10 @@ void V2Generator::scoreSpot(Spot* spot) {
 			maxEquity = std::max(maxEquity, optimisticEquity);
 			spot->worthChecking[played].maxEquity =
 				std::max(spot->worthChecking[played].maxEquity, optimisticEquity);
+			spot->worthCheckingBehind[behind].maxEquity =
+				std::max(spot->worthCheckingBehind[behind].maxEquity,
+								 optimisticEquity);
+
 			// gettimeofday(&end, NULL);
 			// UVcout << "Time scoring behind: " << behind << " ahead: " << ahead << " "
 			// 	 << ((end.tv_sec * 1000000 + end.tv_usec)
@@ -1601,6 +1639,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					}
 					if ((spot.maxTilesAhead >= 1)) {
 						spot.longestViable = numTiles;
+						spot.hindmostViable = spot.maxTilesBehind;
 						// UVcout << "Spot: (" << spot.anchorRow << ", "
 						//  			 << spot.anchorCol << "), "
 						//  			 << "maxBehind: " << spot.maxTilesBehind
@@ -1674,6 +1713,7 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 					if ((spot.maxTilesAhead >= 1) &&
 							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
 						spot.longestViable = numTiles;
+						spot.hindmostViable = numTiles;
 						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
@@ -1813,6 +1853,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 		spot.minTilesAhead = 0;
 		spot.maxTilesAhead = 0;
 		spot.longestViable = numTiles;
+		spot.hindmostViable = spot.maxTilesBehind;
 		for (int j = i; j < m_numThroughs; ++j) {
 			const Through& through = m_throughs[j];
 			/*
@@ -1951,6 +1992,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 		spot.minTilesAhead = 0;
 		spot.maxTilesAhead = 0;
 		spot.longestViable = numTiles;
+		spot.hindmostViable = spot.maxTilesBehind;
 		for (int j = i; j < m_numThroughs; ++j) {
 			const Through& through = m_throughs[j];
 			/*
@@ -2047,7 +2089,8 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.maxTilesBehind = numTiles - 1;
 	spot.minTilesAhead = 1;
 	spot.maxTilesAhead = numTiles;
-	spot.longestViable = 7;
+	spot.longestViable = numTiles;
+	spot.hindmostViable = spot.maxTilesBehind;
 	//struct timeval start, end;
 	//gettimeofday(&start, NULL);
 	scoreSpot(&spot);

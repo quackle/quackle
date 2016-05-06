@@ -63,7 +63,9 @@ namespace Quackle {
       int minTilesAhead;
       int maxTilesAhead;
       WorthChecking worthChecking[8];
+      WorthChecking worthCheckingBehind[8];
       int longestViable;
+      int hindmostViable;
       const unsigned char* anchorNode;
       int realPositions[15];
       
@@ -74,10 +76,14 @@ namespace Quackle {
 	return maxEquity > rhs.maxEquity;
       }
 
-      bool viableAtLength(int length) const {
+      inline bool viableAtLength(int length) const {
 	//UVcout << "viableAtLength(" << length << "): "
 	//       << worthChecking[length].couldBeBest << endl;
 	return worthChecking[length].couldBeBest;
+      }
+
+      inline bool viableWithBehind(int behind) const {
+	return worthCheckingBehind[behind].couldBeBest;
       }
     };
     
@@ -85,20 +91,22 @@ namespace Quackle {
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
-    bool blankOnRack() const;
-    bool blankWasPlayed() const;
-    uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
+    inline bool blankOnRack() const;
+    inline bool blankWasPlayed() const;
+    inline uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
     bool restrictSpotUsingHooks(Spot* spot, uint32_t rackBits,
 				uint32_t rackHooks) const;
     void findHookSpotsInRow(int row, vector<Spot>* spots);
     void findHookSpotsInCol(int col, vector<Spot>* spots);
     void updateThroughAtSquare(int row, int col, int pos);
-    void finishLastThrough();
+    inline void finishLastThrough();
     void findThroughSpotsInRow(int row, vector<Spot>* spots);
     void findThroughSpotsInCol(int col, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
-    void restrictByLength(Spot* spot);
+    void restrictSpot(Spot* spot);
+    inline void restrictByLength(Spot* spot);
+    inline void restrictByBehind(Spot* spot);
     void findMovesAt(Spot* spot);
     void findBestExchange();
     inline Letter boardLetter(int row, int col);
@@ -184,8 +192,8 @@ namespace Quackle {
     bool m_inThrough;
     Through m_throughs[8];
 
-    bool bestEnough(double equity) const;
-    bool clearlyBetter(double equity) const;
+    inline bool bestEnough(double equity) const;
+    inline bool clearlyBetter(double equity) const;
     MoveList m_bests;
 
     double m_bestEquityEpsilon = 0.0001;
