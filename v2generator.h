@@ -75,6 +75,8 @@ namespace Quackle {
       }
 
       bool viableAtLength(int length) const {
+	//UVcout << "viableAtLength(" << length << "): "
+	//       << worthChecking[length].couldBeBest << endl;
 	return worthChecking[length].couldBeBest;
       }
     };

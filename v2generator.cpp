@@ -109,10 +109,10 @@ void V2Generator::findStaticBests() {
 					 << ", " << "blank: " << spot.useBlank
 					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
 					 << ", thru: " << spot.numTilesThrough << "): "
-					 << spot.maxEquity << endl;
+					 << spot.maxEquity;
 		//#endif
 		restrictByLength(&spot);
-		//UVcout << endl;
+		UVcout << endl;
 
 		if (!bestEnough(spot.maxEquity)) {
 			//#ifdef DEBUG_V2GEN
@@ -140,14 +140,16 @@ void V2Generator::restrictByLength(Spot* spot) {
 			spot->worthChecking[i].couldBeBest = false;
 		}
 	}
-#ifdef DEBUG_V2GEN
+	#ifdef DEBUG_V2GEN
 	for (int i = 1; i <= 7; ++i) {
 		if (spot->worthChecking[i].couldBeBest) {
 			UVcout << ", [" << i << "]: " << spot->worthChecking[i].maxEquity;
+		} else {
+			UVcout << ", [" << i << "]: nope";
 		}
 	}
 	UVcout << endl;
-#endif
+	#endif
 }
 
 void V2Generator::findBestExchange() {
@@ -624,12 +626,12 @@ const unsigned char* V2Generator::followToRealChild(const V2Gaddag& gaddag,
 void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
 																const unsigned char* node) {
-	#ifdef DEBUG_V2GEN
+#ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
 		UVcout << "findBlankless(delta: " << delta << ", ahead: " << ahead
 					 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 	}
-	#endif
+#endif
 
 	// TODO: use more specific gaddags based on min/max word length for this spot
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
@@ -821,7 +823,7 @@ void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind
 			//#ifdef DEBUG_V2GEN
 			//UVcout << "better than " << m_best.equity;
 			//#endif
-			//restrictByLength(spot);
+			restrictByLength(spot);
 			//#ifdef DEBUG_V2GEN
 			//UVcout << endl;
 			//#endif
@@ -1052,6 +1054,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 	}
   for (int ahead = spot->minTilesAhead; ahead <= spot->maxTilesAhead; ++ahead) {
 		// num tiles played behind anchor + ahead of anchor <= num tiles on rack
+		//UVcout << "ahead: " << ahead << endl;
 		const int maxBehind = std::min(spot->maxTilesBehind, numTiles - ahead);
 		for (int behind = 0; behind <= maxBehind; ++behind) {
 			//UVcout << "ahead: " << ahead << ", behind: " << behind << endl;
@@ -1059,8 +1062,12 @@ void V2Generator::scoreSpot(Spot* spot) {
 			//gettimeofday(&start, NULL);
 
 			const int played = ahead + behind;
-			if (played < 2) continue; // have to play at least one tile!
-			
+			//UVcout << "played: " << played << endl;
+			if (played == 0) continue; // have to play at least one tile!
+			if (spot->numTilesThrough == 0 && played == 1) {
+				// Must play a word of at least 2 letters
+				continue;
+			}
 			if (!couldMakeWord(*spot, played)) {
 				//UVcout << "can not make word of length " << played << endl;
 				continue;
