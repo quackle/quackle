@@ -1028,13 +1028,19 @@ int V2Generator::hookLetterMultiplier(int row, int col, bool horiz) {
 
 void V2Generator::scoreSpot(Spot* spot) {
 	spot->canMakeAnyWord = false;
-	const int numTiles = rack().size();
-	const LetterString& tiles = rack().tiles();
-	int tileScores[QUACKLE_MAXIMUM_BOARD_SIZE];
-	for (int i = 0; i < numTiles; ++i) {
-		tileScores[i] = QUACKLE_ALPHABET_PARAMETERS->score(tiles[i]);
+	if (spot->numTilesThrough <= 1) {
+		int maxPlayable = 0;
+		for (int i = spot->minPlayed; i <= spot->maxPlayed; ++i) {
+			if (couldMakeWord(*spot, i)) {
+				maxPlayable = i;
+			}
+		}
+		//UVcout << "spot->minPlayed: " << spot->minPlayed << endl;
+		//UVcout << "spot->maxPlayed (originally): " << spot->maxPlayed << endl;
+		//UVcout << "maxPlayable: " << maxPlayable << endl;
+		if (maxPlayable == 0) return;
+		spot->maxPlayed = maxPlayable;
 	}
-	std::sort(tileScores, tileScores + numTiles, std::greater<int>());
 	float maxEquity = -9999;
 	for (int i = 1; i <= 7; ++i) {
 		spot->worthChecking[i].maxEquity = maxEquity;
@@ -1044,6 +1050,14 @@ void V2Generator::scoreSpot(Spot* spot) {
 		spot->worthCheckingBehind[i].maxEquity = maxEquity;
 		spot->worthCheckingBehind[i].couldBeBest = false;
 	}
+  	
+	const int numTiles = rack().size();
+	const LetterString& tiles = rack().tiles();
+	int tileScores[QUACKLE_MAXIMUM_BOARD_SIZE];
+	for (int i = 0; i < numTiles; ++i) {
+		tileScores[i] = QUACKLE_ALPHABET_PARAMETERS->score(tiles[i]);
+	}
+	std::sort(tileScores, tileScores + numTiles, std::greater<int>());
 	int wordMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int hookLetterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
 	int letterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
@@ -1088,8 +1102,11 @@ void V2Generator::scoreSpot(Spot* spot) {
   for (int ahead = spot->minTilesAhead; ahead <= spot->maxTilesAhead; ++ahead) {
 		// num tiles played behind anchor + ahead of anchor <= num tiles on rack
 		//UVcout << "ahead: " << ahead << endl;
-		const int maxBehind = std::min(spot->maxTilesBehind, numTiles - ahead);
-		for (int behind = 0; behind <= maxBehind; ++behind) {
+		const int minBehind = std::max(0, spot->minPlayed - ahead);
+		const int maxBehind = std::min(spot->maxTilesBehind, spot->maxPlayed - ahead);
+		//UVcout << "minBehind: " << minBehind << endl;
+		//UVcout << "maxBehind: " << maxBehind << endl;
+		for (int behind = minBehind; behind <= maxBehind; ++behind) {
 			//UVcout << "ahead: " << ahead << ", behind: " << behind << endl;
 			//struct timeval start, end;
 			//gettimeofday(&start, NULL);
@@ -1108,7 +1125,7 @@ void V2Generator::scoreSpot(Spot* spot) {
 				spot->worthChecking[played].couldBeBest = true;
 				spot->worthCheckingBehind[behind].couldBeBest = true;
 				//UVcout << "can make word of length " << played << endl;
-			}
+			}    
 			spot->canMakeAnyWord = true;
 			int wordMultiplier = 1;
 			int usedLetterMultipliers[QUACKLE_MAXIMUM_BOARD_SIZE];
@@ -1640,10 +1657,16 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 					if ((spot.maxTilesAhead >= 1)) {
 						spot.longestViable = numTiles;
 						spot.hindmostViable = spot.maxTilesBehind;
-						// UVcout << "Spot: (" << spot.anchorRow << ", "
-						//  			 << spot.anchorCol << "), "
-						//  			 << "maxBehind: " << spot.maxTilesBehind
-						//  			 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						spot.minPlayed = 2;
+						spot.maxPlayed = std::min(numTiles,
+																			spot.maxTilesAhead + spot.maxTilesBehind);
+						const int originalMaxPlayed = spot.maxPlayed;
+						/*
+						UVcout << "Spot: (" << spot.anchorRow << ", "
+						  			 << spot.anchorCol << "), "
+						  			 << "maxBehind: " << spot.maxTilesBehind
+						  			 << ", maxAhead: " << spot.maxTilesAhead << endl;
+						*/
 						if (restrictSpotUsingHooks(&spot, rackBitsOrBlank, rackHooks)) {
 							/*
 							UVcout << "restricted Spot: (" << spot.anchorRow << ", "
@@ -1658,6 +1681,9 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 						}
 						if (blankOnRack()) {
 							Spot blankSpendingSpot = spot;
+							// This might have been reduced because scoreSpot restricts
+							// based on anagrammap
+							blankSpendingSpot.maxPlayed = originalMaxPlayed;
 							blankSpendingSpot.useBlank = true;
 							scoreSpot(&blankSpendingSpot);
 							if (blankSpendingSpot.canMakeAnyWord) {
@@ -1714,6 +1740,10 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 							(spot.maxTilesBehind + spot.maxTilesAhead >= 2)) {
 						spot.longestViable = numTiles;
 						spot.hindmostViable = numTiles;
+						spot.minPlayed = 2;
+						spot.maxPlayed = std::min(numTiles,
+																			spot.maxTilesAhead + spot.maxTilesBehind);
+						int originalMaxPlayed = spot.maxPlayed;
 						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
@@ -1737,8 +1767,11 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 							*/
 							spots->push_back(spot);
 						}
-						if (blankOnRack()) {
+						if (blankOnRack()) {							
 							Spot blankSpendingSpot = spot;
+							// This might have been reduced because scoreSpot restricts
+							// based on anagrammap
+							blankSpendingSpot.maxPlayed = originalMaxPlayed;
 							blankSpendingSpot.useBlank = true;
 							scoreSpot(&blankSpendingSpot);
 							if (blankSpendingSpot.canMakeAnyWord) {
@@ -1864,7 +1897,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
 			spot.useBlank = false;
-			int oldMaxTilesAhead = spot.maxTilesAhead;
+			const int oldMaxTilesAhead = spot.maxTilesAhead;
 			if (j == m_numThroughs - 1) {
 				spot.maxTilesAhead += 14 - through.end;
 			} else {
@@ -1876,6 +1909,10 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 				spot.maxTilesAhead += nextThrough.start - through.end - 2;
 			}
 			spot.maxTilesAhead = std::min(spot.maxTilesAhead, numTiles);
+			spot.minPlayed = 1;
+			spot.maxPlayed = std::min(numTiles,
+																spot.maxTilesAhead + spot.maxTilesBehind);
+			const int originalMaxPlayed = spot.maxPlayed;
 			int numNewAhead = spot.maxTilesAhead - oldMaxTilesAhead;
 			for (int newAhead = 1; newAhead <= numNewAhead; ++newAhead) {
 				const int pos = spot.anchorCol + oldMaxTilesAhead + newAhead;
@@ -1901,6 +1938,9 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			}
 			if (blankOnRack()) {
 				Spot blankSpendingSpot = spot;
+				// This might have been reduced because scoreSpot restricts
+				// based on anagrammap
+				blankSpendingSpot.maxPlayed = originalMaxPlayed;
 				blankSpendingSpot.useBlank = true;
 				scoreSpot(&blankSpendingSpot);
 				if (blankSpendingSpot.canMakeAnyWord) {
@@ -2003,7 +2043,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			spot.throughScore += through.score;
 			spot.numTilesThrough += through.end - through.start + 1;
 			spot.useBlank = false;
-			int oldMaxTilesAhead = spot.maxTilesAhead;
+			const int oldMaxTilesAhead = spot.maxTilesAhead;
 			if (j == m_numThroughs - 1) {
 				spot.maxTilesAhead += 14 - through.end;
 			} else {
@@ -2015,6 +2055,10 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 				spot.maxTilesAhead += nextThrough.start - through.end - 2;
 			}
 			spot.maxTilesAhead = std::min(spot.maxTilesAhead, numTiles);
+			spot.minPlayed = 1;
+			spot.maxPlayed = std::min(numTiles,
+																spot.maxTilesAhead + spot.maxTilesBehind);
+			const int originalMaxPlayed = spot.maxPlayed;
 			int numNewAhead = spot.maxTilesAhead - oldMaxTilesAhead;
 			for (int newAhead = 1; newAhead <= numNewAhead; ++newAhead) {
 				const int pos = spot.anchorRow + oldMaxTilesAhead + newAhead;
@@ -2040,6 +2084,9 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			}
 			if (blankOnRack()) {
 				Spot blankSpendingSpot = spot;
+				// This might have been reduced because scoreSpot restricts
+				// based on anagrammap
+				blankSpendingSpot.maxPlayed = originalMaxPlayed;
 				blankSpendingSpot.useBlank = true;
 				scoreSpot(&blankSpendingSpot);
 				if (blankSpendingSpot.canMakeAnyWord) {
@@ -2091,6 +2138,8 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.maxTilesAhead = numTiles;
 	spot.longestViable = numTiles;
 	spot.hindmostViable = spot.maxTilesBehind;
+	spot.minPlayed = 2;
+	spot.maxPlayed = numTiles;
 	//struct timeval start, end;
 	//gettimeofday(&start, NULL);
 	scoreSpot(&spot);
@@ -2103,6 +2152,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	}
 	if (blankOnRack()) {
 		Spot blankSpendingSpot = spot;
+		blankSpendingSpot.maxPlayed = numTiles;
 		blankSpendingSpot.useBlank = true;
 		scoreSpot(&blankSpendingSpot);
 		if (blankSpendingSpot.canMakeAnyWord) {

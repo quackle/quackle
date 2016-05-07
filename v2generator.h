@@ -62,6 +62,8 @@ namespace Quackle {
       int maxTilesBehind;
       int minTilesAhead;
       int maxTilesAhead;
+      int minPlayed;
+      int maxPlayed;
       WorthChecking worthChecking[8];
       WorthChecking worthCheckingBehind[8];
       int longestViable;

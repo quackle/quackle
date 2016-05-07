@@ -940,11 +940,11 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("VEXTAT?", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("?IILMNU", &leftover);
 				} else if (i == 1) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("UNURGED", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("DEIOOTU", &leftover);
 				} else if (i == 2) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("AAIOOTY", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("ALKYNE?", &leftover);
 				} else if (i == 3) {
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("THEREAT", &leftover);
 				} 
