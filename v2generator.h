@@ -105,6 +105,7 @@ namespace Quackle {
     void findThroughSpotsInRow(int row, vector<Spot>* spots);
     void findThroughSpotsInCol(int col, vector<Spot>* spots);
     void findSpots(vector<Spot>* spots);
+    void addScoredSpots(Spot* spot, vector<Spot>* spots);
     void findEmptyBoardSpots(vector<Spot>* spots);
     void restrictSpot(Spot* spot);
     inline void restrictByLength(Spot* spot);

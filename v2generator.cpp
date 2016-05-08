@@ -108,7 +108,8 @@ void V2Generator::findStaticBests() {
 		UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
 					 << ", " << "blank: " << spot.useBlank
 					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
-					 << ", thru: " << spot.numTilesThrough << "): "
+					 << ", thru: " << spot.numTilesThrough
+					 << ", played: " << spot.minPlayed << " to " << spot.maxPlayed << "): "
 					 << spot.maxEquity << endl;
 		//#endif
 		restrictSpot(&spot);
@@ -1660,7 +1661,6 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 						spot.minPlayed = 2;
 						spot.maxPlayed = std::min(numTiles,
 																			spot.maxTilesAhead + spot.maxTilesBehind);
-						const int originalMaxPlayed = spot.maxPlayed;
 						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", "
 						  			 << spot.anchorCol << "), "
@@ -1675,21 +1675,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 										 << ", maxAhead: " << spot.maxTilesAhead << endl;
 							*/
 						}
-						scoreSpot(&spot);
-						if (spot.canMakeAnyWord) {
-							spots->push_back(spot);
-						}
-						if (blankOnRack()) {
-							Spot blankSpendingSpot = spot;
-							// This might have been reduced because scoreSpot restricts
-							// based on anagrammap
-							blankSpendingSpot.maxPlayed = originalMaxPlayed;
-							blankSpendingSpot.useBlank = true;
-							scoreSpot(&blankSpendingSpot);
-							if (blankSpendingSpot.canMakeAnyWord) {
-								spots->push_back(blankSpendingSpot);
-							}
-						}
+						addScoredSpots(&spot, spots);
 					}
 				}
 				startCol = col + 1;
@@ -1743,7 +1729,6 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 						spot.minPlayed = 2;
 						spot.maxPlayed = std::min(numTiles,
 																			spot.maxTilesAhead + spot.maxTilesBehind);
-						int originalMaxPlayed = spot.maxPlayed;
 						/*
 						UVcout << "Spot: (" << spot.anchorRow << ", "
 									 << spot.anchorCol << "), "
@@ -1758,26 +1743,7 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 										 << ", maxAhead: " << spot.maxTilesAhead << endl;
 							*/
 						}
-						scoreSpot(&spot);
-						if (spot.canMakeAnyWord) {
-							/*
-							UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
-										 << ", blank: " << spot.useBlank << ") "
-										 << spot.maxEquity << endl;
-							*/
-							spots->push_back(spot);
-						}
-						if (blankOnRack()) {							
-							Spot blankSpendingSpot = spot;
-							// This might have been reduced because scoreSpot restricts
-							// based on anagrammap
-							blankSpendingSpot.maxPlayed = originalMaxPlayed;
-							blankSpendingSpot.useBlank = true;
-							scoreSpot(&blankSpendingSpot);
-							if (blankSpendingSpot.canMakeAnyWord) {
-								spots->push_back(blankSpendingSpot);
-							}
-						}
+						addScoredSpots(&spot, spots);
 					}
 				}
 				startRow = row + 1;
@@ -1912,7 +1878,6 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			spot.minPlayed = 1;
 			spot.maxPlayed = std::min(numTiles,
 																spot.maxTilesAhead + spot.maxTilesBehind);
-			const int originalMaxPlayed = spot.maxPlayed;
 			int numNewAhead = spot.maxTilesAhead - oldMaxTilesAhead;
 			for (int newAhead = 1; newAhead <= numNewAhead; ++newAhead) {
 				const int pos = spot.anchorCol + oldMaxTilesAhead + newAhead;
@@ -1932,21 +1897,7 @@ void V2Generator::findThroughSpotsInRow(int row, vector<Spot>* spots) {
 			}
 			UVcout << endl;
 			*/
-			scoreSpot(&spot);
-			if (spot.canMakeAnyWord) {
-				spots->push_back(spot);
-			}
-			if (blankOnRack()) {
-				Spot blankSpendingSpot = spot;
-				// This might have been reduced because scoreSpot restricts
-				// based on anagrammap
-				blankSpendingSpot.maxPlayed = originalMaxPlayed;
-				blankSpendingSpot.useBlank = true;
-				scoreSpot(&blankSpendingSpot);
-				if (blankSpendingSpot.canMakeAnyWord) {
-					spots->push_back(blankSpendingSpot);
-				}
-			}
+			addScoredSpots(&spot, spots);
 			if (j < m_numThroughs - 1) {
 				spot.maxTilesAhead++;
 				spot.minTilesAhead = spot.maxTilesAhead;
@@ -2058,7 +2009,6 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			spot.minPlayed = 1;
 			spot.maxPlayed = std::min(numTiles,
 																spot.maxTilesAhead + spot.maxTilesBehind);
-			const int originalMaxPlayed = spot.maxPlayed;
 			int numNewAhead = spot.maxTilesAhead - oldMaxTilesAhead;
 			for (int newAhead = 1; newAhead <= numNewAhead; ++newAhead) {
 				const int pos = spot.anchorRow + oldMaxTilesAhead + newAhead;
@@ -2078,21 +2028,7 @@ void V2Generator::findThroughSpotsInCol(int col, vector<Spot>* spots) {
 			}
 			UVcout << endl;
 			*/
-			scoreSpot(&spot);
-			if (spot.canMakeAnyWord) {
-				spots->push_back(spot);
-			}
-			if (blankOnRack()) {
-				Spot blankSpendingSpot = spot;
-				// This might have been reduced because scoreSpot restricts
-				// based on anagrammap
-				blankSpendingSpot.maxPlayed = originalMaxPlayed;
-				blankSpendingSpot.useBlank = true;
-				scoreSpot(&blankSpendingSpot);
-				if (blankSpendingSpot.canMakeAnyWord) {
-					spots->push_back(blankSpendingSpot);
-				}
-			}
+			addScoredSpots(&spot, spots);
 			if (j < m_numThroughs - 1) {
 				spot.maxTilesAhead++;
 				spot.minTilesAhead = spot.maxTilesAhead;
@@ -2122,6 +2058,59 @@ void V2Generator::findSpots(vector<Spot>* spots) {
 	}
 }
 
+void V2Generator::addScoredSpots(Spot* spot, vector<Spot>* spots) {
+  if (blankOnRack()) {
+		if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
+      Spot blankBingos = *spot;
+			blankBingos.useBlank = true;
+			blankBingos.minPlayed = 7;
+      scoreSpot(&blankBingos);
+			if (blankBingos.canMakeAnyWord) spots->push_back(blankBingos);
+			
+			Spot blankNonbingos = *spot;
+			blankNonbingos.useBlank = true;
+			blankNonbingos.maxPlayed = 6;
+			scoreSpot(&blankNonbingos);
+			if (blankNonbingos.canMakeAnyWord) spots->push_back(blankNonbingos);
+
+			// nonbingos (without blank)
+		  spot->maxPlayed = 6;
+			scoreSpot(spot);
+			if (spot->canMakeAnyWord) spots->push_back(*spot);
+		} else if (spot->minPlayed == 7) {
+			// just bingos (with blank)
+			spot->useBlank = true;
+			scoreSpot(spot);
+			if (spot->canMakeAnyWord) spots->push_back(*spot);
+		} else {
+			// just nonbingos
+			Spot blank = *spot;
+			blank.useBlank = true;
+			scoreSpot(&blank);
+			if (blank.canMakeAnyWord) spots->push_back(blank);
+
+			scoreSpot(spot);
+			if (spot->canMakeAnyWord) spots->push_back(*spot);
+		}
+	} else if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
+		// bingos (without blank)
+		Spot bingos = *spot;
+		bingos.minPlayed = 7;
+		scoreSpot(&bingos);
+		if (bingos.canMakeAnyWord) spots->push_back(bingos);
+		
+		// nonbingos (without blank)
+		spot->maxPlayed = 6;
+		scoreSpot(spot);
+		if (spot->canMakeAnyWord) spots->push_back(*spot);
+	} else {
+		// either all bingos or all nonbingos (doesn't matter which,
+		// no need to split)
+		scoreSpot(spot);
+		if (spot->canMakeAnyWord) spots->push_back(*spot);
+	}
+}
+
 void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 	const int numTiles = rack().size();
@@ -2140,25 +2129,7 @@ void V2Generator::findEmptyBoardSpots(vector<Spot>* spots) {
 	spot.hindmostViable = spot.maxTilesBehind;
 	spot.minPlayed = 2;
 	spot.maxPlayed = numTiles;
-	//struct timeval start, end;
-	//gettimeofday(&start, NULL);
-	scoreSpot(&spot);
-	// gettimeofday(&end, NULL);
-	// UVcout << "Time scoring spot was "
-	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
-	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
-	if (spot.canMakeAnyWord) {
-		spots->push_back(spot);
-	}
-	if (blankOnRack()) {
-		Spot blankSpendingSpot = spot;
-		blankSpendingSpot.maxPlayed = numTiles;
-		blankSpendingSpot.useBlank = true;
-		scoreSpot(&blankSpendingSpot);
-		if (blankSpendingSpot.canMakeAnyWord) {
-			spots->push_back(blankSpendingSpot);
-		} 
-	}
+  addScoredSpots(&spot, spots);
 }
 
 void V2Generator::computeHooks() {
