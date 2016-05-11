@@ -44,7 +44,6 @@
 #include <primeset.h>
 #include <anagrammap.h>
 
-#include <quackleio/dictimplementation.h>
 #include <quackleio/flexiblealphabet.h>
 #include <quackleio/froggetopt.h>
 #include <quackleio/gcgio.h>
@@ -95,7 +94,6 @@ const char *usage =
 "       'staticleaves' output static leave values of racks in 'racks' file.\n"
 "       'randomracks' spit out random racks (forever?).\n"
 "       'leavecalc' spit out roughish values of leaves in 'leaves' file.\n"
-"       'anagram' anagrams letters supplied in --letters.\n"
 "       'verifyplays'\n"																																					 
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
@@ -189,16 +187,10 @@ void TestHarness::executeFromArguments()
 		randomRacks();
 	else if (mode == "leavecalc")
 		leaveCalc(QString("leaves"));
-	else if (mode == "anagram")
-		anagram(letters, build);
 	else if (mode == "selfplay")
 		selfPlayGames(seed, reps, report, false);
 	else if (mode == "playability")
 		selfPlayGames(seed, reps, report, true);
-	else if (mode == "worddump")
-		wordDump();
-	else if (mode == "bingos")
-		bingos();
   else if (mode == "verifyplays")
 		verifyPlays(playlog);
 }
@@ -227,10 +219,14 @@ void TestHarness::startUp()
 	//m_dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
 	//UVcout << ".";
 
-	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
+	m_dataManager.lexiconParameters()->
+		loadGaddags(Quackle::LexiconParameters::findDictionaryFile
+								(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
 
-	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
-	m_dataManager.anagramMap()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
+	m_dataManager.strategyParameters()->initialize
+		(QuackleIO::Util::qstringToStdString(m_lexicon));
+	m_dataManager.anagramMap()->initialize
+		(QuackleIO::Util::qstringToStdString(m_lexicon));
 
 	UVcout << endl;
 
@@ -442,6 +438,7 @@ struct PowerRack
     double power; /* MMPR */
 };
 
+/*
 typedef vector<PowerRack> PowerRackList;
 
 static bool powerSort(const PowerRack& r1,
@@ -449,7 +446,9 @@ static bool powerSort(const PowerRack& r1,
 {
     return r1.power > r2.power;
 }
+*/
 
+/*
 // Looks for a single letter that acts to pluralize words based on the assumption
 // that it will make a very common last letter in the lexicon.
 static Letter findPluarlizer()
@@ -503,7 +502,9 @@ static Letter findPluarlizer()
     }
     return QUACKLE_NULL_MARK;
 }
+*/
 
+/*
 void TestHarness::bingos()
 {
     Letter pluralizer = findPluarlizer();
@@ -590,6 +591,7 @@ void TestHarness::bingos()
 	       << it->usableTiles << " " << it->power << endl;
     }
 }
+*/
 
 Move TestHarness::readMove(const QString& line, int startToken) {
 	QStringList tokens = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
@@ -790,28 +792,13 @@ void TestHarness::testPosition(const Quackle::GamePosition &position, Quackle::C
 	}
 }
 
-void TestHarness::anagram(const QString &letters, bool build)
-{
-	QuackleIO::DictImplementation dict;
-	Dict::WordList list = dict.query(letters, build? Dict::Querier::NoRequireAllLetters : Dict::Querier::None);
-
-	for (Dict::WordList::Iterator it = list.begin(); it != list.end(); ++it)
-	{
-		UVcout << QuackleIO::Util::qstringToString((*it).word);
-		if ((*it).british)
-			UVcout << "#";
-		UVcout << endl;
-	}
-}
-
-Quackle::Game *TestHarness::createNewGame(const QString &filename)
-{
+Quackle::Game *TestHarness::createNewGame(const QString &filename) {
 	QuackleIO::GCGIO io;
 	QFile file(filename);
 
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		UVcout << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		UVcout << "Could not open gcg "
+					 << QuackleIO::Util::qstringToString(filename) << endl;
 		return 0;
 	}
 
@@ -822,16 +809,16 @@ Quackle::Game *TestHarness::createNewGame(const QString &filename)
 	return game;
 }
 
-void TestHarness::testPositions()
-{
-	UVcout << "Testing " << m_positions.size() << " positions with " << m_computerPlayerToTest->name() << "." << endl;
+void TestHarness::testPositions() {
+	UVcout << "Testing " << m_positions.size() << " positions with "
+				 << m_computerPlayerToTest->name() << "." << endl;
 	for (QStringList::iterator it = m_positions.begin(); it != m_positions.end(); ++it)
 		testFromFile(*it);
 }
 
-void TestHarness::testReport(bool html)
-{
-	UVcout << "Reporting on " << m_positions.size() << " positions with " << m_computerPlayerToTest->name() << "." << endl;
+void TestHarness::testReport(bool html) {
+	UVcout << "Reporting on " << m_positions.size() << " positions with "
+				 << m_computerPlayerToTest->name() << "." << endl;
 	for (QStringList::iterator it = m_positions.begin(); it != m_positions.end(); ++it)
 	{
 		Quackle::Game *game = createNewGame(*it);
@@ -1051,30 +1038,4 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	outFile.close();
 	outFileReport.close();
 	*/
-}
-
-static void dumpGaddag(const GaddagNode *node, const LetterString &prefix)
-{
-    for (const GaddagNode* child = node->firstChild(); child; child = child->nextSibling()) {
-	Letter childLetter = child->letter();
-	LetterString newPrefix(prefix);
-	newPrefix += childLetter;
-
-	if (child->isTerminal()) {
-	    UVcout << "wordDump: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(newPrefix) << endl;
-	}
-	if (child->firstChild()) {
-	    dumpGaddag(child, newPrefix);
-	}
-    }
-}
-
-void TestHarness::wordDump()
-{
-    if (QUACKLE_LEXICON_PARAMETERS->hasGaddag()) {
-	dumpGaddag(QUACKLE_LEXICON_PARAMETERS->gaddagRoot(),
-		      LetterString());
-    } else {
-	UVcout << "wordDump: no gaddag" << endl;
-    }
 }

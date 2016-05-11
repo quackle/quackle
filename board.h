@@ -75,7 +75,7 @@ public:
 	bool isUnacceptableOpeningMove(const Move &move) const;
 
 	// updates british status of all squares
-	void updateBritishness();
+	//void updateBritishness();
 
 	// Return score of move suitable for score field of move.
 	// If isBingo is nonzero, whether or not the play is a bingo

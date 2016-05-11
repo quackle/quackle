@@ -26,131 +26,11 @@
 
 using namespace Quackle;
 
-class Quackle::V0LexiconInterpreter : public LexiconInterpreter
-{
-
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
-	{
-		int i = 0;
-		while (!file.eof())
-		{
-			file.read((char*)(lexparams.m_dawg) + i, 7);
-			i += 7;
-		}
-	}
-
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
-	{
-		int i = 0;
-		while (!file.eof())
-		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
-			i += 4;
-		}
-	}
-
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
-	{
-		index *= 7;
-		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
-		letter = dawg[index + 3];
-		
-		t = (letter & 32) != 0;
-		lastchild = (letter & 64) != 0;
-		british = !(letter & 128);
-		letter = (letter & 31) + QUACKLE_FIRST_LETTER;
-
-		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
-	}
-
-	virtual int versionNumber() const { return 0; }
-};
-
-class Quackle::V1LexiconInterpreter : public LexiconInterpreter
-{
-
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
-	{
-		int i = 0;
-		unsigned char bytes[3];
-		file.get(); // skip past version byte
-		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
-		file.read((char*)bytes, 3);
-
-		lexparams.m_utf8Alphabet.resize(file.get());
-		for (size_t i = 0; i < lexparams.m_utf8Alphabet.size(); i++)
-		{
-			file >> lexparams.m_utf8Alphabet[i];
-			file.get(); // separator space
-		}
-		while (!file.eof())
-		{
-			file.read((char*)(lexparams.m_dawg) + i, 7);
-			i += 7;
-		}
-	}
-
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
-	{
-		char hash[16];
-		file.get(); // skip past version byte
-		file.read(hash, sizeof(hash));
-		if (memcmp(hash, lexparams.m_hash, sizeof(hash)))
-		{
-			// If we're using a v0 DAWG, then ignore the hash
-			for (size_t i = 0; i < sizeof(lexparams.m_hash); i++)
-			{
-				if (lexparams.m_hash[0] != 0)
-				{
-					lexparams.unloadGaddag(); // don't use a mismatched gaddag
-					return;
-				}
-			}
-		}
-
-		size_t i = 0;
-		while (!file.eof())
-		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
-			i += 4;
-		}
-	}
-
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
-	{
-		index *= 7;
-		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
-		letter = dawg[index + 3];
-		
-		lastchild = ((letter & 64) != 0);
-		british = !(letter & 128);
-		letter = (letter & 63) + QUACKLE_FIRST_LETTER;
-
-		playability = (dawg[index + 4] << 16) + (dawg[index + 5] << 8) + (dawg[index + 6]);
-		t = (playability != 0);
-	}
-	
-	virtual int versionNumber() const { return 1; }
-};
-
 class Quackle::V2LexiconInterpreter : public LexiconInterpreter {
-
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) {
-		UVcout << "V2 loadDawg not yet implemented." << endl;
-	}
-
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter,
-											bool &t, bool &lastchild, bool &british, int &playability) const {
-		UVcout << "V2 dawgAt not yet implemented." << endl;
-	}
-
-	virtual void unloadDawg() {
-		UVcout << "V2 unloadDawg not yet implemented." << endl;
-	}
-
 	virtual int versionNumber() const { return 2; }
 	
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) {
+	virtual void loadGaddag(ifstream &file, unsigned char* gaddag,
+													V2Gaddag** v2gaddag) {
 		UVcout << "V2 loadGaddag..." << endl;
 		char hash[16];
 		file.get(); // skip past version byte
@@ -162,121 +42,99 @@ class Quackle::V2LexiconInterpreter : public LexiconInterpreter {
 
 		size_t i = 0;
 		while (!file.eof()) {
-			file.read((char*)(lexparams.m_gaddag) + i, 1);
+			file.read((char*)(gaddag) + i, 1);
 			i++;
 		}
-		UVcout << "read " << (i - 1) << " bytes into m_gaddag." << endl;
-		lexparams.m_v2gaddag = new V2Gaddag(lexparams.m_gaddag,
-																				lastLetter,
-																				bitsetSize,
-																				indexSize);
+		UVcout << "read " << (i - 1) << " bytes into gaddag." << endl;
+		*v2gaddag = new V2Gaddag(gaddag, lastLetter, bitsetSize, indexSize);
 	}
 };
 
-LexiconParameters::LexiconParameters()
-	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL)
-{
+LexiconParameters::LexiconParameters() : m_gaddags(NULL), m_interpreter(NULL) {
 	memset(m_hash, 0, sizeof(m_hash));
 }
 
-LexiconParameters::~LexiconParameters()
-{
+LexiconParameters::~LexiconParameters() {
 	unloadAll();
 }
 
-void LexiconParameters::unloadAll()
-{
-	unloadDawg();
-	unloadGaddag();
+void LexiconParameters::unloadAll() {
+	unloadGaddags();
 }
 
-void LexiconParameters::unloadDawg()
-{
-	delete[] m_dawg;
-	m_dawg = NULL;
-	delete m_interpreter;
-	m_interpreter = NULL;
+void LexiconParameters::unloadGaddags() {
+	delete[] m_gaddags;
+	m_gaddags = NULL;
 }
 
-void LexiconParameters::unloadGaddag()
-{
-	delete[] m_gaddag;
-	m_gaddag = NULL;
-}
+void LexiconParameters::loadGaddags(const string &filename) {
+	unloadGaddags();
 
-void LexiconParameters::loadDawg(const string &filename)
-{
-	unloadDawg();
+	vector<string> filenames;
+	filenames.push_back(filename + "-7to7");
+	filenames.push_back(filename + "-2to6");
+	filenames.push_back(filename);
 
-	ifstream file(filename.c_str(), ios::in | ios::binary);
-	if (!file.is_open())
-	{
-		UVcout << "couldn't open dawg " << filename.c_str() << endl;
-		return;
+	vector<int> offsets;
+	int totalGaddagsBytes = 0;
+	char versionByte;
+	for (const string& filename : filenames) {
+		ifstream file(filename.c_str(), ios::in | ios::binary);
+		if (!file.is_open()) {
+			UVcout << "couldn't open gaddag " << filename << endl;
+			return;
+		}
+		if (m_interpreter == NULL) {
+			m_interpreter = createInterpreter(versionByte);
+			versionByte = file.get();
+			UVcout << "versionByte: " << (int)versionByte << endl;
+		} else {
+			char thisVersionByte = file.get();
+			UVcout << "thisVersionByte: " << (int)thisVersionByte << endl;
+			if (thisVersionByte != versionByte) {
+				UVcout << "incompatible version byte "
+							 << thisVersionByte << " != " << versionByte << endl;
+				return;
+			}
+		}
+		offsets.push_back(totalGaddagsBytes);
+		file.seekg(0, ios_base::end);
+    totalGaddagsBytes += file.tellg();
+		file.seekg(0, ios_base::beg);
 	}
-
-	char versionByte = file.get();
-	m_interpreter = createInterpreter(versionByte);
-	if (m_interpreter == NULL)
-	{
-		UVcout << "couldn't open file " << filename.c_str() << endl;
-		return;
-	}
-
-	file.seekg(0, ios_base::end);
-	m_dawg = new unsigned char[file.tellg()];
-	file.seekg(0, ios_base::beg);
-
-	m_interpreter->loadDawg(file, *this);
-}
-
-void LexiconParameters::loadGaddag(const string &filename)
-{
-	unloadGaddag();
 	
-	ifstream file(filename.c_str(), ios::in | ios::binary);
-	if (!file.is_open())
-	{
-		UVcout << "couldn't open gaddag " << filename.c_str() << endl;
-		UVcout << "Performance without gaddag won't be quite so awesome." << endl;
-		return;
-	}
+	m_gaddags = new unsigned char[totalGaddagsBytes];
+  UVcout << "totalGaddagsBytes: " << totalGaddagsBytes << endl;
+	UVcout << "at m_gaddags: " << reinterpret_cast<unsigned long>(m_gaddags) << endl;
 
-	char versionByte = file.get();
-	UVcout << "versionByte: " << static_cast<int>(versionByte) << endl;
-	if (m_interpreter != NULL && versionByte < m_interpreter->versionNumber())
-		return;
-	file.seekg(0, ios_base::end);
-	UVcout << "allocating " << file.tellg() << " bytes." << endl;
-	m_gaddag = new unsigned char[file.tellg()];
-	UVcout << "at m_gaddag: " << reinterpret_cast<unsigned long>(m_gaddag) << endl;
-	file.seekg(0, ios_base::beg);
 
-	// must create a local interpreter because dawg/gaddag versions might not match
-	LexiconInterpreter* interpreter = createInterpreter(versionByte);
-	if (interpreter != NULL)
-	{
-		interpreter->loadGaddag(file, *this);
-		delete interpreter;
-	}
-	else {
-		unloadGaddag();
+	m_gaddag_7to7 = m_gaddags + offsets[0];
+  m_gaddag_2to6 = m_gaddags + offsets[1];
+	m_gaddag = m_gaddags + offsets[2];
+	
+	for (unsigned int i = 0; i < filenames.size(); ++i) {
+		ifstream file(filenames[i].c_str(), ios::in | ios::binary);
+    if (i == 2) {		
+			m_interpreter->loadGaddag(file, m_gaddag, &m_v2gaddag);
+		} else if (i == 0) {
+			m_interpreter->loadGaddag(file, m_gaddag_7to7, &m_v2gaddag_7to7);
+		} else if (i == 1) {
+			m_interpreter->loadGaddag(file, m_gaddag_2to6, &m_v2gaddag_2to6);
+		}
 	}
 }
 
-string LexiconParameters::findDictionaryFile(const string &lexicon)
-{
+string LexiconParameters::findDictionaryFile(const string &lexicon) {
 	return QUACKLE_DATAMANAGER->findDataFile("lexica", lexicon);
 }
 
-bool LexiconParameters::hasUserDictionaryFile(const string &lexicon)
-{
+bool LexiconParameters::hasUserDictionaryFile(const string &lexicon) {
 	return QUACKLE_DATAMANAGER->hasUserDataFile("lexica", lexicon);
 }
 
-string LexiconParameters::hashString(bool shortened) const
-{
-	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+string LexiconParameters::hashString(bool shortened) const {
+	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+											'a', 'b', 'c', 'd', 'e', 'f' };
 	string hashStr;
 	for (size_t i = 0; i < sizeof(m_hash); i++)
 	{
@@ -290,10 +148,10 @@ string LexiconParameters::hashString(bool shortened) const
 
 string LexiconParameters::copyrightString() const
 {
-	string copyrightsFilename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false);
+	string copyrightsFilename =
+		QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false);
 	fstream copyrightsFile(copyrightsFilename.c_str(), ios_base::in);
-	while (copyrightsFile.good() && !copyrightsFile.eof())
-	{
+	while (copyrightsFile.good() && !copyrightsFile.eof()) {
 		string line;
 		getline(copyrightsFile, line);
 		if (line.size() < 9 || line.find_first_of(':') != 8)
@@ -305,19 +163,15 @@ string LexiconParameters::copyrightString() const
 	return string();
 }
 
-LexiconInterpreter* LexiconParameters::createInterpreter(char version) const
-{
+LexiconInterpreter* LexiconParameters::createInterpreter(char version) const {
 	UVcout << "createInterpreter..." << endl;
 	switch(version)
 	{
-	case 0:
-		return new V0LexiconInterpreter();
-	case 1:
-		return new V1LexiconInterpreter();
 	case 2:
 		return new V2LexiconInterpreter();
 	default:
-		UVcout << "Unknown LexiconInterpreter version: " << static_cast<int>(version) << endl;
+		UVcout << "Unknown LexiconInterpreter version: "
+					 << static_cast<int>(version) << endl;
 		return NULL;
 				
 	}

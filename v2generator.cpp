@@ -268,6 +268,25 @@ bool V2Generator::couldMakeWord(const Spot& spot, int length) {
 	return (anagrams.numPlayed & lengthMask) != 0;
 }
 
+const V2Gaddag& V2Generator::spotGaddag(Spot* spot) const {
+  if (spot->numTilesThrough == 0) {
+		if (spot->minPlayed == 7) {
+			const V2Gaddag* gaddag = QUACKLE_LEXICON_PARAMETERS->v2Gaddag_7to7();
+			UVcout << "using 7to7!" << endl;
+			spot->anchorNode = gaddag->root();
+			return *gaddag;
+		} else {
+			assert (spot->maxPlayed < 7);
+			const V2Gaddag* gaddag = QUACKLE_LEXICON_PARAMETERS->v2Gaddag_2to6();
+			UVcout << "using 2to6!" << endl;
+			spot->anchorNode = gaddag->root();
+			return *gaddag;
+		}
+	} else {
+		return *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	}
+}
+
 void V2Generator::findMovesAt(Spot* spot) {
 	m_mainWordScore = spot->throughScore;
 	m_hookScore = 0;
@@ -276,25 +295,22 @@ void V2Generator::findMovesAt(Spot* spot) {
 	//			 << ", m_counts[QUACKLE_BLANK_MARK]: "
 	//			 << static_cast<int>(m_counts[QUACKLE_BLANK_MARK]) << endl;
 	const int ahead = (spot->numTilesThrough == 0) ? 1 : 0;
+	struct timeval start, end;
+	gettimeofday(&start, NULL);
+	const V2Gaddag& gaddag = spotGaddag(spot);
 	if (spot->useBlank) {
-		struct timeval start, end;
-		gettimeofday(&start, NULL);
-		findBlankRequired(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
-		gettimeofday(&end, NULL);
-		UVcout << "Time finding moves (with blank) was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-							 - (start.tv_sec * 1000000 + start.tv_usec))
-					 << " microseconds." << endl;		
+		findBlankRequired(spot, 0, ahead, 0, -1, 1, gaddag, spot->anchorNode);
 	} else {
-		struct timeval start, end;
-		gettimeofday(&start, NULL);
-		findBlankless(spot, 0, ahead, 0, -1, 1, spot->anchorNode);
-		gettimeofday(&end, NULL);
-		UVcout << "Time finding moves (without blank) was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-							 - (start.tv_sec * 1000000 + start.tv_usec))
-					 << " microseconds." << endl;
+		findBlankless(spot, 0, ahead, 0, -1, 1, gaddag, spot->anchorNode);
 	}
+	gettimeofday(&end, NULL);
+	UVcout << "Time finding moves for " << rack()
+				 << " blank: " << spot->useBlank
+				 << ", thru: " << spot->numTilesThrough
+				 << ", played: " << spot->minPlayed << " to " << spot->maxPlayed << ": "
+				 << ((end.tv_sec * 1000000 + end.tv_usec)
+						 - (start.tv_sec * 1000000 + start.tv_usec))
+				 << " microseconds." << endl;
 }
 
 namespace {
@@ -585,11 +601,13 @@ void V2Generator::getSquare(const Spot& spot, int delta,
 
 void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 																		int behind, int velocity, int wordMultiplier,
-																		const V2Gaddag& gaddag, const unsigned char* node) {
+																		const V2Gaddag& gaddag,
+																		const unsigned char* node) {
 	if (velocity < 0) {
 		if (behind < spot->maxTilesBehind &&
 				behind + 1 <= spot->hindmostViable) {
-			findBlankless(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
+			findBlankless(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier,
+										gaddag, node);
 		}
 		if (ahead >= spot->maxTilesAhead ||
 				!spot->viableWithBehind(behind)) {
@@ -602,11 +620,13 @@ void V2Generator::findMoreBlankless(Spot* spot, int delta, int ahead,
 		if (changeChild != NULL) {
 			node = gaddag.followIndex(changeChild);
 			if (node != NULL) { 
-				findBlankless(spot, 1, ahead + 1, behind, 1, wordMultiplier, node);
+				findBlankless(spot, 1, ahead + 1, behind, 1, wordMultiplier,
+											gaddag, node);
 			}
 		}
 	} else if (ahead < spot->maxTilesAhead) {
-		findBlankless(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier, node);
+		findBlankless(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier,
+									gaddag, node);
 	}
 }
 
@@ -617,7 +637,8 @@ void V2Generator::findMoreBlankRequired(Spot* spot, int delta, int ahead,
 	if (velocity < 0) {
 		if (behind < spot->maxTilesBehind &&
 				behind + 1 <= spot->hindmostViable) {
-			findBlankRequired(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier, node);
+			findBlankRequired(spot, delta - 1, ahead, behind + 1, -1, wordMultiplier,
+												gaddag, node);
 		}
 		if (ahead >= spot->maxTilesAhead ||
 				!spot->viableWithBehind(behind)) {
@@ -630,11 +651,13 @@ void V2Generator::findMoreBlankRequired(Spot* spot, int delta, int ahead,
 		if (changeChild != NULL) {
 			node = gaddag.followIndex(changeChild);
 			if (node != NULL) { 
-				findBlankRequired(spot, 1, ahead + 1, behind, 1, wordMultiplier, node);
+				findBlankRequired(spot, 1, ahead + 1, behind, 1, wordMultiplier,
+													gaddag, node);
 			}
 		}
 	} else if (ahead < spot->maxTilesAhead) {
-		findBlankRequired(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier, node);
+		findBlankRequired(spot, delta + 1, ahead + 1, behind, 1, wordMultiplier,
+											gaddag, node);
 	}
 }
 
@@ -665,6 +688,7 @@ const unsigned char* V2Generator::followToRealChild(const V2Gaddag& gaddag,
 }
 void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 																int velocity, int wordMultiplier,
+																const V2Gaddag& gaddag,
 																const unsigned char* node) {
 #ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
@@ -672,9 +696,6 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 					 << ", behind: " << behind << ", velocity: " << velocity << ")" << endl;
 	}
 #endif
-
-	// TODO: use more specific gaddags based on min/max word length for this spot
-	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
 
 	if (spot->numTilesThrough > 0 && delta == 0) {
 		assert(node != NULL);
@@ -784,6 +805,7 @@ void V2Generator::findBlankless(Spot* spot, int delta, int ahead, int behind,
 
 void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind,
 																		int velocity, int wordMultiplier,
+																		const V2Gaddag& gaddag,
 																		const unsigned char* node) {
 #ifdef DEBUG_V2GEN
   if (!board()->isEmpty()) {
@@ -792,9 +814,6 @@ void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind
 	}
 #endif
 	
-	// TODO: use more specific gaddags based on min/max word length for this spot
-	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
-
 	if (spot->numTilesThrough > 0 && delta == 0) {
 		assert(node != NULL);
 		// This is a through spot, and there's nothing to be placed here at the
@@ -2063,16 +2082,17 @@ void V2Generator::addScoredSpots(Spot* spot, vector<Spot>* spots) {
 		if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
       Spot blankBingos = *spot;
 			blankBingos.useBlank = true;
-			blankBingos.minPlayed = 7;
+			if (spot->numTilesThrough == 0) blankBingos.minPlayed = 7;
       scoreSpot(&blankBingos);
 			if (blankBingos.canMakeAnyWord) spots->push_back(blankBingos);
-			
-			Spot blankNonbingos = *spot;
-			blankNonbingos.useBlank = true;
-			blankNonbingos.maxPlayed = 6;
-			scoreSpot(&blankNonbingos);
-			if (blankNonbingos.canMakeAnyWord) spots->push_back(blankNonbingos);
 
+			if (spot->numTilesThrough == 0) {
+				Spot blankNonbingos = *spot;
+				blankNonbingos.useBlank = true;
+				blankNonbingos.maxPlayed = 6;
+				scoreSpot(&blankNonbingos);
+				if (blankNonbingos.canMakeAnyWord) spots->push_back(blankNonbingos);
+			}
 			// nonbingos (without blank)
 		  spot->maxPlayed = 6;
 			scoreSpot(spot);
@@ -2093,14 +2113,16 @@ void V2Generator::addScoredSpots(Spot* spot, vector<Spot>* spots) {
 			if (spot->canMakeAnyWord) spots->push_back(*spot);
 		}
 	} else if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
-		// bingos (without blank)
-		Spot bingos = *spot;
-		bingos.minPlayed = 7;
-		scoreSpot(&bingos);
-		if (bingos.canMakeAnyWord) spots->push_back(bingos);
+		if (spot->numTilesThrough == 0) {
+			// bingos (without blank)
+			Spot bingos = *spot;
+			bingos.minPlayed = 7;
+			scoreSpot(&bingos);
+			if (bingos.canMakeAnyWord) spots->push_back(bingos);
 		
-		// nonbingos (without blank)
-		spot->maxPlayed = 6;
+			// nonbingos (without blank)
+			spot->maxPlayed = 6;
+		}
 		scoreSpot(spot);
 		if (spot->canMakeAnyWord) spots->push_back(*spot);
 	} else {

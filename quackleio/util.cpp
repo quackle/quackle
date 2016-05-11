@@ -21,8 +21,6 @@
 #include <move.h>
 #include <rack.h>
 
-#include "dict.h"
-#include "dictfactory.h"
 #include "util.h"
 
 using namespace QuackleIO;
@@ -70,9 +68,6 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 	case Quackle::Move::Place:
 		ret = uvStringToQString(move.positionString()) + " ";
 		ret += prettyTiles;
-
-		if (UtilSettings::self()->octothorpBritish)
-			ret += symbolsFor(move.wordTiles());
 
 		if (move.isChallengedPhoney())
 			ret = QObject::tr("%1 [Challenged Off]").arg(ret);
@@ -197,14 +192,3 @@ QString Util::sanitizeUserVisibleLetterString(const QString &pipedString)
 	pipedStringCopy.replace("|", " ");
 	return pipedStringCopy.simplified();
 }
-
-QString Util::symbolsFor(const Quackle::LetterString &word)
-{
-	if (DictFactory::querier()->isBritish(word))
-	{
-		return "#";
-	}
-
-	return "";
-}
-

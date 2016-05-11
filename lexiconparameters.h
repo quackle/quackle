@@ -32,9 +32,8 @@ class LexiconParameters;
 class LexiconInterpreter
 {
 public:
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) = 0;
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) = 0;
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const = 0;
+	virtual void loadGaddag(ifstream &file, unsigned char* gaddag,
+													V2Gaddag** v2gaddag) = 0;
 	virtual int versionNumber() const = 0;
 	virtual ~LexiconInterpreter() {};
 };
@@ -45,8 +44,6 @@ class V2LexiconInterpreter;
 
 class LexiconParameters
 {
-	friend class Quackle::V0LexiconInterpreter;
-	friend class Quackle::V1LexiconInterpreter;
 	friend class Quackle::V2LexiconInterpreter;
 
 public:
@@ -56,18 +53,11 @@ public:
 	void unloadAll();
 
 	// true if we have a dawg or a gaddag
-	bool hasSomething() const { return hasDawg() || hasGaddag(); };
+	bool hasSomething() const { return hasGaddag(); };
 
-	// loadDawg unloads the dawg if filename can't be opened
-	void loadDawg(const string &filename);
-	void unloadDawg();
-	bool hasDawg() const { return m_dawg != NULL; };
-	int dawgVersion() const { return m_interpreter->versionNumber(); };
-
-	// loadGaddag unloads the gaddag if filename can't be opened
-	void loadGaddag(const string &filename);
-	void unloadGaddag();
-	bool hasGaddag() const { return m_gaddag != NULL; };
+	void loadGaddags(const string &filename);
+	void unloadGaddags();
+	bool hasGaddag() const { return m_gaddags != NULL; };
 
 	// finds a file in the lexica data directory
 	static string findDictionaryFile(const string &lexicon);
@@ -77,22 +67,27 @@ public:
 	string lexiconName() const { return m_lexiconName; };
 	void setLexiconName(const string &name) { m_lexiconName = name; };
 
-	void dawgAt(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
-	{
-		m_interpreter->dawgAt(m_dawg, index, p, letter, t, lastchild, british, playability);
-	}
-	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
-
 	const V2Gaddag *v2Gaddag() const { return m_v2gaddag; }
+	const V2Gaddag *v2Gaddag_7to7() const { return m_v2gaddag_7to7; }
+	const V2Gaddag *v2Gaddag_2to6() const { return m_v2gaddag_2to6; }
 	
 	string hashString(bool shortened) const;
 	string copyrightString() const;
 	const vector<string> &utf8Alphabet() const { return m_utf8Alphabet; };
 
 protected:
-	unsigned char *m_dawg;
-	unsigned char *m_gaddag;
+	unsigned char *m_gaddags;
+	
+  unsigned char *m_gaddag;
+	unsigned char *m_gaddag_7to7;
+	unsigned char *m_gaddag_2to6;
+	
   V2Gaddag* m_v2gaddag;
+  V2Gaddag* m_v2gaddag_7to7;
+	V2Gaddag* m_v2gaddag_2to6;
+	
+	//V2Gaddag* m_v2gaddag_2to7;
+  //V2Gaddag* m_v2gaddag_8to8;
 	
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;

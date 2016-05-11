@@ -23,7 +23,6 @@
 #include "boardparameters.h"
 #include "datamanager.h"
 #include "gameparameters.h"
-#include "generator.h"
 
 using namespace Quackle;
 
@@ -130,6 +129,7 @@ bool Board::isUnacceptableOpeningMove(const Move &move) const
 	return true;
 }
 
+/*
 void Board::updateBritishness()
 {
 	Generator generator;
@@ -206,6 +206,7 @@ void Board::updateBritishness()
 		}
 	}
 }
+*/
 
 MoveList Board::allWordsFormedBy(const Move &move) const
 {

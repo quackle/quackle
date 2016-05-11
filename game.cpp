@@ -27,7 +27,6 @@
 #include "evaluator.h"
 #include "gameparameters.h"
 #include "game.h"
-#include "generator.h"
 
 // define this to get warnings when there's a problem bag
 #define DEBUG_BAG
@@ -246,16 +245,18 @@ GamePosition::GamePosition()
 	resetBag();
 }
 
-void GamePosition::kibitz(int nmoves)
-{
+void GamePosition::kibitz(int nmoves) {
+	/*
 	Generator generator(*this);
-	generator.kibitz(nmoves, exchangeAllowed()? Generator::RegularKibitz : Generator::CannotExchange);
+	generator.kibitz(nmoves, exchangeAllowed() ?
+			 Generator::RegularKibitz : Generator::CannotExchange);
 
 	m_moves = generator.kibitzList();
 
 	const MoveList::iterator end(m_moves.end());
 	for (MoveList::iterator it = m_moves.begin(); it != end; ++it)
 		ensureMovePrettiness(*it);
+	*/
 }
 
 const Move &GamePosition::staticBestMove()
@@ -395,8 +396,9 @@ MoveList GamePosition::allWordsFormedBy(const Move &move) const
 
 bool GamePosition::isAcceptableWord(const LetterString &word) const
 {
-	Generator generator;
-	return generator.isAcceptableWord(word);
+	return false;
+	//Generator generator;
+	//return generator.isAcceptableWord(word);
 }
 
 bool GamePosition::exchangeAllowed() const
@@ -456,9 +458,9 @@ void GamePosition::scoreMove(Move &move)
 
 void GamePosition::ensureBoardIsPreparedForAnalysis()
 {
-	Generator generator(*this);
-	generator.allCrosses();
-	m_board = generator.position().board();
+	//Generator generator(*this);
+	//generator.allCrosses();
+	//m_board = generator.position().board();
 }
 
 int GamePosition::calculateScore(const Move &move)

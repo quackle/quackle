@@ -110,6 +110,7 @@ namespace Quackle {
     void restrictSpot(Spot* spot);
     inline void restrictByLength(Spot* spot);
     inline void restrictByBehind(Spot* spot);
+    inline const V2Gaddag& spotGaddag(Spot* spot) const;
     void findMovesAt(Spot* spot);
     void findBestExchange();
     inline Letter boardLetter(int row, int col);
@@ -168,10 +169,12 @@ namespace Quackle {
 				      int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
     void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
-		       int wordMultiplier, const unsigned char* node);
-    void findBlankRequired(Spot* spot, int delta, int ahead, int behind, int velocity,
-			   int wordMultiplier, const unsigned char* node);
-    bool couldMakeWord(const Spot& spot, int length);
+		       int wordMultiplier, const V2Gaddag& gaddag,
+		       const unsigned char* node);
+    void findBlankRequired(Spot* spot, int delta, int ahead, int behind,
+			   int velocity, int wordMultiplier,
+			   const V2Gaddag& gaddag, const unsigned char* node);
+    inline bool couldMakeWord(const Spot& spot, int length);
     float bestLeave(const Spot& spot, int length);
     Move v2generate();
     void setUpCounts(const LetterString &letters);

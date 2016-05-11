@@ -25,8 +25,7 @@
 
 #include <datamanager.h>
 #include <alphabetparameters.h>
-namespace Quackle
-{
+namespace Quackle {
 	class ComputerPlayer;
 	class Game;
 	class GamePosition;
@@ -34,8 +33,7 @@ namespace Quackle
 	class GaddagNode;
 }
 
-class TestHarness
-{
+class TestHarness {
 public:
 	TestHarness();
 	~TestHarness();
@@ -57,7 +55,7 @@ public:
 	void superleaves();
 	
 	// Compute bingo stems ala Baron's MMPR
-	void bingos();
+	//void bingos();
 
 	Quackle::Move readMove(const QString& line, int startToken);
 
@@ -84,11 +82,6 @@ public:
 
 	// Tests what the computer player does on this position.
 	void testPosition(const Quackle::GamePosition &position, Quackle::ComputerPlayer *player);
-
-	// Anagrams given letters.
-	void anagram(const QString &letters, bool build);
-
-	void wordDump();
 
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
