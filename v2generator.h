@@ -89,10 +89,10 @@ namespace Quackle {
       }
     };
     
-    int scorePlay(const Spot& spot, int behind, int ahead);
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
+    bool couldHaveBingos() const;
     inline bool blankOnRack() const;
     inline bool blankWasPlayed() const;
     inline uint32_t otherRackBits(uint32_t rackBits, uint32_t rackHooks) const;
@@ -112,6 +112,8 @@ namespace Quackle {
     inline void restrictByBehind(Spot* spot);
     inline const V2Gaddag& spotGaddag(Spot* spot) const;
     void findMovesAt(Spot* spot);
+    bool duplicatePreceding(const Letter* letters, int i) const;
+    void findBingos();
     void findBestExchange();
     inline Letter boardLetter(int row, int col);
     inline int tileScore(int row, int col);
@@ -168,6 +170,10 @@ namespace Quackle {
     inline void findMoreBlankRequired(Spot* spot, int delta, int ahead,
 				      int behind, int velocity, int wordMultiplier,
 				  const V2Gaddag& gaddag, const unsigned char* node);
+    inline bool fits(const Spot& spot, const LetterString& word,
+		     int ahead, int behind, int* wordHookScore);
+    inline int getWordMultiplierAndHooks(const Spot& spot, int ahead, int behind);
+    void fitBingos(const Spot& spot);
     void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const V2Gaddag& gaddag,
 		       const unsigned char* node);
@@ -190,7 +196,8 @@ namespace Quackle {
     
     // TODO: generate this from alphabet
     uint32_t m_everyLetter = 0x7FFFFFE0;
-      
+
+    vector<LetterString> m_bingos;
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
     double m_bestLeaves[8];
