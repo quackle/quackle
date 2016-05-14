@@ -112,7 +112,8 @@ namespace Quackle {
     inline void restrictByBehind(Spot* spot);
     inline const V2Gaddag& spotGaddag(Spot* spot) const;
     void findMovesAt(Spot* spot);
-    bool duplicatePreceding(const Letter* letters, int i) const;
+    inline bool duplicatePreceding(const Letter* letters, int i) const;
+    void findBlankBingos();
     void findBingos();
     void findBestExchange();
     inline Letter boardLetter(int row, int col);

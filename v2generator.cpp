@@ -63,9 +63,13 @@ void V2Generator::findStaticBests() {
 					 << endl;
 	}
 
-	if (couldHaveBingos() && !blankOnRack()) {
+	if (couldHaveBingos()) {
 		gettimeofday(&start, NULL);
-		findBingos();
+		if (blankOnRack()) {
+			findBlankBingos();
+		} else {
+			findBingos();
+		}
 		gettimeofday(&end, NULL);
 		UVcout << "Time finding bingos was "
 				 << ((end.tv_sec * 1000000 + end.tv_usec)
@@ -216,9 +220,262 @@ bool V2Generator::duplicatePreceding(const Letter* letters, int i) const {
 	return false;
 }
 
+void V2Generator::findBlankBingos() {
+		m_bingos.clear();
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag_7to7());
+	LetterString letterString = rack().alphaTiles();
+	//UVcout << "letterString: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(letterString) << endl;
+	Letter letters[7];
+	for (int i = 0; i < 7; i++) letters[i] = letterString[i];
+	LetterString answer;
+	const unsigned char* root = gaddag.root();
+	for (int i0 = 0; i0 < 7; ++i0) {
+		if (duplicatePreceding(letters, i0)) continue;
+		const unsigned char* child;
+		Letter minLetter0 = QUACKLE_GADDAG_SEPARATOR;
+		Letter letter0;
+		Letter blankLetter0;
+		int childIndex0 = 0;
+		if (letters[i0] == QUACKLE_BLANK_MARK) {
+		next_blank_letter0:
+			if (!nextLetter(gaddag, root, m_everyLetter, minLetter0,
+											&childIndex0, &blankLetter0, &child)) {
+				continue;
+			}
+			letter0 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter0);
+		} else {
+			letter0 = letters[i0];
+			child = gaddag.child(root, letter0);
+		}
+    const unsigned char* node0 = gaddag.followIndex(child);
+		child = gaddag.changeDirection(node0);
+		node0 = gaddag.followIndex(child);
+		answer.push_back(letter0);
+		letters[i0] = QUACKLE_NULL_MARK;
+		for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+		UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+		for (int i1 = 0; i1 < 7; ++i1) {
+			if (letters[i1] == QUACKLE_NULL_MARK) continue;
+			if (duplicatePreceding(letters, i1)) continue;
+		  Letter minLetter1 = QUACKLE_GADDAG_SEPARATOR;
+			Letter letter1;
+			Letter blankLetter1;
+			int childIndex1 = 0;
+			if (letters[i1] == QUACKLE_BLANK_MARK) {
+			next_blank_letter1:
+				if (!nextLetter(gaddag, node0, m_everyLetter, minLetter1,
+												&childIndex1, &blankLetter1, &child)) {
+					continue;
+				}
+				letter1 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter1);
+			} else {
+				letter1 = letters[i1];
+				if (!gaddag.hasChild(node0, letter1)) continue;
+				child = gaddag.child(node0, letter1);
+			}
+			const unsigned char* node1 = gaddag.followIndex(child);
+			if (node1 == NULL) continue;
+			answer.push_back(letter1);
+			letters[i1] = QUACKLE_NULL_MARK;
+			for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+			UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+			for (int i2 = 0; i2 < 7; ++i2) {
+				if (letters[i2] == QUACKLE_NULL_MARK) continue;
+				if (duplicatePreceding(letters, i2)) continue;
+				Letter minLetter2 = QUACKLE_GADDAG_SEPARATOR;
+				Letter letter2;
+				Letter blankLetter2;
+				int childIndex2 = 0;
+				if (letters[i2] == QUACKLE_BLANK_MARK) {
+				next_blank_letter2:
+					if (!nextLetter(gaddag, node1, m_everyLetter, minLetter2,
+													&childIndex2, &blankLetter2, &child)) {
+						continue;
+					}
+					letter2 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter2);
+				} else {
+					letter2 = letters[i2];
+					if (!gaddag.hasChild(node1, letter2)) continue;
+					child = gaddag.child(node1, letter2);
+				}
+				const unsigned char* node2 = gaddag.followIndex(child);
+				if (node2 == NULL) continue;
+				answer.push_back(letter2);
+				letters[i2] = QUACKLE_NULL_MARK;
+				for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+				UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+				for (int i3 = 0; i3 < 7; ++i3) {
+					if (letters[i3] == QUACKLE_NULL_MARK) continue;
+					if (duplicatePreceding(letters, i3)) continue;
+					Letter minLetter3 = QUACKLE_GADDAG_SEPARATOR;
+					Letter letter3;
+					Letter blankLetter3;
+					int childIndex3 = 0;
+					if (letters[i3] == QUACKLE_BLANK_MARK) {
+					next_blank_letter3:
+						if (!nextLetter(gaddag, node2, m_everyLetter, minLetter3,
+														&childIndex3, &blankLetter3, &child)) {
+							continue;
+						}
+						letter3 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter3);
+					} else {
+						letter3 = letters[i3];
+						if (!gaddag.hasChild(node2, letter3)) continue;
+						child = gaddag.child(node2, letter3);
+					}
+					const unsigned char* node3 = gaddag.followIndex(child);
+					if (node3 == NULL) continue;
+					answer.push_back(letter3);
+					letters[i3] = QUACKLE_NULL_MARK;
+					for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+					UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+					for (int i4 = 0; i4 < 7; ++i4) {
+						if (letters[i4] == QUACKLE_NULL_MARK) continue;
+						if (duplicatePreceding(letters, i4)) continue;
+						Letter minLetter4 = QUACKLE_GADDAG_SEPARATOR;
+						Letter letter4;
+						Letter blankLetter4;
+						int childIndex4 = 0;
+						if (letters[i4] == QUACKLE_BLANK_MARK) {
+						next_blank_letter4:
+							if (!nextLetter(gaddag, node3, m_everyLetter, minLetter4,
+															&childIndex4, &blankLetter4, &child)) {
+								continue;
+							}
+							letter4 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter4);
+						} else {
+							letter4 = letters[i4];
+							if (!gaddag.hasChild(node3, letter4)) continue;
+							child = gaddag.child(node3, letter4);
+						}
+						const unsigned char* node4 = gaddag.followIndex(child);
+						if (node4 == NULL) continue;
+						answer.push_back(letter4);
+						letters[i4] = QUACKLE_NULL_MARK;
+						for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+						UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+						for (int i5 = 0; i5 < 7; ++i5) {
+							if (letters[i5] == QUACKLE_NULL_MARK) continue;
+							if (duplicatePreceding(letters, i5)) continue;
+							Letter minLetter5 = QUACKLE_GADDAG_SEPARATOR;
+							Letter letter5;
+							Letter blankLetter5;
+							int childIndex5 = 0;
+							if (letters[i5] == QUACKLE_BLANK_MARK) {
+							next_blank_letter5:
+								if (!nextLetter(gaddag, node4, m_everyLetter, minLetter5,
+																&childIndex5, &blankLetter5, &child)) {
+									continue;
+								}
+								letter5 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter5);
+							} else {
+								letter5 = letters[i5];
+								if (!gaddag.hasChild(node4, letter5)) continue;
+								child = gaddag.child(node4, letter5);
+							}
+							const unsigned char* node5 = gaddag.followIndex(child);
+							if (node5 == NULL) continue;
+							answer.push_back(letter5);
+							letters[i5] = QUACKLE_NULL_MARK;
+							for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+							UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+							for (int i6 = 0; i6 < 7; ++i6) {
+								if (letters[i6] == QUACKLE_NULL_MARK) continue;
+								if (duplicatePreceding(letters, i6)) continue;
+								Letter minLetter6 = QUACKLE_GADDAG_SEPARATOR;
+								Letter letter6;
+								Letter blankLetter6;
+								int childIndex6 = 0;
+								if (letters[i6] == QUACKLE_BLANK_MARK) {
+								next_blank_letter6:
+									if (!nextLetter(gaddag, node5, m_everyLetter, minLetter6,
+																	&childIndex6, &blankLetter6, &child)) {
+										continue;
+									}
+									letter6 = QUACKLE_ALPHABET_PARAMETERS->setBlankness(blankLetter6);
+								} else {
+									letter6 = letters[i6];
+									if (!gaddag.hasChild(node5, letter6)) continue;
+									child = gaddag.child(node5, letter6);
+								}
+								if (gaddag.completesWord(child)) {
+									answer.push_back(letter6);
+									for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+									UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+									m_bingos.push_back(answer);
+									answer.pop_back();
+								}
+								if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter6)) {
+									minLetter6 = blankLetter6 + 1;
+									++childIndex6;
+									goto next_blank_letter6;
+								}
+							}
+							answer.pop_back();
+							if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter5)) {
+								minLetter5 = blankLetter5 + 1;
+								++childIndex5;
+								letters[i5] = QUACKLE_BLANK_MARK;
+								goto next_blank_letter5;
+							} else {
+								letters[i5] = answer[5];
+							}
+						}
+						answer.pop_back();
+						if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter4)) {
+							minLetter4 = blankLetter4 + 1;
+							++childIndex4;
+							letters[i4] = QUACKLE_BLANK_MARK;
+							goto next_blank_letter4;
+						} else {
+							letters[i4] = answer[4];
+						}
+					}
+					answer.pop_back();
+					if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter3)) {
+						minLetter3 = blankLetter3 + 1;
+						++childIndex3;
+						letters[i3] = QUACKLE_BLANK_MARK;
+						goto next_blank_letter3;
+					} else {
+						letters[i3] = answer[3];
+					}
+				}
+				answer.pop_back();
+				if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter2)) {
+					minLetter2 = blankLetter2 + 1;
+					++childIndex2;
+					letters[i2] = QUACKLE_BLANK_MARK;
+					goto next_blank_letter2;
+				} else {
+					letters[i2] = answer[2];
+				}
+			}
+			answer.pop_back();
+			if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter1)) {
+				minLetter1 = blankLetter1 + 1;
+				++childIndex1;
+				letters[i1] = QUACKLE_BLANK_MARK;
+				goto next_blank_letter1;
+			} else {
+				letters[i1] = answer[1];
+			}
+		}
+		answer.pop_back();
+		if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter0)) {
+			minLetter0 = blankLetter0 + 1;
+			++childIndex0;
+			letters[i0] = QUACKLE_BLANK_MARK;
+			goto next_blank_letter0;
+		} else {
+			letters[i0] = answer[0];
+		}
+	}
+}
+
 void V2Generator::findBingos() {
 	m_bingos.clear();
-	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag());
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag_7to7());
 	LetterString letterString = rack().alphaTiles();
 	//UVcout << "letterString: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(letterString) << endl;
 	Letter letters[7];
@@ -442,7 +699,7 @@ void V2Generator::findMovesAt(Spot* spot) {
 	const int ahead = (spot->numTilesThrough == 0) ? 1 : 0;
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
-	if (!blankOnRack() && spot->minPlayed == 7 && spot->numTilesThrough == 0) {
+	if (spot->minPlayed == 7 && spot->numTilesThrough == 0) {
 		fitBingos(*spot);
 	} else {
 		const V2Gaddag& gaddag = spotGaddag(spot);
@@ -675,7 +932,9 @@ bool V2Generator::fits(const Spot& spot, const LetterString& word,
 		const Hook& hook =
 			spot.horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
 		if (hook.touches) {
-			const uint32_t letterMask = 1 << word[wordPos];
+			const Letter letter =
+				QUACKLE_ALPHABET_PARAMETERS->clearBlankness(word[wordPos]);
+			const uint32_t letterMask = 1 << letter;
 			if ((hook.letters & letterMask) == 0) return false;
 		}
 		if (spot.horizontal) col++; else row++;
@@ -689,7 +948,9 @@ bool V2Generator::fits(const Spot& spot, const LetterString& word,
 		const Hook& hook =
 			spot.horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
 		if (hook.touches) {
-			const uint32_t letterMask = 1 << word[wordPos];
+			const Letter letter =
+				QUACKLE_ALPHABET_PARAMETERS->clearBlankness(word[wordPos]);
+			const uint32_t letterMask = 1 << letter;
 			if ((hook.letters & letterMask) == 0) return false;
 		}
 		if (spot.horizontal) col++; else row++;
@@ -702,12 +963,15 @@ bool V2Generator::fits(const Spot& spot, const LetterString& word,
 	for (int wordPos = 0; wordPos < ahead + behind; ++wordPos) {
 		int pos = startPos + wordPos;
 		m_placed[pos] = word[wordPos];
-		int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
-		int hookMultiplier = hookLetterMultiplier(row, col, spot.horizontal);
-    scoreLetter(pos, word[wordPos], letterMultiplier);
-		const int tileHookScore =
-			hookMultiplier * QUACKLE_ALPHABET_PARAMETERS->score(word[wordPos]);
-		*wordHookScore += tileHookScore;
+		if (!QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(word[wordPos])) {
+			int letterMultiplier =
+				QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
+			int hookMultiplier = hookLetterMultiplier(row, col, spot.horizontal);
+			scoreLetter(pos, word[wordPos], letterMultiplier);
+			const int tileHookScore =
+				hookMultiplier * QUACKLE_ALPHABET_PARAMETERS->score(word[wordPos]);
+			*wordHookScore += tileHookScore;
+		}
 		if (spot.horizontal) col++; else row++;
 	}
 	return true;

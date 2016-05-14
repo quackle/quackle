@@ -923,11 +923,11 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVcout << "playing move #" << toPlay << ": " << tops[toPlay] << endl;
 				game.commitMove(tops[toPlay]);
 			} else {
-				if (i == 12) break;
+				if (i == 1) break;
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
-					letters = QUACKLE_ALPHABET_PARAMETERS->encode("AEENRRV", &leftover);
+					letters = QUACKLE_ALPHABET_PARAMETERS->encode("SATINE?", &leftover);
 				} else if (i == 1) {
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("DEIOOTU", &leftover);
 				} else if (i == 2) {
@@ -936,7 +936,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("THEREAT", &leftover);
 				} 
 				Rack rack(letters);
-				//game.currentPosition().setCurrentPlayerRack(rack);
+				game.currentPosition().setCurrentPlayerRack(rack);
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
 				/*	
