@@ -108,7 +108,9 @@ class LetterParameter
 public:
 	LetterParameter();
 	LetterParameter(Letter letter);
-	LetterParameter(Letter letter, const UVString &text, const UVString &blankText, int score = 0, int count = 0, bool isVowel = false);
+	LetterParameter(Letter letter, const UVString &text,
+			const UVString &blankText, int score = 0,
+			int count = 0, bool isVowel = false);
 
 	UVString text() const;
 	void setText(const UVString &text);
@@ -279,6 +281,7 @@ public:
 
 	// alphabet-based conversion facilities:
 	// LetterString -> UVString
+	UVString userVisible(const LongLetterString &letterString) const;
 	UVString userVisible(const LetterString &letterString) const;
 	UVString userVisible(Letter letter) const;
 

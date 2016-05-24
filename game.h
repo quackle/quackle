@@ -212,17 +212,13 @@ public:
 	// (probably) filled racks
 	const Bag &bag() const;
 
-	// Set drawing order, starting from back of drawingOrder.
-	// The drawing order is reset to randomness after letters
-	// are drawn when incremented.
-	// This only is meaningful if you don't
-	// manually set racks and make only valid plays.
-	// (Otherwise there may be letters in the drawing order
-	// that are no longer in the bag. Incidentally the drawing
-	// order is also followed if you do set rack.)
-	void setDrawingOrder(const LetterString &drawingOrder);
-	const LetterString &drawingOrder() const;
-
+	void setDrawingOrder(const LongLetterString &drawingOrder);
+	const LongLetterString &drawingOrder() const;
+	
+	void setExchangeDividends(const vector<int>& exchangeDividends);
+	const vector<int>& exchangeDividends() const;
+  int exchangeDividendIndex() const;
+	
 	// get tiles unseen to current player
 	Bag unseenBag() const;
 	Bag unseenBagFromPlayerPerspective(const Player &player) const;
@@ -433,8 +429,11 @@ protected:
 	// If you break its behavior, I will be bemaddened!
 	Quackle::Bag m_bag;
 
-	LetterString m_drawingOrder;
+	LongLetterString m_drawingOrder;
 
+	vector<int> m_exchangeDividends;
+	int m_exchangeDividendIndex;
+	
 	UVString m_explanatoryNote;
 
 	// Use this instead of m_bag.removeTiles(); if the bag
@@ -500,14 +499,27 @@ inline void GamePosition::setBag(const Bag &bag)
 	m_bag = bag;
 }
 
-inline void GamePosition::setDrawingOrder(const LetterString &drawingOrder)
-{
+inline void GamePosition::setDrawingOrder(const LongLetterString &drawingOrder) {
 	m_drawingOrder = drawingOrder;
 }
 
-inline const LetterString &GamePosition::drawingOrder() const
+inline void
+	GamePosition::setExchangeDividends(const vector<int>& exchangeDividends) {
+	m_exchangeDividends = exchangeDividends;
+	m_exchangeDividendIndex = 0;
+}
+
+inline int GamePosition::exchangeDividendIndex() const {
+	return m_exchangeDividendIndex;
+}
+ 
+inline const LongLetterString &GamePosition::drawingOrder() const
 {
 	return m_drawingOrder;
+}
+
+inline const vector<int> &GamePosition::exchangeDividends() const {
+	return m_exchangeDividends;
 }
 
 inline const PlayerList &GamePosition::players() const

@@ -67,7 +67,7 @@ public:
 	// starting from the back of the LetterString.
 	// Returns letters from drawingOrder that weren't added to the bag.
 	// Alphabetizes rack.
-	LetterString refill(Rack &rack, const LetterString &drawingOrder);
+	LongLetterString refill(Rack &rack, const LongLetterString &drawingOrder);
 
 	// use this to start out your bag for use
 	void prepareFullBag();

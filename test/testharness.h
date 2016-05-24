@@ -86,6 +86,9 @@ public:
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
 
+	void sim(unsigned int reps);
+	void simGame(unsigned int gameNumber);
+	
 	void selfPlayGames(unsigned int seed, unsigned int reps, bool reports, bool playability);
 	void selfPlayGame(unsigned int gameNumber, bool reports, bool playability);
 

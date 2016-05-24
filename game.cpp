@@ -170,9 +170,6 @@ void Game::commitCandidate(bool maintainBoard)
 	Move moveMade(currentPosition().moveMade());
 	addPosition();
 
-	// Note this comes after addPosition --
-	// ensuring exchanged tiles can't be drawn.
-	// TODO how does this ensure that exchanged tiles can't be drawn?
 	currentPosition().makeMove(moveMade, maintainBoard);
 }
 
@@ -193,7 +190,7 @@ GamePosition::GamePosition(const PlayerList &players)
 }
 
 GamePosition::GamePosition(const GamePosition &position)
-	: m_players(position.m_players), m_moves(position.m_moves), m_moveMade(position.m_moveMade), m_committedMove(position.m_committedMove), m_turnNumber(position.m_turnNumber), m_nestedness(position.m_nestedness), m_scorelessTurnsInARow(position.m_scorelessTurnsInARow), m_gameOver(position.m_gameOver), m_board(position.m_board), m_bag(position.m_bag), m_drawingOrder(position.m_drawingOrder), m_explanatoryNote(position.m_explanatoryNote)
+	: m_players(position.m_players), m_moves(position.m_moves), m_moveMade(position.m_moveMade), m_committedMove(position.m_committedMove), m_turnNumber(position.m_turnNumber), m_nestedness(position.m_nestedness), m_scorelessTurnsInARow(position.m_scorelessTurnsInARow), m_gameOver(position.m_gameOver), m_board(position.m_board), m_bag(position.m_bag), m_drawingOrder(position.m_drawingOrder), m_exchangeDividends(position.m_exchangeDividends), m_exchangeDividendIndex(position.m_exchangeDividendIndex), m_explanatoryNote(position.m_explanatoryNote)
 {
 	// reset iterator
 	if (position.turnNumber() == 0)
@@ -221,6 +218,8 @@ const GamePosition &GamePosition::operator=(const GamePosition &position)
 	m_board = position.m_board;
 	m_bag = position.m_bag;
 	m_drawingOrder = position.m_drawingOrder;
+	m_exchangeDividends = position.m_exchangeDividends;
+	m_exchangeDividendIndex = position.m_exchangeDividendIndex;
 	m_explanatoryNote = position.m_explanatoryNote;
 
 	// reset iterator
@@ -446,8 +445,23 @@ void GamePosition::makeMove(const Move &move, bool maintainBoard)
 		m_board.makeMove(move);
 	}
 
-	if (move.action == Move::Exchange)
+	if (move.action == Move::Exchange) {
 		m_bag.toss(move.usedTiles());
+		if (!m_exchangeDividends.empty()) {
+			for (const Letter& tile : move.usedTiles()) {
+				const int exchangeDividendIndex =
+					m_exchangeDividendIndex % m_exchangeDividends.size();
+				const int exchangeDividend = m_exchangeDividends[exchangeDividendIndex];
+				//UVcout << "exchangeDividend: " << exchangeDividend << endl;
+				const int pos = exchangeDividend % (m_drawingOrder.size() + 1);
+				//UVcout << "inserting at position: " << pos << endl;
+				m_drawingOrder = m_drawingOrder.insert(pos, 1, static_cast<char>(tile));
+				// UVcout << "new drawingOrder: "
+				// 			 << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_drawingOrder)
+				// 			 << endl;
+			}
+		}
+	}
 }
 
 void GamePosition::scoreMove(Move &move)
@@ -599,7 +613,7 @@ void GamePosition::replenishAndSetRack(const Rack &previousRack, Player &player)
 	player.setDrawnLetters(newRack - previousRack);
 
 #ifdef VERBOSE_DEBUG_BAG
-	UVcout << "(After  refill) " << m_bag << endl;
+	UVcout << "(After refill) " << m_bag << endl;
 	UVcout << "Rack refilled to " << newRack << endl;
 #endif
 }
@@ -635,12 +649,13 @@ void GamePosition::setOppRack(const Rack &rack, bool adjustBag)
 // TODO(jasonkb): this function is poorly implemented. Also it should return a reference.
 Rack GamePosition::oppRack()
 {
-	UVcout << "currentPlayer(): " << currentPlayer() << endl;
+	//UVcout << "currentPlayer(): " << currentPlayer() << endl;
 
 	const PlayerList::iterator end(m_players.end());
+	/*
 	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
 		UVcout << "rack " << *it << " " << (*it).rack() << endl;
-
+	*/
 	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
 	{
 		if ((*it).id() != currentPlayer().id())
@@ -838,8 +853,9 @@ bool GamePosition::incrementTurn()
 	m_playerOnTurn = m_currentPlayer;
 
 	// kill drawing order
-	m_drawingOrder = LetterString();
-
+	//m_drawingOrder = "";
+	//m_exchangeDividends.clear();
+	
 	// reset note to a clean slate
 	m_explanatoryNote = UVString();
 
@@ -1037,18 +1053,18 @@ void GamePosition::adjustScoresToFinishPassedOutGame()
 
 void GamePosition::adjustScoresToFinishGame()
 {
-	int addand = 0;
+	int addend = 0;
 	LetterString clobberedTiles;
 
-	addand = deadwood(&clobberedTiles);
+	addend = deadwood(&clobberedTiles);
 
-	m_moveMade = Move::createUnusedTilesBonus(clobberedTiles, addand);
+	m_moveMade = Move::createUnusedTilesBonus(clobberedTiles, addend);
 	m_committedMove = m_moveMade;
 }
 
 int GamePosition::deadwood(LetterString *tiles) const
 {
-	int addand = 0;
+	int addend = 0;
 	tiles->clear();
 
 	const PlayerList::const_iterator end(m_players.end());
@@ -1057,11 +1073,11 @@ int GamePosition::deadwood(LetterString *tiles) const
 		if ((*it) == currentPlayer())
 			continue;
 
-		addand += (*it).rack().score();
+		addend += (*it).rack().score();
 		*tiles += (*it).rack().tiles();
 	}
 
-	return addand * 2;
+	return addend * 2;
 }
 
 bool GamePosition::doesMoveEndGame(const Move &move) const

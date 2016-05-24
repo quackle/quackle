@@ -205,6 +205,15 @@ LetterString AlphabetParameters::clearBlankness(const LetterString &letterString
 	return ret;
 }
 
+UVString AlphabetParameters::userVisible(const LongLetterString &letterString) const
+{
+	UVString ret;
+	for (unsigned int i = 0; i < letterString.size(); ++i) {
+		ret += userVisible(letterString[i]);
+	}
+	return ret;
+}
+
 UVString AlphabetParameters::userVisible(const LetterString &letterString) const
 {
 	UVString ret;

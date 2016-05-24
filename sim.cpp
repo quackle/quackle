@@ -457,7 +457,7 @@ void Simulator::setPartialOppoRack(const Rack &rack)
 
 void Simulator::randomizeDrawingOrder()
 {
-	m_originalGame.currentPosition().setDrawingOrder(m_originalGame.currentPosition().bag().someShuffledTiles());
+	//m_originalGame.currentPosition().setDrawingOrder(m_originalGame.currentPosition().bag().someShuffledTiles());
 }
 
 MoveList Simulator::moves(bool prune, bool byWin) const

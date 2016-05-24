@@ -1,3 +1,4 @@
+#include <set>
 #include <time.h>
 #include <sys/time.h>
 
@@ -22,22 +23,35 @@ V2Generator::V2Generator(const GamePosition &position)
   : m_position(position) {
 }
 
+V2Generator::V2Generator(const GamePosition &position,
+												 const map<Product, vector<LetterString>>& bingos)
+  : m_position(position),
+		m_bingoMap(&bingos) {
+}
+
 V2Generator::~V2Generator() {}
 
 unsigned int V2Generator::m_tiebreakDividend;
 
-Move V2Generator::kibitz() {
-  findStaticBests();
-	assert(!m_bests.empty());
-	int index = m_tiebreakDividend++ % m_bests.size();
-	return m_bests[index];
+MoveList V2Generator::kibitzAll() {
+	m_justBest = false;
+	findStaticPlays();
+	return m_moves;
 }
 
-void V2Generator::findStaticBests() {
-  UVcout << "findStaticBests(): " << endl << m_position << endl;
-	m_bests.clear();
+Move V2Generator::kibitz() {
+	m_justBest = true;
+  findStaticPlays();
+	assert(!m_moves.empty());
+	int index = m_tiebreakDividend++ % m_moves.size();
+	return m_moves[index];
+}
+
+void V2Generator::findStaticPlays() {
+  //UVcout << "findStaticPlays(): " << endl << m_position << endl;
+	m_moves.clear();
 	// Only do this if no exchanges exist
-	//m_bests.push_back(Move::createPassMove());
+	//m_moves.push_back(Move::createPassMove());
 
   setUpCounts(rack().tiles());
 	m_rackBits = 0;
@@ -49,23 +63,27 @@ void V2Generator::findStaticBests() {
 	struct timeval start, end;
 
 	gettimeofday(&start, NULL);
+	m_product = QUACKLE_PRIMESET->multiplyTiles(rack());
   m_anagrams = QUACKLE_ANAGRAMMAP->lookUp(rack());
 	gettimeofday(&end, NULL);
-	UVcout << "Time checking anagrammap was "
-				 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec))
-				 << " microseconds." << endl;
-	if (m_anagrams == NULL) {
-		UVcout << "could not find rack anagrams!" << endl;
-	} else {
-		UVcout << "found rack anagrams!! usesNoBlanks.thruNone.numPlayed: ";
-		UVcout << static_cast<int>(m_anagrams->usesNoBlanks.thruNone.numPlayed)
-					 << endl;
-	}
+	// UVcout << "Time checking anagrammap was "
+	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+	// 					 - (start.tv_sec * 1000000 + start.tv_usec))
+	// 			 << " microseconds." << endl;
+	// if (m_anagrams == NULL) {
+	// 	UVcout << "could not find rack anagrams!" << endl;
+	// } else {
+	// 	UVcout << "found rack anagrams!! usesNoBlanks.thruNone.numPlayed: ";
+	// 	UVcout << static_cast<int>(m_anagrams->usesNoBlanks.thruNone.numPlayed)
+	// 				 << endl;
+	// }
 
 	if (couldHaveBingos()) {
 		gettimeofday(&start, NULL);
-		if (blankOnRack()) {
+		if (m_bingoMap != NULL &&
+				m_bingoMap->count(m_product) > 0) {
+      m_bingos = m_bingoMap->find(m_product)->second;
+		} else if (blankOnRack()) {
 			findBlankBingos();
 		} else {
 			findBingos();
@@ -75,10 +93,12 @@ void V2Generator::findStaticBests() {
 				 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec))
 					 << " microseconds." << endl;
+		/*
 		for (const LetterString& bingo : m_bingos) {
 			UVcout << "bingo: "
 						 << QUACKLE_ALPHABET_PARAMETERS->userVisible(bingo) << endl;
 		}
+		*/
 	}
 	
 	// TODO: are enough tiles in the bag?
@@ -86,18 +106,20 @@ void V2Generator::findStaticBests() {
 	gettimeofday(&start, NULL);
 	findBestExchange();
 	gettimeofday(&end, NULL);
-	UVcout << "Time finding exchanges was "
-				 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec))
-				 << " microseconds." << endl;
-	UVcout << "best exchange: " << m_bests[0] << endl;
+	// UVcout << "Time finding exchanges was "
+	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+	// 					 - (start.tv_sec * 1000000 + start.tv_usec))
+	// 			 << " microseconds." << endl;
+	if (m_justBest) {
+		//UVcout << "best exchange: " << m_moves[0] << endl;
+	}
 	
 	gettimeofday(&start, NULL);
 	computeHooks();
 	gettimeofday(&end, NULL);
-	UVcout << "Time computing hooks was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+	// UVcout << "Time computing hooks was "
+	// 				 << ((end.tv_sec * 1000000 + end.tv_usec)
+	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 			
 	//debugHooks();
 
@@ -106,36 +128,36 @@ void V2Generator::findStaticBests() {
 		gettimeofday(&start, NULL);
 		findEmptyBoardSpots(&spots);
 		gettimeofday(&end, NULL);
-		UVcout << "Time finding spots on empty board was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+		// UVcout << "Time finding spots on empty board was "
+		// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+		// 				 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	} else {
 		gettimeofday(&start, NULL);
 		findSpots(&spots);
 		gettimeofday(&end, NULL);
-		UVcout << "Time finding spots on nonempty board was "
-					 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+		// UVcout << "Time finding spots on nonempty board was "
+		// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+		// 				 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 	}
 	gettimeofday(&start, NULL);
 	std::sort(spots.begin(), spots.end());
 	gettimeofday(&end, NULL);
-	UVcout << "Time sorting spots was "
-				 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
+	// UVcout << "Time sorting spots was "
+	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+	// 					 - (start.tv_sec * 1000000 + start.tv_usec)) << " microseconds." << endl;
 
 	for (Spot& spot : spots) {
-		//#ifdef DEBUG_V2GEN
+#ifdef DEBUG_V2GEN
 		UVcout << "Spot: (" << spot.anchorRow << ", " << spot.anchorCol
 					 << ", " << "blank: " << spot.useBlank
 					 << ", " << "dir: " << (spot.horizontal ? "horiz" : "vert")
 					 << ", thru: " << spot.numTilesThrough
 					 << ", played: " << spot.minPlayed << " to " << spot.maxPlayed << "): "
 					 << spot.maxEquity << endl;
-		//#endif
+#endif
 		restrictSpot(&spot);
 
-		if (!bestEnough(spot.maxEquity)) {
+		if (m_justBest && !bestEnough(spot.maxEquity)) {
 			//#ifdef DEBUG_V2GEN
 			//UVcout << "no need to check this spot!" << endl;
 			//#endif
@@ -143,15 +165,18 @@ void V2Generator::findStaticBests() {
 		}
 		findMovesAt(&spot);
 	}
+	/*
   int i = 0;
-	for (const Move& move : m_bests) {
+	for (const Move& move : m_moves) {
 		i++;
-		UVcout << "best Move " << i << " of " << m_bests.size()
+		UVcout << "best Move " << i << " of " << m_moves.size()
 					 << ": " << move << endl;
 	}
+	*/
 }
 
 void V2Generator::restrictSpot(Spot* spot) {
+	if (!m_justBest) return;
 	restrictByLength(spot);
 	restrictByBehind(spot);
 }
@@ -238,7 +263,7 @@ void V2Generator::findBlankBingos() {
 		int childIndex0 = 0;
 		if (letters[i0] == QUACKLE_BLANK_MARK) {
 		next_blank_letter0:
-			if (!nextLetter(gaddag, root, m_everyLetter, minLetter0,
+			if (!nextLetter(gaddag, root, EVERY_LETTER, minLetter0,
 											&childIndex0, &blankLetter0, &child)) {
 				continue;
 			}
@@ -252,8 +277,8 @@ void V2Generator::findBlankBingos() {
 		node0 = gaddag.followIndex(child);
 		answer.push_back(letter0);
 		letters[i0] = QUACKLE_NULL_MARK;
-		for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-		UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+		// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+		// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 		for (int i1 = 0; i1 < 7; ++i1) {
 			if (letters[i1] == QUACKLE_NULL_MARK) continue;
 			if (duplicatePreceding(letters, i1)) continue;
@@ -263,7 +288,7 @@ void V2Generator::findBlankBingos() {
 			int childIndex1 = 0;
 			if (letters[i1] == QUACKLE_BLANK_MARK) {
 			next_blank_letter1:
-				if (!nextLetter(gaddag, node0, m_everyLetter, minLetter1,
+				if (!nextLetter(gaddag, node0, EVERY_LETTER, minLetter1,
 												&childIndex1, &blankLetter1, &child)) {
 					continue;
 				}
@@ -277,8 +302,8 @@ void V2Generator::findBlankBingos() {
 			if (node1 == NULL) continue;
 			answer.push_back(letter1);
 			letters[i1] = QUACKLE_NULL_MARK;
-			for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-			UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+			// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+			// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 			for (int i2 = 0; i2 < 7; ++i2) {
 				if (letters[i2] == QUACKLE_NULL_MARK) continue;
 				if (duplicatePreceding(letters, i2)) continue;
@@ -288,7 +313,7 @@ void V2Generator::findBlankBingos() {
 				int childIndex2 = 0;
 				if (letters[i2] == QUACKLE_BLANK_MARK) {
 				next_blank_letter2:
-					if (!nextLetter(gaddag, node1, m_everyLetter, minLetter2,
+					if (!nextLetter(gaddag, node1, EVERY_LETTER, minLetter2,
 													&childIndex2, &blankLetter2, &child)) {
 						continue;
 					}
@@ -302,8 +327,8 @@ void V2Generator::findBlankBingos() {
 				if (node2 == NULL) continue;
 				answer.push_back(letter2);
 				letters[i2] = QUACKLE_NULL_MARK;
-				for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-				UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+				// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+				// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 				for (int i3 = 0; i3 < 7; ++i3) {
 					if (letters[i3] == QUACKLE_NULL_MARK) continue;
 					if (duplicatePreceding(letters, i3)) continue;
@@ -313,7 +338,7 @@ void V2Generator::findBlankBingos() {
 					int childIndex3 = 0;
 					if (letters[i3] == QUACKLE_BLANK_MARK) {
 					next_blank_letter3:
-						if (!nextLetter(gaddag, node2, m_everyLetter, minLetter3,
+						if (!nextLetter(gaddag, node2, EVERY_LETTER, minLetter3,
 														&childIndex3, &blankLetter3, &child)) {
 							continue;
 						}
@@ -327,8 +352,8 @@ void V2Generator::findBlankBingos() {
 					if (node3 == NULL) continue;
 					answer.push_back(letter3);
 					letters[i3] = QUACKLE_NULL_MARK;
-					for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-					UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+					// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+					// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 					for (int i4 = 0; i4 < 7; ++i4) {
 						if (letters[i4] == QUACKLE_NULL_MARK) continue;
 						if (duplicatePreceding(letters, i4)) continue;
@@ -338,7 +363,7 @@ void V2Generator::findBlankBingos() {
 						int childIndex4 = 0;
 						if (letters[i4] == QUACKLE_BLANK_MARK) {
 						next_blank_letter4:
-							if (!nextLetter(gaddag, node3, m_everyLetter, minLetter4,
+							if (!nextLetter(gaddag, node3, EVERY_LETTER, minLetter4,
 															&childIndex4, &blankLetter4, &child)) {
 								continue;
 							}
@@ -352,8 +377,8 @@ void V2Generator::findBlankBingos() {
 						if (node4 == NULL) continue;
 						answer.push_back(letter4);
 						letters[i4] = QUACKLE_NULL_MARK;
-						for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-						UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+						// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+						// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 						for (int i5 = 0; i5 < 7; ++i5) {
 							if (letters[i5] == QUACKLE_NULL_MARK) continue;
 							if (duplicatePreceding(letters, i5)) continue;
@@ -363,7 +388,7 @@ void V2Generator::findBlankBingos() {
 							int childIndex5 = 0;
 							if (letters[i5] == QUACKLE_BLANK_MARK) {
 							next_blank_letter5:
-								if (!nextLetter(gaddag, node4, m_everyLetter, minLetter5,
+								if (!nextLetter(gaddag, node4, EVERY_LETTER, minLetter5,
 																&childIndex5, &blankLetter5, &child)) {
 									continue;
 								}
@@ -377,8 +402,8 @@ void V2Generator::findBlankBingos() {
 							if (node5 == NULL) continue;
 							answer.push_back(letter5);
 							letters[i5] = QUACKLE_NULL_MARK;
-							for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-							UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+							// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+							// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 							for (int i6 = 0; i6 < 7; ++i6) {
 								if (letters[i6] == QUACKLE_NULL_MARK) continue;
 								if (duplicatePreceding(letters, i6)) continue;
@@ -388,7 +413,7 @@ void V2Generator::findBlankBingos() {
 								int childIndex6 = 0;
 								if (letters[i6] == QUACKLE_BLANK_MARK) {
 								next_blank_letter6:
-									if (!nextLetter(gaddag, node5, m_everyLetter, minLetter6,
+									if (!nextLetter(gaddag, node5, EVERY_LETTER, minLetter6,
 																	&childIndex6, &blankLetter6, &child)) {
 										continue;
 									}
@@ -396,15 +421,15 @@ void V2Generator::findBlankBingos() {
 								} else {
 									letter6 = letters[i6];
 									if (!gaddag.hasChild(node5, letter6)) continue;
-									child = gaddag.child(node5, letter6);
+									//child = gaddag.child(node5, letter6);
 								}
-								if (gaddag.completesWord(child)) {
+								//if (gaddag.completesWord(child)) {
 									answer.push_back(letter6);
-									for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
-									UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
+									// for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
+									// UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 									m_bingos.push_back(answer);
 									answer.pop_back();
-								}
+									//}
 								if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(letter6)) {
 									minLetter6 = blankLetter6 + 1;
 									++childIndex6;
@@ -551,14 +576,14 @@ void V2Generator::findBingos() {
 								if (letters[i6] == QUACKLE_NULL_MARK) continue;
 								if (duplicatePreceding(letters, i6)) continue;
 								if (!gaddag.hasChild(node5, letters[i6])) continue;
-								child = gaddag.child(node5, letters[i6]);
-								if (gaddag.completesWord(child)) {
+								//child = gaddag.child(node5, letters[i6]);
+								//if (gaddag.completesWord(child)) {
 									answer.push_back(letters[i6]);
 									//for (int i = 0; i < 7; ++i) UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(letters[i]);
 									//UVcout << endl << "answer: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(answer) << endl;
 									m_bingos.push_back(answer);
 									answer.pop_back();
-								}
+									//}
 							}
 							letters[i5] = answer[5];
 							answer.pop_back();
@@ -580,6 +605,99 @@ void V2Generator::findBingos() {
 	}
 }
 
+void V2Generator::addSubsets(const LetterString& rack,
+															set<Product>* subsets) {
+	vector<Prime> primes;
+	primes.reserve(rack.size());
+	for (unsigned int i = 0; i < rack.size(); ++i) {
+		primes.push_back(QUACKLE_PRIMESET->lookUpTile(rack[i]));
+	}
+	for (unsigned int i = 0; i < rack.size(); ++i) {
+		Product subsetProduct = 1;
+		for (unsigned int j = 0; j < rack.size(); ++j) {
+			if (i == j) continue;
+			subsetProduct *= primes[j];
+		}
+		if (subsets->count(subsetProduct) == 0) {
+			subsets->insert(subsetProduct);
+			LetterString subset;
+			for (unsigned int j = 0; j < rack.size(); ++j) {
+				if (i == j) continue;
+				subset.push_back(rack[j]);
+			}
+			if (subset.size() > 1) addSubsets(subset, subsets);			
+		}
+	}
+}
+
+void V2Generator::findBingos(const set<Product>& subsets,
+														 const V2Gaddag& gaddag,
+														 const unsigned char* node,
+														 LetterString* prefix,
+														 Product product,
+														 map<Product, vector<LetterString>>* bingos) {
+	Letter minLetter = QUACKLE_GADDAG_SEPARATOR;
+	Letter letter;
+	int childIndex = 0;
+	const unsigned char* child;
+	const Product blankProduct =
+		product * QUACKLE_PRIMESET->lookUpTile(QUACKLE_BLANK_MARK);
+	while (nextLetter(gaddag, node, EVERY_LETTER, minLetter,
+										&childIndex, &letter, &child)) {
+		const Product newProduct =
+			product * QUACKLE_PRIMESET->lookUpTile(letter);
+		if ((subsets.count(newProduct) == 1) ||
+        (subsets.count(blankProduct) == 1)) {
+			const unsigned char* newNode = gaddag.followIndex(child);
+			if (prefix->size() == 0) {
+				child = gaddag.changeDirection(newNode);
+				newNode = gaddag.followIndex(child);
+			}
+			if (subsets.count(newProduct) == 1) {
+				prefix->push_back(letter);
+				if (prefix->size() == 7) {
+					(*bingos)[newProduct].push_back(*prefix);
+				} else {
+					findBingos(subsets, gaddag, newNode, prefix, newProduct, bingos);
+				}
+				prefix->pop_back();
+			}
+			if (subsets.count(blankProduct) == 1) {
+				const Letter blankLetter = QUACKLE_ALPHABET_PARAMETERS->setBlankness(letter);
+				prefix->push_back(blankLetter);
+				if (prefix->size() == 7) {
+					(*bingos)[newProduct].push_back(*prefix);
+				} else {
+					findBingos(subsets, gaddag, newNode, prefix, blankProduct, bingos);
+				}
+				prefix->pop_back();
+			}
+		}
+		minLetter = letter + 1;
+		++childIndex;
+	}
+}
+
+void V2Generator::findBingos(const set<Product>& subsets,
+														 map<Product, vector<LetterString>>* bingos) {
+	const V2Gaddag& gaddag = *(QUACKLE_LEXICON_PARAMETERS->v2Gaddag_7to7());
+  const unsigned char* root = gaddag.root();
+	LetterString prefix;
+	findBingos(subsets, gaddag, root, &prefix, 1, bingos);
+}
+
+void V2Generator::findBingos(const set<LetterString>& racks,
+														 map<Product, vector<LetterString>>* bingos) {
+	set<Product> subsets;
+	for (const LetterString& rack : racks) {
+		assert(rack.size() == 7);
+		subsets.insert(QUACKLE_PRIMESET->multiplyTiles(rack));
+		addSubsets(rack, &subsets);
+	}
+	UVcout << "Found " << subsets.size() << " subsets." << endl;
+	findBingos(subsets, bingos);
+}
+
 void V2Generator::findBestExchange() {
 	assert(rack().size() == 7);
 	for (int i = 0; i <= 7; ++i) {
@@ -589,6 +707,12 @@ void V2Generator::findBestExchange() {
 	uint64_t primes[7];
 	int bestMask = 0;
 	const LetterString& tiles = rack().tiles();
+  if (!m_justBest) {
+		Move exchange = Move::createExchangeMove(tiles);
+	  exchange.equity = bestEquity;
+		m_moves.push_back(exchange);
+	}
+	set<LetterString> exchanges;
 	for (int i = 0; i < 7; ++i) {
 		primes[i] = QUACKLE_PRIMESET->lookUpTile(tiles[i]);
 	}
@@ -623,6 +747,19 @@ void V2Generator::findBestExchange() {
 			bestEquity = leave;
 			bestMask = mask;
 		}
+		if (!m_justBest) {
+			LetterString exchanged;
+			for (int i = 0; i < 7; ++i) {
+				if (((1 << i) & mask) == 0) {
+					exchanged += tiles[i];
+				}
+			}
+			if (exchanges.count(exchanged) > 0) continue;
+			exchanges.insert(exchanged);
+			Move exchange = Move::createExchangeMove(exchanged);
+			exchange.equity = bestEquity;
+			m_moves.push_back(exchange);
+		}
 		int numExchanged = 7 - __builtin_popcount(mask);
 		if (leave > m_bestLeaves[numExchanged]) {
 			m_bestLeaves[numExchanged] = leave;
@@ -637,10 +774,12 @@ void V2Generator::findBestExchange() {
 	// Some exchanges might be tied, but I don't have a problem with breaking
 	// the tie arbitrarily.
 	//
-	// The exchange is definitely best: right now m_bests contains Pass
-	Move exchange = Move::createExchangeMove(exchanged);
-	exchange.equity = bestEquity;
-	m_bests.push_back(exchange);
+	// The exchange is definitely best: right now m_moves contains Pass
+	if (m_justBest) {	
+		Move exchange = Move::createExchangeMove(exchanged);
+		exchange.equity = bestEquity;
+		m_moves.push_back(exchange);
+	}
 }
 
 bool V2Generator::couldMakeWord(const Spot& spot, int length) {
@@ -674,13 +813,13 @@ const V2Gaddag& V2Generator::spotGaddag(Spot* spot) const {
   if (spot->numTilesThrough == 0) {
 		if (spot->minPlayed == 7) {
 			const V2Gaddag* gaddag = QUACKLE_LEXICON_PARAMETERS->v2Gaddag_7to7();
-			UVcout << "using 7to7!" << endl;
+			//UVcout << "using 7to7!" << endl;
 			spot->anchorNode = gaddag->root();
 			return *gaddag;
 		} else {
 			assert (spot->maxPlayed < 7);
 			const V2Gaddag* gaddag = QUACKLE_LEXICON_PARAMETERS->v2Gaddag_2to6();
-			UVcout << "using 2to6!" << endl;
+			//UVcout << "using 2to6!" << endl;
 			spot->anchorNode = gaddag->root();
 			return *gaddag;
 		}
@@ -700,7 +839,7 @@ void V2Generator::findMovesAt(Spot* spot) {
 	struct timeval start, end;
 	gettimeofday(&start, NULL);
 	if (spot->minPlayed == 7 && spot->numTilesThrough == 0) {
-		fitBingos(*spot);
+		fitBingos(spot);
 	} else {
 		const V2Gaddag& gaddag = spotGaddag(spot);
 		if (spot->useBlank) {
@@ -710,6 +849,7 @@ void V2Generator::findMovesAt(Spot* spot) {
 		}
 	}
 	gettimeofday(&end, NULL);
+	/*
 	UVcout << "Time finding moves for " << rack()
 				 << " blank: " << spot->useBlank
 				 << ", thru: " << spot->numTilesThrough
@@ -717,6 +857,7 @@ void V2Generator::findMovesAt(Spot* spot) {
 				 << ((end.tv_sec * 1000000 + end.tv_usec)
 						 - (start.tv_sec * 1000000 + start.tv_usec))
 				 << " microseconds." << endl;
+	*/
 }
 
 namespace {
@@ -745,7 +886,7 @@ double V2Generator::getLeave() const {
 bool V2Generator::nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
 														 uint32_t restriction,
 														 Letter minLetter, int* childIndex, Letter* foundLetter,
-														 const unsigned char** child) const {
+														 const unsigned char** child) {
 	*child = gaddag.nextRackChild(node, minLetter, restriction, childIndex,
 																foundLetter);
 #ifdef DEBUG_V2GEN
@@ -811,13 +952,15 @@ void V2Generator::unuseLetter(Letter letter, uint32_t foundLetterMask) {
 }
 
 bool V2Generator::bestEnough(double equity) const {
-	assert(!m_bests.empty());
-	return m_bests[0].equity <= equity + m_bestEquityEpsilon;
+	assert(m_justBest);
+	assert(!m_moves.empty());
+	return m_moves[0].equity <= equity + m_bestEquityEpsilon;
 }
 
 bool V2Generator::clearlyBetter(double equity) const {
-	assert(!m_bests.empty());
-	return m_bests[0].equity + m_bestEquityEpsilon <= equity;
+	assert(m_justBest);
+	assert(!m_moves.empty());
+	return m_moves[0].equity + m_bestEquityEpsilon <= equity;
 }
 
 bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
@@ -838,7 +981,7 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 	assert(equity <= spot.maxEquity + 2 * m_blankSpendingEpsilon);
 	assert(spot.worthChecking[numPlaced].couldBeBest);
 	//assert(equity <= spot.worthChecking[numPlaced].maxEquity);
-	if (bestEnough(equity)) {
+	if (!m_justBest || bestEnough(equity)) {
 		LetterString word;
 		int startRow = spot.anchorRow;
 		int startCol = spot.anchorCol;
@@ -879,11 +1022,11 @@ bool V2Generator::maybeRecordMove(const Spot& spot, int wordMultiplier,
 		move.score = score;
 		move.equity = equity;
 		bool wasClearlyBetter = false;
-		if (clearlyBetter(equity)) {
-			m_bests.clear();
+		if (m_justBest && clearlyBetter(equity)) {
+			m_moves.clear();
 			wasClearlyBetter = true;
 		}
-		m_bests.push_back(move);
+		m_moves.push_back(move);
 
 		//UVcout << "spot.worthChecking[" << numPlaced << "].maxEquity: "
 		//			 << spot.worthChecking[numPlaced].maxEquity << endl;
@@ -1008,15 +1151,15 @@ int V2Generator::getWordMultiplierAndHooks(const Spot& spot, int ahead, int behi
 	return product;
 }
 
-void V2Generator::fitBingos(const Spot& spot) {
+void V2Generator::fitBingos(Spot* spot) {
   if (m_bingos.empty()) return;
-	UVcout << "minTilesAhead: " << spot.minTilesAhead
-				 << ", maxTilesAhead: " << spot.maxTilesAhead
-				 << ", maxTilesBehind: " << spot.maxTilesBehind << endl;
-	for (int ahead = spot.minTilesAhead; ahead <= spot.maxTilesAhead; ++ahead) {
+	// UVcout << "minTilesAhead: " << spot->minTilesAhead
+	// 			 << ", maxTilesAhead: " << spot->maxTilesAhead
+	// 			 << ", maxTilesBehind: " << spot->maxTilesBehind << endl;
+	for (int ahead = spot->minTilesAhead; ahead <= spot->maxTilesAhead; ++ahead) {
 		const int behind = 7 - ahead;
-		if (behind > spot.maxTilesBehind) continue;
-		int wordMultiplier = getWordMultiplierAndHooks(spot, ahead, behind);
+		if (behind > spot->maxTilesBehind) continue;
+		int wordMultiplier = getWordMultiplierAndHooks(*spot, ahead, behind);
 		for (const LetterString bingo : m_bingos) {
 			/*
 			UVcout << "trying to fit [";
@@ -1030,7 +1173,7 @@ void V2Generator::fitBingos(const Spot& spot) {
 			UVcout << "] ahead" << endl;
 			*/
 			int wordHookScore = 0;
-			if (fits(spot, bingo, ahead, behind, &wordHookScore)) {
+			if (fits(*spot, bingo, ahead, behind, &wordHookScore)) {
 				/*
 				UVcout << "bingo "
 							 << QUACKLE_ALPHABET_PARAMETERS->userVisible(bingo)
@@ -1040,7 +1183,9 @@ void V2Generator::fitBingos(const Spot& spot) {
 				continue;
 			}
 			m_hookScore += wordHookScore;
-			maybeRecordMove(spot, wordMultiplier, behind, behind + ahead);
+			if (maybeRecordMove(*spot, wordMultiplier, behind, behind + ahead)) {
+				restrictSpot(spot);
+			}
 			m_hookScore -= wordHookScore;
 		}
 	}
@@ -1284,7 +1429,7 @@ void V2Generator::findBlankRequired(Spot* spot, int delta, int ahead, int behind
 	int childIndex = 0;
 	Letter foundLetter;
 	assert(blankOnRack());
-	uint32_t possibleLetters = m_everyLetter;
+	uint32_t possibleLetters = EVERY_LETTER;
 	const Hook& hook =
 		spot->horizontal ? m_vertHooks[row][col] : m_horizHooks[row][col];
 	if (hook.touches) {
@@ -1762,7 +1907,7 @@ uint32_t V2Generator::wordCompleters(const unsigned char* node) {
 	int childIndex = 0;
 	Letter foundLetter;
   const unsigned char* child;
-	while (nextLetter(gaddag, node, m_everyLetter, minLetter,
+	while (nextLetter(gaddag, node, EVERY_LETTER, minLetter,
 										&childIndex, &foundLetter, &child)) {
 		assert(child != NULL);
 		if (gaddag.completesWord(child)) completers |= (1 << foundLetter);
@@ -2105,7 +2250,7 @@ void V2Generator::findHookSpotsInRow(int row, vector<Spot>* spots) {
 		if (isEmpty(row, col)) {
 			const Hook& hook = m_vertHooks[row][col];
 			if (hook.touches) {
-				uint32_t rackBitsOrBlank = blankOnRack() ? m_everyLetter : m_rackBits;
+				uint32_t rackBitsOrBlank = blankOnRack() ? EVERY_LETTER : m_rackBits;
 				uint32_t rackHooks = hook.letters & rackBitsOrBlank;
 				if (rackHooks != 0) {
 					Spot spot;
@@ -2172,7 +2317,7 @@ void V2Generator::findHookSpotsInCol(int col, vector<Spot>* spots) {
 		if (isEmpty(row, col)) {
 			const Hook& hook = m_horizHooks[row][col];
 			if (hook.touches) {
-				uint32_t rackBitsOrBlank = blankOnRack() ? m_everyLetter : m_rackBits;
+				uint32_t rackBitsOrBlank = blankOnRack() ? EVERY_LETTER : m_rackBits;
 				uint32_t rackHooks = hook.letters & rackBitsOrBlank;
 				if (rackHooks != 0) {
 					Spot spot;
@@ -2538,11 +2683,11 @@ void V2Generator::addScoredSpots(Spot* spot, vector<Spot>* spots) {
 		if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
       Spot blankBingos = *spot;
 			blankBingos.useBlank = true;
-			if (spot->numTilesThrough == 0) blankBingos.minPlayed = 7;
+			if (spot->numTilesThrough <= 1) blankBingos.minPlayed = 7;
       scoreSpot(&blankBingos);
 			if (blankBingos.canMakeAnyWord) spots->push_back(blankBingos);
 
-			if (spot->numTilesThrough == 0) {
+			if (spot->numTilesThrough <= 1) {
 				Spot blankNonbingos = *spot;
 				blankNonbingos.useBlank = true;
 				blankNonbingos.maxPlayed = 6;
@@ -2569,7 +2714,7 @@ void V2Generator::addScoredSpots(Spot* spot, vector<Spot>* spots) {
 			if (spot->canMakeAnyWord) spots->push_back(*spot);
 		}
 	} else if (spot->maxPlayed == 7 && spot->minPlayed < 7) {
-		if (spot->numTilesThrough == 0) {
+		if (spot->numTilesThrough <= 1) {
 			// bingos (without blank)
 			Spot bingos = *spot;
 			bingos.minPlayed = 7;

@@ -41,6 +41,7 @@
 #include <enumerator.h>
 #include <reporter.h>
 #include <v2generator.h>
+#include <v2sim.h>
 #include <primeset.h>
 #include <anagrammap.h>
 
@@ -189,6 +190,8 @@ void TestHarness::executeFromArguments()
 		leaveCalc(QString("leaves"));
 	else if (mode == "selfplay")
 		selfPlayGames(seed, reps, report, false);
+	else if (mode == "sim")
+		sim(reps);
 	else if (mode == "playability")
 		selfPlayGames(seed, reps, report, true);
   else if (mode == "verifyplays")
@@ -644,7 +647,7 @@ void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
 	for (unsigned int i = 0; i < racks.size(); ++i) {
 		game.currentPosition().setCurrentPlayerRack(racks[i]);
 		Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
-    v2gen.findStaticBests();
+    v2gen.kibitz();
 		game.currentPosition().addAndSetMoveMade(played[i]);
 		const MoveList& v2moves = v2gen.bestMoves();
 		set<Move> v2exch;
@@ -840,7 +843,57 @@ void TestHarness::testReport(bool html) {
 	}
 }
 
-void TestHarness::selfPlayGames(unsigned int seed, unsigned int reps, bool reports, bool playability)
+void TestHarness::sim(unsigned int reps) {
+	for (unsigned int i = 0; i < reps; ++i) {
+		simGame(i);
+	}
+}
+
+void TestHarness::simGame(unsigned int gameNumber) {
+		// This should make the selfplay games repeatable for testing.
+	Quackle::V2Generator::initializeTiebreaker();
+	
+	Quackle::Game game;
+
+	Quackle::PlayerList players;
+
+	Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"),
+												 Quackle::Player::ComputerPlayerType, 0);
+	compyA.setAbbreviatedName(MARK_UV("A"));
+	compyA.setComputerPlayer(m_computerPlayerToTest);
+	players.push_back(compyA);
+
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"),
+												 Quackle::Player::ComputerPlayerType, 1);
+	compyB.setAbbreviatedName(MARK_UV("B"));
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
+	players.push_back(compyB);
+
+	game.setPlayers(players);
+	game.associateKnownComputerPlayers();
+
+	game.addPosition();
+
+	UVcout << "NEW GAME (#" << gameNumber << ")" << endl;
+
+	const int playahead = 1;
+	int i;
+	for (i = 0; i < playahead; ++i) {
+		UVString leftover;
+		LetterString letters;
+		if (i == 0) {
+			letters = QUACKLE_ALPHABET_PARAMETERS->encode("RUCKSEX", &leftover);
+			Rack rack(letters);
+			game.currentPosition().setCurrentPlayerRack(rack);
+		}
+		V2Simulator v2sim = V2Simulator(game);
+		v2sim.getCandidates(10);
+		v2sim.sim(5000);
+	}
+}
+
+void TestHarness::selfPlayGames(unsigned int seed, unsigned int reps,
+																bool reports, bool playability)
 {
 	if (seed != numeric_limits<unsigned int>::max()) {
 		UVcout << "using seed " << seed << endl;
@@ -923,7 +976,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				UVcout << "playing move #" << toPlay << ": " << tops[toPlay] << endl;
 				game.commitMove(tops[toPlay]);
 			} else {
-				if (i == 1) break;
+				if (i == 12) break;
 				UVString leftover;
 				LetterString letters;
 				if (i == 0) {
@@ -936,7 +989,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 					letters = QUACKLE_ALPHABET_PARAMETERS->encode("THEREAT", &leftover);
 				} 
 				Rack rack(letters);
-				game.currentPosition().setCurrentPlayerRack(rack);
+				//game.currentPosition().setCurrentPlayerRack(rack);
 				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
 				UVcout << game.currentPosition() << endl;
 				/*	

@@ -7,8 +7,12 @@
 #include "anagrammap.h"
 #include "game.h"
 #include "move.h"
+#include "v2gaddag.h"
 
+// TODO: generate this from alphabet
 using namespace std;
+
+#define EVERY_LETTER 0x7FFFFFE0
 
 namespace Quackle {
 
@@ -17,12 +21,22 @@ namespace Quackle {
   public:
     V2Generator();
     V2Generator(const Quackle::GamePosition &position);
+    V2Generator(const Quackle::GamePosition &position,
+		const map<Product, vector<LetterString>>& bingos);
+		
     ~V2Generator();
 
+    MoveList kibitzAll();
     Move kibitz();
-    void findStaticBests();
 
-    const MoveList& bestMoves() const { return m_bests; }
+    const MoveList& bestMoves() const {
+      assert(m_justBest);
+      return m_moves;
+    }
+
+    static void findBingos(const set<LetterString>& racks,
+			   map<Product, vector<LetterString>>* bingos);
+
     static void initializeTiebreaker() { m_tiebreakDividend = 0; }
     static unsigned int m_tiebreakDividend;
     
@@ -88,7 +102,9 @@ namespace Quackle {
 	return worthCheckingBehind[behind].couldBeBest;
       }
     };
-    
+
+    void findStaticPlays();
+
     inline double getLeave() const;
     int hookLetterMultiplier(int row, int col, bool horiz);
     void scoreSpot(Spot* spot);
@@ -115,6 +131,15 @@ namespace Quackle {
     inline bool duplicatePreceding(const Letter* letters, int i) const;
     void findBlankBingos();
     void findBingos();
+    static void findBingos(const set<Product>& subsets,
+			   const V2Gaddag& gaddag,
+			   const unsigned char* node,
+			   LetterString* prefix,
+			   Product product,
+			   map<Product, vector<LetterString>>* bingos);
+    static void findBingos(const set<Product>& subsets,
+			   map<Product, vector<LetterString>>* bingos);
+    static void addSubsets(const LetterString& rack, set<Product>* subsets);
     void findBestExchange();
     inline Letter boardLetter(int row, int col);
     inline int tileScore(int row, int col);
@@ -147,10 +172,11 @@ namespace Quackle {
     
     // restriction is a letter index mask, restricing to letters on rack
     // that can hook in this context
-    inline bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
-			   uint32_t restiction,
-			   Letter minLetter, int* childIndex, Letter* foundLetter,
-			   const unsigned char** child) const;
+    static inline
+      bool nextLetter(const V2Gaddag& gaddag, const unsigned char* node,
+		      uint32_t restiction,
+		      Letter minLetter, int* childIndex, Letter* foundLetter,
+		      const unsigned char** child);
     
     inline int scoreLetter(int pos, Letter letter, int letterMultiplier);
     
@@ -174,7 +200,7 @@ namespace Quackle {
     inline bool fits(const Spot& spot, const LetterString& word,
 		     int ahead, int behind, int* wordHookScore);
     inline int getWordMultiplierAndHooks(const Spot& spot, int ahead, int behind);
-    void fitBingos(const Spot& spot);
+    void fitBingos(Spot* spot);
     void findBlankless(Spot* spot, int delta, int ahead, int behind, int velocity,
 		       int wordMultiplier, const V2Gaddag& gaddag,
 		       const unsigned char* node);
@@ -195,9 +221,6 @@ namespace Quackle {
     // constant while finding moves, allows us to check if a blank was played
     int m_numBlanks;
     
-    // TODO: generate this from alphabet
-    uint32_t m_everyLetter = 0x7FFFFFE0;
-
     vector<LetterString> m_bingos;
     uint32_t m_rackBits;
     Letter m_placed[QUACKLE_MAXIMUM_BOARD_SIZE];
@@ -208,7 +231,8 @@ namespace Quackle {
 
     inline bool bestEnough(double equity) const;
     inline bool clearlyBetter(double equity) const;
-    MoveList m_bests;
+    bool m_justBest;
+    MoveList m_moves;
 
     double m_bestEquityEpsilon = 0.0001;
     double m_blankSpendingEpsilon = 0.0001;
@@ -221,7 +245,10 @@ namespace Quackle {
     const Rack& rack() const {
       return m_position.currentPlayer().rack();
     }
+    Product m_product;
     const RackAnagrams* m_anagrams;
+    const map<Product, vector<LetterString>>* m_bingoMap;
+    
   };
 }  // namespace Quackle
 

@@ -145,19 +145,17 @@ void Bag::refill(Rack &rack)
 		rack.setTiles(String::alphabetize(rack.tiles() + pluck()));
 }
 
-LetterString Bag::refill(Rack &rack, const LetterString &drawingOrder)
-{
-	LetterString ret(drawingOrder);
+LongLetterString Bag::refill(Rack &rack, const LongLetterString &drawingOrder) {
+	LongLetterString ret(drawingOrder);
 
-	for (int number = QUACKLE_PARAMETERS->rackSize() - rack.tiles().length(); number > 0 && !m_tiles.empty(); --number)
-	{
-		if (drawingOrder.empty())
+	for (int number = QUACKLE_PARAMETERS->rackSize() - rack.tiles().length();
+			 number > 0 && !m_tiles.empty(); --number) {
+		if (drawingOrder.empty()) {
 			rack.setTiles(String::alphabetize(rack.tiles() + pluck()));
-		else
-		{
-			removeLetter(String::back(ret));
-			rack.setTiles(String::alphabetize(rack.tiles() + String::back(ret)));
-			String::pop_back(ret);
+		} else {
+			removeLetter(ret.back());
+			rack.setTiles(String::alphabetize(rack.tiles() + ret.back()));
+			ret.pop_back();
 		}
 	}
 
