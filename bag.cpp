@@ -156,6 +156,9 @@ LongLetterString Bag::refill(Rack &rack, const LongLetterString &drawingOrder) {
 			removeLetter(ret.back());
 			rack.setTiles(String::alphabetize(rack.tiles() + ret.back()));
 			ret.pop_back();
+      // UVcout << "this bag: " << *this << endl;
+			// UVcout << "new drawingOrder (" << ret.size() << "): "
+			// 			 << QUACKLE_ALPHABET_PARAMETERS->userVisible(ret) << endl;
 		}
 	}
 

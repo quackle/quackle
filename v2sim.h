@@ -73,6 +73,7 @@ namespace Quackle {
     Move move;
 
     V2AverageValue residual;
+    V2AverageValue deadwood;
     V2AverageValue gameSpread;
     V2AverageValue wins;
   };
@@ -93,8 +94,9 @@ namespace Quackle {
     Game m_originalGame;
     V2SimmedMoveList m_simmedMoves;
     map<Product, vector<LetterString>> m_bingos;
-    int m_plies = 2;
+    int m_plies = 999;
     vector<Rack> m_oppRacks;
+    vector<Bag> m_bags;
     vector<LongLetterString> m_orders;
     vector<vector<int>> m_exchangeDividends;
   };

@@ -19,19 +19,21 @@ using namespace Quackle;
 
 V2Generator::V2Generator() {}
 
-V2Generator::V2Generator(const GamePosition &position)
-  : m_position(position) {
+V2Generator::V2Generator(const GamePosition &position, int tiebreakDividend)
+  : m_position(position),
+		m_tiebreakDividend(tiebreakDividend),
+		m_bingoMap(NULL) {
 }
 
 V2Generator::V2Generator(const GamePosition &position,
+												 int tiebreakDividend,
 												 const map<Product, vector<LetterString>>& bingos)
   : m_position(position),
+		m_tiebreakDividend(tiebreakDividend),
 		m_bingoMap(&bingos) {
 }
 
 V2Generator::~V2Generator() {}
-
-unsigned int V2Generator::m_tiebreakDividend;
 
 MoveList V2Generator::kibitzAll() {
 	m_justBest = false;
@@ -43,16 +45,15 @@ Move V2Generator::kibitz() {
 	m_justBest = true;
   findStaticPlays();
 	assert(!m_moves.empty());
-	int index = m_tiebreakDividend++ % m_moves.size();
+	int index = m_tiebreakDividend % m_moves.size();
 	return m_moves[index];
 }
 
 void V2Generator::findStaticPlays() {
   //UVcout << "findStaticPlays(): " << endl << m_position << endl;
 	m_moves.clear();
-	// Only do this if no exchanges exist
-	//m_moves.push_back(Move::createPassMove());
 
+	assert(!rack().tiles().empty());
   setUpCounts(rack().tiles());
 	m_rackBits = 0;
 	for (int letter = QUACKLE_ALPHABET_PARAMETERS->firstLetter();
@@ -89,30 +90,35 @@ void V2Generator::findStaticPlays() {
 			findBingos();
 		}
 		gettimeofday(&end, NULL);
-		UVcout << "Time finding bingos was "
-				 << ((end.tv_sec * 1000000 + end.tv_usec)
-						 - (start.tv_sec * 1000000 + start.tv_usec))
-					 << " microseconds." << endl;
-		/*
-		for (const LetterString& bingo : m_bingos) {
-			UVcout << "bingo: "
-						 << QUACKLE_ALPHABET_PARAMETERS->userVisible(bingo) << endl;
-		}
-		*/
+		// UVcout << "Time finding bingos was "
+		// 		 << ((end.tv_sec * 1000000 + end.tv_usec)
+		// 				 - (start.tv_sec * 1000000 + start.tv_usec))
+		// 			 << " microseconds." << endl;
+		// for (const LetterString& bingo : m_bingos) {
+		// 	UVcout << "bingo: "
+		// 				 << QUACKLE_ALPHABET_PARAMETERS->userVisible(bingo) << endl;
+		// }
 	}
 	
-	// TODO: are enough tiles in the bag?
-  // TODO much later: would this end the game?
-	gettimeofday(&start, NULL);
-	findBestExchange();
-	gettimeofday(&end, NULL);
-	// UVcout << "Time finding exchanges was "
-	// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
-	// 					 - (start.tv_sec * 1000000 + start.tv_usec))
-	// 			 << " microseconds." << endl;
-	if (m_justBest) {
-		//UVcout << "best exchange: " << m_moves[0] << endl;
+  if (bag().size() < 7) {
+		m_moves.push_back(Move::createPassMove());
 	}
+	if (bag().size() == 0) {
+		for (int i = 0; i <= 7; ++i) {
+			m_bestLeaves[i] = 0;
+		}
+	} else {
+		gettimeofday(&start, NULL);
+		findBestExchange();
+		gettimeofday(&end, NULL);
+		// UVcout << "Time finding exchanges was "
+		// 			 << ((end.tv_sec * 1000000 + end.tv_usec)
+		// 					 - (start.tv_sec * 1000000 + start.tv_usec))
+		// 			 << " microseconds." << endl;
+	}
+	// if (m_justBest) {
+	// 	UVcout << "best exchange: " << m_moves[0] << endl;
+	// }
 	
 	gettimeofday(&start, NULL);
 	computeHooks();
@@ -666,7 +672,7 @@ void V2Generator::findBingos(const set<Product>& subsets,
 				const Letter blankLetter = QUACKLE_ALPHABET_PARAMETERS->setBlankness(letter);
 				prefix->push_back(blankLetter);
 				if (prefix->size() == 7) {
-					(*bingos)[newProduct].push_back(*prefix);
+					(*bingos)[blankProduct].push_back(*prefix);
 				} else {
 					findBingos(subsets, gaddag, newNode, prefix, blankProduct, bingos);
 				}
@@ -699,6 +705,8 @@ void V2Generator::findBingos(const set<LetterString>& racks,
 }
 
 void V2Generator::findBestExchange() {
+	// UVcout << "findBestExchange... bag.size(): " << bag().size() << endl;
+	//UVcout << "rack: " << rack() << endl;
 	assert(rack().size() == 7);
 	for (int i = 0; i <= 7; ++i) {
 		m_bestLeaves[i] = -9999;
@@ -707,14 +715,15 @@ void V2Generator::findBestExchange() {
 	uint64_t primes[7];
 	int bestMask = 0;
 	const LetterString& tiles = rack().tiles();
-  if (!m_justBest) {
+  if (bag().size() >= 7 && !m_justBest) {
 		Move exchange = Move::createExchangeMove(tiles);
 	  exchange.equity = bestEquity;
 		m_moves.push_back(exchange);
 	}
 	set<LetterString> exchanges;
 	for (int i = 0; i < 7; ++i) {
-		primes[i] = QUACKLE_PRIMESET->lookUpTile(tiles[i]);
+	 	primes[i] = QUACKLE_PRIMESET->lookUpTile(tiles[i]);
+	 	//UVcout << "primes[" << i << "]: " << primes[i] << endl;
 	}
 	uint64_t products[127];
 	for (int i = 1; i < 127; ++i) products[i] = 1;
@@ -740,14 +749,17 @@ void V2Generator::findBestExchange() {
 			}
 			assert(numExchanged == (7 - __builtin_popcount(mask)));
 			assert(product == products[mask]);
+			assert(product > 0);
 		}
 #endif
+		//UVcout << "mask: " << mask << endl;
+		//UVcout << "products[mask]: " << products[mask] << endl;
 		double leave = QUACKLE_STRATEGY_PARAMETERS->primeleave(products[mask]);
 		if (leave > bestEquity) {
 			bestEquity = leave;
 			bestMask = mask;
 		}
-		if (!m_justBest) {
+		if (bag().size() >= 7 && !m_justBest) {
 			LetterString exchanged;
 			for (int i = 0; i < 7; ++i) {
 				if (((1 << i) & mask) == 0) {
@@ -775,7 +787,7 @@ void V2Generator::findBestExchange() {
 	// the tie arbitrarily.
 	//
 	// The exchange is definitely best: right now m_moves contains Pass
-	if (m_justBest) {	
+	if (bag().size() >= 7 && m_justBest) {	
 		Move exchange = Move::createExchangeMove(exchanged);
 		exchange.equity = bestEquity;
 		m_moves.push_back(exchange);
@@ -874,8 +886,10 @@ namespace {
 }
 
 double V2Generator::getLeave() const {
+	if (bag().size() == 0) return 0;
 	uint64_t product = 1;
-	for (int i = QUACKLE_BLANK_MARK; i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++i) {
+	for (int i = QUACKLE_BLANK_MARK;
+			 i <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++i) {
 		for (int j = 0; j < m_counts[i]; ++j) {
 			product *= QUACKLE_PRIMESET->lookUpTile(i);
 		}
@@ -2171,6 +2185,7 @@ void V2Generator::debugHooks() {
 }
 
 bool V2Generator::couldHaveBingos() const {
+	if (rack().size() < 7) return false;
 	if (m_anagrams == NULL) return true;
 	const int lengthMask = 1 << 7;
 	const UsesTiles usesTiles =

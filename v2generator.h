@@ -1,6 +1,8 @@
 #ifndef QUACKLE_V2_GENERATOR_H
 #define QUACKLE_V2_GENERATOR_H
 
+#include <map>
+#include <set>
 #include <vector>
 
 #include "alphabetparameters.h"
@@ -20,8 +22,10 @@ namespace Quackle {
 
   public:
     V2Generator();
-    V2Generator(const Quackle::GamePosition &position);
     V2Generator(const Quackle::GamePosition &position,
+		int tiebreakDividend);
+    V2Generator(const Quackle::GamePosition &position,
+		int tiebreakDividend,
 		const map<Product, vector<LetterString>>& bingos);
 		
     ~V2Generator();
@@ -37,9 +41,6 @@ namespace Quackle {
     static void findBingos(const set<LetterString>& racks,
 			   map<Product, vector<LetterString>>* bingos);
 
-    static void initializeTiebreaker() { m_tiebreakDividend = 0; }
-    static unsigned int m_tiebreakDividend;
-    
     const unsigned char* vertBeforeNode(int row, int col, int numLetters);
     const unsigned char* vertAfterNode(int row, int col, int numLetters);
     const unsigned char* horizBeforeNode(int row, int col, int numLetters);
@@ -241,9 +242,13 @@ namespace Quackle {
     UVString counts2string() const;
 
     GamePosition m_position;
+    int m_tiebreakDividend;
     Board* board() { return &m_position.underlyingBoardReference(); }
     const Rack& rack() const {
       return m_position.currentPlayer().rack();
+    }
+    const Bag& bag() const {
+      return m_position.bag();
     }
     Product m_product;
     const RackAnagrams* m_anagrams;

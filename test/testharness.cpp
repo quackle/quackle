@@ -623,8 +623,6 @@ Move TestHarness::readMove(const QString& line, int startToken) {
 void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
 														 const vector<Quackle::MoveList>& bests,
 														 const vector<Quackle::Move>& played) {
-	Quackle::V2Generator::initializeTiebreaker();
-	
 	Quackle::Game game;
 
 	Quackle::PlayerList players;
@@ -646,7 +644,7 @@ void TestHarness::verifyGame(const vector<Quackle::Rack>& racks,
 
 	for (unsigned int i = 0; i < racks.size(); ++i) {
 		game.currentPosition().setCurrentPlayerRack(racks[i]);
-		Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+		Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition(), i);
     v2gen.kibitz();
 		game.currentPosition().addAndSetMoveMade(played[i]);
 		const MoveList& v2moves = v2gen.bestMoves();
@@ -851,8 +849,6 @@ void TestHarness::sim(unsigned int reps) {
 
 void TestHarness::simGame(unsigned int gameNumber) {
 		// This should make the selfplay games repeatable for testing.
-	Quackle::V2Generator::initializeTiebreaker();
-	
 	Quackle::Game game;
 
 	Quackle::PlayerList players;
@@ -887,8 +883,8 @@ void TestHarness::simGame(unsigned int gameNumber) {
 			game.currentPosition().setCurrentPlayerRack(rack);
 		}
 		V2Simulator v2sim = V2Simulator(game);
-		v2sim.getCandidates(10);
-		v2sim.sim(5000);
+		v2sim.getCandidates(1);
+		v2sim.sim(10);
 	}
 }
 
@@ -910,9 +906,6 @@ namespace {
 
 void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playability)
 {
-	// This should make the selfplay games repeatable for testing.
-	Quackle::V2Generator::initializeTiebreaker();
-	
 	Quackle::Game game;
 
 	Quackle::PlayerList players;
@@ -990,7 +983,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 				} 
 				Rack rack(letters);
 				//game.currentPosition().setCurrentPlayerRack(rack);
-				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition());
+				Quackle::V2Generator v2gen = Quackle::V2Generator(game.currentPosition(), i);
 				UVcout << game.currentPosition() << endl;
 				/*	
 				struct timeval start, end;

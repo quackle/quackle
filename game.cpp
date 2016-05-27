@@ -604,11 +604,15 @@ void GamePosition::replenishAndSetRack(const Rack &previousRack, Player &player)
 	UVcout << "(Before refill) " << m_bag << endl;
 #endif
 
-	if (m_drawingOrder.empty())
+	// UVcout << "drawingOrder (" << m_drawingOrder.size() << "): "
+	//  			 << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_drawingOrder) << endl;
+	if (m_drawingOrder.empty()) {
 		m_bag.refill(newRack);
-	else
+	}
+	else {
+		assert(m_bag.size() == static_cast<int>(m_drawingOrder.size()));
 		m_drawingOrder = m_bag.refill(newRack, m_drawingOrder);
-
+	}
 	player.setRack(newRack);
 	player.setDrawnLetters(newRack - previousRack);
 
@@ -1051,8 +1055,7 @@ void GamePosition::adjustScoresToFinishPassedOutGame()
 	}
 }
 
-void GamePosition::adjustScoresToFinishGame()
-{
+void GamePosition::adjustScoresToFinishGame() {
 	int addend = 0;
 	LetterString clobberedTiles;
 
@@ -1062,14 +1065,12 @@ void GamePosition::adjustScoresToFinishGame()
 	m_committedMove = m_moveMade;
 }
 
-int GamePosition::deadwood(LetterString *tiles) const
-{
+int GamePosition::deadwood(LetterString *tiles) const {
 	int addend = 0;
 	tiles->clear();
 
 	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
-	{
+	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it) {
 		if ((*it) == currentPlayer())
 			continue;
 

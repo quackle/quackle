@@ -1,4 +1,5 @@
 #include <set>
+#include <thread>
 
 #include <iostream>
 #include <math.h>
@@ -10,6 +11,7 @@
 #include "gameparameters.h"
 #include "move.h"
 #include "strategyparameters.h"
+#include "v2endgame.h"
 #include "v2generator.h"
 #include "v2sim.h"
 
@@ -23,7 +25,7 @@ V2Simulator::V2Simulator(const Quackle::Game &game) {
 }
 
 void V2Simulator::getCandidates(unsigned int numPlays) {
-  V2Generator gen(m_originalGame.currentPosition());
+  V2Generator gen(m_originalGame.currentPosition(), 0);
   MoveList moves = gen.kibitzAll();
   MoveList::sort(moves, MoveList::Equity);
   //const Move& staticTop = moves[0];
@@ -45,7 +47,9 @@ void V2Simulator::sim(Game game, int iteration, V2SimmedMove* move) {
   assert(m_plies >= 2);
   float gameSpread = move->move.score;
   float residual = 0;
-  for (int i = 1; i <= m_plies; ++i) {
+  int i;
+  for (i = 1; i <= m_plies; ++i) {
+    if (game.currentPosition().gameOver()) break;
     if (i == 1) {
       game.currentPosition()
 	.setCurrentPlayerRack(m_oppRacks[iteration], false);
@@ -61,9 +65,18 @@ void V2Simulator::sim(Game game, int iteration, V2SimmedMove* move) {
     // UVcout << endl;
     // UVcout << "exchangeDividendIndex: "
     // 	   << game.currentPosition().exchangeDividendIndex() << endl;
+
+    int tiebreak = iteration * m_plies + i;
+
+    Move lookAhead;
+    if (game.currentPosition().bag().empty()) {
+      V2Endgame endgame(game.currentPosition(), m_bingos);
+      lookAhead = endgame.solve();
+    } else {
+      V2Generator gen(game.currentPosition(), tiebreak, m_bingos);
+      lookAhead = gen.kibitz();
+    }
     
-    V2Generator gen(game.currentPosition(), m_bingos);
-    const Move lookAhead = gen.kibitz();
     UVcout << "lookAhead, ply " << i << ": " << lookAhead << endl;
     game.currentPosition().addAndSetMoveMade(lookAhead);
     game.commitMove(lookAhead);
@@ -78,6 +91,26 @@ void V2Simulator::sim(Game game, int iteration, V2SimmedMove* move) {
       if (finalPlyForPlayer) residual -= turnResidual;
     }
   }
+  if (game.currentPosition().gameOver()) {
+    int deadwood;
+    const Rack& onTurn =
+      game.currentPosition().currentPlayer().rack();
+    UVcout << "onTurn: " << onTurn << endl;
+    const Rack& offTurn = game.currentPosition().oppRack();
+    UVcout << "offTurn: " << offTurn << endl;
+    assert(offTurn.size() > 0);
+    if (onTurn.size() > 0) {
+      deadwood = offTurn.score() - onTurn.score();
+    } else {
+      deadwood = offTurn.score() * 2;
+    }
+    bool wePlayedOut = (i % 2) == 0;
+    if (!wePlayedOut) deadwood *= -1;
+    UVcout << "deadwood: " << deadwood << endl;
+    move->deadwood.incorporateValue(deadwood);
+  } else {
+    move->deadwood.incorporateValue(0);
+  }
   move->gameSpread.incorporateValue(gameSpread);
   move->residual.incorporateValue(residual);
 }
@@ -87,6 +120,8 @@ void V2Simulator::sim(V2SimmedMove* move, int iterations) {
 	 << iterations << " iterations." << endl;
   for (int i = 0; i < iterations; ++i) {
     Game game = m_originalGame;
+    game.currentPosition().setBag(m_bags[i]);
+    UVcout << "m_bags[" << i << "]: " << m_bags[i] << endl;
     game.currentPosition()
       .setDrawingOrder(m_orders[i]);
     game.currentPosition()
@@ -104,7 +139,11 @@ void V2Simulator::sim(V2SimmedMove* move, int iterations) {
 
     sim(game, i, move);
   }
-  UVcout << "equity: " << move->calculateEquity() << endl << endl;
+  //UVcout << "equity: " << move->calculateEquity() << endl << endl;
+}
+
+void simEntry(V2Simulator* v2sim, V2SimmedMove* move, int iterations) {
+  v2sim->sim(move, iterations);
 }
 
 void V2Simulator::sim(int iterations) {
@@ -122,6 +161,7 @@ void V2Simulator::sim(int iterations) {
   for (unsigned int i = 0; i < m_simmedMoves.size(); ++i) {
     for (int j = 0; j < iterations; ++j) {
       Game game = m_originalGame;
+      game.currentPosition().setBag(m_bags[j]);
       game.currentPosition().setDrawingOrder(m_orders[j]);
       game.currentPosition()
 	.addAndSetMoveMade(m_simmedMoves[i].move);
@@ -158,8 +198,24 @@ void V2Simulator::sim(int iterations) {
 	     << endl;
     }
   }
+  
   for (unsigned int i = 0; i < m_simmedMoves.size(); ++i) {
     sim(&(m_simmedMoves[i]), iterations);
+  }
+
+  /*
+  vector<thread> threads;
+  for (unsigned int i = 0; i < m_simmedMoves.size(); ++i) {
+    threads.push_back(std::thread(simEntry, this, &(m_simmedMoves[i]),
+				  iterations));
+  }
+  for (unsigned int i = 0; i < threads.size(); ++i) {
+    threads[i].join();
+  }
+  */
+  for (unsigned int i = 0; i < m_simmedMoves.size(); ++i) {
+    UVcout << m_simmedMoves[i].move << " equity: "
+	   << m_simmedMoves[i].calculateEquity() << endl;
   }
 }
 
@@ -167,10 +223,13 @@ void V2Simulator::randomizeTiles(int iterations) {
   m_oppRacks.reserve(iterations);
   m_orders.reserve(iterations);
   m_exchangeDividends.resize(iterations);
+  const Bag unseenBag = m_originalGame.currentPosition().unseenBag();
+  m_originalGame.currentPosition().setBag(unseenBag);
   for (int i = 0; i < iterations; ++i) {
-    Bag bag(m_originalGame.currentPosition().unseenBag());
+    Bag bag(unseenBag);
     Rack rack;
     bag.refill(rack);
+    m_bags.push_back(bag);
     m_oppRacks.push_back(rack);
     m_orders.push_back(bag.shuffledTiles());
     vector<int>* exchangeDividends = &(m_exchangeDividends[i]);
