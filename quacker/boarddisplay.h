@@ -22,8 +22,10 @@
 #include <move.h>
 
 #include "view.h"
+#include <QLineEdit>
 
 class QLineEdit;
+class QLineEditWithShiftReturn;
 class QPushButton;
 class QTextEdit;
 class QVBoxLayout;
@@ -49,6 +51,7 @@ protected slots:
 
 private slots:
 	void quickEditReturnPressed();
+	void quickEditShiftReturnPressed();
 	void plusFive();
 	void performCommit();
 	void reset();
@@ -60,7 +63,7 @@ protected:
 	QVBoxLayout *m_vlayout;
 
 private:
-	QLineEdit *m_lineEdit;
+	QLineEditWithShiftReturn *m_lineEdit;
 	QPushButton *m_commitButton;
 	Quackle::Move m_localCandidateMove;
 };
@@ -78,5 +81,17 @@ public slots:
 private:
 	QTextEdit *m_textEdit;
 };
+
+class QLineEditWithShiftReturn : public QLineEdit
+{
+Q_OBJECT
+
+signals:
+	void shiftReturnPressed();
+
+public:
+	virtual void keyPressEvent(QKeyEvent * e);
+};
+
 
 #endif

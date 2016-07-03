@@ -32,8 +32,9 @@ BoardWithQuickEntry::BoardWithQuickEntry(QWidget *parent)
 	m_vlayout = new QVBoxLayout(this);
 	Geometry::setupInnerLayout(m_vlayout);
 
-	m_lineEdit = new QLineEdit;
+	m_lineEdit = new QLineEditWithShiftReturn;
 	connect(m_lineEdit, SIGNAL(returnPressed()), this, SLOT(quickEditReturnPressed()));
+	connect(m_lineEdit, SIGNAL(shiftReturnPressed()), this, SLOT(quickEditShiftReturnPressed()));
 
 	QLabel *placeLabel = new QLabel(tr("Move: '<position> <word>' or 'exchange <tiles|number>'"));
 	placeLabel->setBuddy(m_lineEdit);
@@ -94,6 +95,13 @@ void BoardWithQuickEntry::quickEditReturnPressed()
 	processCommand(m_lineEdit->text());
 
 	m_lineEdit->clear();
+}
+
+void BoardWithQuickEntry::quickEditShiftReturnPressed()
+{
+	quickEditReturnPressed();
+	performCommit();
+	m_lineEdit->setFocus();
 }
 
 void BoardWithQuickEntry::plusFive()
@@ -217,3 +225,19 @@ void TextBoard::positionChanged(const Quackle::GamePosition &position)
 	//m_textEdit->setHtml(QString("<html><font size=\"+4\"><pre>%1</pre></font></html>").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
 	m_textEdit->setPlainText(QString("%1").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
 }
+
+///////////
+
+void QLineEditWithShiftReturn::keyPressEvent(QKeyEvent * e)
+{
+	if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter)
+	{
+		if (e->modifiers() & Qt::ShiftModifier)
+		{
+			emit shiftReturnPressed();
+			return;
+		}
+	}
+	QLineEdit::keyPressEvent(e);
+}
+
