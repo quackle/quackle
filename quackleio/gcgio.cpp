@@ -43,6 +43,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	bool gameStarted = false;
 
 	QString line;
+	stream.setCodec(QTextCodec::codecForName("ISO-8859-1"));
 	while (!stream.atEnd())
 	{
 		line = stream.readLine();
@@ -110,6 +111,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				const QString rackString = strings.isEmpty()? QString() : strings.front();
 				incompleteRack = Util::encode(rackString);
 				hasIncompleteRack = true;
+			}
+			else if (line.startsWith("#character-encoding"))
+			{
+				QString encoding{line.right(line.length() - 20).trimmed()};
+				stream.setCodec(QTextCodec::codecForName(encoding.toAscii()));
 			}
 		}
 		else if (line.startsWith(">"))
@@ -293,6 +299,7 @@ bool GCGIO::canRead(QTextStream &stream) const
 void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 {
 	Quackle::PlayerList players = game.players();
+	stream.setCodec(QTextCodec::codecForName("ISO-8859-1"));
 	for (Quackle::PlayerList::iterator it = players.begin(); it != players.end(); ++it)
 	{
 		stream << "#player" << (*it).id() + 1 << " " << Util::uvStringToQString((*it).abbreviatedName()) << " " << Util::uvStringToQString((*it).name()) << endl;

@@ -1319,6 +1319,7 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 		Quackle::ComputerPlayer *clone = player->clone();
 
 		QTextStream stream(&file);
+		stream.setCodec(QTextCodec::codecForName("UTF-8"));
 		QuackleIO::StreamingReporter::reportGame(*m_game, clone, stream);
 		delete clone;
 	}
