@@ -156,6 +156,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 				break;
 
 			case Move::Exchange:
+			case Move::BlindExchange:
 				s << MARK_UV("xch");
 				break;
 

@@ -168,10 +168,21 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			else if (firstMoveBite.startsWith("-"))
 			{
 				const QString exchangedLetters = firstMoveBite.right(firstMoveBite.length() - 1);
-				if (exchangedLetters.isEmpty())
+				bool isLetterCount = false;
+				uint letterCount = exchangedLetters.toUInt(&isLetterCount);
+
+				if (exchangedLetters.isEmpty() || (isLetterCount && letterCount == 0))
 					move = Quackle::Move::createPassMove();
+				else if (isLetterCount)
+				{
+					Quackle::LetterString encodedLetters;
+
+					for (uint i = 0; i < letterCount; ++i)
+						encodedLetters.push_back(QUACKLE_BLANK_MARK);
+					move = Quackle::Move::createExchangeMove(encodedLetters, true);
+				}
 				else
-					move = Quackle::Move::createExchangeMove(Util::encode(exchangedLetters));
+					move = Quackle::Move::createExchangeMove(Util::encode(exchangedLetters), false);
 			}
 			else if (firstMoveBite.startsWith("(time)"))
 			{

@@ -55,6 +55,10 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 		ret = QObject::tr("Exch. %1").arg(prettyTiles);
 		break;
 	
+	case Quackle::Move::BlindExchange:
+		ret = QObject::tr("Exch. %1").arg(move.tiles().length());
+		break;
+	
 	case Quackle::Move::UnusedTilesBonus:
 		ret = QObject::tr("2*(%1)").arg(letterStringToQString(Util::alphagram(move.usedTiles())));
 		break;

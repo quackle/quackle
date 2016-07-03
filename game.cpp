@@ -357,6 +357,11 @@ int GamePosition::validateMove(const Move &move) const
 		}
 		break;
 
+	case Move::BlindExchange:
+		if (!exchangeAllowed())
+			ret |= TooLateExchange;
+		break;
+
 	case Move::UnusedTilesBonus:
 	case Move::TimePenalty:
 		ret = InvalidAction;
@@ -783,7 +788,7 @@ bool GamePosition::incrementTurn()
 			}
 		}
 
-		if ((m_moveMade.action == Move::Place && m_moveMade.effectiveScore() == 0) || m_moveMade.action == Move::Exchange || m_moveMade.action == Move::Pass)
+		if ((m_moveMade.action == Move::Place && m_moveMade.effectiveScore() == 0) || m_moveMade.action == Move::Exchange || m_moveMade.action == Move::BlindExchange || m_moveMade.action == Move::Pass)
 			++m_scorelessTurnsInARow;
 		else
 			m_scorelessTurnsInARow = 0;

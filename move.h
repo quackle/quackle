@@ -43,7 +43,7 @@ namespace Quackle
 class Move
 {
 public:
-	enum Action { Place = 0, Exchange, Pass, UnusedTilesBonus, TimePenalty, Nonmove };
+	enum Action { Place = 0, Exchange, BlindExchange, Pass, UnusedTilesBonus, TimePenalty, Nonmove };
 
 	// creates a pass move with 0 equity;
 	// tiles is "", score and equity are zero
@@ -124,7 +124,7 @@ public:
 	static Move createChallengedPhoney(UVString placeString, LetterString word);
 	static Move createChallengedPhoney(int zeroIndexedRow, int zeroIndexedColumn, bool horizontal, LetterString word);
 
-	static Move createExchangeMove(LetterString tilesToExchange);
+	static Move createExchangeMove(LetterString tilesToExchange, bool isBlind);
 	static Move createUnusedTilesBonus(LetterString unusedTiles, int bonus);
 	static Move createTimePenalty(int penalty);
 	static Move createPassMove();

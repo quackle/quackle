@@ -178,7 +178,7 @@ void BoardWithQuickEntry::processCommand(const QString &command)
 			if (isPass)
 				move = Quackle::Move::createPassMove();
 			else
-				move = Quackle::Move::createExchangeMove(encodedLetters);
+				move = Quackle::Move::createExchangeMove(encodedLetters, isIntConvertable);
 		}
 		else
 		{

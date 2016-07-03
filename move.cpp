@@ -48,6 +48,10 @@ bool operator==(const Move &move1, const Move &move2)
 				ret = (Quackle::String::alphabetize(move1.tiles()) == Quackle::String::alphabetize(move2.tiles()));
 				break;
 
+			case Quackle::Move::BlindExchange:
+				ret = (move1.tiles().length() == move2.tiles().length());
+				break;
+
 			case Quackle::Move::Pass:
 			case Quackle::Move::Nonmove:
 			case Quackle::Move::TimePenalty:
@@ -124,6 +128,7 @@ UVString Move::xml() const
 		break;
 
 	case Exchange:
+	case BlindExchange:
 		actionString = MARK_UV("exchange");
 		includeTiles = true;
 		break;
@@ -180,10 +185,12 @@ UVString Move::toString() const
 {
 	UVOStringStream ss;
 
-    if (action == Quackle::Move::Pass)
-        ss << "- ";
-    else if (action == Quackle::Move::Exchange)
-       ss << "-" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
+	if (action == Quackle::Move::Pass)
+		ss << "- ";
+	else if (action == Quackle::Move::Exchange)
+		ss << "-" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
+	else if (action == Quackle::Move::BlindExchange)
+		ss << "-" << m_tiles.length();
 	else if (action == Quackle::Move::Nonmove)
 		ss << "nonmove";
 	else if (action == Quackle::Move::TimePenalty)
@@ -290,11 +297,11 @@ Move Move::createChallengedPhoney(int zeroIndexedRow, int zeroIndexedColumn, boo
 	return move;
 }
 
-Move Move::createExchangeMove(LetterString tilesToExchange)
+Move Move::createExchangeMove(LetterString tilesToExchange, bool isBlind)
 {
 	Move move;
 
-	move.action = Move::Exchange;
+	move.action = isBlind ? Move::BlindExchange : Move::Exchange;
 	move.setTiles(tilesToExchange);
 	move.score = 0;
 

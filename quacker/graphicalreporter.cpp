@@ -192,6 +192,7 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 			}
 
 			case Quackle::Move::Exchange:
+			case Quackle::Move::BlindExchange:
 			default:
 				item = QuackleIO::Util::moveToDetailedString(*it);
 				break;

@@ -396,7 +396,9 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 		ensureUpToDateSimulatorMoveList();
 	}
 
-	if (!m_game->currentPosition().currentPlayer().racksAreKnown() && !m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles()))
+	if (!m_game->currentPosition().currentPlayer().racksAreKnown() &&
+		!m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles()) &&
+		prettiedMove.action != Quackle::Move::BlindExchange)
 	{
 		m_game->currentPosition().setCurrentPlayerRack(Quackle::Rack(prettiedMove.usedTiles()));
 	}
