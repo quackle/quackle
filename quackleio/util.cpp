@@ -34,7 +34,7 @@ UtilSettings *UtilSettings::self()
 }
 
 UtilSettings::UtilSettings()
-	: octothorpBritish(true), vowelFirst(false)
+	: octothorpBritish(true), vowelFirst(false), scoreInvalidAsZero(false)
 {
 	m_self = this;
 }

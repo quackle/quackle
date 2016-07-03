@@ -52,6 +52,7 @@ private:
 	QCheckBox *m_verboseLabelsCheck;
 	QCheckBox *m_scoreLabelsCheck;
 	QCheckBox *m_octothorpCheck;
+	QCheckBox *m_scoreInvalidAsZero;
 	QComboBox *m_britishColoringCombo;
 };
 

@@ -42,6 +42,7 @@ public:
 
 	bool octothorpBritish;
 	bool vowelFirst;
+	bool scoreInvalidAsZero;
 
 private:
 	static UtilSettings *m_self;

@@ -297,6 +297,7 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 	if (!m_game->hasPositions() || (move.action == Quackle::Move::Place && move.tiles().empty()))
 		return;
 
+	bool playHasIllegalWords = false;
 	Quackle::Move prettiedMove(move);
 	m_game->currentPosition().ensureMoveTilesDoNotIncludePlayThru(prettiedMove);
 	m_game->currentPosition().ensureMovePrettiness(prettiedMove);
@@ -367,6 +368,8 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 					{
 						prettiedMove.setIsChallengedPhoney(true);
 					}
+					else
+						playHasIllegalWords = true;
 				}
 
 				validityFlags ^= Quackle::GamePosition::UnacceptableWord;
@@ -384,7 +387,10 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 		if (!carryOn)
 			return;
 
-		m_game->currentPosition().scoreMove(prettiedMove);
+		if (playHasIllegalWords && QuackleIO::UtilSettings::self()->scoreInvalidAsZero)
+			prettiedMove.score = 0;
+		else
+			m_game->currentPosition().scoreMove(prettiedMove);
 		m_game->currentPosition().addAndSetMoveMade(prettiedMove);
 		switchToTab(ChoicesTabIndex);
 		ensureUpToDateSimulatorMoveList();
