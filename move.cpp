@@ -85,7 +85,7 @@ bool Quackle::operator<(const Move &move1, const Move &move2)
 
 LetterString Move::usedTiles() const
 {
-    return m_isChallengedPhoney? LetterString() : String::usedTiles(m_tiles);
+    return (m_isChallengedPhoney || action == BlindExchange) ? LetterString() : String::usedTiles(m_tiles);
 }
 
 LetterString Move::wordTiles() const
