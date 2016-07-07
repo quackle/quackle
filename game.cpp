@@ -186,11 +186,12 @@ void Game::commitMove(const Move &move)
 ///////////
 
 GamePosition::GamePosition(const PlayerList &players)
-	: m_players(players), m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false), m_tilesInBag(m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * m_players.size())), m_tilesOnRack(QUACKLE_PARAMETERS->rackSize())
+	: m_players(players), m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false), m_tilesOnRack(QUACKLE_PARAMETERS->rackSize())
 {
 	setEmptyBoard();
 	resetMoveMade();
 	resetBag();
+	m_tilesInBag = m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * m_players.size()); 
 }
 
 GamePosition::GamePosition(const GamePosition &position)
