@@ -297,7 +297,6 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 	if (!m_game->hasPositions() || (move.action == Quackle::Move::Place && move.tiles().empty()))
 		return;
 
-	bool playHasIllegalWords = false;
 	Quackle::Move prettiedMove(move);
 	m_game->currentPosition().ensureMoveTilesDoNotIncludePlayThru(prettiedMove);
 	m_game->currentPosition().ensureMovePrettiness(prettiedMove);
@@ -309,6 +308,7 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 	}
 	else
 	{
+		bool playHasIllegalWords = false;
 		int validityFlags = m_game->currentPosition().validateMove(prettiedMove);
 		bool carryOn = true;
 
@@ -337,7 +337,16 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 				}
 				else
 				{
-					carryOn = askToCarryOn(tr("%1's rack does not include all tiles in %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+					QMessageBox mb(QMessageBox::Question, tr("Verify Play"),
+									tr("%1's rack does not include all tiles in %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+					QPushButton* mb_yes = mb.addButton(QMessageBox::Yes);
+					mb.addButton(QMessageBox::No);
+					QPushButton* mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
+					mb.exec();
+					if (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks)
+						carryOn = true;
+					if (mb.clickedButton() == mb_unknownRacks)
+						m_game->currentPosition().currentPlayer().setRacksAreKnown(false);
 				}
 
 				validityFlags ^= Quackle::GamePosition::InvalidTiles;
