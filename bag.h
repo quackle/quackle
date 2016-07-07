@@ -72,6 +72,9 @@ public:
 	// use this to start out your bag for use
 	void prepareFullBag();
 
+	// Assuming a full bag, how many tiles would that be?
+	int fullBagTileCount();
+
 	// whether there are no tiles left in the bag
 	bool empty() const;
 

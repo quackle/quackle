@@ -70,7 +70,7 @@ void Game::setPlayers(const PlayerList &list)
 void Game::addPosition()
 {
 	addClonePosition();
-	m_positions.lastPosition().incrementTurn();
+	m_positions.lastPosition().incrementTurn(&history());
 
 	m_positions.setCurrentLocation(m_positions.lastLocation());
 
@@ -186,7 +186,7 @@ void Game::commitMove(const Move &move)
 ///////////
 
 GamePosition::GamePosition(const PlayerList &players)
-	: m_players(players), m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false)
+	: m_players(players), m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false), m_tilesInBag(m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * m_players.size())), m_tilesOnRack(QUACKLE_PARAMETERS->rackSize())
 {
 	setEmptyBoard();
 	resetMoveMade();
@@ -194,7 +194,7 @@ GamePosition::GamePosition(const PlayerList &players)
 }
 
 GamePosition::GamePosition(const GamePosition &position)
-	: m_players(position.m_players), m_moves(position.m_moves), m_moveMade(position.m_moveMade), m_committedMove(position.m_committedMove), m_turnNumber(position.m_turnNumber), m_nestedness(position.m_nestedness), m_scorelessTurnsInARow(position.m_scorelessTurnsInARow), m_gameOver(position.m_gameOver), m_board(position.m_board), m_bag(position.m_bag), m_drawingOrder(position.m_drawingOrder), m_explanatoryNote(position.m_explanatoryNote)
+	: m_players(position.m_players), m_moves(position.m_moves), m_moveMade(position.m_moveMade), m_committedMove(position.m_committedMove), m_turnNumber(position.m_turnNumber), m_nestedness(position.m_nestedness), m_scorelessTurnsInARow(position.m_scorelessTurnsInARow), m_gameOver(position.m_gameOver), m_tilesInBag(position.m_tilesInBag), m_tilesOnRack(position.m_tilesOnRack), m_board(position.m_board), m_bag(position.m_bag), m_drawingOrder(position.m_drawingOrder), m_explanatoryNote(position.m_explanatoryNote)
 {
 	// reset iterator
 	if (position.turnNumber() == 0)
@@ -219,6 +219,8 @@ const GamePosition &GamePosition::operator=(const GamePosition &position)
 	m_nestedness = position.m_nestedness;
 	m_scorelessTurnsInARow = position.m_scorelessTurnsInARow;
 	m_gameOver = position.m_gameOver;
+	m_tilesInBag = position.m_tilesInBag;
+	m_tilesOnRack = position.m_tilesOnRack;
 	m_board = position.m_board;
 	m_bag = position.m_bag;
 	m_drawingOrder = position.m_drawingOrder;
@@ -747,7 +749,7 @@ void GamePosition::resetBag()
 	m_bag.prepareFullBag();
 }
 
-bool GamePosition::incrementTurn()
+bool GamePosition::incrementTurn(const History* history)
 {
 	if (gameOver() || m_players.empty())
 		return false;
@@ -767,6 +769,44 @@ bool GamePosition::incrementTurn()
 
 		// now moveTiles is the tiles that are in play but not on rack
 		removeLetters(moveTiles.tiles());
+		if (history)
+		{
+			PlayerList::iterator nextCurrentPlayer(m_currentPlayer);
+			nextCurrentPlayer++;
+			if (nextCurrentPlayer == m_players.end())
+				nextCurrentPlayer = m_players.begin();
+			const Quackle::PositionList positions(history->positionsFacedBy((*nextCurrentPlayer).id()));
+			if (positions.size() > 0)
+				m_tilesOnRack = positions.back().m_tilesOnRack;
+			m_tilesOnRack -= m_moveMade.usedTiles().size();
+			while (m_tilesInBag > 0 && m_tilesOnRack < QUACKLE_PARAMETERS->rackSize())
+			{
+				m_tilesInBag--;
+				m_tilesOnRack++;
+			}
+			if (m_tilesInBag == 0)
+			{
+				// We can get off on our counting with unknown racks.
+				// Shift tiles around if that happens.
+				Rack otherPlayerRack = nextCurrentPlayer->rack();
+				if (m_tilesOnRack == 0 && !remainingRack.empty())
+				{
+					otherPlayerRack.load(remainingRack.tiles());
+					remainingRack = remainingRack - remainingRack;
+				}
+				else if (m_tilesOnRack != 0 && remainingRack.empty())
+				{
+					int tilesToMove = m_tilesOnRack;
+					while (otherPlayerRack.tiles().size() > 0 && tilesToMove > 0)
+					{
+						LetterString oneAtATime = otherPlayerRack.tiles().substr(0, 1);
+						otherPlayerRack.unload(oneAtATime);
+						remainingRack.load(oneAtATime);
+					}
+				}
+				nextCurrentPlayer->setRack(otherPlayerRack);
+			}
+		}
 
 		// update our current player's score before possibly
 		// adding endgame bonuses

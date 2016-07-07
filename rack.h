@@ -57,6 +57,8 @@ public:
 	// in this rack and unloaded
 	bool unload(const LetterString &used);
 
+	void load(const LetterString &tiles);
+
 	// same as above but nonmutating
 	bool contains(const LetterString &used) const;
 
@@ -99,7 +101,7 @@ inline bool Rack::empty() const
 }
 
 const Quackle::Rack operator-(const Quackle::Rack &rack, const Quackle::Move &move);
-const Quackle::Rack operator-(const Quackle::Rack &rack1, const Quackle::Rack &rack);
+const Quackle::Rack operator-(const Quackle::Rack &rack1, const Quackle::Rack &rack2);
 
 UVOStream &operator<<(UVOStream &o, const Quackle::Rack &rack);
 

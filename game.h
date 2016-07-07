@@ -34,6 +34,7 @@ namespace Quackle
 {
 
 class ComputerPlayer;
+class History;
 
 class HistoryLocation
 {
@@ -380,7 +381,7 @@ public:
 	// at start of game.)
 	// If applicable, this player's score is also incremented by score of move
 	// made.
-	bool incrementTurn();
+	bool incrementTurn(const History* history = NULL);
 
 	// Turn numbers in games start from 1.
 	// A turn number of zero indicates a position that is pregame.
@@ -426,6 +427,8 @@ protected:
 	unsigned int m_nestedness;
 	int m_scorelessTurnsInARow;
 	bool m_gameOver;
+	int m_tilesInBag;
+	int m_tilesOnRack;
 
 	Quackle::Board m_board;
 
