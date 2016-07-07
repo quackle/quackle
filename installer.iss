@@ -3,7 +3,7 @@
 
 [Setup]
 AppName=Quackle
-AppVerName=Quackle 1.0
+AppVerName=Quackle 1.0.2
 DefaultDirName={pf}\Quackle
 DefaultGroupName=Quackle
 ChangesAssociations=yes

@@ -198,36 +198,6 @@ void TopLevel::commit()
 		return;
 	}
 
-	const bool askSillyQuestion = false;
-
-	if (askSillyQuestion)
-	{
-		if (!(m_game->currentPosition().location() == m_game->history().lastLocation()))
-		{
-			int result = QMessageBox::warning(this, tr("Previous Position Commit - Quackle"), dialogText(tr("You've asked to commit a move from a previous position. You have three options: <ol><li>Commit and resume the game from directly after this position. This throws away all later positions.</li><li>Commit and leave later moves the same. This is risky because scores and board position of all later moves might become inconsistent. You'll need to save the game and reopen it to have the scores make sense.</li><li>Cancel this commit. <b>Canceling is recommended.</b></li></ol>Which would you like to do?")), tr("&Commit and resume from after this position"), tr("&Commit and leave later moves the same"), tr("&Cancel"), 0, 2);
-
-			switch (result)
-			{
-				case 0:
-					// Commit and resume after this position.
-					// We can just pass back to the normal commit method.
-					break;
-
-				case 1:
-					// commit silently
-					m_game->currentPosition().prepareForCommit();
-					setModified(true);
-					showToHuman();
-					return;
-
-				case 2:
-				default:
-					// cancel
-					return;
-			}
-		}
-	}
-
 	if (m_game->candidate().isAMove())
 	{
 		stopEverything();
@@ -2145,9 +2115,9 @@ void TopLevel::firstTimeRun()
 void TopLevel::about()
 {
 	QString aboutText = tr(
-"<p><b>Quackle</b> 1.0.1 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+"<p><b>Quackle</b> 1.0.2 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2015 by</p>"
+"<p>Copyright 2005-2016 by</p>"
 "<ul>"
 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
@@ -2173,7 +2143,7 @@ void TopLevel::about()
 		fclose(file);
 		aboutText += "</ul>";
 	}
-	QMessageBox::about(this, tr("About Quackle 1.0.1"), dialogText(aboutText));
+	QMessageBox::about(this, tr("About Quackle 1.0.2"), dialogText(aboutText));
 }
 
 void TopLevel::hints()

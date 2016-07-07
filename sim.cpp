@@ -315,7 +315,7 @@ void Simulator::simulate(int plies)
 				{
 					LetterString deadwood;
 					deadwoodScore = m_simulatedGame.currentPosition().deadwood(&deadwood);
-					// accont for deadwood in this move rather than a separate
+					// account for deadwood in this move rather than a separate
 					// UnusedTilesBonus move.
 					move.score += deadwoodScore;
 				}
