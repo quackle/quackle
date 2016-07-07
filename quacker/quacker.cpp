@@ -788,7 +788,14 @@ void TopLevel::setCaption(const QString &text)
 	if (!text.isNull())
 		m_ourCaption = text;
 
-	setWindowTitle(QString("%1[*] - Quackle").arg(m_ourCaption));
+	if (m_filename.isEmpty())
+		setWindowTitle(QString("%1 - Quackle").arg(m_ourCaption));
+	else
+	{
+		QString filename = QDir::fromNativeSeparators(m_filename);
+		filename = filename.mid(filename.lastIndexOf('/') + 1);
+		setWindowTitle(QString("%1[*] - %2 - Quackle").arg(filename, m_ourCaption));
+	}
 }
 
 void TopLevel::setModified(bool modified)
