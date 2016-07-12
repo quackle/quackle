@@ -26,8 +26,8 @@ Creating the DMG:
 * Set up Xcode with your Mac Developer account, and make sure you
   have a Developer ID Application signing certificate installed into
   your Keychain.
-* In the Xcode settings, set the deployment target to 10.7 (or some appropriate
-  early-ish version).
+* In the Xcode settings, set the deployment target to 10.9 (earlier versions
+  don't appear to work with C++11).
 * Create an Archive build using XCode.
 * From the Archive interface, click Validate... and validate for a Developer
   ID-signed Application.  If you have a signing profile, this validation
