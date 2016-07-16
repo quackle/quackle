@@ -23,23 +23,23 @@ using namespace std;
 
 #include <QtGui>
 
-#include <game.h>
-#include <boardparameters.h>
-#include <computerplayer.h>
-#include <gameparameters.h>
+#include "game.h"
+#include "boardparameters.h"
+#include "computerplayer.h"
+#include "gameparameters.h"
 
-#include <quackleio/froggetopt.h>
-#include <quackleio/util.h>
-#include <quackleio/logania.h>
-#include <quackleio/queenie.h>
-#include <quackleio/streamingreporter.h>
+#include "quackleio/froggetopt.h"
+#include "quackleio/util.h"
+#include "quackleio/logania.h"
+#include "quackleio/queenie.h"
+#include "quackleio/graphicalreporter.h"
+#include "quackleio/streamingreporter.h"
 
 #include "brb.h"
 #include "configdialog.h"
 #include "customqsettings.h"
 #include "dashboard.h"
 #include "geometry.h"
-#include "graphicalreporter.h"
 #include "history.h"
 #include "lister.h"
 #include "letterbox.h"

@@ -20,6 +20,7 @@
 #define QUACKER_GRAPHICAL_REPORTER_H
 
 #include <fstream>
+#include <string>
 
 namespace Quackle
 {

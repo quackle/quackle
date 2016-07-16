@@ -99,6 +99,12 @@ Additional things to know:
   run qmake -tp vc in the directories mentioned above, you'll have those
   project files.
 
+* When debugging under Visual Studio, you'll probably need to rewrite the
+  paths where the Quackle project is looking for quackleio and libquackle.
+  Do this in the project property dialog for the project, in
+  Linker -> Input -> Additional Dependencies.  Change the refrences
+  to the "release" subdirectories to be "debug".  Sorry, I haven't figured
+  out how to get qmake to do this properly (pull requests invited!).
 
 Building Qt libraries
 ---------------------

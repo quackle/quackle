@@ -21,9 +21,8 @@
 #include "board.h"
 #include "computerplayer.h"
 #include "game.h"
-#include "quackleio/util.h"
+#include "util.h"
 
-#include "graphicalboard.h"
 #include "graphicalreporter.h"
 
 const char *kHtmlHeader =
