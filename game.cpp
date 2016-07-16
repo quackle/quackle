@@ -779,12 +779,12 @@ bool GamePosition::incrementTurn(const History* history)
 			const Quackle::PositionList positions(history->positionsFacedBy((*nextCurrentPlayer).id()));
 			if (positions.size() > 0)
 				m_tilesOnRack = positions.back().m_tilesOnRack;
-			m_tilesOnRack -= m_moveMade.usedTiles().size();
-			while (m_tilesInBag > 0 && m_tilesOnRack < QUACKLE_PARAMETERS->rackSize())
-			{
-				m_tilesInBag--;
-				m_tilesOnRack++;
-			}
+			else
+				// note...this can happen not just at the beginning of a game, but inside of a simming player engine
+				// which doesn't have a full history list
+				m_tilesOnRack = currentPlayer().rack().tiles().size();
+			if (m_moveMade.action == Move::Place)
+				m_tilesOnRack -= m_moveMade.usedTiles().size();
 			if (m_tilesInBag == 0)
 			{
 				// We can get off on our counting with unknown racks.
@@ -798,7 +798,7 @@ bool GamePosition::incrementTurn(const History* history)
 				else if (m_tilesOnRack != 0 && remainingRack.empty())
 				{
 					int tilesToMove = m_tilesOnRack;
-					while (otherPlayerRack.tiles().size() > 0 && tilesToMove > 0)
+					while (otherPlayerRack.tiles().size() > 0 && tilesToMove-- > 0)
 					{
 						LetterString oneAtATime = otherPlayerRack.tiles().substr(0, 1);
 						otherPlayerRack.unload(oneAtATime);
@@ -806,6 +806,11 @@ bool GamePosition::incrementTurn(const History* history)
 					}
 				}
 				nextCurrentPlayer->setRack(otherPlayerRack);
+			}
+			while (m_tilesInBag > 0 && m_tilesOnRack < QUACKLE_PARAMETERS->rackSize() && m_moveMade.action == Move::Place)
+			{
+				m_tilesInBag--;
+				m_tilesOnRack++;
 			}
 		}
 
