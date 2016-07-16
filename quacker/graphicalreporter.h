@@ -19,8 +19,7 @@
 #ifndef QUACKER_GRAPHICAL_REPORTER_H
 #define QUACKER_GRAPHICAL_REPORTER_H
 
-#include <QFile>
-#include <QTextStream>
+#include <fstream>
 
 namespace Quackle
 {
@@ -34,7 +33,7 @@ class GraphicalReporter
 public:
 	// If generateImages is true, output must be an existing directory.
 	// If false, output is an HTML file.
-	GraphicalReporter(const QString &output, bool generateImages);
+	GraphicalReporter(const string &filename);
 
 	// makes header and report for all positions
 	void reportGame(const Quackle::Game &game, Quackle::ComputerPlayer *computerPlayer);
@@ -47,17 +46,7 @@ public:
 	void reportPosition(const Quackle::GamePosition &position, Quackle::ComputerPlayer *computerPlayer);
 
 protected:
-	QString makeFilename(const QString &filename) const;
-
-	// opens the index file (m_output/index.html or m_output if it's a file)
-	// if it is not already open
-	void openIndex();
-
-	QString m_output;
-	QFile m_indexFile;
-	QTextStream m_indexStream;
-
-	bool m_generateImages;
+	ofstream m_ostream;
 };
 
 #endif

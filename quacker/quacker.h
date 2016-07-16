@@ -111,7 +111,6 @@ public slots:
 
 	void reportAs(Quackle::ComputerPlayer *computerPlayer);
 	void htmlReport();
-	void graphicalReport();
 	void commitTopChoice();
 	void simulate(bool startSimulation);
 	void simulateToggled(bool startSimulation);

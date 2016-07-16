@@ -1328,23 +1328,7 @@ void TopLevel::htmlReport()
 	{
 		setInitialDirectory(filename);
 
-		GraphicalReporter reporter(filename, /* don't generate images */ false);
-		reporter.reportGame(*m_game, player);
-	}
-
-	delete player;
-}
-
-void TopLevel::graphicalReport()
-{
-	Quackle::ComputerPlayer *player = new Quackle::StaticPlayer();
-	QString directory = QFileDialog::getExistingDirectory(this, tr("Choose directory to which to write report and graphics"), getInitialDirectory());
-
-	if (!directory.isEmpty())
-	{
-		setInitialDirectory(directory);
-
-		GraphicalReporter reporter(directory, /* generate images */ true);
+		GraphicalReporter reporter(string(filename.toUtf8().constData()));
 		reporter.reportGame(*m_game, player);
 	}
 
@@ -1797,13 +1781,6 @@ void TopLevel::createMenu()
 	m_htmlReportAction->setEnabled(false);
 	connect(m_htmlReportAction, SIGNAL(triggered()), this, SLOT(htmlReport()));
 	reports->addAction(m_htmlReportAction);
-
-#ifdef ENABLE_GRAPHICAL_REPORT
-	m_graphicalReportAction = new QAction(tr("Slow full-game HTML report with images"), this);
-	m_graphicalReportAction->setEnabled(false);
-	connect(m_graphicalReportAction, SIGNAL(triggered()), this, SLOT(graphicalReport()));
-	reports->addAction(m_graphicalReportAction);
-#endif
 
 	QMenu *simulation = menuBar()->addMenu(tr("Si&mulation"));
 	simulation->addAction(m_simulateAction);
