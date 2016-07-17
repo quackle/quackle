@@ -47,6 +47,7 @@ public:
 	// Returned game is either 0, or a game with at least one position.
 	// Boards of game are ready for analysis if there is a DataManager set
 	// up; otherwise they won't have their crosses prepared
+	virtual Quackle::Game *read(const QString &filename, int flags) = 0;
 	virtual Quackle::Game *read(QTextStream &stream, int flags) = 0;
 
 	virtual bool canRead(QTextStream &stream) const = 0;
