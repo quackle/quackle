@@ -53,16 +53,120 @@ void GraphicalReporter::reportGame(const Quackle::Game &game, Quackle::ComputerP
 {
 	reportHeader(game);
 
-	for (Quackle::PositionList::const_iterator it = game.history().begin(); it != game.history().end(); ++it)
+	for (const auto& it : game.history())
 	{
-		reportPosition(*it, computerPlayer);
+		reportPosition(it, computerPlayer);
+	}
+}
+
+void GraphicalReporter::exportGame(const Quackle::Game &game)
+{
+	m_ostream << "<html>\n<head>\n<title>" << game.title() << "</title>\n";
+	m_ostream << "<style type=\"text/css\">";
+	m_ostream << "table.scoreboard {border-collapse: collapse; padding: 5px; border: 2px solid; }";
+	m_ostream << "th.turn {background: #DDDDDD;}\n";
+	m_ostream << "td.turn {background: #DDDDDD; }\n";
+	m_ostream << "th.play {text-align: left;}\n";
+	m_ostream << "td.play {text-align: left;}\n";
+	m_ostream << "th.score {text-align: right; border-left: 1px solid #DCDCDC;}\n";
+	m_ostream << "td.score {text-align: right; border-left: 1px solid #DCDCDC;}\n";
+	m_ostream << "th.total {text-align: right; border-right: 1px solid; border-left: 1px solid #DCDCDC; background: cornsilk;}\n";
+	m_ostream << "td.total {text-align: right; border-right: 1px solid; border-left: 1px solid #DCDCDC; background: cornsilk;}\n";
+	m_ostream << "tr.final {text-align: right; border-top: 2px solid;}\n";
+	m_ostream << "</style>\n";
+	m_ostream << "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf8\">\n</head>\n";
+	m_ostream << "<body bgcolor=white>\n<h1>" << game.title() << "</h1>\n<p><i>Created by Quackle crossword game software</i><br/>";
+	m_ostream << "<a href=\"http://quackle.org\">http://quackle.org</a></p>\n";
+
+	m_ostream << "<table><tr><td rowspan=\"2\">\n";
+	m_ostream << game.history().back().board().htmlBoard(45) << "\n</td>\n<td valign=\"top\">\n";
+
+	m_ostream << "<table class=\"scoreboard\">\n<tr><th class=\"turn\"></th>";
+
+	for (const auto& it : game.players())
+		m_ostream << "<th class=\"play\">" << it.name() << "`s play</th><th class=\"score\">Score</th><th class=\"total\">Total</th>\n";
+	m_ostream << "</tr>\n";
+
+	// Write positions
+	int lastPlayerId = game.players().back().id();
+	for (const auto& position : game.history())
+	{
+		if (position.gameOver())
+			break;
+		const Quackle::PlayerList& players = position.endgameAdjustedScores();
+		const Quackle::Move& move = position.committedMove();
+
+		if (position.currentPlayer() == game.players().front())
+			m_ostream << "<tr><td class=\"turn\">" << position.turnNumber() << "</td>";
+
+		m_ostream << "<td class=\"play\">" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(move)).toUtf8().constData()) << "</td>";
+		m_ostream << "<td class=\"score\">" << move.score << "</td>";
+
+		for (const auto& player : players)
+			if (player == position.currentPlayer())
+			{
+				m_ostream << "<td class=\"total\">" << move.score + player.score() << "</td>";
+				break;
+			}
+
+		if (position.currentPlayer() == game.players().back())
+			m_ostream << "</tr>\n";
+		lastPlayerId = position.currentPlayer().id();
+	}
+
+	// Finish out row of final position
+	finishOutRow(game, lastPlayerId);
+
+	// Write game-over positions
+	bool wroteEmptyPlayers = false;
+	lastPlayerId = game.players().back().id();
+	for (const auto& position : game.history())
+	{
+		if (!position.gameOver())
+			continue;
+		if (!wroteEmptyPlayers)
+		{
+			m_ostream << "<tr><td class=\"turn\"/>";
+			for (const auto& player : position.endgameAdjustedScores())
+			{
+				if (player == position.currentPlayer())
+					break;
+				m_ostream << "<td class=\"play\"/><td class=\"score\"/><td class=\"total\"/>";
+			}
+		}
+		const Quackle::Move& move = position.committedMove();
+		m_ostream << "<td class=\"play\">" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(move)).toUtf8().constData()) << "</td>";
+		m_ostream << "<td class=\"score\">" << move.score << "</td>";
+		m_ostream << "<td class=\"total\"/>";
+		lastPlayerId = position.currentPlayer().id();
+	}
+	finishOutRow(game, lastPlayerId);
+
+	// Write final score
+	m_ostream << "<tr class=\"final\"><td/>";
+	for (const auto& it : game.history().back().endgameAdjustedScores())
+		m_ostream << "<td/><td/><td class=\"total\">" << it.score() << "</td>";
+	m_ostream << "</tr></table>\n</tr><td valign=\"bottom\">" << game.currentPosition().board().htmlKey() << "</td></tr></table>\n";
+	m_ostream << "</td></tr></table>\n</body></html>";
+}
+
+void GraphicalReporter::finishOutRow(const Quackle::Game& game, int lastPlayerId)
+{
+	const Quackle::Player finalPlayer = game.history().back().currentPlayer();
+	bool foundFinalPlayer = false;
+	for (const auto& it : game.players())
+	{
+		if (foundFinalPlayer)
+			m_ostream << "<td class=\"play\"/><td class=\"score\"/><td class=\"total\"/>";
+		if (foundFinalPlayer && it == game.players().back())
+			m_ostream << "</tr>\n";
+		if (it.id() == lastPlayerId)
+			foundFinalPlayer = true;
 	}
 }
 
 void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Quackle::ComputerPlayer *computerPlayer)
 {
-	Quackle::GamePosition positionCopy = position;
-
 	{
 		string title;
 
@@ -76,31 +180,31 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 		}
 
 		const int boardTileSize = position.gameOver()? 45 : 25;
-		m_ostream << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString(position.board().htmlBoard(boardTileSize))).toUtf8().constData()) << endl;
+		m_ostream << position.board().htmlBoard(boardTileSize) << "\n";
 	}
 
 	const Quackle::PlayerList players(position.endgameAdjustedScores());
 
-	m_ostream << "<table cellspacing=6>" << endl;
-	for (Quackle::PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
+	m_ostream << "<table cellspacing=6>\n";
+	for (const auto& it : players)
 	{
 		m_ostream << "<tr>";
 
 		m_ostream << "<td>";
-		if ((*it) == position.currentPlayer())
+		if (it == position.currentPlayer())
 			m_ostream << "&rarr;";
 		else
 			m_ostream << "&nbsp;";
 		m_ostream << "</td>";
 
 		m_ostream
-		<< "<td>" << (*it).name() << "</td>"
-		<< "<td>" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString((*it).rack().toString())).toUtf8().constData()) << "</td>"
-		<< "<td>" << (*it).score() << "</td>"
+		<< "<td>" << it.name() << "</td>"
+		<< "<td>" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString(it.rack().toString())).toUtf8().constData()) << "</td>"
+		<< "<td>" << it.score() << "</td>"
 		<< "</tr>"
-		<< endl;
+		<< "\n";
 	}
-	m_ostream << "</table>" << endl;
+	m_ostream << "</table>\n";
 
 	if (computerPlayer && !position.gameOver())
 	{
@@ -120,33 +224,33 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 			moves.push_back(position.committedMove());
 		}
 
-		m_ostream << "<ol>" << endl;
-		for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it)
+		m_ostream << "<ol>\n";
+		for (const auto& it : moves)
 		{
 			QString item;
-			switch ((*it).action)
+			switch (it.action)
 			{
 			case Quackle::Move::Place:
 			{
 				item = "%1 %2";
-				item = item.arg(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(*it))).arg((*it).score);
+				item = item.arg(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(it))).arg(it.score);
 				break;
 			}
 
 			case Quackle::Move::Exchange:
 			case Quackle::Move::BlindExchange:
 			default:
-				item = QuackleIO::Util::moveToDetailedString(*it);
+				item = QuackleIO::Util::moveToDetailedString(it);
 				break;
 			}
 
-			if (*it == position.committedMove())
+			if (it == position.committedMove())
 				item += QString(" &nbsp;&larr;");
 
 			if (!item.isEmpty())
-				m_ostream << "<li>" << string(item.toUtf8().constData()) << "</li>" << endl;
+				m_ostream << "<li>" << string(item.toUtf8().constData()) << "</li>\n";
 		}
-		m_ostream << "</ol>" << endl;
+		m_ostream << "</ol>\n";
 	}
 
 	m_ostream << "\n\n";

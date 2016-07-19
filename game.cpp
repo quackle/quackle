@@ -67,6 +67,18 @@ void Game::setPlayers(const PlayerList &list)
 	m_positions.setPlayers(idedPlayers);
 }
 
+void Game::setTitle()
+{
+	if (players().size() == 0)
+		m_title = "No Game";
+	else if (players().size() == 1)
+		m_title = players().front().name() + "'s solo game";
+	else if (players().size() == 2)
+		m_title = players().front().name() + " versus " + players().at(1).name();
+	else if (players().size() > 2)
+		m_title = "Game between " + players().front().name() + " and friends";
+}
+
 void Game::addPosition()
 {
 	addClonePosition();

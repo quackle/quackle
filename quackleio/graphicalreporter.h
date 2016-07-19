@@ -39,6 +39,9 @@ public:
 	// makes header and report for all positions
 	void reportGame(const Quackle::Game &game, Quackle::ComputerPlayer *computerPlayer);
 
+	// makes header and export final position
+	void exportGame(const Quackle::Game &game);
+
 	// makes header and puts into the index file
 	void reportHeader(const Quackle::Game &game);
 
@@ -48,6 +51,9 @@ public:
 
 protected:
 	ofstream m_ostream;
+
+private:
+	void finishOutRow(const Quackle::Game& game, int lastPlayerId);
 };
 
 #endif

@@ -821,6 +821,7 @@ public:
 
 	const UVString &title() const;
 	void setTitle(const UVString &title);
+	void setTitle(); // give a default title from the player list
 
 protected:
 	History m_positions;

@@ -1548,19 +1548,8 @@ void TopLevel::timerControl(bool paused)
 
 QString TopLevel::gameTitle()
 {
-	QString ret;
-	const Quackle::PlayerList &players(m_game->players());
-
-	if (players.size() == 0)
-		ret = tr("No Game");
-	else if (players.size() == 1)
-		ret = tr("%1's solo game").arg(QuackleIO::Util::uvStringToQString(players.front().name()));
-	else if (players.size() == 2)
-		ret = tr("%1 versus %2").arg(QuackleIO::Util::uvStringToQString(players.front().name())).arg(QuackleIO::Util::uvStringToQString(players.at(1).name()));
-	else if (players.size() > 2)
-		ret = tr("Game between %1 and friends").arg(QuackleIO::Util::uvStringToQString(players.front().name()));
-
-	return ret;
+	m_game->setTitle();
+	return QuackleIO::Util::uvStringToQString(m_game->title());
 }
 
 void TopLevel::createMenu()

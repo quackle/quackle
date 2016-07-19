@@ -176,11 +176,14 @@ protected:
 		m_dataManager.strategyParameters()->initialize("csw15");
 	}
 
-	Quackle::DataManager m_dataManager;
-	QuackleIO::UtilSettings m_utilSettings;
+	static Quackle::DataManager m_dataManager;
+	static QuackleIO::UtilSettings m_utilSettings;
 };
 
-class ExportCommand : public CommandDispatcher, public QuackleInitializer
+Quackle::DataManager QuackleInitializer::m_dataManager;
+QuackleIO::UtilSettings QuackleInitializer::m_utilSettings;
+
+class ReportCommand : public CommandDispatcher, public QuackleInitializer
 {
 public:
 	virtual int dispatch(const Command& command)
@@ -196,9 +199,36 @@ public:
 				GraphicalReporter reporter(output);
 				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qInput);
 				Quackle::Game* game = logania->read(qInput, QuackleIO::Logania::MaintainBoardPreparation);
-				Quackle::StaticPlayer player;
 
-				reporter.reportGame(*game, &player);
+				if (command.name() == "report")
+				{
+					Quackle::StaticPlayer player;
+					reporter.reportGame(*game, &player);
+				}
+				else if (command.name() == "export")
+					reporter.exportGame(*game);
+
+				delete game;
+			}
+		}
+		return 0;
+	}
+};
+
+class StatsCommand : public CommandDispatcher, public QuackleInitializer
+{
+public:
+	virtual int dispatch(const Command& command)
+	{
+		initQuackle();
+		for (const auto& input : command.fileNames())
+		{
+			string extension = input.substr(input.size() - 4);
+			if (extension == ".gcg" || extension == ".GCG")
+			{
+				QString qInput = QString::fromStdString(input);
+				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qInput);
+				Quackle::Game* game = logania->read(qInput, QuackleIO::Logania::MaintainBoardPreparation);
 
 				delete game;
 			}
@@ -242,10 +272,20 @@ int main(int argc, char* argv[])
 {
 	CommandParser options;
 
+	options.addCommand("export")
+			.addFileArgument(true, true, ".gcg")
+			.addHelp("Run an HTML report on the GCG file")
+			.addDispatcher(new ReportCommand());
+
 	options.addCommand("report")
 			.addFileArgument(true, true, ".gcg")
 			.addHelp("Run an HTML report on the GCG file")
-			.addDispatcher(new ExportCommand());
+			.addDispatcher(new ReportCommand());
+
+	options.addCommand("stats")
+			.addFileArgument(true, true, ".gcg")
+			.addHelp("Run an HTML report on the GCG file")
+			.addDispatcher(new StatsCommand());
 
 	options.addCommand("help")
 			.addHelp("Show this message")
