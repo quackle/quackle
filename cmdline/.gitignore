@@ -1,0 +1,11 @@
+Makefile
+moc_*
+moc
+obj
+quack
+Makefile.Debug
+Makefile.Release
+debug
+release
+*.gcg
+*.html

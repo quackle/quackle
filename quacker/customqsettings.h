@@ -25,9 +25,11 @@ public:
 	CustomQSettings() :
 #if defined(Q_WS_WIN)
 		QSettings((QSysInfo::WindowsVersion & QSysInfo::WV_DOS_based) ? IniFormat : NativeFormat,
-			UserScope, tr("Quackle"))
+			UserScope, "Quackle")
+#elif defined(Q_WS_MAC)
+		QSettings("quackle.org", "Quackle")
 #else
-		QSettings()
+		QSettings("Quackle.org", "Quackle")
 #endif
 	{}
 };

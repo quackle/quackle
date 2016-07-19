@@ -100,12 +100,12 @@ void GraphicalReporter::exportGame(const Quackle::Game &game)
 			m_ostream << "<tr><td class=\"turn\">" << position.turnNumber() << "</td>";
 
 		m_ostream << "<td class=\"play\">" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(move)).toUtf8().constData()) << "</td>";
-		m_ostream << "<td class=\"score\">" << move.score << "</td>";
+		m_ostream << "<td class=\"score\">" << move.effectiveScore() << "</td>";
 
 		for (const auto& player : players)
 			if (player == position.currentPlayer())
 			{
-				m_ostream << "<td class=\"total\">" << move.score + player.score() << "</td>";
+				m_ostream << "<td class=\"total\">" << move.effectiveScore() + player.score() << "</td>";
 				break;
 			}
 
@@ -136,7 +136,7 @@ void GraphicalReporter::exportGame(const Quackle::Game &game)
 		}
 		const Quackle::Move& move = position.committedMove();
 		m_ostream << "<td class=\"play\">" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(move)).toUtf8().constData()) << "</td>";
-		m_ostream << "<td class=\"score\">" << move.score << "</td>";
+		m_ostream << "<td class=\"score\">" << move.effectiveScore() << "</td>";
 		m_ostream << "<td class=\"total\"/>";
 		lastPlayerId = position.currentPlayer().id();
 	}
