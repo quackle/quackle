@@ -779,11 +779,13 @@ bool GamePosition::incrementTurn(const History* history)
 			const Quackle::PositionList positions(history->positionsFacedBy((*nextCurrentPlayer).id()));
 			if (positions.size() > 0)
 				m_tilesOnRack = positions.back().m_tilesOnRack;
-			else
-				// note...this can happen not just at the beginning of a game, but inside of a simming player engine
+			else if (m_turnNumber > 1)
+			{
+				// this can happen inside of a simming player engine
 				// which doesn't have a full history list
 				m_tilesOnRack = currentPlayer().rack().tiles().size();
-			if (m_moveMade.action == Move::Place)
+			}
+			if (m_moveMade.action == Move::Place && !m_moveMade.isChallengedPhoney())
 				m_tilesOnRack -= m_moveMade.usedTiles().size();
 			if (m_tilesInBag == 0)
 			{
