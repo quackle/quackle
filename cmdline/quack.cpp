@@ -229,8 +229,6 @@ public:
 			{
 				QString qFileName = QString::fromStdString(fileName);
 				QFile qFile(qFileName);
-				string output = fileName.substr(0, fileName.size() - 4) + ".html";
-				GraphicalReporter reporter(output);
 				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qFileName);
 				Quackle::Game* game = logania->read(qFileName, QuackleIO::Logania::MaintainBoardPreparation);
 
@@ -247,9 +245,59 @@ public:
 				qOutput.replace("\r\n","\n");
 				if (qInput != qOutput)
 				{
-					cout << fileName << " differs\n";
-					cout << qInput.toStdString();
-					cout << qOutput.toStdString();
+					QStringList qInputList = qInput.split('\n');
+					QStringList qOutputList = qOutput.split('\n');
+					int linesChanged = 0;
+
+					while (!qInputList.empty() && !qOutputList.empty())
+					{
+						if (qInputList.front().trimmed().isEmpty())
+						{
+							qInputList.pop_front();
+							continue;
+						}
+						if (qOutputList.front().trimmed().isEmpty())
+						{
+							qOutputList.pop_front();
+							continue;
+						}
+						if (qInputList.front().trimmed() != qOutputList.front().trimmed())
+						{
+							// Check for a single line insertion
+							if (qOutputList.size() > 1 && qInputList.front().trimmed() == qOutputList[1].trimmed())
+							{
+								qOutputList.push_back(qOutputList.front());
+								qOutputList.pop_front();
+								continue;
+							}
+							if (qInputList.size() > 1 && qOutputList.front().trimmed() == qInputList[1].trimmed())
+							{
+								qInputList.push_back(qInputList.front());
+								qInputList.pop_front();
+								continue;
+							}
+							linesChanged++;
+						}
+						qInputList.pop_front();
+						qOutputList.pop_front();
+					}
+					while (!qInputList.empty() && qInputList.front().trimmed().isEmpty())
+						qInputList.pop_front();
+					while (!qOutputList.empty() && qOutputList.front().trimmed().isEmpty())
+						qOutputList.pop_front();
+
+					int lineCountDifference = qOutputList.size() - qInputList.size();
+					if (lineCountDifference != 0 || linesChanged != 0)
+					{
+						cout << fileName << ": ";
+						if (lineCountDifference > 0)
+							cout << lineCountDifference << " line" << (lineCountDifference > 1 ? "s" : "") << " added. ";
+						if (lineCountDifference < 0)
+							cout << -lineCountDifference << " line" << (-lineCountDifference > 1 ? "s" : "") << " removed. ";
+						if (linesChanged > 0)
+							cout << linesChanged << " line" << (linesChanged > 1 ? "s" : "") << " changed.";
+						cout << "\n";
+					}
 				}
 
 				delete game;
