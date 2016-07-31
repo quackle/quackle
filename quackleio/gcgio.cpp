@@ -32,20 +32,19 @@ GCGIO::GCGIO()
 
 Quackle::Game *GCGIO::read(const QString &filename, int flags)
 {
-    QFile file(filename);
-    Quackle::Game *ret = new Quackle::Game;
+	QFile file(filename);
 
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
-        return ret;
-    }
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
+		return new Quackle::Game;
+	}
 
-    QTextStream in(&file);
-    ret = read(in, flags);
-    file.close();
+	QTextStream in(&file);
+	Quackle::Game *ret = read(in, flags);
+	file.close();
 
-    return ret;
+	return ret;
 }
 
 Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
@@ -343,7 +342,7 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 	const Quackle::PositionList::const_iterator end(game.history().end());
 	for (Quackle::PositionList::const_iterator it = game.history().begin(); it != end; ++it)
 	{
-		Quackle::Move move = (*it).committedMove();
+		const Quackle::Move& move = (*it).committedMove();
 		move.setPrettyTiles((*it).board().prettyTilesOfMove(move, /* don't mark playthru */ false));
 
 		if (move.isAMove())
