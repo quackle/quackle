@@ -31,7 +31,7 @@ QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
 
 # Input
-HEADERS += *.h
+#HEADERS += *.h
 SOURCES += *.cpp
 
 win32 {

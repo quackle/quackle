@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QSettings>
 #include <QString>
+#include <QTextStream>
 
 using namespace std;
 
@@ -189,16 +190,16 @@ public:
 	virtual int dispatch(const Command& command)
 	{
 		initQuackle();
-		for (const auto& input : command.fileNames())
+		for (const auto& fileName : command.fileNames())
 		{
-			string extension = input.substr(input.size() - 4);
+			string extension = fileName.substr(fileName.size() - 4);
 			if (extension == ".gcg" || extension == ".GCG")
 			{
-				QString qInput = QString::fromStdString(input);
-				string output = input.substr(0, input.size() - 4) + ".html";
+				QString qFileName = QString::fromStdString(fileName);
+				string output = fileName.substr(0, fileName.size() - 4) + ".html";
 				GraphicalReporter reporter(output);
-				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qInput);
-				Quackle::Game* game = logania->read(qInput, QuackleIO::Logania::MaintainBoardPreparation);
+				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qFileName);
+				Quackle::Game* game = logania->read(qFileName, QuackleIO::Logania::MaintainBoardPreparation);
 
 				if (command.name() == "report")
 				{
@@ -207,6 +208,49 @@ public:
 				}
 				else if (command.name() == "export")
 					reporter.exportGame(*game);
+
+				delete game;
+			}
+		}
+		return 0;
+	}
+};
+
+class TestCommand : public CommandDispatcher, public QuackleInitializer
+{
+public:
+	virtual int dispatch(const Command& command)
+	{
+		initQuackle();
+		for (const auto& fileName : command.fileNames())
+		{
+			string extension = fileName.substr(fileName.size() - 4);
+			if (extension == ".gcg" || extension == ".GCG")
+			{
+				QString qFileName = QString::fromStdString(fileName);
+				QFile qFile(qFileName);
+				string output = fileName.substr(0, fileName.size() - 4) + ".html";
+				GraphicalReporter reporter(output);
+				QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(qFileName);
+				Quackle::Game* game = logania->read(qFileName, QuackleIO::Logania::MaintainBoardPreparation);
+
+				QString qOutput;
+				QTextStream qOutputStream(&qOutput, QIODevice::WriteOnly);
+				logania->write(*game, qOutputStream);
+				qOutputStream.flush();
+
+				qFile.open(QIODevice::ReadOnly | QIODevice::Text);
+				QTextStream qInputStream(&qFile);
+				QString qInput(qInputStream.readAll());
+
+				qInput.replace("\r\n","\n");
+				qOutput.replace("\r\n","\n");
+				if (qInput != qOutput)
+				{
+					cout << fileName << " differs\n";
+					cout << qInput.toStdString();
+					cout << qOutput.toStdString();
+				}
 
 				delete game;
 			}
@@ -284,8 +328,13 @@ int main(int argc, char* argv[])
 
 	options.addCommand("stats")
 			.addFileArgument(true, true, ".gcg")
-			.addHelp("Run an HTML report on the GCG file")
+			.addHelp("Report aggregate statistics on a collection of GCG files")
 			.addDispatcher(new StatsCommand());
+
+	options.addCommand("test")
+			.addFileArgument(true, true, ".gcg")
+			.addHelp("Test GCG round-trip")
+			.addDispatcher(new TestCommand());
 
 	options.addCommand("help")
 			.addHelp("Show this message")
