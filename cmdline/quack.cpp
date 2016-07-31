@@ -21,7 +21,9 @@
 #include <string>
 #include <vector>
 
+#include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSettings>
 #include <QString>
 #include <QTextStream>
@@ -104,7 +106,21 @@ private:
 	void parseArgs(int argc, char* argv[])
 	{
 		for (int i = 2; i < argc; i++)
+		{
+			if (strchr(argv[i], '*') || strchr(argv[i], '?'))
+			{
+				QFileInfo fileInfo(argv[i]);
+				QDir fileDir(fileInfo.dir());
+				if (!fileDir.exists())
+					continue;
+				fileDir.setNameFilters(QStringList(fileInfo.fileName()));
+				QStringList fileNames(fileDir.entryList());
+				for (const auto& fileName : fileNames)
+					m_fileNames.emplace_back(QString(fileDir.path() + "/" + fileName).toStdString());
+				continue;
+			}
 			m_fileNames.emplace_back(string(argv[i]));
+		}
 	}
 };
 
