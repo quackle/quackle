@@ -19,6 +19,8 @@ script:
   - cd ..
   - cd quacker && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd ..
+  - cd cmdline && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
+  - cd ..
   - cd encodeleaves && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd ..
   - cd gaddagize && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make

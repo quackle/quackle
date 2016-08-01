@@ -18,6 +18,7 @@
 
 
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -47,14 +48,21 @@ class CommandFlag
 {
 public:
 	CommandFlag(const string& flagName)
-		: m_name(flagName)
+		: m_name(flagName), m_flagged(false)
 	{};
 
 	const string& name() const { return m_name; };
 
+	bool flagged() const { return m_flagged; };
+	void setFlagged() const { m_flagged = true; };
+
+
 private:
 	string m_name;
+	mutable bool m_flagged;
 };
+
+inline bool operator<( const CommandFlag &lhs, const CommandFlag &rhs ) { return lhs.name() < rhs.name(); };
 
 class CommandDispatcher
 {
@@ -76,7 +84,7 @@ public:
 		: m_commandName(commandName)
 	{};
 
-	Command& addFlag(const string& flagName) { m_flags.emplace_back(CommandFlag{flagName}); return *this; };
+	Command& addFlag(const string& flagName) { m_flags.insert(CommandFlag{flagName}); return *this; };
 	Command& addFileArgument(bool multipleFiles, bool globFiles, const string& defaultExtension)
 	{
 		m_fileArgument = globFiles ? eFileArgumentGlob : (multipleFiles ? eFileArgumentMultipleFiles : eFileArgumentFile);
@@ -90,16 +98,17 @@ public:
 	const string& name() const { return m_commandName; };
 	const string& defaultExtension() const { return m_defaultExtension; };
 	const string& help() const { return m_help; };
-	const vector<CommandFlag>& flags() const { return m_flags; };
+	const set<CommandFlag>& flags() const { return m_flags; };
 	FileArgumentType fileArgument() const { return m_fileArgument; };
 	const vector<string>& fileNames() const { return m_fileNames; };
+	bool flagged(const string &flagName) const { const auto flagIterator = m_flags.find(CommandFlag(flagName)); return flagIterator->flagged(); }
 
 private:
 	string m_commandName;
 	string m_help;
 	string m_defaultExtension;
 	CommandDispatcher* m_dispatcher = NULL;
-	vector<CommandFlag> m_flags;
+	set<CommandFlag> m_flags;
 	FileArgumentType m_fileArgument = eFileArgumentNone;
 	vector<string> m_fileNames;
 
@@ -107,7 +116,22 @@ private:
 	{
 		for (int i = 2; i < argc; i++)
 		{
-			if (strchr(argv[i], '*') || strchr(argv[i], '?'))
+			if (argv[i][0] == '-')
+			{
+				if (argv[i][1] == '-')
+				{
+					auto flagIterator = m_flags.find(CommandFlag(argv[i] + 2));
+					if (flagIterator == m_flags.end())
+						continue;
+					flagIterator->setFlagged();
+				}
+				continue;
+			}
+			if (m_fileArgument == eFileArgumentNone)
+				continue;
+			if (m_fileArgument == eFileArgumentFile && !m_fileNames.empty())
+				continue;
+			if (m_fileArgument == eFileArgumentGlob && (strchr(argv[i], '*') || strchr(argv[i], '?')))
 			{
 				QFileInfo fileInfo(argv[i]);
 				QDir fileDir(fileInfo.dir());
@@ -314,6 +338,12 @@ public:
 							cout << linesChanged << " line" << (linesChanged > 1 ? "s" : "") << " changed.";
 						cout << "\n";
 					}
+					if (command.flagged("verbose"))
+					{
+						cout << "---------------\n";
+						cout << qOutput.toStdString();
+						cout << "---------------\n";
+					}
 				}
 
 				delete game;
@@ -396,6 +426,7 @@ int main(int argc, char* argv[])
 			.addDispatcher(new StatsCommand());
 
 	options.addCommand("test")
+			.addFlag("verbose")
 			.addFileArgument(true, true, ".gcg")
 			.addHelp("Test GCG round-trip")
 			.addDispatcher(new TestCommand());
