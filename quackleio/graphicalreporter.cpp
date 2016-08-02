@@ -100,14 +100,20 @@ void GraphicalReporter::exportGame(const Quackle::Game &game)
 			m_ostream << "<tr><td class=\"turn\">" << position.turnNumber() << "</td>";
 
 		m_ostream << "<td class=\"play\">" << string(QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::moveToDetailedString(move)).toUtf8().constData()) << "</td>";
-		m_ostream << "<td class=\"score\">" << move.effectiveScore() << "</td>";
 
-		for (const auto& player : players)
-			if (player == position.currentPlayer())
-			{
-				m_ostream << "<td class=\"total\">" << move.effectiveScore() + player.score() << "</td>";
-				break;
-			}
+		if (move.action == Quackle::Move::Nonmove)
+			m_ostream << "<td class=\"score\"/><td class=\"total\"/>";
+		else
+		{
+			m_ostream << "<td class=\"score\">" << move.effectiveScore() << "</td>";
+
+			for (const auto& player : players)
+				if (player == position.currentPlayer())
+				{
+					m_ostream << "<td class=\"total\">" << move.effectiveScore() + player.score() << "</td>";
+					break;
+				}
+		}
 
 		if (position.currentPlayer() == game.players().back())
 			m_ostream << "</tr>\n";
