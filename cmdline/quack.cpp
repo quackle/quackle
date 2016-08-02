@@ -285,22 +285,12 @@ public:
 				qOutput.replace("\r\n","\n");
 				if (qInput != qOutput)
 				{
-					QStringList qInputList = qInput.split('\n');
-					QStringList qOutputList = qOutput.split('\n');
+					QStringList qInputList = qInput.split('\n').filter(QRegExp("\\s*\\S+.*"));
+					QStringList qOutputList = qOutput.split('\n').filter(QRegExp("\\s*\\S+.*"));
 					int linesChanged = 0;
 
 					while (!qInputList.empty() && !qOutputList.empty())
 					{
-						if (qInputList.front().trimmed().isEmpty())
-						{
-							qInputList.pop_front();
-							continue;
-						}
-						if (qOutputList.front().trimmed().isEmpty())
-						{
-							qOutputList.pop_front();
-							continue;
-						}
 						if (qInputList.front().trimmed() != qOutputList.front().trimmed())
 						{
 							// Check for a single line insertion
@@ -321,10 +311,6 @@ public:
 						qInputList.pop_front();
 						qOutputList.pop_front();
 					}
-					while (!qInputList.empty() && qInputList.front().trimmed().isEmpty())
-						qInputList.pop_front();
-					while (!qOutputList.empty() && qOutputList.front().trimmed().isEmpty())
-						qOutputList.pop_front();
 
 					int lineCountDifference = qOutputList.size() - qInputList.size();
 					if (lineCountDifference != 0 || linesChanged != 0)
@@ -337,12 +323,12 @@ public:
 						if (linesChanged > 0)
 							cout << linesChanged << " line" << (linesChanged > 1 ? "s" : "") << " changed.";
 						cout << "\n";
-					}
-					if (command.flagged("verbose"))
-					{
-						cout << "---------------\n";
-						cout << qOutput.toStdString();
-						cout << "---------------\n";
+						if (command.flagged("verbose"))
+						{
+							cout << "---------------\n";
+							cout << qOutput.toStdString();
+							cout << "---------------\n";
+						}
 					}
 				}
 
