@@ -43,7 +43,7 @@ namespace Quackle
 class Move
 {
 public:
-	enum Action { Place = 0, Exchange, BlindExchange, Pass, UnusedTilesBonus, TimePenalty, Nonmove };
+	enum Action { Place = 0, PlaceError, Exchange, BlindExchange, Pass, UnusedTilesBonus, UnusedTilesBonusError, TimePenalty, Nonmove };
 
 	// creates a pass move with 0 equity;
 	// tiles is "", score and equity are zero

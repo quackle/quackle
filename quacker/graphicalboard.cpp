@@ -325,7 +325,7 @@ QPoint GraphicalBoardFrame::coordinatesOfMark(const QSize &loc)
 
 void GraphicalBoardFrame::drawMove(const Quackle::Move &move)
 {
-    if (move.action == Quackle::Move::Place)
+    if (move.action == Quackle::Move::Place || move.action == Quackle::Move::PlaceError)
     {
         if (move.tiles().empty())
             return;

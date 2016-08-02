@@ -143,6 +143,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				gameStarted = true;
 			}
 
+			UVString currentPlayer = Util::qstringToString(strings.front().mid(1, strings.front().size() - 2));
 			strings.pop_front();
 
 			if (strings.isEmpty())
@@ -158,10 +159,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			if (rackString.startsWith("(") && rackString.endsWith(")"))
 			{
 				// end the game
-				if (ret->hasPositions())
+				if (ret->hasPositions() && !ret->currentPosition().gameOver())
 					ret->commitCandidate(canMaintainCrosses);
 				else
 					ret->addPosition();
+				ret->currentPosition().setTileBonus(currentPlayer, Util::encode(rackString.mid(1, rackString.size() - 2)), strings.front().toInt());
 				continue;
 			}
 
@@ -359,11 +361,14 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 				outputScoreAddition = 0;
 			}
 
-			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles()) << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << endl;
+			QString rackString = Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles());
+			if (move.action == Quackle::Move::UnusedTilesBonusError)
+				rackString = QString();
+			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << endl;
 
 			if (move.isChallengedPhoney())
 			{
-				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles()) << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << endl;
+				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << endl;
 			}
 
 			if (outputScoreAddition != 0)

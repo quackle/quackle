@@ -270,9 +270,9 @@ public:
 	// and found is set to false.
 	PlayerList::const_iterator nextPlayerOfType(Player::PlayerType type, bool &found) const;
 
-	// Returns the player with id specified, or the current player
+	// Returns the player with the abbreviated name specified, or the current player
 	// if not found.
-	PlayerList::const_iterator playerWithId(int id, bool &found) const;
+	PlayerList::const_iterator playerWithAbbreviatedName(const UVString &abbreviatedName, bool &found) const;
 
 	const PlayerList &players() const;
 
@@ -296,7 +296,7 @@ public:
 	bool gameOver() const;
 
 	// the move made will
-	// be set to the proper UnusedTileBonus move.
+	// be set to the proper UnusedTilesBonus move.
 	// The score of the bonus is *not* added to score of current player,
 	// therefor this method is quite misnamed.
 	void adjustScoresToFinishGame();
@@ -355,6 +355,8 @@ public:
 	// possible plays without committing them.
 	void setCommittedMove(const Move &move);
 	const Move &committedMove() const;
+
+	void setTileBonus(const UVString &player, const LetterString &allegedTiles, int allegedTileBonus);
 
 	// saves the current candidate as the committedMove.
 	void prepareForCommit();
@@ -536,6 +538,17 @@ inline bool GamePosition::gameOver() const
 inline void GamePosition::setMoveMade(const Move &move)
 {
 	m_moveMade = move;
+	if (m_gameOver && move.action != Quackle::Move::UnusedTilesBonus && move.action != Quackle::Move::UnusedTilesBonusError)
+	{
+		m_gameOver = false; // apparently the game isn't over...somebody's force-feeding us bad plays
+		--m_turnNumber;
+		m_moveMade.action = Quackle::Move::PlaceError;
+		m_explanatoryNote = "Quackle says: Tiles were drawn out of order, leading to extra turns";
+		if (++m_currentPlayer == m_players.end())
+		{
+			m_currentPlayer = m_players.begin();
+		}
+	}
 }
 
 inline const Move &GamePosition::moveMade() const

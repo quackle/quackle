@@ -160,6 +160,7 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 			switch ((*it).action)
 			{
 			case Quackle::Move::Place:
+			case Quackle::Move::PlaceError:
 			{
 				if (m_generateImages)
 				{

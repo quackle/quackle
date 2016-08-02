@@ -40,10 +40,12 @@ bool operator==(const Move &move1, const Move &move2)
 		switch (move1.action)
 		{
 			case Quackle::Move::Place:
+			case Quackle::Move::PlaceError:
 				ret = (move1.horizontal == move2.horizontal && move1.startrow == move2.startrow && move1.startcol == move2.startcol && move1.tiles() == move2.tiles() && move1.isChallengedPhoney() == move2.isChallengedPhoney());
 				break;
 
 			case Quackle::Move::UnusedTilesBonus:
+			case Quackle::Move::UnusedTilesBonusError:
 			case Quackle::Move::Exchange:
 				ret = (Quackle::String::alphabetize(move1.tiles()) == Quackle::String::alphabetize(move2.tiles()));
 				break;
@@ -142,6 +144,7 @@ UVString Move::xml() const
 		includeScore = true;
 		break;
 
+	case UnusedTilesBonusError:
 	case UnusedTilesBonus:
 		actionString = MARK_UV("unusedtilesbonus");
 		includeTiles = true;
@@ -195,9 +198,9 @@ UVString Move::toString() const
 		ss << "nonmove";
 	else if (action == Quackle::Move::TimePenalty)
 		ss << "timepenalty " << score;
-	else if (action == Quackle::Move::UnusedTilesBonus)
+	else if (action == Quackle::Move::UnusedTilesBonus || action == Quackle::Move::UnusedTilesBonusError)
 		ss << "(" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles) << ")";
-    else if (action == Quackle::Move::Place)
+    else if (action == Quackle::Move::Place || action == Quackle::Move::PlaceError)
 	{
 		ss << positionString();
 		ss << " " << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);

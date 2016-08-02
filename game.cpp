@@ -106,15 +106,14 @@ void Game::associateComputerPlayer(int playerId, ComputerPlayer *computerPlayer)
 
 void Game::associateKnownComputerPlayers()
 {
-	const PlayerList::const_iterator end(m_positions.players().end());
-	for (PlayerList::const_iterator it = m_positions.players().begin(); it != end; ++it)
+	for (const auto &it : m_positions.players())
 	{
-		if ((*it).type() == Player::ComputerPlayerType)
+		if (it.type() == Player::ComputerPlayerType)
 		{
-			ComputerPlayer *computerPlayer = (*it).computerPlayer();
+			ComputerPlayer *computerPlayer = it.computerPlayer();
 
 			if (computerPlayer)
-				associateComputerPlayer((*it).id(), computerPlayer);
+				associateComputerPlayer(it.id(), computerPlayer);
 		}
 	}
 }
@@ -256,9 +255,8 @@ void GamePosition::kibitz(int nmoves)
 
 	m_moves = generator.kibitzList();
 
-	const MoveList::iterator end(m_moves.end());
-	for (MoveList::iterator it = m_moves.begin(); it != end; ++it)
-		ensureMovePrettiness(*it);
+	for (auto &it : m_moves)
+		ensureMovePrettiness(it);
 }
 
 const Move &GamePosition::staticBestMove()
@@ -311,9 +309,9 @@ void GamePosition::addMove(const Move &move)
 
 void GamePosition::makeSureMoveListContainsMoves(const MoveList &moves)
 {
-	for (MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it)
-		if (!m_moves.contains(*it))
-			addMove(*it);
+	for (const auto &it : moves)
+		if (!m_moves.contains(it))
+			addMove(it);
 }
 
 void GamePosition::kibitzAs(ComputerPlayer *computerPlayer, int nmoves)
@@ -366,6 +364,7 @@ int GamePosition::validateMove(const Move &move) const
 		break;
 
 	case Move::UnusedTilesBonus:
+	case Move::UnusedTilesBonusError:
 	case Move::TimePenalty:
 		ret = InvalidAction;
 		break;
@@ -387,9 +386,9 @@ bool GamePosition::formsAcceptableWords(const Move &move) const
 {
 	vector<Move> words = m_board.allWordsFormedBy(move);
 
-	for (vector<Move>::const_iterator it = words.begin(); it != words.end(); ++it)
+	for (const auto &it : words)
 	{
-		if (!isAcceptableWord((*it).wordTiles()))
+		if (!isAcceptableWord(it.wordTiles()))
 			return false;
 	}
 
@@ -427,15 +426,15 @@ int GamePosition::handleOverdraw(const LetterString &letters, LetterString *thro
 
 	double minimumLeaveValue = 99999;
 
-	for (ProbableRackList::const_iterator it = racks.begin(); it != racks.end(); ++it)
+	for (const auto &it : racks)
 	{
-		double value = leaveValue((*it).rack.tiles());
+		double value = leaveValue(it.rack.tiles());
 
 		if (value < minimumLeaveValue)
 		{
 			Rack rack(letters);
-			rack.unload((*it).rack.tiles());
-			*throwback = (Rack(letters) - (*it).rack).tiles();
+			rack.unload(it.rack.tiles());
+			*throwback = (Rack(letters) - it.rack).tiles();
 			minimumLeaveValue = value;
 		}
 	}
@@ -506,12 +505,11 @@ Bag GamePosition::unseenBagFromPlayerPerspective(const Player &player) const
 
 	// other way:
 	Bag ret(m_bag);
-	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
+	for (const auto &it : m_players)
 	{
-		if (!((*it) == player))
+		if (!(it == player))
 		{
-			ret.toss((*it).rack());
+			ret.toss(it.rack());
 		}
 	}
 
@@ -528,11 +526,10 @@ void GamePosition::ensureProperBag() const
 	Bag racks;
 	racks.clear();
 
-	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
+	for (const auto &it : m_players)
 	{
-		allTiles.toss((*it).rack());
-		racks.toss((*it).rack());
+		allTiles.toss(it.rack());
+		racks.toss(it.rack());
 	}
 
 	allTiles.toss(m_bag.shuffledTiles());
@@ -625,13 +622,12 @@ UVString GamePosition::nestednessIndentation() const
 void GamePosition::setOppRack(const Rack &rack, bool adjustBag)
 {
 	int oppID;
-	const PlayerList::iterator end(m_players.end());
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
-		if ((*it).id() != currentPlayer().id())
+	for (auto &it : m_players)
+		if (it.id() != currentPlayer().id())
 		{
-			m_bag.toss((*it).rack());
-			(*it).setRack(Rack(""));
-			oppID = (*it).id();
+			m_bag.toss(it.rack());
+			it.setRack(Rack(""));
+			oppID = it.id();
 			setPlayerRack(oppID, rack, adjustBag);
 			return;
 		}
@@ -642,15 +638,14 @@ Rack GamePosition::oppRack()
 {
 	UVcout << "currentPlayer(): " << currentPlayer() << endl;
 
-	const PlayerList::iterator end(m_players.end());
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
-		UVcout << "rack " << *it << " " << (*it).rack() << endl;
+	for (const auto &it : m_players)
+		UVcout << "rack " << it << " " << it.rack() << endl;
 
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
+	for (const auto &it : m_players)
 	{
-		if ((*it).id() != currentPlayer().id())
+		if (it.id() != currentPlayer().id())
 		{
-			return (*it).rack();
+			return it.rack();
 		}
 	}
 
@@ -659,20 +654,19 @@ Rack GamePosition::oppRack()
 
 void GamePosition::setPlayerRack(int playerID, const Rack &rack, bool adjustBag)
 {
-	const PlayerList::iterator end(m_players.end());
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
+	for (auto &it : m_players)
 	{
-		if ((*it).id() == playerID)
+		if (it.id() == playerID)
 		{
 			// restore bag
 			if (adjustBag)
 			{
 				// please be correct code
-				m_bag.toss((*it).rack() - rack);
-				removeLetters((rack - (*it).rack()).tiles());
+				m_bag.toss(it.rack() - rack);
+				removeLetters((rack - it.rack()).tiles());
 			}
 
-			(*it).setRack(rack);
+			it.setRack(rack);
 		}
 	}
 }
@@ -687,9 +681,8 @@ bool GamePosition::canSetPlayerRackWithoutBagExpansion(int playerID, const Rack 
         (void) playerID;
 	Bag someTiles(m_bag);
 
-	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
-		someTiles.toss((*it).rack());
+	for (const auto &it : m_players)
+		someTiles.toss(it.rack());
 
 	// Now we have a bag with all tiles not on the board
 	return someTiles.removeLetters(rack.tiles());
@@ -725,6 +718,32 @@ bool GamePosition::setPlayerOnTurn(int playerID)
 
 	m_playerOnTurn = m_players.begin();
 	return false;
+}
+
+void GamePosition::setTileBonus(const UVString &player, const LetterString &allegedTiles, int allegedTileBonus)
+{
+	bool found;
+	Quackle::Move tileBonusMove = Quackle::Move::createUnusedTilesBonus(allegedTiles, allegedTileBonus);
+	PlayerList::const_iterator currentPlayer = playerWithAbbreviatedName(player, found);
+	if (currentPlayer == m_currentPlayer && m_gameOver)
+	{
+		if (allegedTileBonus == m_committedMove.effectiveScore())
+			return; // this has already been computed
+
+		// We computed this, but it differs from the actual tile bonus we're requested to add
+		tileBonusMove.action = Quackle::Move::UnusedTilesBonusError;
+	}
+	else if (allegedTileBonus > 0)
+	{
+		++m_turnNumber;
+		tileBonusMove.action = Quackle::Move::UnusedTilesBonusError; // we didn't empty a rack, but somebody's claiming we did
+	}
+
+	setCurrentPlayer(currentPlayer->id());
+	setMoveMade(tileBonusMove);
+	setCommittedMove(tileBonusMove);
+	m_gameOver = true;
+	m_explanatoryNote = UVString("Quackle says: Bag wasn't empty or tiles drawn out of order");
 }
 
 void GamePosition::prepareForCommit()
@@ -876,10 +895,9 @@ bool GamePosition::incrementTurn(const History* history)
 
 	// refill rack of any player whose rack is empty (again for
 	// beginning of game)
-	const PlayerList::iterator end(m_players.end());
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
-		if ((*it).rack().empty())
-			replenishAndSetRack((*it).rack(), *it);
+	for (auto &it : m_players)
+		if (it.rack().empty())
+			replenishAndSetRack(it.rack(), it);
 
 	// freeze current player as last person who played out
 	if (gameOver())
@@ -891,7 +909,8 @@ bool GamePosition::incrementTurn(const History* history)
 	m_drawingOrder = LetterString();
 
 	// reset note to a clean slate
-	m_explanatoryNote = UVString();
+	if (m_moveMade.action != Quackle::Move::UnusedTilesBonusError)
+		m_explanatoryNote = UVString();
 
 	return ret;
 }
@@ -900,14 +919,13 @@ bool GamePosition::removeLetters(const LetterString &letters)
 {
 	bool ret = true;
 
-	const LetterString::const_iterator end(letters.end());
-	for (LetterString::const_iterator it = letters.begin(); it != end; ++it)
+	for (const auto &it : letters)
 	{
 #ifdef VERBOSE_DEBUG_BAG
 		UVcout << "removeLetters processing " << QUACKLE_ALPHABET_PARAMETERS->userVisible(*it) << endl;
 #endif
 
-		const bool removedFromBag = m_bag.removeLetter(*it);
+		const bool removedFromBag = m_bag.removeLetter(it);
 		if (removedFromBag)
 		{
 #ifdef VERBOSE_DEBUG_BAG
@@ -917,20 +935,19 @@ bool GamePosition::removeLetters(const LetterString &letters)
 		else
 		{
 			bool removedFromPlayer = false;
-			const PlayerList::iterator playersEnd(m_players.end());
-			for (PlayerList::iterator playerIt = m_players.begin(); playerIt != playersEnd; ++playerIt)
+			for (auto &playerIt : m_players)
 			{
-				if (*playerIt == currentPlayer())
+				if (playerIt == currentPlayer())
 					continue;
 
 				LetterString letterString;
-				letterString += (*it);
+				letterString += it;
 
-				Rack newRack((*playerIt).rack());
+				Rack newRack(playerIt.rack());
 				removedFromPlayer = newRack.unload(letterString);
 				if (removedFromPlayer)
 				{
-					replenishAndSetRack(newRack, *playerIt);
+					replenishAndSetRack(newRack, playerIt);
 					break;
 				}
 			}
@@ -964,7 +981,7 @@ PlayerList::const_iterator GamePosition::nextPlayer() const
 	return ret;
 }
 
-PlayerList::const_iterator GamePosition::playerWithId(int id, bool &found) const
+PlayerList::const_iterator GamePosition::playerWithAbbreviatedName(const UVString &abbreviatedName, bool &found) const
 {
 	PlayerList::const_iterator it = m_currentPlayer;
 	for (++it; ; ++it)
@@ -972,7 +989,7 @@ PlayerList::const_iterator GamePosition::playerWithId(int id, bool &found) const
 		if (it == m_players.end())
 			it = m_players.begin();
 
-		if ((*it).id() == id)
+		if ((*it).abbreviatedName() == abbreviatedName)
 		{
 			found = true;
 			return it;
@@ -1014,10 +1031,9 @@ PlayerList::const_iterator GamePosition::nextPlayerOfType(Player::PlayerType typ
 PlayerList GamePosition::endgameAdjustedScores() const
 {
 	PlayerList ret;
-	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
+	for (const auto &it : m_players)
 	{
-		Player adjustedPlayer(*it);
+		Player adjustedPlayer(it);
 
 		if (gameOver() && adjustedPlayer == currentPlayer())
 		{
@@ -1035,13 +1051,13 @@ PlayerList GamePosition::leadingPlayers() const
 	PlayerList ret;
 
 	PlayerList players(endgameAdjustedScores());
-	for (PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
+	for (const auto &it : players)
 	{
-		if (!ret.empty() && (*it).score() > ret.back().score())
+		if (!ret.empty() && it.score() > ret.back().score())
 			ret.clear();
 
-		if (ret.empty() || (*it).score() >= ret.back().score())
-			ret.push_back(*it);
+		if (ret.empty() || it.score() >= ret.back().score())
+			ret.push_back(it);
 	}
 
 	return ret;
@@ -1053,16 +1069,16 @@ int GamePosition::spread(int playerID) const
 	int currentPlayerScore = 0;
 
 	PlayerList players(endgameAdjustedScores());
-	for (PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
+	for (const auto &it : players)
 	{
-		if ((*it).id() == playerID)
+		if (it.id() == playerID)
 		{
-			currentPlayerScore = (*it).score();
+			currentPlayerScore = it.score();
 			continue;
 		}
 
-		if ((*it).score() > nextBest)
-			nextBest = (*it).score();
+		if (it.score() > nextBest)
+			nextBest = it.score();
 	}
 
 	return currentPlayerScore - nextBest;
@@ -1070,17 +1086,16 @@ int GamePosition::spread(int playerID) const
 
 void GamePosition::adjustScoresToFinishPassedOutGame()
 {
-	const PlayerList::iterator end(m_players.end());
-	for (PlayerList::iterator it = m_players.begin(); it != end; ++it)
+	for (auto &it : m_players)
 	{
-		if ((*it) == currentPlayer())
+		if (it == currentPlayer())
 		{
-			m_moveMade = Move::createUnusedTilesBonus((*it).rack().tiles(), -(*it).rack().score());
+			m_moveMade = Move::createUnusedTilesBonus(it.rack().tiles(), -it.rack().score());
 			m_committedMove = m_moveMade;
 		}
 		else
 		{
-			(*it).addToScore(-(*it).rack().score());
+			it.addToScore(-it.rack().score());
 		}
 	}
 }
@@ -1101,14 +1116,13 @@ int GamePosition::deadwood(LetterString *tiles) const
 	int addand = 0;
 	tiles->clear();
 
-	const PlayerList::const_iterator end(m_players.end());
-	for (PlayerList::const_iterator it = m_players.begin(); it != end; ++it)
+	for (const auto &it : m_players)
 	{
-		if ((*it) == currentPlayer())
+		if (it == currentPlayer())
 			continue;
 
-		addand += (*it).rack().score();
-		*tiles += (*it).rack().tiles();
+		addand += it.rack().score();
+		*tiles += it.rack().tiles();
 	}
 
 	return addand * 2;
@@ -1127,9 +1141,8 @@ UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position)
 	o << "Move made is " << position.moveMade() << endl;
 	o << "All Players: " << endl;
 	PlayerList players(position.players());
-	const PlayerList::const_iterator end(players.end());
-	for (PlayerList::const_iterator it = players.begin(); it != end; ++it)
-		o << *it << endl;
+	for (const auto &it : players)
+		o << it << endl;
 	o << position.bag() << endl;
 	if (position.gameOver())
 		o << "Game over." << endl;
@@ -1139,9 +1152,8 @@ UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position)
 
 UVOStream& operator<<(UVOStream& o, const Quackle::PositionList &positions)
 {
-	const Quackle::PositionList::const_iterator end(positions.end());
-	for (Quackle::PositionList::const_iterator it = positions.begin(); it != end; ++it)
-		o << *it << endl;
+	for (const auto &it : positions)
+		o << it << endl;
 	return o;
 }
 

@@ -59,8 +59,11 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 		ret = QObject::tr("Exch. %1").arg(move.tiles().length());
 		break;
 	
+	case Quackle::Move::UnusedTilesBonusError:
 	case Quackle::Move::UnusedTilesBonus:
 		ret = QObject::tr("2*(%1)").arg(letterStringToQString(Util::alphagram(move.usedTiles())));
+		if (move.action == Quackle::Move::UnusedTilesBonusError)
+			ret += " [Endgame Error]";
 		break;
 	
 	case Quackle::Move::TimePenalty:
@@ -72,6 +75,7 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 		break;
 	
 	case Quackle::Move::Place:
+	case Quackle::Move::PlaceError:
 		ret = uvStringToQString(move.positionString()) + " ";
 		ret += prettyTiles;
 
@@ -80,6 +84,9 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 
 		if (move.isChallengedPhoney())
 			ret = QObject::tr("%1 [Challenged Off]").arg(ret);
+
+		if (move.action == Quackle::Move::PlaceError)
+			ret += " [Endgame Misdraw]";
 
 		break;
 	}

@@ -164,6 +164,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 				s << MARK_UV("pas");
 				break;
 			case Move::UnusedTilesBonus:
+			case Move::UnusedTilesBonusError:
 			case Move::TimePenalty:
 			case Move::Nonmove:
 				break;
