@@ -78,8 +78,7 @@ Additional things to know:
 --------------------------
 * To build the Quackle installer,
   + Copy QtCore4.dll and QtGui4.dll from Qt's bin/ directory into quackle\
-  + If you're building with MinGW, copy mingwm10.dll, libstdc++-6.dll, and
-    libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
+  + If you're building with MinGW, copy msvcp120.dll, msvcr120.dll, libstdc++-6.dll, libwinpthread-1.dll, and libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
   + From the Quackle directory, run the following...
     <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
   + Find the file QuackleInstaller.exe in the quackle\ directory.
