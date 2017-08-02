@@ -2115,7 +2115,7 @@ void TopLevel::firstTimeRun()
 void TopLevel::about()
 {
 	QString aboutText = tr(
-"<p><b>Quackle</b> 1.0.3 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+"<p><b>Quackle</b> 1.0.4 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
 "<p>Copyright 2005-2016 by</p>"
 "<ul>"
@@ -2143,7 +2143,7 @@ void TopLevel::about()
 		fclose(file);
 		aboutText += "</ul>";
 	}
-	QMessageBox::about(this, tr("About Quackle 1.0.3"), dialogText(aboutText));
+	QMessageBox::about(this, tr("About Quackle 1.0.4"), dialogText(aboutText));
 }
 
 void TopLevel::hints()

@@ -1,5 +1,5 @@
 TEMPLATE = app
-VERSION = 1.0.3
+VERSION = 1.0.4
 TARGET = Quackle
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
