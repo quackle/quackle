@@ -1,19 +1,19 @@
 language: cpp
+dist: trusty
 compiler:
   - gcc
   - clang
 install:
-- if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+  - export QT_SELECT=5
 addons:
   apt:
-    sources:
-    - ubuntu-toolchain-r-test
     packages:
-    - gcc-4.8
-    - g++-4.8
+    - gcc
+    - g++
     - clang
-    - libqt4-dev
-script: 
+    - qtbase5-dev
+    - qt5-qmake
+script:
   - qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd quackleio && qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make
   - cd ..

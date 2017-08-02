@@ -149,12 +149,12 @@ QString Util::letterToQString(const Quackle::Letter &letter)
 
 string Util::qstringToStdString(const QString &qstring)
 {
-	return string(qstring.toAscii());
+	return string(qstring.toLatin1());
 }
 
 QString Util::stdStringToQString(const string &stdString)
 {
-	return QString::fromAscii(stdString.c_str());
+	return QString::fromLatin1(stdString.c_str());
 }
 
 Quackle::LetterString Util::alphagram(const Quackle::LetterString &word) 

@@ -17,6 +17,7 @@
  */
 
 #include <QtGui>
+#include <QMessageBox>
 
 #include <board.h>
 #include <computerplayer.h>

@@ -19,6 +19,11 @@
 #include <iostream>
 
 #include <QtGui>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 #include <game.h>
 #include <quackleio/util.h>

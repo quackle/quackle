@@ -20,6 +20,15 @@
 using namespace std;
 
 #include <QtGui>
+#include <QSpinBox>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QCheckBox>
+#include <QListWidget>
+#include <QPushButton>
+#include <QFileDialog>
+#include <QMessageBox>
 
 #include <quackleio/dictfactory.h>
 

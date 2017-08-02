@@ -17,6 +17,9 @@
  */
 
 #include <QtGui>
+#include <QVBoxLayout>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #include <game.h>
 #include <quackleio/util.h>
