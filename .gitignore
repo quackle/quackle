@@ -1,5 +1,8 @@
 .sconsign
 .gitattributes
+.tags*
+.qmake.stash
+.vs
 obj
 Makefile
 Makefile.Debug
@@ -12,11 +15,16 @@ ChangeLog
 *.sublime-workspace
 *.xcodeproj
 *.exe
+*.pdb
 *.pfx
 *.cer
 *.dll
 *.vcxproj*
 *.*sdf
+*.aps
+*.suo
+*.db
+*.dmg
 dawginput.raw
 playabilities.raw
 smaller.raw

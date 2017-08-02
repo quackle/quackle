@@ -16,8 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QBoxLayout>
+#include <QtWidgets>
 
 #include "geometry.h"
 

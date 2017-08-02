@@ -34,10 +34,7 @@ SOURCES -= \
 	makedawg.cpp \
 	quackletest.cpp
 
-macx-g++ {
-    QMAKE_CXXFLAGS += -fpermissive
-}
-
-macx-xcode {
+macx {
 	CONFIG += x86	
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 }

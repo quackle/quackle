@@ -16,16 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QStatusBar>
-#include <QAction>
-#include <QMessageBox>
-#include <QVBoxLayout>
-#include <QLineEdit>
-#include <QMenu>
-#include <QMenuBar>
-#include <QFileDialog>
-#include <QInputDialog>
+#include <QtWidgets>
 
 #include <quackleio/dictfactory.h>
 #include <quackleio/util.h>

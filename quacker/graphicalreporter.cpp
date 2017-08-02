@@ -16,8 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QMessageBox>
+#include <QtWidgets>
 
 #include <board.h>
 #include <computerplayer.h>

@@ -16,14 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QCheckBox>
-#include <QGroupBox>
-#include <QSpinBox>
-#include <QComboBox>
-#include <QLabel>
-#include <QGridLayout>
-#include <QVBoxLayout>
+#include <QtWidgets>
 
 #include <uv.h>
 

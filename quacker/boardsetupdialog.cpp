@@ -17,16 +17,7 @@
  */
 
 #include <sstream>
-#include <QtGui>
-#include <QCheckBox>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGroupBox>
-#include <QLabel>
-#include <QComboBox>
-#include <QMessageBox>
-#include <QLineEdit>
+#include <QtWidgets>
 
 #include <boardparameters.h>
 #include <board.h>

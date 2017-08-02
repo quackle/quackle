@@ -21,24 +21,7 @@
 
 using namespace std;
 
-#include <QtGui>
-#include <QApplication>
-#include <QMessageBox>
-#include <QInputDialog>
-#include <QStatusBar>
-#include <QAction>
-#include <QFileDialog>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QGroupBox>
-#include <QMenuBar>
-#include <QToolBar>
-#include <QMenu>
-#include <QSplitter>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QPushButton>
+#include <QtWidgets>
 
 #include <game.h>
 #include <boardparameters.h>

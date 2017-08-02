@@ -132,7 +132,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			else if (line.startsWith("#character-encoding"))
 			{
 				QString encoding{line.right(line.length() - 20).trimmed()};
-				stream.setCodec(QTextCodec::codecForName(encoding.toAscii()));
+				stream.setCodec(QTextCodec::codecForName(encoding.toLatin1()));
 			}
 		}
 		else if (line.startsWith(">"))

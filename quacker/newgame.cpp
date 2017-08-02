@@ -18,15 +18,7 @@
 
 #include <iostream>
 
-#include <QtGui>
-#include <QTabWidget>
-#include <QTreeWidget>
-#include <QPushButton>
-#include <QComboBox>
-#include <QGroupBox>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QLineEdit>
+#include <QtWidgets>
 
 #include <computerplayer.h>
 #include <datamanager.h>

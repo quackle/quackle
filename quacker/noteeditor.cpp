@@ -16,9 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QVBoxLayout>
-#include <QTextEdit>
+#include <QtWidgets>
 
 #include <game.h>
 #include <quackleio/util.h>

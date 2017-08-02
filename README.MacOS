@@ -3,8 +3,8 @@ Requirements:
 
 1. Xcode (for the compiler and build tools)
 2. A version of Qt 5.  I use HomeBrew to grab the latest version,
-   presently Qt 5.5.1. Installing in HomeBrew is as easy as
-		brew install qt5
+   presently Qt 5.9.1. Installing in HomeBrew is as easy as
+		brew install qt
 
 Building Quackle:
 -----------------

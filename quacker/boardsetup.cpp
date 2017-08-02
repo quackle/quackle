@@ -19,9 +19,7 @@
 #include <iostream>
 #include <math.h>
 
-#include <QtGui>
-#include <QVBoxLayout>
-#include <QLabel>
+#include <QtWidgets>
 
 #include <game.h>
 #include <move.h>

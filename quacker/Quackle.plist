@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>quacker</string>
+	<string>Quackle</string>
 	<key>CFBundleIconFile</key>
 	<string>quacker.icns</string>
 	<key>CFBundleIdentifier</key>
@@ -21,6 +21,6 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright &copy; 2005-2016 by Jason Katz-Brown & John O'Laughlin</string>
+	<string>Copyright © 2005-2017 by Jason Katz-Brown &amp; John O'Laughlin</string>
 </dict>
 </plist>

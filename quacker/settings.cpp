@@ -21,17 +21,11 @@
 #include <iostream>
 #include <sstream>
 
-#include <QtGui>
-#include <QGridLayout>
-#include <QComboBox>
-#include <QMessageBox>
-#include <QLabel>
-#include <QPushButton>
-#include <QStandardPaths>
+#include <QtWidgets>
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
 #include <CoreFoundation/CoreFoundation.h>
-#endif // Q_WS_MAC
+#endif // Q_OS_MAC
 
 #include "alphabetparameters.h"
 #include "board.h"
@@ -64,7 +58,7 @@ Settings::Settings(QWidget *parent)
 	m_self = this;
 	QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 
- #ifdef Q_WS_MAC
+ #ifdef Q_OS_MAC
 	if (CFBundleGetMainBundle())
 	{
 		 CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
@@ -83,7 +77,7 @@ Settings::Settings(QWidget *parent)
 			 CFRelease(macPath);
 		 }
 	}
- #endif
+ #endif // Q_OS_MAC
 
 	if (QFile::exists("data"))
 		m_appDataDir = "data";

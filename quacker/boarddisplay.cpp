@@ -16,14 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-#include <QTextEdit>
-#include <QLineEdit>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QMessageBox>
+#include <QtWidgets>
 
 #include <alphabetparameters.h>
 #include <board.h>

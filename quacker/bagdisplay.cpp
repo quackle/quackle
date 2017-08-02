@@ -18,11 +18,7 @@
 
 #include <math.h>
 
-#include <QtGui>
-#include <QTextEdit>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QScrollBar>
+#include <QtWidgets>
 
 #include <bag.h>
 #include <game.h>
