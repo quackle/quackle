@@ -11,6 +11,7 @@ debug
 object_script.*
 release
 ChangeLog
+Quackle
 *.app
 *.sublime-workspace
 *.xcodeproj

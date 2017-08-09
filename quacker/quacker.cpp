@@ -780,7 +780,9 @@ void TopLevel::setCaption(const QString &text)
 void TopLevel::setModified(bool modified)
 {
 	m_modified = modified;
-	setWindowModified(m_modified);
+	// conditional check avoids Qt console outputs regarding missing "[*]"
+	if (!modified || !m_filename.isEmpty())
+		setWindowModified(m_modified);
 }
 
 bool TopLevel::setupCheck()
