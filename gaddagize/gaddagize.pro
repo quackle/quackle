@@ -6,7 +6,7 @@ INCLUDEPATH += . ..
 # CONFIG += debug
 CONFIG += release
 
-CONFIG += console
+CONFIG += console c++14
 CONFIG -= app_bundle
 
 debug {
@@ -17,7 +17,9 @@ release {
   OBJECTS_DIR = obj/release
 }
 
-QMAKE_CXXFLAGS:!win32-msvc2013 += -std=c++11 -Wno-unknown-warning-option -Wno-deprecated-register
+!msvc {
+  QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
+}
 
 # Input
 SOURCES += gaddagize.cpp
@@ -25,4 +27,8 @@ SOURCES += gaddagize.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

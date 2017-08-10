@@ -5,8 +5,9 @@ INCLUDEPATH += . ..
 # enable/disable debug symbols
 # CONFIG += debug
 CONFIG += release
+CONFIG -= debug
 
-CONFIG += console
+CONFIG += console c++14
 CONFIG -= app_bundle
 
 debug {
@@ -32,4 +33,8 @@ SOURCES += encodeleaves.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

@@ -15,6 +15,8 @@ CONFIG += release
 #qmake messes up resulting Visual Studio project files.
 CONFIG -= debug
 
+CONFIG += c++14
+
 debug {
   OBJECTS_DIR = obj/debug
   QMAKE_LIBDIR += ../lib/debug ../quackleio/lib/debug
@@ -32,8 +34,9 @@ win32:!win32-g++ {
 }
 macx:LIBS += -framework CoreFoundation
 
-QMAKE_CXXFLAGS += -std=c++11
-#QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+!msvc {
+  QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
+}
 
 # Input
 HEADERS += *.h
@@ -70,4 +73,8 @@ macx-g++ {
 
 unix:!macx {
 	QMAKE_CXXFLAGS += -Wno-unused-local-typedefs
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }
