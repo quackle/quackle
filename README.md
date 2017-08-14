@@ -1,7 +1,8 @@
 Quackle   ![Icon](https://github.com/quackle/quackle/raw/master/IconSmall.png)
 =======
 
-[![Build Status](https://secure.travis-ci.org/quackle/quackle.png?branch=master)](http://travis-ci.org/quackle/quackle)
+[![Travis build status](https://secure.travis-ci.org/quackle/quackle.png?branch=master)](http://travis-ci.org/quackle/quackle)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/ttcu5vruvcdljwel/branch/master?svg=true)](https://ci.appveyor.com/project/jfultz/quackle/branch/master)
 
 Crossword game artificial intelligence and analysis tool.
 
