@@ -31,7 +31,11 @@ public:
 	StrategyParameters();
 
 	void initialize(const string &lexicon);
-	bool isInitialized() const;
+	bool hasSyn2() const;
+	bool hasWorths() const;
+	bool hasVcPlace() const;
+	bool hasBogowin() const;
+	bool hasSuperleaves() const;
 
 	// letters are raw letters include bottom marks
 	double syn2(Letter letter1, Letter letter2) const;
@@ -56,14 +60,38 @@ protected:
 	static const int m_bogowinArrayWidth = 601;
 	static const int m_bogowinArrayHeight = 94;
 	double m_bogowin[m_bogowinArrayWidth][m_bogowinArrayHeight];
-        typedef map<LetterString, double> SuperLeavesMap;
+	typedef map<LetterString, double> SuperLeavesMap;
 	SuperLeavesMap m_superleaves;
-	bool m_initialized;
+	bool m_hasSyn2;
+	bool m_hasWorths;
+	bool m_hasVcPlace;
+	bool m_hasBogowin;
+	bool m_hasSuperleaves;
 };
 
-inline bool StrategyParameters::isInitialized() const
+inline bool StrategyParameters::hasSyn2() const
 {
-	return m_initialized;
+	return m_hasSyn2;
+}
+
+inline bool StrategyParameters::hasWorths() const
+{
+	return m_hasWorths;
+}
+
+inline bool StrategyParameters::hasVcPlace() const
+{
+	return m_hasVcPlace;
+}
+
+inline bool StrategyParameters::hasBogowin() const
+{
+	return m_hasBogowin;
+}
+
+inline bool StrategyParameters::hasSuperleaves() const
+{
+	return m_hasSuperleaves;
 }
 
 inline int StrategyParameters::mapLetter(Letter letter) const

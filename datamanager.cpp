@@ -140,6 +140,8 @@ string DataManager::findDataFile(const string &subDirectory, const string &lexic
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, m_backupLexicon, file, false);
 	if (!fileExists(fname))
+		fname = makeDataFilename(subDirectory, "default", file, false);
+	if (!fileExists(fname))
 		fname = string();
 	
 	return fname;

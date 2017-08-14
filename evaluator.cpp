@@ -72,35 +72,33 @@ double ScorePlusLeaveEvaluator::sharedConsideration(const GamePosition &position
 
 double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 {
-	if (!QUACKLE_STRATEGY_PARAMETERS->isInitialized())
-		return 0;
-
 	LetterString alphabetized = String::alphabetize(leave);
 	
-	if (QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized))
+	if (QUACKLE_STRATEGY_PARAMETERS->hasSuperleaves() && QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized))
 		return QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized);
 
 	double value = 0;
-	double synergy = 0;
-	LetterString uniqleave;
-
-	const LetterString::const_iterator leaveEnd(leave.end());
 
 	if (!leave.empty())
 	{
-		for (LetterString::const_iterator leaveIt = leave.begin(); leaveIt != leaveEnd; ++leaveIt)
-			value += QUACKLE_STRATEGY_PARAMETERS->tileWorth(*leaveIt);
+		double synergy = 0;
+		LetterString uniqleave;
 
-		for (unsigned int i = 0; i < leave.length() - 1; ++i)
-			if (leave[i] == leave[i + 1])
-				value += QUACKLE_STRATEGY_PARAMETERS->syn2(leave[i], leave[i]);
+		if (QUACKLE_STRATEGY_PARAMETERS->hasWorths())
+			for (const auto& leaveIt : leave)
+				value += QUACKLE_STRATEGY_PARAMETERS->tileWorth(leaveIt);
 
-		uniqleave += leave[0];
-		for (unsigned int i = 1; i < leave.length(); ++i)
-			if (uniqleave[uniqleave.length() - 1] != leave[i])
-				uniqleave += leave[i];
+		if (QUACKLE_STRATEGY_PARAMETERS->hasSyn2())
+			for (unsigned int i = 0; i < alphabetized.length() - 1; ++i)
+				if (alphabetized[i] == alphabetized[i + 1])
+					value += QUACKLE_STRATEGY_PARAMETERS->syn2(alphabetized[i], alphabetized[i]);
 
-		if (uniqleave.length() >= 2)
+		uniqleave += alphabetized[0];
+		for (unsigned int i = 1; i < alphabetized.length(); ++i)
+			if (uniqleave[uniqleave.length() - 1] != alphabetized[i])
+				uniqleave += alphabetized[i];
+
+		if (uniqleave.length() >= 2 && QUACKLE_STRATEGY_PARAMETERS->hasSyn2())
 		{
 			for (unsigned int i = 0; i < uniqleave.length() - 1; ++i)
 				for (unsigned int j = i + 1; j < uniqleave.length(); ++j)
@@ -126,11 +124,11 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 	int vowels = 0;
 	int cons = 0;
 
-	for (LetterString::const_iterator leaveIt = leave.begin(); leaveIt != leaveEnd; ++leaveIt)
+	for (const auto& leaveIt : leave)
 	{
-		if (*leaveIt != QUACKLE_BLANK_MARK)
+		if (leaveIt != QUACKLE_BLANK_MARK)
 		{
-			if (QUACKLE_ALPHABET_PARAMETERS->isVowel(*leaveIt))
+			if (QUACKLE_ALPHABET_PARAMETERS->isVowel(leaveIt))
 				vowels++;
 			else
 				cons++;
