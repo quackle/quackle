@@ -1,13 +1,14 @@
 #include <QtCore>
 #include <iostream>
 
-#include "datamanager.h"
 #include "computerplayercollection.h"
+#include "datamanager.h"
+#include "game.h"
+#include "move.h"
+#include "computerplayer.h"
 #include "alphabetparameters.h"
 #include "boardparameters.h"
 #include "lexiconparameters.h"
-#include "game.h"
-#include "player.h"
 #include "strategyparameters.h"
 
 // QuackleIO stuff
@@ -19,7 +20,7 @@
 // testharness.cpp, etc.
 Quackle::DataManager startup() {
     Quackle::DataManager dataManager;
-    dataManager.setAppDataDirectory("data");
+    dataManager.setAppDataDirectory("../data");
     dataManager.setBackupLexicon("twl06");
 
     dataManager.lexiconParameters()->loadDawg(
@@ -33,7 +34,7 @@ Quackle::DataManager startup() {
     return dataManager;
 }
 
-void loadGameAndPlayers(Quackle::DataManager dataManager, char* gcgfilename) {
+void loadGameAndPlayers(Quackle::DataManager dataManager, QString gcgfilename) {
 
     // Set up alphabet -- assume it's english so we probably don't need to do this.
     // see `m_alphabetParameters = new EnglishAlphabetParameters;` in datamanager
@@ -45,25 +46,33 @@ void loadGameAndPlayers(Quackle::DataManager dataManager, char* gcgfilename) {
     // function. MVP for this should be to provide a GCG loader and a speedy
     // player move generator.
     // Later add simming.
-    Quackle::Game game;
-    Quackle::Player player = dataManager.computerPlayers().playerForName(
-        "Speedy Player");
-    Quackle::ComputerPlayer *computerPlayer = player.computerPlayer();
-    QuackleIO::GCGIO io;
-
-    QFile file(QString(gcgfilename));
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        cout << "Could not open gcg " << gcgfilename;
+    bool playerFound = false;
+    cout << "OK" << endl;
+    const Quackle::Player &player = dataManager.computerPlayers().playerForName(
+        "Speedy Player", playerFound);
+    if (!playerFound) {
+        cout << "Could not get player";
         return;
     }
-    QTextStream in(&file);
-    Quackle::Game *game = io.read(in, QuackleIO::Logania::MaintainBoardPreparation);
-    file.close();
+    Quackle::ComputerPlayer *computerPlayer = player.computerPlayer();
+    QuackleIO::GCGIO io;
+    cout << "HEHE" << endl;
+    Quackle::Game *game = io.read(gcgfilename, QuackleIO::Logania::MaintainBoardPreparation);
+    cout << "EEP" << endl;
     // We have a game now.
+    Quackle::GamePosition position = game->currentPosition();
+    computerPlayer->setPosition(position);
+    Quackle::MoveList moves = computerPlayer->moves(15);
+    cout << "HERE" << endl;
+    for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it) {
+        cout << *it << endl;
+    }
 }
 
-void main(int argc, char **argv) {
+int main(int argc, char **argv) {
     Quackle::DataManager dataManager;
     dataManager = startup();
-    loadGameAndPlayers(dataManager, argv[1]);
+    loadGameAndPlayers(dataManager, QString(argv[1]));
+
+    return 0;
 }

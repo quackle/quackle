@@ -6,6 +6,8 @@ INCLUDEPATH += . ..
 CONFIG += release
 CONFIG -= debug
 
+QT -= gui
+
 release {
   OBJECTS_DIR = obj/release
   QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
