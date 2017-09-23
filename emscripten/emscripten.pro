@@ -24,7 +24,7 @@ LIBS += -lquackleio -lquackle
   QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
 }
 
-SOURCES += js_interface.cpp
+SOURCES += js_interface.cpp ../test/trademarkedboards.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive

@@ -10,31 +10,47 @@
 #include "boardparameters.h"
 #include "lexiconparameters.h"
 #include "strategyparameters.h"
+#include "../test/trademarkedboards.h"
 
 // QuackleIO stuff
 #include "quackleio/gcgio.h"
+#include "quackleio/util.h"
+#include "quackleio/flexiblealphabet.h"
 
-#define QUACKLE_DATAMANAGER Quackle::DataManager::self()
+// There's only one of these, it's a singleton.
+Quackle::DataManager dataManager;
 
 // General flow taken from Python bindings, quackletest.cpp,
 // testharness.cpp, etc.
-Quackle::DataManager startup() {
-    Quackle::DataManager dataManager;
+void startup() {
+    
     dataManager.setAppDataDirectory("../data");
     dataManager.setBackupLexicon("twl06");
+
+    QString alphabetFile = QuackleIO::Util::stdStringToQString(
+        Quackle::AlphabetParameters::findAlphabetFile(
+            QuackleIO::Util::qstringToStdString("english")));
+    QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
+    if (flexure->load(alphabetFile))
+    {
+        dataManager.setAlphabetParameters(flexure);
+    }
+    else {
+        cout << "Could not load alphabet";
+        return;
+    }
+    dataManager.setBoardParameters(new ScrabbleBoard());
 
     dataManager.lexiconParameters()->loadDawg(
         Quackle::LexiconParameters::findDictionaryFile("twl06.dawg"));
     dataManager.lexiconParameters()->loadGaddag(
         Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
     dataManager.strategyParameters()->initialize("twl06");
-    dataManager.setBoardParameters(new Quackle::BoardParameters());
     dataManager.setComputerPlayers(
         Quackle::ComputerPlayerCollection::fullCollection());
-    return dataManager;
 }
 
-void loadGameAndPlayers(Quackle::DataManager dataManager, QString gcgfilename) {
+void loadGameAndPlayers(QString gcgfilename) {
 
     // Set up alphabet -- assume it's english so we probably don't need to do this.
     // see `m_alphabetParameters = new EnglishAlphabetParameters;` in datamanager
@@ -70,9 +86,8 @@ void loadGameAndPlayers(Quackle::DataManager dataManager, QString gcgfilename) {
 }
 
 int main(int argc, char **argv) {
-    Quackle::DataManager dataManager;
-    dataManager = startup();
-    loadGameAndPlayers(dataManager, QString(argv[1]));
+    startup();
+    loadGameAndPlayers(QString(argv[1]));
 
     return 0;
 }
