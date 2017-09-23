@@ -60,7 +60,7 @@ int main()
 	for (int game = 0; game < gameCnt; ++game) {
 		testGame();
 	}
-	
+
 	return 0;
 }
 
@@ -73,7 +73,7 @@ void testGame()
 	Quackle::Player bogowinA(MARK_UV("BogowinA"), Quackle::Player::ComputerPlayerType, 110);
 	bogowinA.setComputerPlayer(new Quackle::SmartBogowin());
 	players.push_back(bogowinA);
-	
+
 	Quackle::Player bogowinB(MARK_UV("BogowinB"), Quackle::Player::ComputerPlayerType, 110);
 	bogowinB.setComputerPlayer(new Quackle::SmartBogowin());
 	players.push_back(bogowinB);
@@ -117,7 +117,7 @@ void testGame()
 
 	// insert test...() calls here
 	// testSimulation(game);
-	
+
 	//UVcout << "History:" << endl << game.history() << endl;
 }
 
