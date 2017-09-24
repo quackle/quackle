@@ -50,7 +50,7 @@ void startup() {
         Quackle::ComputerPlayerCollection::fullCollection());
 }
 
-void loadGameAndPlayers(QString gcgfilename) {
+void loadGameAndPlayers(QString gcgfilename, int playerId, int turnNumber) {
 
     // Set up alphabet -- assume it's english so we probably don't need to do this.
     // see `m_alphabetParameters = new EnglishAlphabetParameters;` in datamanager
@@ -73,19 +73,29 @@ void loadGameAndPlayers(QString gcgfilename) {
     QuackleIO::GCGIO io;
     Quackle::Game *game = io.read(gcgfilename, QuackleIO::Logania::MaintainBoardPreparation);
     // We have a game now.
-    Quackle::GamePosition position = game->currentPosition();
+
+    Quackle::GamePosition position;
+    if (playerId != -1) {
+        position = game->history().positionAt(
+            Quackle::HistoryLocation(playerId, turnNumber));
+    } else {
+        position = game->currentPosition();
+    }
     // computerPlayer->setPosition(position);
     // Quackle::MoveList moves = computerPlayer->moves(15);
     // for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it) {
     //     cout << *it << endl;
     // }
     // //
+    cout << "Position to sim: " << endl;
+    cout << position << endl;
     const int kibitzLength = 3;
-    game->currentPosition().kibitz(kibitzLength);
-    cout << game->currentPosition().moves() << endl;
+
+    position.kibitz(kibitzLength);
+    cout << position.moves() << endl;
     Quackle::Simulator simulator;
     simulator.setLogfile("quackletest.simulation", false);
-    simulator.setPosition(game->currentPosition());
+    simulator.setPosition(position);
     // simulator.simulate(2, 10);
     // cout << simulator.simmedMoves() << endl;
     // cout << "after " << simulator.iterations() << " iterations pruning to those within 5 pts";
@@ -114,7 +124,12 @@ void loadGameAndPlayers(QString gcgfilename) {
 
 int main(int argc, char **argv) {
     startup();
-    loadGameAndPlayers(QString(argv[1]));
-
+    int playerId = -1;
+    int turnNumber = -1;
+    if (argc == 4) {
+        playerId = atoi(argv[2]);
+        turnNumber = atoi(argv[3]);
+    }
+    loadGameAndPlayers(QString(argv[1]), playerId, turnNumber);
     return 0;
 }
