@@ -6,28 +6,34 @@ INCLUDEPATH += . ..
 CONFIG += release
 CONFIG -= debug
 
-QT -= gui
+QT -= gui core
 
 release {
   OBJECTS_DIR = obj/release
-  QMAKE_LIBDIR += ../lib/release ../quackleio/lib/release
+  QMAKE_LIBDIR += ../lib/release
 }
 
 MOC_DIR = moc
 
-CONFIG += console c++14
-CONFIG -= app_bundle
+CONFIG += release c++14
+CONFIG -= x11
 
-LIBS += -lquackleio -lquackle
+# LIBS += -lquackleio -lquackle
+
+LIBS += -lquackle
 
 !msvc {
   QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
 }
-
-SOURCES += js_interface.cpp ../test/trademarkedboards.cpp
+HEADERS += non_qt_gcgio.h
+SOURCES += api.cpp ../test/trademarkedboards.cpp non_qt_gcgio.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
 }
 
 # TODO: Later add linux, etc flags. see makegaddag.pro for examples.
+
+linux {
+  QMAKE_CXXFLAGS += -std=c++1y
+}

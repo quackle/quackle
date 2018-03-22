@@ -1,4 +1,3 @@
-#include <QtCore>
 #include <iostream>
 
 #include "computerplayercollection.h"
@@ -12,10 +11,7 @@
 #include "strategyparameters.h"
 #include "../test/trademarkedboards.h"
 
-// QuackleIO stuff
-#include "quackleio/gcgio.h"
-#include "quackleio/util.h"
-#include "quackleio/flexiblealphabet.h"
+#include "non_qt_gcgio.h"
 
 // There's only one of these, it's a singleton.
 Quackle::DataManager dataManager;
@@ -23,22 +19,10 @@ Quackle::DataManager dataManager;
 // General flow taken from Python bindings, quackletest.cpp,
 // testharness.cpp, etc.
 void startup() {
-    
+
     dataManager.setAppDataDirectory("../data");
     dataManager.setBackupLexicon("twl06");
 
-    QString alphabetFile = QuackleIO::Util::stdStringToQString(
-        Quackle::AlphabetParameters::findAlphabetFile(
-            QuackleIO::Util::qstringToStdString("english")));
-    QuackleIO::FlexibleAlphabetParameters *flexure = new QuackleIO::FlexibleAlphabetParameters;
-    if (flexure->load(alphabetFile))
-    {
-        dataManager.setAlphabetParameters(flexure);
-    }
-    else {
-        cout << "Could not load alphabet";
-        return;
-    }
     dataManager.setBoardParameters(new ScrabbleBoard());
 
     dataManager.lexiconParameters()->loadDawg(
@@ -50,7 +34,7 @@ void startup() {
         Quackle::ComputerPlayerCollection::fullCollection());
 }
 
-void loadGameAndPlayers(QString gcgfilename, int playerId, int turnNumber) {
+void loadGameAndPlayers(string gcgfilename, int playerId, int turnNumber) {
 
     // Set up alphabet -- assume it's english so we probably don't need to do this.
     // see `m_alphabetParameters = new EnglishAlphabetParameters;` in datamanager
@@ -70,8 +54,8 @@ void loadGameAndPlayers(QString gcgfilename, int playerId, int turnNumber) {
         return;
     }
     Quackle::ComputerPlayer *computerPlayer = player.computerPlayer();
-    QuackleIO::GCGIO io;
-    Quackle::Game *game = io.read(gcgfilename, QuackleIO::Logania::MaintainBoardPreparation);
+    EmQuackle::GCGIO io;
+    Quackle::Game *game = io.readFile(gcgfilename);
     // We have a game now.
 
     Quackle::GamePosition position;
@@ -130,6 +114,6 @@ int main(int argc, char **argv) {
         playerId = atoi(argv[2]);
         turnNumber = atoi(argv[3]);
     }
-    loadGameAndPlayers(QString(argv[1]), playerId, turnNumber);
+    loadGameAndPlayers(string(argv[1]), playerId, turnNumber);
     return 0;
 }
