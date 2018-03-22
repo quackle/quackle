@@ -17,25 +17,27 @@
 #include "non_qt_gcgio.h"
 
 Quackle::DataManager dataManager;
+
+// These singletons are used for best interaction with JS environment.
+// For example, see iterative simulator.
+// XXX CHECK FOR MEMORY LEAKS
+// does reassigning position free the last one properly? etc.
 Quackle::Game *game = new Quackle::Game;
+Quackle::GamePosition position;
+Quackle::Simulator simulator;
+int totalIterations = 0;
 
-// API (to be implemented in Javascript)
-extern "C" {
-    // gcj is my json-ified gcg with more stuff in it.
-void outputSimResults(string);
-}
-
-
-void startup() {
+void startup()
+{
     dataManager.setAppDataDirectory("/");
-    dataManager.setBackupLexicon("twl06");
+    dataManager.setBackupLexicon("default_english");
     dataManager.setBoardParameters(new ScrabbleBoard());
 
     dataManager.lexiconParameters()->loadDawg(
-        Quackle::LexiconParameters::findDictionaryFile("twl06.dawg"));
+        Quackle::LexiconParameters::findDictionaryFile("owlymcowl.dawg"));
     dataManager.lexiconParameters()->loadGaddag(
-        Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
-    dataManager.strategyParameters()->initialize("twl06");
+        Quackle::LexiconParameters::findDictionaryFile("owlymcowl.gaddag"));
+    dataManager.strategyParameters()->initialize("default_english");
     dataManager.setComputerPlayers(
         Quackle::ComputerPlayerCollection::fullCollection());
 }
@@ -79,39 +81,30 @@ string kibitzTurn(int playerID, int turnID) {
     return buffer.str();
 }
 
-void simulate(int playerID, int turnID) {
-    Quackle::GamePosition position;
+void setupSimulator(int playerID, int turnID) {
     position = game->history().positionAt(Quackle::HistoryLocation(playerID,
                                                                    turnID));
     position.kibitz(15);
-    int iterations = 0;
-    int iterationStep = 10;
-    const int plies = 2;
+    totalIterations = 0;
 
-    Quackle::Simulator simulator;
     simulator.setPosition(position);
     simulator.setIgnoreOppos(false);
+}
 
-    while(true) {
-        std::stringstream buffer;
-        simulator.simulate(plies, iterationStep);
-        iterations += iterationStep;
-        const Quackle::SimmedMoveList &moves = simulator.simmedMoves();
-        for (Quackle::SimmedMoveList::const_iterator it = moves.begin();
-             it != moves.end(); ++it) {
+// This function is called by JS when needed.
+string simulateIter(int iterationStep) {
+    int plies = 2;
+    std::stringstream buffer;
+    simulator.simulate(plies, iterationStep);
+    totalIterations += iterationStep;
+    const Quackle::SimmedMoveList &moves = simulator.simmedMoves();
+    for (Quackle::SimmedMoveList::const_iterator it = moves.begin();
+            it != moves.end(); ++it) {
 
-            buffer << *it << endl;
-        }
-        EM_ASM({
-            simulationProgress(UTF8ToString($0), $1)
-        },
-               buffer.str().c_str(), iterations);
-
-        int stop = EM_ASM_INT(stopSimulation());
-        if (stop == 1) {
-            break;
-        }
+        buffer << *it << endl;
     }
+    buffer << totalIterations << endl;
+    return buffer.str();
 }
 
 void deleteGame() {
@@ -124,7 +117,8 @@ EMSCRIPTEN_BINDINGS(module_funcs) {
     emscripten::function("loadGameAndPlayers", &loadGameAndPlayers);
     emscripten::function("deleteGame", &deleteGame);
     emscripten::function("kibitzTurn", &kibitzTurn);
-    emscripten::function("simulate", &simulate);
+    emscripten::function("setupSimulator", &setupSimulator);
+    emscripten::function("simulateIter", &simulateIter);
 }
 
 int main() {
