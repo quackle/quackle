@@ -42,26 +42,35 @@ void startup()
         Quackle::ComputerPlayerCollection::fullCollection());
 }
 
-string loadGameAndPlayers(string gcgRepr, int playerID, int turnNumber) {
-    bool playerFound = false;
-    const Quackle::Player &player = dataManager.computerPlayers().playerForName(
-        "Speedy Player", playerFound);
-    if (!playerFound) {
-        cout << "Could not get player";
-        return "NOT FOUND";
-    }
+string loadGameAndPlayers() {
+    // bool playerFound = false;
+    // const Quackle::Player &player = dataManager.computerPlayers().playerForName(
+    //     "Speedy Player", playerFound);
+    // if (!playerFound) {
+    //     cout << "Could not get player";
+    //     return "NOT FOUND";
+    // }
 
-    Quackle::ComputerPlayer *computerPlayer = player.computerPlayer();
+    // Quackle::ComputerPlayer *computerPlayer = player.computerPlayer();
+
     EmQuackle::GCGIO io;
-    game = io.readFromString(gcgRepr);
+
+    char *str = (char *)EM_ASM_INT({
+        var jsString = Globals.getGameGCG();
+        var lengthBytes = lengthBytesUTF8(jsString) + 1;
+        // 'jsString.length' would return the length of the string as UTF-16 units,
+        // but Emscripten C strings operate as UTF-8.
+        var stringOnWasmHeap = _malloc(lengthBytes);
+        stringToUTF8(jsString, stringOnWasmHeap, lengthBytes+1);
+        return stringOnWasmHeap;
+    });
+
+    game = io.readFromString(str);
+    free(str);
 
     Quackle::GamePosition position;
-    if (playerID != -1) {
-        position = game->history().positionAt(
-            Quackle::HistoryLocation(playerID, turnNumber));
-    } else {
-        position = game->currentPosition();
-    }
+    position = game->currentPosition();
+
     std::stringstream buffer;
     buffer << position << std::endl;
     return buffer.str();
@@ -114,7 +123,8 @@ void deleteGame() {
 
 EMSCRIPTEN_BINDINGS(module_funcs) {
     emscripten::function("startup", &startup);
-    emscripten::function("loadGameAndPlayers", &loadGameAndPlayers);
+    emscripten::function("loadGameAndPlayers", &loadGameAndPlayers,
+        emscripten::allow_raw_pointers());
     emscripten::function("deleteGame", &deleteGame);
     emscripten::function("kibitzTurn", &kibitzTurn);
     emscripten::function("setupSimulator", &setupSimulator);

@@ -13,7 +13,7 @@ public:
     ~GCGIO(){};
 
     Quackle::Game *readFile(const std::string &filename);
-    Quackle::Game *readFromString(const std::string &contents);
+    Quackle::Game *readFromString(const char *contents);
 
   private:
     int readSignedInt(const std::string &intstring) const;

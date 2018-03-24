@@ -25,3 +25,4 @@ There doesn't seem to be an easy way to compile anything Qt-related into emscrip
 Notes:
 
 - Had to add application/wasm to etc/mime.types. Will this be required for nginx, etc?
+- See https://github.com/kripken/emscripten/wiki/WebAssembly for more tips

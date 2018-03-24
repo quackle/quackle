@@ -30,3 +30,7 @@ dawginput.raw
 playabilities.raw
 smaller.raw
 DerivedData
+
+.vscode/
+emscripten/scriptackle.*
+emscripten/tester

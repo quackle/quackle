@@ -56,7 +56,7 @@ GCGIO::GCGIO()
 {
 }
 
-Quackle::Game *GCGIO::readFromString(const std::string &contents)
+Quackle::Game *GCGIO::readFromString(const char *contents)
 {
     Quackle::Game *ret = new Quackle::Game;
 	Quackle::PlayerList players;
@@ -72,6 +72,7 @@ Quackle::Game *GCGIO::readFromString(const std::string &contents)
     std::string line;
     while (std::getline(ss, line))
     {
+		std::cout << line << endl;
 		std::deque<string> strings = split<string>(line, "\t ");
 
 		if (startsWith(line, "#"))
@@ -302,7 +303,8 @@ Quackle::Game *GCGIO::readFile(const std::string &filename)
 	std::ifstream t(filename);
 	std::stringstream buffer;
 	buffer << t.rdbuf();
-	game = readFromString(buffer.str());
+
+	game = readFromString(buffer.str().c_str());
 
 	return game;
 
