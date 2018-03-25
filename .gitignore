@@ -5,6 +5,7 @@
 .vs
 obj
 Makefile
+!emscripten/Makefile
 Makefile.Debug
 Makefile.Release
 debug

@@ -16,6 +16,8 @@
 
 #include "non_qt_gcgio.h"
 
+#define EMSCRIPTEN_INTEGRATION 1
+
 Quackle::DataManager dataManager;
 
 // These singletons are used for best interaction with JS environment.
@@ -76,10 +78,10 @@ string loadGameAndPlayers() {
     return buffer.str();
 }
 
-string kibitzTurn(int playerID, int turnID) {
+string kibitzTurn(int playerID, int turnNumber) {
     Quackle::GamePosition position;
     position = game->history().positionAt(Quackle::HistoryLocation(playerID,
-                                                                   turnID));
+                                                                   turnNumber));
 
     const int kibitzLength = 15;
 
@@ -90,26 +92,33 @@ string kibitzTurn(int playerID, int turnID) {
     return buffer.str();
 }
 
-void setupSimulator(int playerID, int turnID) {
+string setupSimulator(int playerID, int turnNumber) {
     position = game->history().positionAt(Quackle::HistoryLocation(playerID,
-                                                                   turnID));
+                                                                   turnNumber));
     position.kibitz(15);
     totalIterations = 0;
 
     simulator.setPosition(position);
     simulator.setIgnoreOppos(false);
+
+    std::stringstream buffer;
+    buffer << position.moves() << std::endl;
+    return buffer.str();
 }
 
 // This function is called by JS when needed.
-string simulateIter(int iterationStep) {
-    int plies = 2;
+string simulateIter(int iterationStep, int plies) {
     std::stringstream buffer;
     simulator.simulate(plies, iterationStep);
     totalIterations += iterationStep;
-    const Quackle::SimmedMoveList &moves = simulator.simmedMoves();
-    for (Quackle::SimmedMoveList::const_iterator it = moves.begin();
-            it != moves.end(); ++it) {
+    // const Quackle::SimmedMoveList &moves = simulator.simmedMoves();
+    // for (Quackle::SimmedMoveList::const_iterator it = moves.begin();
+    //         it != moves.end(); ++it) {
 
+    //     buffer << *it << endl;
+    // }
+    const Quackle::MoveList &moves = simulator.moves(false, true);
+    for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it) {
         buffer << *it << endl;
     }
     buffer << totalIterations << endl;

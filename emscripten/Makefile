@@ -18,7 +18,7 @@ TARGET = scriptackle.js
 default: $(TARGET)
 
 
-$(TARGET): $(OBJECTS)
+$(TARGET): $(OBJECTS) $(LIBS)
 	$(LINK) $(LFLAGS)  -o $(TARGET) $(OBJECTS) $(LIBS)
 
 clean:
