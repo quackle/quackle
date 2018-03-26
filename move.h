@@ -115,7 +115,7 @@ public:
 
 	// for a place move, a position like 8H
 	UVString positionString() const;
-	
+
 	// eg place("8h", ".EaTY"); word is like setTiles(), and no
 	// pretty tiles are set.
 	static Move createPlaceMove(UVString placeString, LetterString word);
@@ -160,7 +160,7 @@ public:
 	static bool wordPosComparator(const Move &move1, const Move &move2);
 
 	bool contains(const Move &move) const;
-	
+
 private:
 	static SortType m_sortType;
 
@@ -223,7 +223,7 @@ inline bool Move::isAlreadyOnBoard(Letter letter)
 
 }
 
-// we gotta overload so plays with diff equity 
+// we gotta overload so plays with diff equity
 // are equal
 bool operator==(const Quackle::Move &move1, const Quackle::Move &move2);
 

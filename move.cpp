@@ -203,9 +203,8 @@ UVString Move::toString() const
     else if (action == Quackle::Move::Place || action == Quackle::Move::PlaceError)
 	{
 		ss << positionString();
-		ss << " " << prettyTiles();
-		// ss << " " << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
-    }
+		ss << " " << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
+	}
 
 	return ss.str();
 }

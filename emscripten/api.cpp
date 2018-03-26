@@ -1,50 +1,34 @@
 /**
- * This file defines a C API for libquackle. The implementation will
- * be done in Javascript for easy calling from a Javascript environment.
+ * This file defines a C API for libquackle.
  */
 
 #include <emscripten/bind.h>
 #include <emscripten.h>
 
-#include "computerplayercollection.h"
-#include "computerplayer.h"
-#include "game.h"
-#include "datamanager.h"
-#include "../test/trademarkedboards.h"
-#include "lexiconparameters.h"
-#include "strategyparameters.h"
-
+#include "api.h"
 #include "non_qt_gcgio.h"
 
-#define EMSCRIPTEN_INTEGRATION 1
 
-Quackle::DataManager dataManager;
+API::API(){
+    m_game = new Quackle::Game;
+}
 
-// These singletons are used for best interaction with JS environment.
-// For example, see iterative simulator.
-// XXX CHECK FOR MEMORY LEAKS
-// does reassigning position free the last one properly? etc.
-Quackle::Game *game = new Quackle::Game;
-Quackle::GamePosition position;
-Quackle::Simulator simulator;
-int totalIterations = 0;
-
-void startup()
+void API::startup()
 {
-    dataManager.setAppDataDirectory("/");
-    dataManager.setBackupLexicon("default_english");
-    dataManager.setBoardParameters(new ScrabbleBoard());
+    m_dataManager.setAppDataDirectory("/");
+    m_dataManager.setBackupLexicon("default_english");
+    m_dataManager.setBoardParameters(new ScrabbleBoard());
 
-    dataManager.lexiconParameters()->loadDawg(
+    m_dataManager.lexiconParameters()->loadDawg(
         Quackle::LexiconParameters::findDictionaryFile("owlymcowl.dawg"));
-    dataManager.lexiconParameters()->loadGaddag(
+    m_dataManager.lexiconParameters()->loadGaddag(
         Quackle::LexiconParameters::findDictionaryFile("owlymcowl.gaddag"));
-    dataManager.strategyParameters()->initialize("default_english");
-    dataManager.setComputerPlayers(
+    m_dataManager.strategyParameters()->initialize("default_english");
+    m_dataManager.setComputerPlayers(
         Quackle::ComputerPlayerCollection::fullCollection());
 }
 
-string loadGameAndPlayers() {
+string API::loadGameAndPlayers() {
     // bool playerFound = false;
     // const Quackle::Player &player = dataManager.computerPlayers().playerForName(
     //     "Speedy Player", playerFound);
@@ -67,77 +51,126 @@ string loadGameAndPlayers() {
         return stringOnWasmHeap;
     });
 
-    game = io.readFromString(str);
+    m_game = io.readFromString(str);
     free(str);
 
-    Quackle::GamePosition position;
-    position = game->currentPosition();
+    m_position = m_game->currentPosition();
 
     std::stringstream buffer;
-    buffer << position << std::endl;
+    buffer << m_position << std::endl;
     return buffer.str();
 }
 
-string kibitzTurn(int playerID, int turnNumber) {
-    Quackle::GamePosition position;
-    position = game->history().positionAt(Quackle::HistoryLocation(playerID,
-                                                                   turnNumber));
+void API::kibitzPositionAt(int playerID, int turnNumber, int numMoves) {
+    m_position = m_game->history().positionAt(Quackle::HistoryLocation(playerID,
+                                                                     turnNumber));
+    m_rack = m_position.currentPlayer().rack();
+    m_position.kibitz(numMoves);
+}
 
-    const int kibitzLength = 15;
+string API::moveToString(const Quackle::Move &move) {
+    UVOStringStream ss;
 
-    position.kibitz(kibitzLength);
+    switch (move.action) {
+        case Quackle::Move::Pass:
+            ss << "type:pass";
+            break;
+        case Quackle::Move::Exchange:
+            ss << "type:exchange,tiles:" << QUACKLE_ALPHABET_PARAMETERS->userVisible(move.tiles());
+            break;
+        case Quackle::Move::BlindExchange:
+            ss << "type:exchange,tiles:" << move.tiles().length();
+            break;
+        case Quackle::Move::TimePenalty:
+            ss << "type:timepenalty,score:" << move.score;
+            break;
+        case Quackle::Move::UnusedTilesBonus:
+        case Quackle::Move::UnusedTilesBonusError:
+            ss << "type:unusedTiles,tiles:" << QUACKLE_ALPHABET_PARAMETERS->userVisible(move.tiles());
+            break;
+        case Quackle::Move::Place:
+        case Quackle::Move::PlaceError:
+            ss << "type:place,pos:" << move.positionString();
+            ss << ",tiles:" << move.prettyTiles()[0];
+            ss << ",leave:" << m_rack - move;
+            break;
+    }
 
+    ss << ",score:" << move.score << ",equity:" << move.equity << ",win:" << move.win;
+    if (move.scoreAddition() != 0) {
+        ss << ",scoreAddition:" << move.scoreAddition();
+    }
+    return ss.str();
+}
+
+// A simple comma-separated format. Hope this is sufficient.
+string API::serializeMoves(const Quackle::MoveList &moves) {
     std::stringstream buffer;
-    buffer << position.moves() << std::endl;
+    for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it) {
+        buffer << moveToString(*it) << endl;
+    }
     return buffer.str();
 }
 
-string setupSimulator(int playerID, int turnNumber) {
-    position = game->history().positionAt(Quackle::HistoryLocation(playerID,
-                                                                   turnNumber));
-    position.kibitz(15);
-    totalIterations = 0;
+string API::kibitzTurn(int playerID, int turnNumber) {
+    kibitzPositionAt(playerID, turnNumber, 15);
+    return serializeMoves(m_position.moves());
+}
 
-    simulator.setPosition(position);
-    simulator.setIgnoreOppos(false);
+string API::setupSimulator(int playerID, int turnNumber) {
+    kibitzPositionAt(playerID, turnNumber, 15);
 
-    std::stringstream buffer;
-    buffer << position.moves() << std::endl;
-    return buffer.str();
+    m_totalIterations = 0;
+
+    m_simulator.setPosition(m_position);
+    m_simulator.setIgnoreOppos(false);
+
+    return serializeMoves(m_position.moves());
 }
 
 // This function is called by JS when needed.
-string simulateIter(int iterationStep, int plies) {
+string API::simulateIter(int iterationStep, int plies) {
     std::stringstream buffer;
-    simulator.simulate(plies, iterationStep);
-    totalIterations += iterationStep;
+    m_simulator.simulate(plies, iterationStep);
+    m_totalIterations += iterationStep;
     // const Quackle::SimmedMoveList &moves = simulator.simmedMoves();
     // for (Quackle::SimmedMoveList::const_iterator it = moves.begin();
     //         it != moves.end(); ++it) {
 
     //     buffer << *it << endl;
     // }
-    const Quackle::MoveList &moves = simulator.moves(false, true);
-    for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it) {
-        buffer << *it << endl;
-    }
-    buffer << totalIterations << endl;
+    // simulator.moves args (prune, byWin)
+    const Quackle::MoveList &moves = m_simulator.moves(false, true);
+
+    buffer << serializeMoves(moves);
+
+    buffer << m_totalIterations << endl;
     return buffer.str();
 }
 
-void deleteGame() {
-    delete game;
-    game = new Quackle::Game;
+void API::deleteGame() {
+    delete m_game;
+    m_game = new Quackle::Game;
 }
 
-EMSCRIPTEN_BINDINGS(module_funcs) {
-    emscripten::function("startup", &startup);
-    emscripten::function("loadGameAndPlayers", &loadGameAndPlayers,
-        emscripten::allow_raw_pointers());
-    emscripten::function("deleteGame", &deleteGame);
-    emscripten::function("kibitzTurn", &kibitzTurn);
-    emscripten::function("setupSimulator", &setupSimulator);
-    emscripten::function("simulateIter", &simulateIter);
+/**
+ * The following functions emulate some of the quacker/movebox behavior.
+ */
+
+
+
+
+
+// Bindings so that Javascript can call these functions.
+EMSCRIPTEN_BINDINGS(api) {
+    emscripten::class_<API>("API")
+        .constructor()
+        .function("startup", &API::startup)
+        .function("loadGameAndPlayers", &API::loadGameAndPlayers)
+        .function("deleteGame", &API::deleteGame)
+        .function("kibitzTurn", &API::kibitzTurn)
+        .function("setupSimulator", &API::setupSimulator)
+        .function("simulateIter", &API::simulateIter);
 }
 
 int main() {
