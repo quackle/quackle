@@ -36,6 +36,7 @@ class API
       string moveToString(const Quackle::Move &move);
       void kibitzPositionAt(int playerID, int turnNumber, int numMoves);
       string serializeMoves(const Quackle::MoveList &moves);
+      string letterStringToString(const Quackle::LetterString &ls);
 };
 
 #endif

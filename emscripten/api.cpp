@@ -68,6 +68,11 @@ void API::kibitzPositionAt(int playerID, int turnNumber, int numMoves) {
     m_position.kibitz(numMoves);
 }
 
+string API::letterStringToString(const Quackle::LetterString &ls) {
+    return string(
+        QUACKLE_ALPHABET_PARAMETERS->userVisible(ls).c_str());
+}
+
 string API::moveToString(const Quackle::Move &move) {
     UVOStringStream ss;
 
@@ -91,7 +96,7 @@ string API::moveToString(const Quackle::Move &move) {
         case Quackle::Move::Place:
         case Quackle::Move::PlaceError:
             ss << "type:place,pos:" << move.positionString();
-            ss << ",tiles:" << move.prettyTiles()[0];
+            ss << ",tiles:" << letterStringToString(move.prettyTiles());
             ss << ",leave:" << m_rack - move;
             break;
     }
