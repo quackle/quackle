@@ -19,3 +19,11 @@ Notes:
 
 - Had to add application/wasm to etc/mime.types. Will this be required for nginx, etc?
 - See https://github.com/kripken/emscripten/wiki/WebAssembly for more tips
+- It seems this is VERY finiking for right now. This combination of versions works for sure, some others may cause freezing or strange behavior...
+
+  - MacOS High Sierra (10.13.4)
+  - emsdk sdk-1.38.5-64bit
+  - Qt 5.10.1 (qmake 3.1)
+  - qmake should be called with qmake -spec linux-llvm 
+  
+  This should be built in the future with something like CircleCI to improve repeatability. 
