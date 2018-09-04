@@ -198,36 +198,6 @@ void TopLevel::commit()
 		return;
 	}
 
-	const bool askSillyQuestion = false;
-
-	if (askSillyQuestion)
-	{
-		if (!(m_game->currentPosition().location() == m_game->history().lastLocation()))
-		{
-			int result = QMessageBox::warning(this, tr("Previous Position Commit - Quackle"), dialogText(tr("You've asked to commit a move from a previous position. You have three options: <ol><li>Commit and resume the game from directly after this position. This throws away all later positions.</li><li>Commit and leave later moves the same. This is risky because scores and board position of all later moves might become inconsistent. You'll need to save the game and reopen it to have the scores make sense.</li><li>Cancel this commit. <b>Canceling is recommended.</b></li></ol>Which would you like to do?")), tr("&Commit and resume from after this position"), tr("&Commit and leave later moves the same"), tr("&Cancel"), 0, 2);
-
-			switch (result)
-			{
-				case 0:
-					// Commit and resume after this position.
-					// We can just pass back to the normal commit method.
-					break;
-
-				case 1:
-					// commit silently
-					m_game->currentPosition().prepareForCommit();
-					setModified(true);
-					showToHuman();
-					return;
-
-				case 2:
-				default:
-					// cancel
-					return;
-			}
-		}
-	}
-
 	if (m_game->candidate().isAMove())
 	{
 		stopEverything();
@@ -308,6 +278,7 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 	}
 	else
 	{
+		bool playHasIllegalWords = false;
 		int validityFlags = m_game->currentPosition().validateMove(prettiedMove);
 		bool carryOn = true;
 
@@ -336,7 +307,16 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 				}
 				else
 				{
-					carryOn = askToCarryOn(tr("%1's rack does not include all tiles in %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+					QMessageBox mb(QMessageBox::Question, tr("Verify Play"),
+									tr("%1's rack does not include all tiles in %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+					QPushButton* mb_yes = mb.addButton(QMessageBox::Yes);
+					mb.addButton(QMessageBox::No);
+					QPushButton* mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
+					mb.exec();
+					if (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks)
+						carryOn = true;
+					if (mb.clickedButton() == mb_unknownRacks)
+						m_game->currentPosition().currentPlayer().setRacksAreKnown(false);
 				}
 
 				validityFlags ^= Quackle::GamePosition::InvalidTiles;
@@ -367,6 +347,8 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 					{
 						prettiedMove.setIsChallengedPhoney(true);
 					}
+					else
+						playHasIllegalWords = true;
 				}
 
 				validityFlags ^= Quackle::GamePosition::UnacceptableWord;
@@ -384,13 +366,18 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 		if (!carryOn)
 			return;
 
-		m_game->currentPosition().scoreMove(prettiedMove);
+		if (playHasIllegalWords && QuackleIO::UtilSettings::self()->scoreInvalidAsZero)
+			prettiedMove.score = 0;
+		else
+			m_game->currentPosition().scoreMove(prettiedMove);
 		m_game->currentPosition().addAndSetMoveMade(prettiedMove);
 		switchToTab(ChoicesTabIndex);
 		ensureUpToDateSimulatorMoveList();
 	}
 
-	if (!m_game->currentPosition().currentPlayer().racksAreKnown() && !m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles()))
+	if (!m_game->currentPosition().currentPlayer().racksAreKnown() &&
+		!m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles()) &&
+		prettiedMove.action != Quackle::Move::BlindExchange)
 	{
 		m_game->currentPosition().setCurrentPlayerRack(Quackle::Rack(prettiedMove.usedTiles()));
 	}
@@ -780,7 +767,14 @@ void TopLevel::setCaption(const QString &text)
 	if (!text.isNull())
 		m_ourCaption = text;
 
-	setWindowTitle(QString("%1[*] - Quackle").arg(m_ourCaption));
+	if (m_filename.isEmpty())
+		setWindowTitle(QString("%1 - Quackle").arg(m_ourCaption));
+	else
+	{
+		QString filename = QDir::fromNativeSeparators(m_filename);
+		filename = filename.mid(filename.lastIndexOf('/') + 1);
+		setWindowTitle(QString("%1[*] - %2 - Quackle").arg(filename, m_ourCaption));
+	}
 }
 
 void TopLevel::setModified(bool modified)
@@ -1319,6 +1313,7 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 		Quackle::ComputerPlayer *clone = player->clone();
 
 		QTextStream stream(&file);
+		stream.setCodec(QTextCodec::codecForName("UTF-8"));
 		QuackleIO::StreamingReporter::reportGame(*m_game, clone, stream);
 		delete clone;
 	}
@@ -2077,6 +2072,7 @@ void TopLevel::writeAsciiToFile(const QString &text, const QString &filename)
 	}
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	stream << text << "\n";
 
 	file.close();
@@ -2102,6 +2098,7 @@ void TopLevel::print()
 	}
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	//stream << printer.html() << "\n";
 
 	file.close();
@@ -2118,9 +2115,9 @@ void TopLevel::firstTimeRun()
 void TopLevel::about()
 {
 	QString aboutText = tr(
-"<p><b>Quackle</b> 1.0.1 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+"<p><b>Quackle</b> 1.0.3 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2015 by</p>"
+"<p>Copyright 2005-2016 by</p>"
 "<ul>"
 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
@@ -2146,7 +2143,7 @@ void TopLevel::about()
 		fclose(file);
 		aboutText += "</ul>";
 	}
-	QMessageBox::about(this, tr("About Quackle 1.0.1"), dialogText(aboutText));
+	QMessageBox::about(this, tr("About Quackle 1.0.3"), dialogText(aboutText));
 }
 
 void TopLevel::hints()

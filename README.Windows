@@ -66,6 +66,13 @@ working executable...
   + Look for any copies of quacker.res
   + Right-click on each one and choose Exclude From Project 
 
+* Recent versions of Visual Studio no longer build XP-compatible binaries
+  by default.  To change this in the project file, bring up the
+  Quackle Properties page, and under the General configuration,
+  change the "Platform Toolset" to one which indicates Windows XP
+  compatibility.  Do this for the Quackle, quackleio, and libquackle
+  projects (the minimum projects which are part of a standard Quackle install).
+
 
 Additional things to know:
 --------------------------

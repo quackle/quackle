@@ -30,6 +30,7 @@ public:
 	GCGIO();
 	~GCGIO() {};
 
+	virtual Quackle::Game *read(const QString &filename, int flags);
 	virtual Quackle::Game *read(QTextStream &stream, int flags);
 	virtual bool canRead(QTextStream &stream) const;
 	virtual void write(const Quackle::Game &game, QTextStream &stream);

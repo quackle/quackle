@@ -45,6 +45,7 @@ void QuackerSettings::readSettings()
 	scoreLabels = settings.value("quackle/settings/score-labels", scoreLabels).toBool();
 	QuackleIO::UtilSettings::self()->vowelFirst = settings.value("quackle/settings/vowel-first", QuackleIO::UtilSettings::self()->vowelFirst).toBool();
 	QuackleIO::UtilSettings::self()->octothorpBritish = settings.value("quackle/settings/octothorp-british", QuackleIO::UtilSettings::self()->octothorpBritish).toBool();
+	QuackleIO::UtilSettings::self()->scoreInvalidAsZero = settings.value("quackle/settings/score-invalid-as-zero", QuackleIO::UtilSettings::self()->scoreInvalidAsZero).toBool();
 
 	m_letterboxSettings.readSettings();
 }
@@ -57,6 +58,7 @@ void QuackerSettings::writeSettings()
 	settings.setValue("quackle/settings/score-labels", scoreLabels);
 	settings.setValue("quackle/settings/vowel-first", QuackleIO::UtilSettings::self()->vowelFirst);
 	settings.setValue("quackle/settings/octothorp-british", QuackleIO::UtilSettings::self()->octothorpBritish);
+	settings.setValue("quackle/settings/score-invalid-as-zero", QuackleIO::UtilSettings::self()->scoreInvalidAsZero);
 
 	m_letterboxSettings.writeSettings();
 }

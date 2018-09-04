@@ -1,3 +1,5 @@
 eea8dfe5:Collins Scrabble™ Words 2012, ©HarperCollins Publishers Ltd 2015
 48dea2c8:Collins Scrabble™ Words 2015, ©HarperCollins Publishers Ltd 2015
 0109ce12:Official Tournament and Club Word List 2014 Edition (OTCWL2014) Copyright © 2014 Hasbro, Inc.  Published under license with Merriam-Webster, Incorporated.
+9ea8d964:Official Tournament and Club Word List 2016 Edition (OTCWL2016) Copyright © 2016 Hasbro, Inc.  Published under license with Merriam-Webster, Incorporated.
+d5aeccff:ODS7

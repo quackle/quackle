@@ -13,7 +13,7 @@
 	<key>CFBundleName</key>
 	<string>Quackle</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.0</string>
+	<string>1.0.3</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>LSApplicationCategoryType</key>
@@ -21,6 +21,6 @@
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright &copy; 2005-2015 by Jason Katz-Brown & John O'Laughlin</string>
+	<string>Copyright &copy; 2005-2016 by Jason Katz-Brown & John O'Laughlin</string>
 </dict>
 </plist>

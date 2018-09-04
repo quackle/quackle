@@ -233,6 +233,7 @@ void ListerDialog::openFile()
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		QTextStream stream(&file);
+		stream.setCodec(QTextCodec::codecForName("UTF-8"));
 		QString line;
 		while (!stream.atEnd())
 		{
@@ -430,6 +431,7 @@ QString ListerDialog::writeList(bool alphagrams)
 	}
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
 	QMap<QString, Dict::WordList> map(anagramMap());
 

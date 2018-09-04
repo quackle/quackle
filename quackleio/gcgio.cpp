@@ -30,6 +30,23 @@ GCGIO::GCGIO()
 {
 }
 
+Quackle::Game *GCGIO::read(const QString &filename, int flags)
+{
+	QFile file(filename);
+
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
+		return new Quackle::Game;
+	}
+
+	QTextStream in(&file);
+	Quackle::Game *ret = read(in, flags);
+	file.close();
+
+	return ret;
+}
+
 Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 {
 	Quackle::Game *ret = new Quackle::Game;
@@ -43,6 +60,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	bool gameStarted = false;
 
 	QString line;
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	while (!stream.atEnd())
 	{
 		line = stream.readLine();
@@ -111,6 +129,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				incompleteRack = Util::encode(rackString);
 				hasIncompleteRack = true;
 			}
+			else if (line.startsWith("#character-encoding"))
+			{
+				QString encoding{line.right(line.length() - 20).trimmed()};
+				stream.setCodec(QTextCodec::codecForName(encoding.toAscii()));
+			}
 		}
 		else if (line.startsWith(">"))
 		{
@@ -120,6 +143,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				gameStarted = true;
 			}
 
+			UVString currentPlayer = Util::qstringToString(strings.front().mid(1, strings.front().size() - 2));
 			strings.pop_front();
 
 			if (strings.isEmpty())
@@ -135,10 +159,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			if (rackString.startsWith("(") && rackString.endsWith(")"))
 			{
 				// end the game
-				if (ret->hasPositions())
+				if (ret->hasPositions() && !ret->currentPosition().gameOver())
 					ret->commitCandidate(canMaintainCrosses);
 				else
 					ret->addPosition();
+				ret->currentPosition().setTileBonus(currentPlayer, Util::encode(rackString.mid(1, rackString.size() - 2)), strings.front().toInt());
 				continue;
 			}
 
@@ -162,10 +187,21 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			else if (firstMoveBite.startsWith("-"))
 			{
 				const QString exchangedLetters = firstMoveBite.right(firstMoveBite.length() - 1);
-				if (exchangedLetters.isEmpty())
+				bool isLetterCount = false;
+				uint letterCount = exchangedLetters.toUInt(&isLetterCount);
+
+				if (exchangedLetters.isEmpty() || (isLetterCount && letterCount == 0))
 					move = Quackle::Move::createPassMove();
+				else if (isLetterCount)
+				{
+					Quackle::LetterString encodedLetters;
+
+					for (uint i = 0; i < letterCount; ++i)
+						encodedLetters.push_back(QUACKLE_BLANK_MARK);
+					move = Quackle::Move::createExchangeMove(encodedLetters, true);
+				}
 				else
-					move = Quackle::Move::createExchangeMove(Util::encode(exchangedLetters));
+					move = Quackle::Move::createExchangeMove(Util::encode(exchangedLetters), false);
 			}
 			else if (firstMoveBite.startsWith("(time)"))
 			{
@@ -293,6 +329,7 @@ bool GCGIO::canRead(QTextStream &stream) const
 void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 {
 	Quackle::PlayerList players = game.players();
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	for (Quackle::PlayerList::iterator it = players.begin(); it != players.end(); ++it)
 	{
 		stream << "#player" << (*it).id() + 1 << " " << Util::uvStringToQString((*it).abbreviatedName()) << " " << Util::uvStringToQString((*it).name()) << endl;
@@ -324,11 +361,14 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 				outputScoreAddition = 0;
 			}
 
-			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles()) << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << endl;
+			QString rackString = Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles());
+			if (move.action == Quackle::Move::UnusedTilesBonusError)
+				rackString = QString();
+			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << endl;
 
 			if (move.isChallengedPhoney())
 			{
-				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles()) << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << endl;
+				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << endl;
 			}
 
 			if (outputScoreAddition != 0)

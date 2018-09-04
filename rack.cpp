@@ -76,6 +76,15 @@ bool Rack::unload(const LetterString &used)
 	return ret;
 }
 
+void Rack::load(const LetterString &tiles)
+{
+	for (LetterString::const_iterator it = tiles.begin(); it != tiles.end(); ++it)
+	{
+		if (it != QUACKLE_NULL_MARK)
+			m_tiles += *it;
+	}
+}
+
 bool Rack::contains(const LetterString &used) const
 {
 	return Rack(*this).unload(used);

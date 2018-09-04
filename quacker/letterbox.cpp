@@ -232,6 +232,7 @@ void Letterbox::loadFile()
 
 	QTextStream stream(&file);
 	QString line;
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
 	m_initializationChuu = true;
 
@@ -517,6 +518,7 @@ void Letterbox::outputResults()
 	}    
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
 	if (m_numberIterator < m_clueResults.count())
 		stream << "\" Resume: " << m_numberIterator << "\n";
@@ -553,6 +555,7 @@ void Letterbox::outputResults()
 		}    
 
 		QTextStream stream(&missesFile);
+		stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
     	for (ClueResultList::iterator it = m_clueResults.begin(); it != m_clueResults.end(); ++it)
 		{
@@ -918,6 +921,7 @@ void Letterbox::print()
 	setModified(wasModified);
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	stream << printer.html() << "\n";
 
 	file.close();
@@ -948,6 +952,7 @@ void Letterbox::printStudy()
 	jumpTo(m_clueResults.size() - 1);
 
 	QTextStream stream(&file);
+	stream.setCodec(QTextCodec::codecForName("UTF-8"));
 	stream << generateStudySheet(m_answers.begin(), m_answers.end()) << "\n";
 
 	file.close();
@@ -1169,7 +1174,9 @@ void HTMLRepresentation::setHTML(const QString &text, ContentType type)
 
 QString HTMLRepresentation::html()
 {
-	return m_html;
+	return QString("<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body>") +
+			m_html +
+			QString("</body></html>");
 }
 
 void HTMLRepresentation::setWords(ClueResultList::ConstIterator start, ClueResultList::ConstIterator end, bool revers)

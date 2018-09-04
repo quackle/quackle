@@ -55,6 +55,15 @@ void Bag::prepareFullBag()
 			m_tiles.push_back(letter);
 }
 
+int Bag::fullBagTileCount()
+{
+	int tileCount = 0;
+	// we start at 0 because we want to include blanks etcetera
+	for (Letter letter = 0; letter <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); ++letter)
+		tileCount += QUACKLE_ALPHABET_PARAMETERS->count(letter);
+	return tileCount;
+}
+
 void Bag::toss(const LetterString &letters)
 {
 	const LetterString::const_iterator end(letters.end());

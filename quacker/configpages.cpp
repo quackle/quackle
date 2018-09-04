@@ -96,10 +96,12 @@ InterfacePage::InterfacePage(QWidget *parent)
 	QGroupBox *miscellanyGroup = new QGroupBox(tr("Miscellany"));
 	m_vowelFirstCheck = new QCheckBox(tr("&Vowel-first alphabetizing"));
 	m_octothorpCheck = new QCheckBox(tr("&Octothorp British words"));
+	m_scoreInvalidAsZero = new QCheckBox(tr("&Score 0 for plays with illegal words"));
 
 	QGridLayout *miscellanyLayout = new QGridLayout;
 	miscellanyLayout->addWidget(m_vowelFirstCheck, 0, 0);
 	miscellanyLayout->addWidget(m_octothorpCheck, 1, 0);
+	miscellanyLayout->addWidget(m_scoreInvalidAsZero, 2, 0);
 	miscellanyGroup->setLayout(miscellanyLayout);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -116,6 +118,7 @@ void InterfacePage::readConfig()
 	m_verboseLabelsCheck->setChecked(QuackerSettings::self()->verboseLabels);
 	m_scoreLabelsCheck->setChecked(QuackerSettings::self()->scoreLabels);
 	m_octothorpCheck->setChecked(QuackleIO::UtilSettings::self()->octothorpBritish);
+	m_scoreInvalidAsZero->setChecked(QuackleIO::UtilSettings::self()->scoreInvalidAsZero);
 }
 
 void InterfacePage::writeConfig()
@@ -125,5 +128,6 @@ void InterfacePage::writeConfig()
 	QuackerSettings::self()->verboseLabels = m_verboseLabelsCheck->isChecked();
 	QuackerSettings::self()->scoreLabels = m_scoreLabelsCheck->isChecked();
 	QuackleIO::UtilSettings::self()->octothorpBritish = m_octothorpCheck->isChecked();
+	QuackleIO::UtilSettings::self()->scoreInvalidAsZero = m_scoreInvalidAsZero->isChecked();
 }
 

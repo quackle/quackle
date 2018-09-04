@@ -40,12 +40,18 @@ bool operator==(const Move &move1, const Move &move2)
 		switch (move1.action)
 		{
 			case Quackle::Move::Place:
+			case Quackle::Move::PlaceError:
 				ret = (move1.horizontal == move2.horizontal && move1.startrow == move2.startrow && move1.startcol == move2.startcol && move1.tiles() == move2.tiles() && move1.isChallengedPhoney() == move2.isChallengedPhoney());
 				break;
 
 			case Quackle::Move::UnusedTilesBonus:
+			case Quackle::Move::UnusedTilesBonusError:
 			case Quackle::Move::Exchange:
 				ret = (Quackle::String::alphabetize(move1.tiles()) == Quackle::String::alphabetize(move2.tiles()));
+				break;
+
+			case Quackle::Move::BlindExchange:
+				ret = (move1.tiles().length() == move2.tiles().length());
 				break;
 
 			case Quackle::Move::Pass:
@@ -81,7 +87,7 @@ bool Quackle::operator<(const Move &move1, const Move &move2)
 
 LetterString Move::usedTiles() const
 {
-    return m_isChallengedPhoney? LetterString() : String::usedTiles(m_tiles);
+    return (m_isChallengedPhoney || action == BlindExchange) ? LetterString() : String::usedTiles(m_tiles);
 }
 
 LetterString Move::wordTiles() const
@@ -124,6 +130,7 @@ UVString Move::xml() const
 		break;
 
 	case Exchange:
+	case BlindExchange:
 		actionString = MARK_UV("exchange");
 		includeTiles = true;
 		break;
@@ -137,6 +144,7 @@ UVString Move::xml() const
 		includeScore = true;
 		break;
 
+	case UnusedTilesBonusError:
 	case UnusedTilesBonus:
 		actionString = MARK_UV("unusedtilesbonus");
 		includeTiles = true;
@@ -180,17 +188,19 @@ UVString Move::toString() const
 {
 	UVOStringStream ss;
 
-    if (action == Quackle::Move::Pass)
-        ss << "- ";
-    else if (action == Quackle::Move::Exchange)
-       ss << "-" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
+	if (action == Quackle::Move::Pass)
+		ss << "- ";
+	else if (action == Quackle::Move::Exchange)
+		ss << "-" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
+	else if (action == Quackle::Move::BlindExchange)
+		ss << "-" << m_tiles.length();
 	else if (action == Quackle::Move::Nonmove)
 		ss << "nonmove";
 	else if (action == Quackle::Move::TimePenalty)
 		ss << "timepenalty " << score;
-	else if (action == Quackle::Move::UnusedTilesBonus)
+	else if (action == Quackle::Move::UnusedTilesBonus || action == Quackle::Move::UnusedTilesBonusError)
 		ss << "(" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles) << ")";
-    else if (action == Quackle::Move::Place)
+    else if (action == Quackle::Move::Place || action == Quackle::Move::PlaceError)
 	{
 		ss << positionString();
 		ss << " " << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
@@ -290,11 +300,11 @@ Move Move::createChallengedPhoney(int zeroIndexedRow, int zeroIndexedColumn, boo
 	return move;
 }
 
-Move Move::createExchangeMove(LetterString tilesToExchange)
+Move Move::createExchangeMove(LetterString tilesToExchange, bool isBlind)
 {
 	Move move;
 
-	move.action = Move::Exchange;
+	move.action = isBlind ? Move::BlindExchange : Move::Exchange;
 	move.setTiles(tilesToExchange);
 	move.score = 0;
 
