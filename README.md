@@ -1,7 +1,8 @@
 Quackle   ![Icon](https://github.com/quackle/quackle/raw/master/IconSmall.png)
 =======
 
-[![Build Status](https://secure.travis-ci.org/quackle/quackle.png?branch=master)](http://travis-ci.org/quackle/quackle)
+[![Travis build status](https://secure.travis-ci.org/quackle/quackle.png?branch=master)](http://travis-ci.org/quackle/quackle)
+[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/ttcu5vruvcdljwel/branch/master?svg=true)](https://ci.appveyor.com/project/jfultz/quackle/branch/master)
 
 Crossword game artificial intelligence and analysis tool.
 
@@ -9,7 +10,7 @@ See LICENSE in this directory.
 
 Building Quackle:
 -----------------
-Quackle is built and tested with the latest release of Qt 4.8.  It does not presently build against Qt 5.
+Quackle is built and tested with the latest release of Qt 5.9.
 See README.MacOS and README.Windows for platform-specific instructions.  Generally:
 
 Clone the repo or download the tarball and untar.  Use qmake to build quackle.pro and quackleio/quackleio.pro:

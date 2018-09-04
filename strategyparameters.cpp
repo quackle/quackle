@@ -27,18 +27,21 @@
 using namespace Quackle;
 
 StrategyParameters::StrategyParameters()
-	: m_initialized(false)
+	: m_hasSyn2(false)
+	, m_hasWorths(false)
+	, m_hasVcPlace(false)
+	, m_hasBogowin(false)
+	, m_hasSuperleaves(false)
 {
 }
 
 void StrategyParameters::initialize(const string &lexicon)
 {
-	bool hasSyn2 = loadSyn2(DataManager::self()->findDataFile("strategy", lexicon, "syn2"));
-	bool hasWorths = loadWorths(DataManager::self()->findDataFile("strategy", lexicon, "worths"));
-	bool hasVcPlace = loadVcPlace(DataManager::self()->findDataFile("strategy", lexicon, "vcplace"));
-	bool hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
-	bool hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves")); 	
-	m_initialized = hasSyn2 && hasWorths && hasVcPlace && hasBogowin && hasSuperleaves;
+	m_hasSyn2 = loadSyn2(DataManager::self()->findDataFile("strategy", lexicon, "syn2"));
+	m_hasWorths = loadWorths(DataManager::self()->findDataFile("strategy", lexicon, "worths"));
+	m_hasVcPlace = loadVcPlace(DataManager::self()->findDataFile("strategy", lexicon, "vcplace"));
+	m_hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
+	m_hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves")); 	
 }
 
 bool StrategyParameters::loadSyn2(const string &filename)

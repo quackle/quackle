@@ -19,7 +19,7 @@
 #include <iostream>
 #include <math.h>
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <game.h>
 #include <move.h>

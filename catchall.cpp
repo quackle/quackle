@@ -51,7 +51,8 @@ double CatchallEvaluator::equity(const GamePosition &position, const Move &move)
 
 			adjustment = QUACKLE_STRATEGY_PARAMETERS->vcPlace(start, length, consbits);
 		}
-		else adjustment = 3.5;
+		else
+			adjustment = 3.5;
 
 		// UVcout << "placement adjustment for " << move << " is " << adjustment << endl;
 		return ScorePlusLeaveEvaluator::equity(position, move) + adjustment;

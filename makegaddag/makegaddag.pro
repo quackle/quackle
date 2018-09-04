@@ -2,6 +2,7 @@ TEMPLATE = app
 DEPENDPATH += .. ../quackleio
 INCLUDEPATH += . ..
 CONFIG += release
+CONFIG -= debug
 
 debug {
   OBJECTS_DIR = obj/debug
@@ -18,7 +19,7 @@ MOC_DIR = moc
 # enable/disable debug symbols
 # CONFIG += debug
 
-CONFIG += console
+CONFIG += console c++14
 CONFIG -= app_bundle
 
 win32:!win32-g++ {
@@ -27,8 +28,9 @@ win32:!win32-g++ {
   LIBS += -lquackleio -lquackle
 }
 
-QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+!msvc {
+  QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
+}
 
 # Input
 SOURCES += makegaddag.cpp
@@ -44,4 +46,8 @@ win32 {
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

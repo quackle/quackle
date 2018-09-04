@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <quackleio/util.h>
 

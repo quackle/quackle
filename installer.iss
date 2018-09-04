@@ -3,14 +3,14 @@
 
 [Setup]
 AppName=Quackle
-AppVerName=Quackle 1.0.3
+AppVerName=Quackle 1.0.4
 DefaultDirName={pf}\Quackle
 DefaultGroupName=Quackle
 ChangesAssociations=yes
 UninstallDisplayIcon={app}\Quackle.exe
 
 [Icons]
-Name: "{group}\Quackle 1.0.3"; Filename: "{app}\Quackle.exe"; WorkingDir: "{app}"
+Name: "{group}\Quackle 1.0.4"; Filename: "{app}\Quackle.exe"; WorkingDir: "{app}"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Quackle.org"
@@ -23,10 +23,9 @@ Root: HKCR; Subkey: "QuackleGameFile\shell\open\command"; ValueType: string; Val
 [Files]
 Source: "quacker\release\Quackle.exe"; DestDir: "{app}"
 Source: "LICENSE"; DestDir: "{app}"
-Source: "QtCore4.dll"; DestDir: "{app}"
-Source: "QtGui4.dll"; DestDir: "{app}"
-Source: "msvcp120.dll"; DestDir: "{app}"
-Source: "msvcr120.dll"; DestDir: "{app}"
+Source: "Qt5Core.dll"; DestDir: "{app}"
+Source: "Qt5Gui.dll"; DestDir: "{app}"
+Source: "Qt5Widgets.dll"; DestDir: "{app}"
 
 Source: "data\themes\*"; DestDir: "{app}\data\themes"
 Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"

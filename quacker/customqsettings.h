@@ -23,7 +23,7 @@ class CustomQSettings : public QSettings
 {
 public:
 	CustomQSettings() :
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
 		QSettings((QSysInfo::WindowsVersion & QSysInfo::WV_DOS_based) ? IniFormat : NativeFormat,
 			UserScope, tr("Quackle"))
 #else

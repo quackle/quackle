@@ -5,8 +5,9 @@ INCLUDEPATH += . ..
 # enable/disable debug symbols
 # CONFIG += debug
 CONFIG += release
+CONFIG -= debug
 
-CONFIG += console
+CONFIG += console c++14
 CONFIG -= x11
 CONFIG -= app_bundle
 
@@ -26,8 +27,9 @@ win32:!win32-g++ {
   LIBS += -lquackleio -lquackle
 }
 
-QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+!msvc {
+  QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
+}
 
 
 # Input
@@ -37,4 +39,8 @@ SOURCES += makeminidawgmain.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

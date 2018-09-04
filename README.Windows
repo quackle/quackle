@@ -5,10 +5,10 @@ Quackle was first ported to Windows by John Fultz, jfultz@wolfram.com, who
 is also the original author of this ReadMe.
 
 I maintain the Windows version so that it can be built with either
-Visual C++ or the GNU-based MinGW compiler.  As of Quackle 0.97,
-I use the mingw tools bundled with Qt 4.7.4 to build the release version.
-The build ought to work with Visual C++ Express, as well, but I'm not
-sure whether Microsoft disables useful optimizations in that version,
+Visual C++ or the GNU-based MinGW compiler.  As of Quackle 1.0.4,
+I use the Visual Studio tools bundled with Qt 5.9.1 to build the release
+version.  The build ought to work with Visual C++ Express, as well, but
+I'm not sure whether Microsoft disables useful optimizations in that version,
 so I won't guarantee that you'll get nice and fast optimized binaries.
 
 All build commands are run from Windows' regular command shell.  The
@@ -17,14 +17,14 @@ tools are:
 Free Tools Build:
 ------------------------------------
 MinGW
-Qt 4.8
+Qt 5.9
 git
 cygwin (optional) - if you want to debug, you'll need gdb from cygwin.
 
 Microsoft Tools Build:
 ------------------------------------
 Visual C++
-Qt 4.8
+Qt 5.9
 git
 
 Installer build:
@@ -77,7 +77,7 @@ working executable...
 Additional things to know:
 --------------------------
 * To build the Quackle installer,
-  + Copy QtCore4.dll and QtGui4.dll from Qt's bin/ directory into quackle\
+  + Copy Qt5Core.dll, Qt5Widgets.dll and Qt5Gui.dll from Qt's bin/ directory into quackle\
   + If you're building with MinGW, copy mingwm10.dll, libstdc++-6.dll, and
     libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
   + From the Quackle directory, run the following...
@@ -122,4 +122,4 @@ Building Qt libraries
   configure process.
 
   Here's a helpful document on the process:
-  https://qt-project.org/doc/qt-4.8/install-win.html
+  https://doc.qt.io/qt-5/windows-support.html#downloading-and-installing-qt

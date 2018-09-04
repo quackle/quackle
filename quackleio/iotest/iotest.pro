@@ -5,6 +5,8 @@ INCLUDEPATH += . .. ../..
 # enable/disable debug symbols
 #CONFIG += debug
 CONFIG += release
+CONFIG += c++14
+CONFIG -= debug
 
 debug {
   OBJECTS_DIR = obj/debug
@@ -29,4 +31,8 @@ SOURCES += iotest.cpp trademarkedboards.cpp
 
 macx-g++ {
     QMAKE_CXXFLAGS += -fpermissive
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

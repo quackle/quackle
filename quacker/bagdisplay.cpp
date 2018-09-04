@@ -18,7 +18,7 @@
 
 #include <math.h>
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <bag.h>
 #include <game.h>

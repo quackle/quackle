@@ -17,7 +17,8 @@
  */
 
 #include <sstream>
-#include <QtGui>
+#include <QtWidgets>
+
 #include <boardparameters.h>
 #include <board.h>
 #include <datamanager.h>

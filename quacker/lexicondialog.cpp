@@ -17,7 +17,8 @@
  */
 
 #include <sstream>
-#include <QtGui>
+#include <QtWidgets>
+
 #include <datamanager.h>
 #include <quackleio/util.h>
 

@@ -17,25 +17,27 @@ MOC_DIR = moc
 
 # enable/disable debug symbols
 #CONFIG += debug staticlib
-CONFIG += release staticlib
+CONFIG += release staticlib c++14
 CONFIG -= x11
 
-QMAKE_CXXFLAGS += -std=c++11
-QMAKE_CXXFLAGS:!win32-msvc2013 += -Wno-unknown-warning-option -Wno-deprecated-register
+!msvc {
+  QMAKE_CXXFLAGS += -Wno-unknown-warning-option -Wno-deprecated-register
+}
 
 # Input
 HEADERS += *.h
 
 SOURCES += *.cpp
 
-macx-g++ {
-    QMAKE_CXXFLAGS += -fpermissive
-}
-
-macx-xcode {
-	CONFIG += x86	
+macx {
+  CONFIG += x86	
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 }
 
 unix:!macx {
 	QMAKE_CXXFLAGS += -Wno-unused-local-typedefs
+}
+
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

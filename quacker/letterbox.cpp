@@ -16,7 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <quackleio/dictfactory.h>
 #include <quackleio/util.h>
@@ -306,7 +306,7 @@ void Letterbox::jumpTo()
 	pause(true);
 
 	bool ok;
-	int index = QInputDialog::getInteger(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1, m_clueResults.count(), 1, &ok);
+	int index = QInputDialog::getInt(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1, m_clueResults.count(), 1, &ok);
 	if (ok)
 	{
 		jumpTo(index);

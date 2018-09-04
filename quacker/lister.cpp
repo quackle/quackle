@@ -19,7 +19,7 @@
 #include <iostream>
 using namespace std;
 
-#include <QtGui>
+#include <QtWidgets>
 
 #include <quackleio/dictfactory.h>
 

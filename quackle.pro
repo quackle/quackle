@@ -17,11 +17,9 @@ release {
   DESTDIR = lib/release
 }
 
-QMAKE_CXXFLAGS += -std=c++11
-
 # enable/disable debug symbols
 #CONFIG += debug staticlib
-CONFIG += release staticlib
+CONFIG += release staticlib c++14
 CONFIG -= x11
 
 # Input
@@ -34,10 +32,11 @@ SOURCES -= \
 	makedawg.cpp \
 	quackletest.cpp
 
-macx-g++ {
-    QMAKE_CXXFLAGS += -fpermissive
+macx {
+	CONFIG += x86	
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 }
 
-macx-xcode {
-	CONFIG += x86	
+linux { # old unixes/Qt distribs running around...most notably on Travis-CI
+  QMAKE_CXXFLAGS += -std=c++1y
 }

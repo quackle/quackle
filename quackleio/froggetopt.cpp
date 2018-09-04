@@ -130,7 +130,7 @@ GetOpt::GetOpt()
 	if ( !QCoreApplication::instance() )
 		qFatal( "GetOpt: requires a QApplication instance to be constructed first" );
 
-	init( QCoreApplication::instance()->argc(), QCoreApplication::instance()->argv(), 1 );
+	init( QCoreApplication::instance()->arguments(), 1 );
 }
 
 /**
@@ -141,7 +141,7 @@ GetOpt::GetOpt( int offset )
 	if ( !QCoreApplication::instance() )
 		qFatal( "GetOpt: requires a QApplication instance to be constructed first" );
 
-	init( QCoreApplication::instance()->argc(), QCoreApplication::instance()->argv(), offset );
+	init( QCoreApplication::instance()->arguments(), offset );
 }
 
 /**
@@ -176,6 +176,18 @@ GetOpt::GetOpt( int argc, char *argv[] )
 : args( a )
 {
 	init( 0, 0 );
+}
+
+void GetOpt::init( const QStringList &argv, int offset )
+{
+    numReqArgs = numOptArgs = 0;
+    currArg = 1; // appname is not part of the arguments
+
+    // application name
+    aname = QFileInfo( argv[0] ).fileName();
+
+    for ( int i = offset; i < argv.size(); ++i )
+        args.append( argv[i] );
 }
 
 /**

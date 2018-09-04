@@ -20,6 +20,8 @@
 #include <math.h>
 
 #include <QtGui>
+#include <QVBoxLayout>
+#include <qdrawutil.h>
 
 #include <game.h>
 #include <move.h>
@@ -87,9 +89,9 @@ GraphicalBoardFrame::GraphicalBoardFrame(QWidget *parent)
     setPalette(customPalette);
 
     PixmapCacher::self()->tileFont = font();
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
     PixmapCacher::self()->tileFont.setFamily(QString("Arial"));
-#endif // Q_WS_WIN
+#endif // Q_OS_WIN
 
     //expandToSize(QSize(15 * 25, 15 * 25));
 

@@ -21,12 +21,11 @@
 #include <iostream>
 #include <sstream>
 
-#include <QtGui>
-#include <QMessageBox>
+#include <QtWidgets>
 
-#ifdef Q_WS_MAC
+#ifdef Q_OS_MAC
 #include <CoreFoundation/CoreFoundation.h>
-#endif // Q_WS_MAC
+#endif // Q_OS_MAC
 
 #include "alphabetparameters.h"
 #include "board.h"
@@ -59,7 +58,7 @@ Settings::Settings(QWidget *parent)
 	m_self = this;
 	QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 
- #ifdef Q_WS_MAC
+ #ifdef Q_OS_MAC
 	if (CFBundleGetMainBundle())
 	{
 		 CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
@@ -78,7 +77,7 @@ Settings::Settings(QWidget *parent)
 			 CFRelease(macPath);
 		 }
 	}
- #endif
+ #endif // Q_OS_MAC
 
 	if (QFile::exists("data"))
 		m_appDataDir = "data";
@@ -92,7 +91,7 @@ Settings::Settings(QWidget *parent)
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
 		m_appDataDir = directory.absolutePath();
 	}
-	m_userDataDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+	m_userDataDir = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
 	QDir qdir(m_userDataDir);
 	qdir.mkpath("lexica");
 }
