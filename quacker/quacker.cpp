@@ -89,6 +89,13 @@ TopLevel::TopLevel(QWidget *parent)
 
 TopLevel::~TopLevel()
 {
+	stopEverything();
+	for (const auto& it : m_otherOppoThreads)
+		it->wait();
+	for (const auto& it : m_oppoThreads)
+		it->wait();
+	kibitzThreadFinished();
+	computerPlayerDone();
 	QuackleIO::Queenie::cleanUp();
 	delete m_game;
 	delete m_simulator;
@@ -914,6 +921,8 @@ void TopLevel::kibitz(int numberOfPlays, Quackle::ComputerPlayer *computerPlayer
 
 void TopLevel::kibitzThreadFinished()
 {
+	if (m_otherOppoThreads.begin() == m_otherOppoThreads.end())
+		return;
 	QString name;
 	QString rack;
 	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end(); )
@@ -1446,6 +1455,9 @@ void TopLevel::stopOutcraftyingCurrentPlayer()
 
 void TopLevel::computerPlayerDone()
 {
+	if (m_oppoThreads.begin() == m_oppoThreads.end())
+		return;
+
 	Quackle::MoveList moves;
 
 	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end(); )
