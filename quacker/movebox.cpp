@@ -94,11 +94,11 @@ void MoveBox::removeMove()
 	
 	Quackle::MoveList selectedMoves;
 
-	for (QList<QTreeWidgetItem *>::iterator it = selectedItems.begin(); it != selectedItems.end(); ++it)
+	for (const auto& it : selectedItems)
 	{
 		for (QMap<Quackle::Move, QTreeWidgetItem *>::iterator mapIt = m_moveMap.begin(); mapIt != m_moveMap.end(); ++mapIt)
 		{
-			if (mapIt.value() == *it)
+			if (mapIt.value() == it)
 			{
 				selectedMoves.push_back(mapIt.key());
 				break;
@@ -236,8 +236,8 @@ void MoveBox::positionChanged(const Quackle::GamePosition &position)
 {
 	if (m_rack.tiles() != position.currentPlayer().rack().tiles())
 	{
-		for (QMap<Quackle::Move, QTreeWidgetItem *>::iterator mapIt = m_moveMap.begin(); mapIt != m_moveMap.end(); ++mapIt)
-			delete mapIt.value();
+		for (auto& mapIt : m_moveMap)
+			delete mapIt;
 
 		m_moveMap.clear();
 	}

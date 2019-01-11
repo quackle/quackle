@@ -171,9 +171,9 @@ void PlayerTab::populatePlayers()
 	else
 		playerIds  = settings.value("quackle/newgame/playerIds", QList<QVariant>()).toList();
 
-	for (QList<QVariant>::iterator it = playerIds.begin(); it != playerIds.end(); ++it)
+	for (const auto& it : playerIds)
 	{
-		int id = (*it).toInt();
+		int id = it.toInt();
 
 		QString infoString = settings.value(QString("quackle/newgame/players/%1").arg(id)).toString();
 		if (infoString.isNull())
@@ -296,11 +296,11 @@ void PlayerTab::addPlayer()
 void PlayerTab::removePlayer()
 {
 	QList<QTreeWidgetItem *> items = m_playersTreeWidget->selectedItems();
-	for (QList<QTreeWidgetItem *>::iterator it = items.begin(); it != items.end(); ++it)
+	for (auto& it : items)
 	{
-		delete *it;
+		delete it;
 
-		QList<Quackle::Player> correspondingPlayers(m_playerMap.keys(*it));
+		QList<Quackle::Player> correspondingPlayers(m_playerMap.keys(it));
 
 		if (correspondingPlayers.size() > 0)
 			m_playerMap.remove(correspondingPlayers.front());

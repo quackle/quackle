@@ -511,10 +511,10 @@ void TopLevel::stopEverything()
 	// stop simulation if it's going
 	simulate(false);
 
-	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end(); ++it)
-		(*it)->abort();
-	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end(); ++it)
-		(*it)->abort();
+	for (const auto& it : m_otherOppoThreads)
+		it->abort();
+	for (const auto& it : m_oppoThreads)
+		it->abort();
 }
 
 OppoThreadProgressBar *TopLevel::createProgressBarForThread(OppoThread *thread)
@@ -1780,9 +1780,8 @@ void TopLevel::createMenu()
 
 	move->addSeparator();
 
-	QList<QAction *> kibitzAsActions = m_kibitzAsActions->actions();
-	for (QList<QAction *>::iterator it = kibitzAsActions.begin(); it != kibitzAsActions.end(); ++it)
-		move->addAction(*it);
+	for (const auto& it : m_kibitzAsActions->actions())
+		move->addAction(it);
 
 	move->addSeparator();
 
@@ -1801,9 +1800,8 @@ void TopLevel::createMenu()
 
 	QMenu *reports = menuBar()->addMenu(tr("Re&ports"));
 
-	QList<QAction *> reportAsActions = m_reportAsActions->actions();
-	for (QList<QAction *>::iterator it = reportAsActions.begin(); it != reportAsActions.end(); ++it)
-		reports->addAction(*it);
+	for (const auto& it : m_reportAsActions->actions())
+		reports->addAction(it);
 
 	reports->addSeparator();
 

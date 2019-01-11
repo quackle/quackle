@@ -447,11 +447,11 @@ void Letterbox::markLastAsMissed()
 
 void Letterbox::skip()
 {
-	for (WordResultList::iterator it = (*m_clueResultsIterator).words.begin(); it != (*m_clueResultsIterator).words.end(); ++it)
+	for (auto& it : m_clueResultsIterator->words)
 	{
-		(*it).missed = false;
-		(*it).keystrokes = (*it).word.length();
-		(*it).time = timerLength();
+		it.missed = false;
+		it.keystrokes = it.word.length();
+		it.time = timerLength();
 	}
 
 	m_mistakeMade = false;
@@ -523,17 +523,16 @@ void Letterbox::outputResults()
 	if (m_numberIterator < m_clueResults.count())
 		stream << "\" Resume: " << m_numberIterator << "\n";
 
-	ClueResultList::iterator end = m_clueResults.end();
 	QStringList::iterator listIt = m_list.begin();
-    for (ClueResultList::iterator it = m_clueResults.begin(); it != end; ++it)
+    for (const auto& it : m_clueResults)
 	{
 		stream << *listIt;
 
-		if ((*it).words.count() > 0)
+		if (it.words.count() > 0)
 		{
 			stream << " \"";
-			for (WordResultList::iterator word = (*it).words.begin(); word != (*it).words.end(); ++word)
-				stream << " " << (*word).word << " " << (*word).time << " " << (*word).keystrokes;
+			for (const auto& word : it.words)
+				stream << " " << word.word << " " << word.time << " " << word.keystrokes;
 		}
 
 		stream << "\n";
@@ -557,13 +556,13 @@ void Letterbox::outputResults()
 		QTextStream stream(&missesFile);
 		stream.setCodec(QTextCodec::codecForName("UTF-8"));
 
-    	for (ClueResultList::iterator it = m_clueResults.begin(); it != m_clueResults.end(); ++it)
+    	for (const auto& it : m_clueResults)
 		{
-			for (WordResultList::iterator word = (*it).words.begin(); word != (*it).words.end(); ++word)
+			for (const auto& word : it.words)
 			{
-				if ((*word).time == 0)
+				if (word.time == 0)
 				{
-					stream << (*it).clue.clueString << "\n";
+					stream << it.clue.clueString << "\n";
 					break;
 				}
 			}
@@ -628,13 +627,13 @@ Clue Letterbox::mathClue(const QString &clue)
 	{
 		QString query = word.left(i) + word.right(word.length() - i - 1);
 		Dict::WordList words = QuackleIO::DictFactory::querier()->query(query);
-		for (Dict::WordList::iterator it = words.begin(); it != words.end(); ++it)
+		for (const auto& it : words)
 		{
-			int chew = chewScore((*it).word, word);
+			int chew = chewScore(it.word, word);
 			if (chew > bestChew)
 			{
 				bestChew = chew;
-				ret = (*it).word + " + " + word.at(i);
+				ret = it.word + " + " + word.at(i);
 			}
 		}
 	}
@@ -688,29 +687,29 @@ void Letterbox::mistakeDetector(const QString &text)
 	if (upperText.length() == 0)
 		return;
 
-	for (Dict::WordList::iterator it = (*m_answersIterator).begin(); it != (*m_answersIterator).end(); ++it)
+	for (const auto& it : *m_answersIterator)
 	{
 		if (LetterboxSettings::self()->spaceComplete)
 		{
 			if (upperText[0] == ' ')
 			{
-				if (!m_submittedAnswers.contains((*it).word))
+				if (!m_submittedAnswers.contains(it.word))
 				{
-					processAnswer((*it).word);
+					processAnswer(it.word);
 					return;
 				}
 			}
 		}
 		else
 		{
-			if ((*it).word.startsWith(upperText) && !m_submittedAnswers.contains((*it).word))
+			if (it.word.startsWith(upperText) && !m_submittedAnswers.contains(it.word))
 			{
 				if (m_mistakeMade)
 					statusBar()->clearMessage();
 
 				if (LetterboxSettings::self()->autoCompleteLength > 0)  
 					if (upperText.length() == LetterboxSettings::self()->autoCompleteLength)
-						processAnswer((*it).word);
+						processAnswer(it.word);
 
 				return;
 			}
@@ -741,19 +740,19 @@ void Letterbox::processAnswer(const QString &answer)
 		return;
 	}
 
-	for (WordResultList::iterator it = (*m_clueResultsIterator).words.begin(); it != (*m_clueResultsIterator).words.end(); ++it)
+	for (auto& it : m_clueResultsIterator->words)
 	{
-		if ((*it).word == upperAnswer)
+		if (it.word == upperAnswer)
 		{
-			(*it).missed = false;
-			(*it).keystrokes = m_keystrokes;
-			(*it).time = m_time.elapsed() - m_pauseMs;
+			it.missed = false;
+			it.keystrokes = m_keystrokes;
+			it.time = m_time.elapsed() - m_pauseMs;
 		}
 	}
 
-	for (Dict::WordList::iterator it = (*m_answersIterator).begin(); it != (*m_answersIterator).end(); ++it)
+	for (const auto& it : *m_answersIterator)
 	{
-		if ((*it).word == upperAnswer)
+		if (it.word == upperAnswer)
 		{
 			m_submittedAnswers.append(upperAnswer);
 			m_lineEdit->clear();
@@ -1061,27 +1060,21 @@ ClueResult::ClueResult(const QString &newClue)
 
 void ClueResult::setWordList(Dict::WordList answers)
 {
-	for (Dict::WordList::iterator it = answers.begin(); it != answers.end(); ++it)
+	for (const auto& it : answers)
 	{
 		bool isAnswerInOurWords = false;
-		for (WordResultList::iterator wrIt = words.begin(); wrIt != words.end(); ++wrIt)
-		{
-			if ((*it).word == (*wrIt).word)
-			{
-				isAnswerInOurWords = true;
-				break;
-			}
-		}
+		for (const auto& wrIt : words)
+			isAnswerInOurWords = isAnswerInOurWords || (it.word == wrIt.word);
 
 		if (!isAnswerInOurWords)
-			words.append(WordResult((*it).word));	
+			words.append(WordResult(it.word));	
 	}
 }
 
 void ClueResult::resetStats()
 {
-	for (WordResultList::iterator wrIt = words.begin(); wrIt != words.end(); ++wrIt)
-		(*wrIt).resetStats();
+	for (auto& wrIt : words)
+		wrIt.resetStats();
 }
 
 Clue::Clue()
@@ -1273,26 +1266,25 @@ QString HTMLRepresentation::htmlForWordList(const Dict::WordList &wordList)
 	bool hasFrontExtensionColumn = false;
 	bool hasBackExtensionColumn = false;
 
-	Dict::WordList::ConstIterator end = wordList.end();
-	for (Dict::WordList::ConstIterator it = wordList.begin(); it != end; ++it)
+	for (const auto& it : wordList)
 	{
-		if (!(tableOfExtensions((*it).getFrontExtensionList()).isEmpty()))		
+		if (!(tableOfExtensions(it.getFrontExtensionList()).isEmpty()))		
 			hasFrontExtensionColumn = true;
-		if (!(tableOfExtensions((*it).getBackExtensionList()).isEmpty()))		
+		if (!(tableOfExtensions(it.getBackExtensionList()).isEmpty()))		
 			hasBackExtensionColumn = true;
 	}
 
-	for (Dict::WordList::ConstIterator it = wordList.begin(); it != end; ++it)
+	for (const auto& it : wordList)
 	{
 		html += "<tr>";
 
 		if (hasFrontExtensionColumn)
-			html += "<td align=right>" + tableOfExtensions((*it).getFrontExtensionList()) + "</td>";
+			html += "<td align=right>" + tableOfExtensions(it.getFrontExtensionList()) + "</td>";
 
-		html += "<td align=center>" + htmlForSolution(*it) + "</td>";
+		html += "<td align=center>" + htmlForSolution(it) + "</td>";
 
 		if (hasBackExtensionColumn)
-			html += "<td align=left>" + tableOfExtensions((*it).getBackExtensionList()) + "</td>";
+			html += "<td align=left>" + tableOfExtensions(it.getBackExtensionList()) + "</td>";
 
 		html += "</tr>";
 	}
