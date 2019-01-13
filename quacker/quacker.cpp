@@ -1887,6 +1887,10 @@ void TopLevel::createWidgets()
 	QVBoxLayout *choicesLayout = new QVBoxLayout(m_choicesWidget);
 	Geometry::setupFramedLayout(choicesLayout);
 
+	m_frameWidget = new QFrame;
+	m_frameWidget->setFrameShape(QFrame::HLine);
+	m_frameWidget->setFrameShadow(QFrame::Sunken);
+
 	m_simulatorWidget = new QGroupBox(tr("Simulation"));
 	m_simulatorWidget->setFlat(true);
 	QVBoxLayout *simulatorLayout = new QVBoxLayout(m_simulatorWidget);
@@ -1965,6 +1969,7 @@ void TopLevel::createWidgets()
 
 	choicesLayout->addWidget(m_moveBox, 3);
 	choicesLayout->addWidget(m_noteEditor, 1);
+	choicesLayout->addWidget(m_frameWidget, 1);
 	choicesLayout->addWidget(m_simulatorWidget, 1);
 
 	m_history = new History;

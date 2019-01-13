@@ -34,6 +34,7 @@ class QAction;
 class QActionGroup;
 class QComboBox;
 class QCheckBox;
+class QFrame;
 class QGroupBox;
 class QLineEdit;
 class QPushButton;
@@ -320,6 +321,7 @@ private:
 	QWidget *m_choicesWidget;
 	View *m_moveBox;
 	View *m_noteEditor;
+	QFrame *m_frameWidget;
 
 	Settings *m_settings;
 
