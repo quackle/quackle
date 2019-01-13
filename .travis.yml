@@ -11,8 +11,12 @@ matrix:
 
     - os: osx
 
+addons:
+  homebrew:
+    packages:
+      - qt
+
 before_install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install qt; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then export PATH="/usr/local/opt/qt/bin:$PATH"; fi
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get update -qq; fi
