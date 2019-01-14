@@ -653,6 +653,11 @@ void TopLevel::initializeGame(const Quackle::PlayerList &players)
 		{
 			random_shuffle(newPlayers.begin(), newPlayers.end());
 			m_firstPlayerName = newPlayers.front().name();
+			if (all_of(newPlayers.begin(),
+					   newPlayers.end(),
+					   [&](const Quackle::Player& p) { return p.name() == prevFirst; }
+					   ))
+				break; // all player names are identical...break an infinite loop
 		}
 	}
 
