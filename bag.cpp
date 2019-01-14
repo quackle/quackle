@@ -101,7 +101,7 @@ void Bag::exch(const Move &move, Rack &rack)
 
 Letter Bag::pluck()
 {
-	return erase(DataManager::self()->randomNumber() % m_tiles.size());
+	return erase(DataManager::self()->randomInteger(0, m_tiles.size() - 1));
 }
 
 bool Bag::removeLetters(const LetterString &letters)

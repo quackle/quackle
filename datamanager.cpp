@@ -43,7 +43,9 @@ DataManager::DataManager()
 	m_self = this;
 	setAppDataDirectory(".");
 	setUserDataDirectory(".");
-    seedRandomNumbers((int)time(NULL));
+
+	seed_seq session_seed = {(unsigned) random_device{}(), (unsigned) time(nullptr)};
+	seedRandomNumbers(session_seed);
 
 	m_alphabetParameters = new EnglishAlphabetParameters;
 	m_evaluator = new CatchallEvaluator;
@@ -176,10 +178,15 @@ string DataManager::makeDataFilename(const string &subDirectory, const string &f
 
 void DataManager::seedRandomNumbers(unsigned int seed)
 {
-    srand(seed);
+	m_mersenneTwisterRng.seed(seed);
 }
 
-int DataManager::randomNumber()
+void DataManager::seedRandomNumbers(seed_seq& seed)
 {
-	return rand();
+	m_mersenneTwisterRng.seed(seed);
+}
+
+int DataManager::randomInteger(int low, int high)
+{
+	return uniform_int_distribution<>(low, high)(m_mersenneTwisterRng);
 }

@@ -20,6 +20,7 @@
 #define QUACKLE_DATAMANAGER_H
 
 #include <string>
+#include <random>
 
 #include "playerlist.h"
 
@@ -122,7 +123,8 @@ public:
 	string userDataDirectory() { return m_userDataDirectory; }
 
 	void seedRandomNumbers(unsigned int seed);
-	int randomNumber();
+	void seedRandomNumbers(seed_seq& seed);
+	int randomInteger(int low, int high);
 
 private:
 	static DataManager *m_self;
@@ -144,6 +146,8 @@ private:
 	StrategyParameters *m_strategyParameters;
 
 	PlayerList m_computerPlayers;
+
+	mt19937_64 m_mersenneTwisterRng;
 };
 
 inline DataManager *DataManager::self()
