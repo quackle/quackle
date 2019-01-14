@@ -43,7 +43,7 @@ QuickEntryRack::QuickEntryRack(QWidget *parent)
 	QPushButton *shuffleButton = new QPushButton(tr("Shu&ffle"));
 	connect(shuffleButton, SIGNAL(clicked()), this, SLOT(shuffle()));
 
-	m_label = new QLabel(tr("&Rack"));
+	m_label = new QLabel(tr("&Rack:"));
 	m_label->setBuddy(m_lineEdit);
 	textLayout->addWidget(m_label, 1);
 	textLayout->addWidget(m_lineEdit, 4);
@@ -71,7 +71,6 @@ void QuickEntryRack::positionChanged(const Quackle::GamePosition &position)
 	m_rackTiles = position.currentPlayer().rack().tiles();
 	QString tiles = QuackleIO::Util::letterStringToQString(m_rackTiles);
 	m_lineEdit->setText(tiles);
-	m_label->setText(QString("%1's &rack:").arg(QuackleIO::Util::uvStringToQString(position.currentPlayer().name())));
 	m_tiles->setText(m_rackTiles);
 }
 
