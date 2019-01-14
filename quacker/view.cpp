@@ -59,7 +59,7 @@ void View::connectSubviewSignals()
 	for (auto& it : m_subviews)
 	{
 		connect(it, SIGNAL(statusMessage(const QString &)), this, SIGNAL(statusMessage(const QString &)));
-		connect(it, SIGNAL(setCandidateMove(const Quackle::Move &)), this, SIGNAL(setCandidateMove(const Quackle::Move &)));
+		connect(it, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)), this, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)));
 		connect(it, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)));
 		connect(it, SIGNAL(commit()), this, SIGNAL(commit()));
 		connect(it, SIGNAL(setRack(const Quackle::Rack &)), this, SIGNAL(setRack(const Quackle::Rack &)));

@@ -269,8 +269,10 @@ bool TopLevel::askToCarryOn(const QString &text)
 	return QMessageBox::question(this, tr("Verify Play - Quackle"), dialogText(text), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
 }
 
-void TopLevel::setCandidateMove(const Quackle::Move &move)
+void TopLevel::setCandidateMove(const Quackle::Move &move, bool *carryOnPtr)
 {
+	if (carryOnPtr != nullptr)
+		*carryOnPtr = true;
 	if (!m_game->hasPositions() || (move.action == Quackle::Move::Place && move.tiles().empty()))
 		return;
 
@@ -371,7 +373,11 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 		}
 
 		if (!carryOn)
+		{
+			if (carryOnPtr != nullptr)
+				*carryOnPtr = false;
 			return;
+		}
 
 		if (playHasIllegalWords && QuackleIO::UtilSettings::self()->scoreInvalidAsZero)
 			prettiedMove.score = 0;
@@ -818,7 +824,7 @@ void TopLevel::plugIntoMatrix(View *view)
 {
 	plugIntoBaseMatrix(view);
 
-	connect(view, SIGNAL(setCandidateMove(const Quackle::Move &)), this, SLOT(setCandidateMove(const Quackle::Move &)));
+	connect(view, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)), this, SLOT(setCandidateMove(const Quackle::Move &, bool *)));
 	connect(view, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SLOT(removeCandidateMoves(const Quackle::MoveList &)));
 	connect(view, SIGNAL(commit()), this, SLOT(commit()));
 	connect(view, SIGNAL(setRack(const Quackle::Rack &)), this, SLOT(setRack(const Quackle::Rack &)));

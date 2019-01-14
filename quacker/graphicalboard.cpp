@@ -745,7 +745,7 @@ void GraphicalBoardFrame::deleteHandler()
 
 void GraphicalBoardFrame::submitHandler()
 {
-    QTimer::singleShot(0, this, SLOT(setGlobalCandidate()));
+    QTimer::singleShot(0, this, SLOT(setGlobalCandidate(nullptr)));
 }
 
 void GraphicalBoardFrame::commitHandler()
@@ -753,7 +753,7 @@ void GraphicalBoardFrame::commitHandler()
     QTimer::singleShot(0, this, SLOT(setAndCommitGlobalCandidate()));
 }
 
-void GraphicalBoardFrame::setGlobalCandidate()
+void GraphicalBoardFrame::setGlobalCandidate(bool *carryOn)
 {
     if (m_candidate.action == Quackle::Move::Place && m_candidate.wordTilesWithNoPlayThru().empty())
     {
@@ -763,18 +763,20 @@ void GraphicalBoardFrame::setGlobalCandidate()
 
     if (m_candidate.wordTilesWithNoPlayThru().length() == 1) 
     {
-        emit setCandidateMove(flip(m_candidate));
+        emit setCandidateMove(flip(m_candidate), carryOn);
     }
     else
     {
-        emit setCandidateMove(m_candidate);
+        emit setCandidateMove(m_candidate, carryOn);
     }
 }
 
 void GraphicalBoardFrame::setAndCommitGlobalCandidate()
 {
-    setGlobalCandidate();
-    emit commit();
+    bool carryOn = false;
+    setGlobalCandidate(&carryOn);
+    if (carryOn)
+        emit commit();
 }
 
 void GraphicalBoardFrame::appendHandler(const QString &text, bool shiftPressed)

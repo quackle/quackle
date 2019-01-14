@@ -59,7 +59,7 @@ signals:
 	// emit to alert the rest of the application to show this
 	// as candidate move - may eventually trigger positionChanged
 	// in response
-	void setCandidateMove(const Quackle::Move &move);
+	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
 	void removeCandidateMoves(const Quackle::MoveList &moves);
 	void commit();
 

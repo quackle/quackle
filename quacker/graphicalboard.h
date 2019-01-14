@@ -143,7 +143,7 @@ protected slots:
     void commitHandler();
     void appendHandler(const QString &text, bool shiftPressed);
 
-    void setGlobalCandidate();
+    void setGlobalCandidate(bool *carryOn); // returns false if the user canceled a badly formed move
     void setAndCommitGlobalCandidate();
 
     virtual void tileClicked(const QSize &tileLocation, const QMouseEvent * /* event */);

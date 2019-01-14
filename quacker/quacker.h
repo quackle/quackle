@@ -177,7 +177,7 @@ protected slots:
 	void statusMessage(const QString &mesage);
 
 	// set game's candidate to move and update views
-	void setCandidateMove(const Quackle::Move &move);
+	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
 	void removeCandidateMoves(const Quackle::MoveList &moves);
 
 	// set current player's rack and update views

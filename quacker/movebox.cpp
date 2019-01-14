@@ -61,7 +61,7 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 {
 	if (item == 0)
 	{
-		emit setCandidateMove(Quackle::Move::createNonmove());
+		emit setCandidateMove(Quackle::Move::createNonmove(), nullptr);
 		return;
 	}
 
@@ -73,7 +73,7 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 	{
 		if (it.value() == item)
 		{
-			emit setCandidateMove(it.key());
+			emit setCandidateMove(it.key(), nullptr);
 			break;
 		}
 	}
@@ -130,7 +130,7 @@ void MoveBox::removeMove()
 		{
 			if (mapIt.value() == nextSelection)
 			{
-				emit setCandidateMove(mapIt.key());
+				emit setCandidateMove(mapIt.key(), nullptr);
 				break;
 			}
 		}

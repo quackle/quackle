@@ -107,18 +107,18 @@ void BoardWithQuickEntry::quickEditShiftReturnPressed()
 void BoardWithQuickEntry::plusFive()
 {
 	m_localCandidateMove.setScoreAddition(m_localCandidateMove.scoreAddition() + 5);
-	emit setCandidateMove(m_localCandidateMove);
+	emit setCandidateMove(m_localCandidateMove, nullptr);
 }
 
 void BoardWithQuickEntry::performCommit()
 {
-	emit setCandidateMove(m_localCandidateMove);
+	emit setCandidateMove(m_localCandidateMove, nullptr);
 	emit commit();
 }
 
 void BoardWithQuickEntry::reset()
 {
-	emit setCandidateMove(Quackle::Move::createNonmove());
+	emit setCandidateMove(Quackle::Move::createNonmove(), nullptr);
 }
 
 void BoardWithQuickEntry::provideHelp()
@@ -203,7 +203,7 @@ void BoardWithQuickEntry::processCommand(const QString &command)
 	}
 
 	if (move.isAMove())
-		emit setCandidateMove(move);
+		emit setCandidateMove(move, nullptr);
 }
 
 ///////////
