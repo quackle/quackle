@@ -48,10 +48,11 @@ win32 {
 
 macx {
 	DEFINES += FORCE_SECONDARY_ARROW_GLYPHS=1
-	ICON = quacker.icns
 	BUNDLEID = com.Quackle.Quackle
 	QMAKE_INFO_PLIST = Quackle.plist
-	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
+	QMAKE_ASSET_CATALOGS = $$PWD/Images.xcassets
+	QMAKE_ASSET_CATALOGS_APP_ICON = "AppIcon"
+	QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 
 	# copy data/ directory into app bundle
 	APP_ALPHABETS_FILES.files = ../data/alphabets

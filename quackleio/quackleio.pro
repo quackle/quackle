@@ -31,7 +31,7 @@ SOURCES += *.cpp
 
 macx {
   CONFIG += x86	
-  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
 
 unix:!macx {

@@ -34,7 +34,7 @@ SOURCES -= \
 
 macx {
 	CONFIG += x86	
-  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
+  QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
 }
 
 linux { # old unixes/Qt distribs running around...most notably on Travis-CI
