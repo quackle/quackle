@@ -745,7 +745,7 @@ void GraphicalBoardFrame::deleteHandler()
 
 void GraphicalBoardFrame::submitHandler()
 {
-    QTimer::singleShot(0, this, SLOT(setGlobalCandidate(nullptr)));
+    QTimer::singleShot(0, this, [this] {setGlobalCandidate(nullptr);} );
 }
 
 void GraphicalBoardFrame::commitHandler()
