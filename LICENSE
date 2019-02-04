@@ -20,6 +20,12 @@ Quackle Version 0.92 and before were released under the Revised BSD License,
 which is Appendix 2. Quackle Version 0.92 encompassed work up until 6 May 2006.
 Quackle Version 0.93 encompasses work from 7 May 2006 onward.
 
+Some dictionary files (.dawg files) are not covered by the GPL and are instead
+distributed under an agreement for distribution with the Quackle software.
+These files have their own copyrights prominently displayed when Quackle loads
+the dictionary, and no permission is granted or implied to distribute or use
+the copyrighted dictionary files apart from Quackle.
+
 ==============================================================================
 Appendix 1.
 ==============================================================================
