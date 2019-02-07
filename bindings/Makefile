@@ -31,10 +31,10 @@ php/quackle_wrap.cxx:
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -php quackle.i
 
 php/quackle_wrap.o: php/quackle_wrap.cxx
-	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(PHPFLAGS) $(PHPLIBS) $(INCLUDES) -c $< -o $@
+	$(CC) -std=c++14 -fPIC $(QTFLAGS) $(PHPFLAGS) $(PHPLIBS) $(INCLUDES) -c $< -o $@
 
 php: php/quackle_wrap.o
-	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o php/quackle.so
+	$(CC) -std=c++14 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o php/quackle.so
 
 #---------------------------------
 # Python2
@@ -44,10 +44,10 @@ python2/quackle_wrap.cxx:
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -python quackle.i
 
 python2/quackle_wrap.o: python2/quackle_wrap.cxx
-	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(PYTHON2FLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) -std=c++14 -fPIC $(QTFLAGS) $(PYTHON2FLAGS) $(INCLUDES) -c $< -o $@
 
 python2: python2/quackle_wrap.o
-	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o python2/_quackle.so
+	$(CC) -std=c++14 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o python2/_quackle.so
 
 #---------------------------------
 # Python3
@@ -57,10 +57,10 @@ python3/quackle_wrap.cxx:
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -python -py3 quackle.i
 
 python3/quackle_wrap.o: python3/quackle_wrap.cxx
-	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(PYTHON3FLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) -std=c++14 -fPIC $(QTFLAGS) $(PYTHON3FLAGS) $(INCLUDES) -c $< -o $@
 
 python3: python3/quackle_wrap.o
-	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o python3/_quackle.so
+	$(CC) -std=c++14 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o python3/_quackle.so
 
 #---------------------------------
 # Go
@@ -78,10 +78,10 @@ lua/quackle_wrap.cxx:
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -lua quackle.i
 
 lua/quackle_wrap.o: lua/quackle_wrap.cxx
-	$(CC) -std=c++11 -fPIC $(LUAFLAGS) $(QTFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) -std=c++14 -fPIC $(LUAFLAGS) $(QTFLAGS) $(INCLUDES) -c $< -o $@
 
 lua: lua/quackle_wrap.o
-	$(CC) -std=c++11 -shared $(LUAFLAGS) -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o lua/quackle.so
+	$(CC) -std=c++14 -shared $(LUAFLAGS) -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o lua/quackle.so
 
 #---------------------------------
 # Ruby
@@ -91,10 +91,10 @@ ruby/quackle_wrap.cxx:
 	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -ruby ruby_quackle.i
 
 ruby/quackle_wrap.o: ruby/quackle_wrap.cxx
-	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(RUBYFLAGS) $(INCLUDES) -c $< -o $@
+	$(CC) -std=c++14 -fPIC $(QTFLAGS) $(RUBYFLAGS) $(INCLUDES) -c $< -o $@
 
 ruby: ruby/quackle_wrap.o
-	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o ruby/quackle.so
+	$(CC) -std=c++14 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o ruby/quackle.so
 
 #---------------------------------
 
