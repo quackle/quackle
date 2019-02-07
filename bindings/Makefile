@@ -6,6 +6,7 @@ CC=g++
 # QT=QtCore # Qt4
 QT=Qt5Core # Qt5
 LUA=lua
+RUBY=ruby-2.6
 
 #---------------------------------
 # Flags
@@ -17,6 +18,7 @@ PYTHON3FLAGS := $(shell pkg-config python3 --cflags)
 PHPFLAGS := $(shell php-config --includes)
 PHPLIBS := $(shell php-config --libs)
 LUAFLAGS := $(shell pkg-config $(LUA) --cflags)
+RUBYFLAGS := $(shell pkg-config $(RUBY) --cflags)
 
 INCLUDES=-I..
 QUACKLELIBS=../lib/release/libquackle.a ../quackleio/lib/release/libquackleio.a
@@ -82,6 +84,19 @@ lua: lua/quackle_wrap.o
 	$(CC) -std=c++11 -shared $(LUAFLAGS) -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o lua/quackle.so
 
 #---------------------------------
+# Ruby
+
+ruby/quackle_wrap.cxx:
+	@test -d ruby || mkdir ruby
+	swig -c++ -o $@ $(INCLUDES) $(QTFLAGS) -ruby ruby_quackle.i
+
+ruby/quackle_wrap.o: ruby/quackle_wrap.cxx
+	$(CC) -std=c++11 -fPIC $(QTFLAGS) $(RUBYFLAGS) $(INCLUDES) -c $< -o $@
+
+ruby: ruby/quackle_wrap.o
+	$(CC) -std=c++11 -shared -Wl,--whole-archive $(QUACKLELIBS) -Wl,--no-whole-archive $(QTLIBS) $< -o ruby/quackle.so
+
+#---------------------------------
 
 .PHONY: clean go
 
@@ -90,6 +105,7 @@ clean:
 	-rm -rf python3/quackle.py
 	-rm -rf python3/__pycache__
 	-rm -rf php/*php*
+	-rm -rf ruby/quackle.rb
 	-rm -rf */*_wrap.cxx
 	-rm -rf */*.o
 	-rm -rf */*.so
