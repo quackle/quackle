@@ -105,7 +105,6 @@ clean:
 	-rm -rf python3/quackle.py
 	-rm -rf python3/__pycache__
 	-rm -rf php/*php*
-	-rm -rf ruby/quackle.rb
 	-rm -rf */*_wrap.cxx
 	-rm -rf */*.o
 	-rm -rf */*.so

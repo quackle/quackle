@@ -1,16 +1,16 @@
 require_relative 'quackle'
-require_relative 'test_base'
+require_relative 'quackle_runner'
 
-dm = initialize_dm
+runner = Quackle::AIRunner.new(
+  lexicon: 'twl06', alphabet: 'english', datadir: '../../data', random_seed: 42)
 
 # Create a computer player
-player1 = get_computer_player(dm)
+player1 = runner.computer_player(:speedy)
 puts player1.name
 
-# Create the Game file (.gcg) reader
-gamereader = Quackle::GCGIO.new
-gamePath = Quackle::Util.stdStringToQString('../../test/positions/short_game_with_bad_moves.gcg')
-game = gamereader.read(gamePath, Quackle::Logania::MaintainBoardPreparation)
+# Load the game from a .gcg file
+path = '../../test/positions/short_game_with_bad_moves.gcg'
+game = Quackle::GCGUtils.load_game(path)
 
 # Get the current position
 position = game.currentPosition
@@ -18,19 +18,17 @@ position = game.currentPosition
 player1.setPosition(position)
 
 racks = Quackle::ProbableRackList.new
-unseenbag = position.unseenBag
-if unseenbag.size <= dm.parameters.rackSize + 3
-  enum = Quackle::Enumerator.new(unseenbag)
+unseen_bag = position.unseenBag
+if unseen_bag.size <= runner.dm.parameters.rackSize + 3
+  enum = Quackle::Enumerator.new(unseen_bag)
   enum.enumerate(racks)
   racks.each do |rack|
     puts rack
   end
 end
 
-movesToShow = 10
-
-puts "Board state: \n%s" % position.board.toString
-puts "Move made: %s" % position.moveMade.toString
+puts "Board state: \n%s" % position.board
+puts "Move made: %s" % position.moveMade
 puts "Current player: %s" % position.currentPlayer.storeInformationToString
 puts "Turn number: %i" % position.turnNumber
 
@@ -38,5 +36,5 @@ movelist = player1.moves(10)
 
 # Show 10 moves suggested by computer player
 movelist.each do |move|
-  puts move.toString
+  puts move
 end
