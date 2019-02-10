@@ -18,8 +18,56 @@ module Quackle
     end
   end
 
+  module BoardUtils
+    SYMBOLS = {
+      '~' => :w4, '=' => :w3, '-' => :w2,
+      '^' => :l4, '"' => :l3, "'" => :l2
+    }
+
+    def self.make_board_params(ary)
+      # Assume ary is a well-formed rectangular array
+      h = ary.length
+      w = ary[0].length
+      b = BoardParameters.new()
+      b.setHeight(h)
+      b.setWidth(w)
+      ary.each_with_index do |row, y|
+        row.each_with_index do |cell, x|
+          type, mul = cell.to_s.split(//)
+          mul = mul.to_i
+          if type == 'w'
+            b.setWordMultiplier(y, x, mul)
+          elsif type == 'l'
+            b.setLetterMultiplier(y, x, mul)
+          end
+        end
+      end
+      return b
+    end
+
+    def self.read_board_params(str, piped: false, doublespaced: false)
+      # Assume str is a board with one row per line.
+      # Set doublespaced: true if cells are separated by
+      # a space (as in quackle's board display, e.g.)
+      # Set piped: true if rows are marked by a | on either side.
+      rows = str.lines.map(&:chomp)
+      if piped
+        rows = rows.select {|r| r.include?('|')}
+        rows = rows.map {|r| r.gsub(/^.*?[|](.*?)[|].*$/, '\1')}
+      end
+      cells = rows.map do |r|
+        row = r.split(//)
+        if doublespaced
+          row = row.each_slice(2).map(&:first)
+        end
+        row.map {|c| SYMBOLS[c] || :l1}
+      end
+      make_board_params(cells)
+    end
+  end
+
   module RunnerUtils
-    def initialize_dm(lexicon, alphabet, datadir)
+    def initialize_dm(lexicon:, alphabet:, datadir:, board:nil)
       # Set up the data manager
       dm = DataManager.new
       dm.setComputerPlayers(ComputerPlayerCollection.fullCollection)
@@ -35,7 +83,7 @@ module Quackle
       dm.setAlphabetParameters(fa)
 
       # Set up the board
-      board = BoardParameters.new
+      board ||= BoardParameters.new
       dm.setBoardParameters(board)
 
       # Find the lexicon
@@ -67,8 +115,9 @@ module Quackle
 
     attr_accessor :dm, :game, :players
 
-    def initialize(lexicon:, alphabet:, datadir:, random_seed: nil)
-      @dm = initialize_dm(lexicon, alphabet, datadir)
+    def initialize(lexicon:, alphabet:, datadir:, board: nil, random_seed: nil)
+      @dm = initialize_dm(
+        lexicon: lexicon, alphabet: alphabet, datadir: datadir, board: board)
       @dm.seedRandomNumbers(random_seed) if random_seed
     end
 
@@ -106,5 +155,4 @@ module Quackle
       current_position.gameOver
     end
   end
-
 end
