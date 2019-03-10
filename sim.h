@@ -20,6 +20,7 @@
 #define QUACKLE_SIM_H
 
 #include <atomic>
+#include <sstream>
 #include <vector>
 
 #include "alphabetparameters.h"
@@ -174,6 +175,7 @@ typedef vector<SimmedMove> SimmedMoveList;
 struct SimmedMoveMessage
 {
     long id;
+    Game game;
     LevelList levels;
     vector<double> score;
     vector<double> bingos;
@@ -182,6 +184,9 @@ struct SimmedMoveMessage
     double wins;
 
     bool bogowin;
+    std::ostringstream logStream;
+    bool isLogging;
+    UVString xmlIndent;
 };
 
 class Simulator
@@ -310,7 +315,6 @@ protected:
     Rack m_partialOppoRack;
 
     Game m_originalGame;
-    Game m_simulatedGame;
     ComputerDispatch *m_dispatch;
 
     SimmedMoveList m_simmedMoves;
