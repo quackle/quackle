@@ -270,9 +270,6 @@ void Simulator::simulate(int plies)
 		UVcout << "simulating " << (*moveIt).move << ":" << endl;
 #endif
 
-		Game game = constants.game;
-		double residual = 0;
-
 		moveIt.levels.setNumberLevels(constants.levelCount + 1);
 
 		SimmedMoveMessage message;
@@ -282,124 +279,7 @@ void Simulator::simulate(int plies)
 		message.levels = moveIt.levels;
 		message.xmlIndent = m_xmlIndent;
 
-		int levelNumber = 1;
-		for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= constants.levelCount + 1 && levelIt != message.levels.end() && !game.currentPosition().gameOver(); ++levelIt, ++levelNumber)
-		{
-			const int decimal = levelNumber == constants.levelCount + 1? constants.decimalTurns : constants.playerCount;
-			if (decimal == 0)
-				continue;
-
-			(*levelIt).setNumberScores(decimal);
-
-			int playerNumber = 1;
-			for (auto &scoresIt : (*levelIt).statistics)
-			{
-				if (game.currentPosition().gameOver())
-					break;
-				++playerNumber;
-				const int playerId = game.currentPosition().currentPlayer().id();
-
-				if (constants.isLogging)
-				{
-					message.logStream << message.xmlIndent << "<ply index=\"" << (levelNumber - 1) * constants.playerCount + playerNumber - 1 << "\">" << endl;
-					message.xmlIndent += MARK_UV('\t');
-				}
-
-				Move move = Move::createNonmove();
-
-				if (playerId == constants.startPlayerId && levelNumber == 1)
-					move = message.move;
-				else if (constants.ignoreOppos && playerId != constants.startPlayerId)
-					move = Move::createPassMove();
-				else
-					move = game.currentPosition().staticBestMove();
-
-				int deadwoodScore = 0;
-				if (game.currentPosition().doesMoveEndGame(move))
-				{
-					LetterString deadwood;
-					deadwoodScore = game.currentPosition().deadwood(&deadwood);
-					// account for deadwood in this move rather than a separate
-					// UnusedTilesBonus move.
-					move.score += deadwoodScore;
-				}
-
-				scoresIt.score.incorporateValue(move.score);
-				scoresIt.bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
-
-				if (constants.isLogging)
-				{
-					message.logStream << message.xmlIndent << game.currentPosition().currentPlayer().rack().xml() << endl;
-					message.logStream << message.xmlIndent << move.xml() << endl;
-				}
-
-				// record future-looking residuals
-				bool isFinalTurnForPlayerOfSimulation = false;
-
-				if (levelNumber == constants.levelCount)
-					isFinalTurnForPlayerOfSimulation = playerNumber > constants.decimalTurns;
-				else if (levelNumber == constants.levelCount + 1)
-					isFinalTurnForPlayerOfSimulation = playerNumber <= constants.decimalTurns;
-
-				const bool isVeryFinalTurnOfSimulation = (constants.decimalTurns == 0 && levelNumber == constants.levelCount && playerNumber == constants.playerCount) || (levelNumber == constants.levelCount + 1 && playerNumber == constants.decimalTurns);
-
-				if (isFinalTurnForPlayerOfSimulation && !(constants.ignoreOppos && playerId != constants.startPlayerId))
-				{
-					double residualAddend = game.currentPosition().calculatePlayerConsideration(move);
-					if (constants.isLogging)
-						message.logStream << message.xmlIndent << "<pc value=\"" << residualAddend << "\" />" << endl;
-
-					if (isVeryFinalTurnOfSimulation)
-					{
-						// experimental -- do shared resource considerations
-						// matter in a plied simulation?
-	
-						const double sharedResidual = game.currentPosition().calculateSharedConsideration(move);
-						residualAddend += sharedResidual;
-
-						if (constants.isLogging && sharedResidual != 0)
-							message.logStream << message.xmlIndent << "<sc value=\"" << sharedResidual << "\" />" << endl;
-					}
-
-					if (playerId == constants.startPlayerId)
-						residual += residualAddend;
-					else
-						residual -= residualAddend;
-				}
-
-				// commiting the move will account for deadwood again
-				// so avoid double counting from above.
-				move.score -= deadwoodScore; 
-				game.setCandidate(move);
-
-				game.commitCandidate(!isVeryFinalTurnOfSimulation);
-
-				if (constants.isLogging)
-				{
-					message.xmlIndent = message.xmlIndent.substr(0, message.xmlIndent.length() - 1);
-					message.logStream << message.xmlIndent << "</ply>" << endl;
-				}
-			}
-		}
-
-		message.residual = residual;
-		int spread = game.currentPosition().spread(constants.startPlayerId);
-		message.gameSpread = spread;
-
-		if (game.currentPosition().gameOver())
-		{
-			message.bogowin = false;
-			message.wins = spread > 0? 1 : spread == 0? 0.5 : 0;
-		}
-		else
-		{
-			message.bogowin = true;
-			if (game.currentPosition().currentPlayer().id() == constants.startPlayerId)
-				message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
-			else
-				message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
-		}
-		
+		simulateOnePosition(message, constants);
 		incorporateMessage(message);
 	}
 
@@ -407,6 +287,130 @@ void Simulator::simulate(int plies)
 	{
 		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
 		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
+	}
+}
+
+void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants)
+{
+	Game game = constants.game;
+	double residual = 0;
+
+	int levelNumber = 1;
+	for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= constants.levelCount + 1 && levelIt != message.levels.end() && !game.currentPosition().gameOver(); ++levelIt, ++levelNumber)
+	{
+		const int decimal = levelNumber == constants.levelCount + 1? constants.decimalTurns : constants.playerCount;
+		if (decimal == 0)
+			continue;
+
+		(*levelIt).setNumberScores(decimal);
+
+		int playerNumber = 1;
+		for (auto &scoresIt : (*levelIt).statistics)
+		{
+			if (game.currentPosition().gameOver())
+				break;
+			++playerNumber;
+			const int playerId = game.currentPosition().currentPlayer().id();
+
+			if (constants.isLogging)
+			{
+				message.logStream << message.xmlIndent << "<ply index=\"" << (levelNumber - 1) * constants.playerCount + playerNumber - 1 << "\">" << endl;
+				message.xmlIndent += MARK_UV('\t');
+			}
+
+			Move move = Move::createNonmove();
+
+			if (playerId == constants.startPlayerId && levelNumber == 1)
+				move = message.move;
+			else if (constants.ignoreOppos && playerId != constants.startPlayerId)
+				move = Move::createPassMove();
+			else
+				move = game.currentPosition().staticBestMove();
+
+			int deadwoodScore = 0;
+			if (game.currentPosition().doesMoveEndGame(move))
+			{
+				LetterString deadwood;
+				deadwoodScore = game.currentPosition().deadwood(&deadwood);
+				// account for deadwood in this move rather than a separate
+				// UnusedTilesBonus move.
+				move.score += deadwoodScore;
+			}
+
+			scoresIt.score.incorporateValue(move.score);
+			scoresIt.bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
+
+			if (constants.isLogging)
+			{
+				message.logStream << message.xmlIndent << game.currentPosition().currentPlayer().rack().xml() << endl;
+				message.logStream << message.xmlIndent << move.xml() << endl;
+			}
+
+			// record future-looking residuals
+			bool isFinalTurnForPlayerOfSimulation = false;
+
+			if (levelNumber == constants.levelCount)
+				isFinalTurnForPlayerOfSimulation = playerNumber > constants.decimalTurns;
+			else if (levelNumber == constants.levelCount + 1)
+				isFinalTurnForPlayerOfSimulation = playerNumber <= constants.decimalTurns;
+
+			const bool isVeryFinalTurnOfSimulation = (constants.decimalTurns == 0 && levelNumber == constants.levelCount && playerNumber == constants.playerCount) || (levelNumber == constants.levelCount + 1 && playerNumber == constants.decimalTurns);
+
+			if (isFinalTurnForPlayerOfSimulation && !(constants.ignoreOppos && playerId != constants.startPlayerId))
+			{
+				double residualAddend = game.currentPosition().calculatePlayerConsideration(move);
+				if (constants.isLogging)
+					message.logStream << message.xmlIndent << "<pc value=\"" << residualAddend << "\" />" << endl;
+
+				if (isVeryFinalTurnOfSimulation)
+				{
+					// experimental -- do shared resource considerations
+					// matter in a plied simulation?
+
+					const double sharedResidual = game.currentPosition().calculateSharedConsideration(move);
+					residualAddend += sharedResidual;
+
+					if (constants.isLogging && sharedResidual != 0)
+						message.logStream << message.xmlIndent << "<sc value=\"" << sharedResidual << "\" />" << endl;
+				}
+
+				if (playerId == constants.startPlayerId)
+					residual += residualAddend;
+				else
+					residual -= residualAddend;
+			}
+
+			// commiting the move will account for deadwood again
+			// so avoid double counting from above.
+			move.score -= deadwoodScore; 
+			game.setCandidate(move);
+
+			game.commitCandidate(!isVeryFinalTurnOfSimulation);
+
+			if (constants.isLogging)
+			{
+				message.xmlIndent = message.xmlIndent.substr(0, message.xmlIndent.length() - 1);
+				message.logStream << message.xmlIndent << "</ply>" << endl;
+			}
+		}
+	}
+
+	message.residual = residual;
+	int spread = game.currentPosition().spread(constants.startPlayerId);
+	message.gameSpread = spread;
+
+	if (game.currentPosition().gameOver())
+	{
+		message.bogowin = false;
+		message.wins = spread > 0? 1 : spread == 0? 0.5 : 0;
+	}
+	else
+	{
+		message.bogowin = true;
+		if (game.currentPosition().currentPlayer().id() == constants.startPlayerId)
+			message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
+		else
+			message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
 	}
 }
 
