@@ -24,11 +24,6 @@
 
 using namespace Quackle;
 
-Move::Move()
-	: score(0), isBingo(false), equity(0), win(0), possibleWin(0), action(Move::Pass), horizontal(false), startrow(0), startcol(0), m_isChallengedPhoney(false), m_scoreAddition(0)
-{
-}
-
 bool operator==(const Move &move1, const Move &move2)
 {
 	bool ret = false;
@@ -359,10 +354,6 @@ UVOStream& operator<<(UVOStream& o, const Quackle::Move& m)
 }
 
 //////////
-
-MoveList::MoveList()
-{
-}
 
 bool MoveList::contains(const Move &move) const
 {

@@ -45,25 +45,21 @@ class Move
 public:
 	enum Action { Place = 0, PlaceError, Exchange, BlindExchange, Pass, UnusedTilesBonus, UnusedTilesBonusError, TimePenalty, Nonmove };
 
-	// creates a pass move with 0 equity;
-	// tiles is "", score and equity are zero
-	Move();
-
-	int score;
-	bool isBingo;
+	int score = 0;
+	bool isBingo = false;
 
 	// 0 if this is a challenged phoney; score field otherwise
 	int effectiveScore() const;
 
-	double equity;
-	double win;  // between 0 and 1 inclusive
-	double possibleWin;
+	double equity = 0.;
+	double win = 0.;  // between 0 and 1 inclusive
+	double possibleWin = 0.;
 
-	Action action;
+	Action action = Move::Pass;
 
-	bool horizontal;
-	int startrow;
-	int startcol;
+	bool horizontal = false;
+	int startrow = 0;
+	int startcol = 0;
 
 	// returns whether this is not a Nonmove
 	bool isAMove() const;
@@ -133,8 +129,8 @@ public:
 private:
 	LetterString m_tiles;
 	LetterString m_prettyTiles;
-	bool m_isChallengedPhoney;
-	int m_scoreAddition;
+	bool m_isChallengedPhoney = false;
+	int m_scoreAddition = 0;
 };
 
 // comparison based on action, then tiles, then horizontalness, then startrow, then endcol
@@ -143,8 +139,6 @@ bool operator<(const Quackle::Move &move1, const Quackle::Move &move2);
 class MoveList : public vector<Move>
 {
 public:
-	MoveList();
-
 	enum SortType { Equity, Score, Alphabetical, Win};
 
 	// perform stable sort
