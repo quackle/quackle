@@ -235,20 +235,22 @@ void Simulator::simulate(int plies)
 	randomizeOppoRacks();
 	randomizeDrawingOrder();
 
-	const int startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	const int numberOfPlayers = m_originalGame.currentPosition().players().size();
-
 	if (plies < 0)
 		plies = 1000;
 
 	// specified plies doesn't include candidate play
 	++plies;
-	
-	// level one's first move is the zeroth ply (the candidate)
-	const int decimalTurns = (plies % numberOfPlayers);
 
+	SimmedMoveConstants constants;
+	constants.game = m_originalGame;
+	constants.startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
+	constants.playerCount = m_originalGame.currentPosition().players().size();
+	// level one's first move is the zeroth ply (the candidate)
+	constants.decimalTurns = (plies % constants.playerCount);
 	// also one-indexed
-	const int levels = (int)((plies - decimalTurns) / numberOfPlayers);
+	constants.levelCount = (int)((plies - constants.decimalTurns) / constants.playerCount);
+	constants.ignoreOppos = m_ignoreOppos;
+	constants.isLogging = isLogging();
 
 	if (isLogging())
 	{
@@ -268,22 +270,22 @@ void Simulator::simulate(int plies)
 		UVcout << "simulating " << (*moveIt).move << ":" << endl;
 #endif
 
+		Game game = constants.game;
 		double residual = 0;
 
-		moveIt.levels.setNumberLevels(levels + 1);
+		moveIt.levels.setNumberLevels(constants.levelCount + 1);
 
-		struct SimmedMoveMessage message;
-		message.game = m_originalGame;
+		SimmedMoveMessage message;
 		message.id = moveIt.id();
-		message.levels.setNumberLevels(levels + 1);
+		message.move = moveIt.move;
+		message.levels.setNumberLevels(constants.levelCount + 1);
 		message.levels = moveIt.levels;
-		message.isLogging = isLogging();
 		message.xmlIndent = m_xmlIndent;
 
 		int levelNumber = 1;
-		for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= levels + 1 && levelIt != message.levels.end() && !message.game.currentPosition().gameOver(); ++levelIt, ++levelNumber)
+		for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= constants.levelCount + 1 && levelIt != message.levels.end() && !game.currentPosition().gameOver(); ++levelIt, ++levelNumber)
 		{
-			const int decimal = levelNumber == levels + 1? decimalTurns : numberOfPlayers;
+			const int decimal = levelNumber == constants.levelCount + 1? constants.decimalTurns : constants.playerCount;
 			if (decimal == 0)
 				continue;
 
@@ -292,31 +294,31 @@ void Simulator::simulate(int plies)
 			int playerNumber = 1;
 			for (auto &scoresIt : (*levelIt).statistics)
 			{
-				if (message.game.currentPosition().gameOver())
+				if (game.currentPosition().gameOver())
 					break;
 				++playerNumber;
-				const int playerId = message.game.currentPosition().currentPlayer().id();
+				const int playerId = game.currentPosition().currentPlayer().id();
 
-				if (message.isLogging)
+				if (constants.isLogging)
 				{
-					message.logStream << message.xmlIndent << "<ply index=\"" << (levelNumber - 1) * numberOfPlayers + playerNumber - 1 << "\">" << endl;
+					message.logStream << message.xmlIndent << "<ply index=\"" << (levelNumber - 1) * constants.playerCount + playerNumber - 1 << "\">" << endl;
 					message.xmlIndent += MARK_UV('\t');
 				}
 
 				Move move = Move::createNonmove();
 
-				if (playerId == startPlayerId && levelNumber == 1)
-					move = moveIt.move;
-				else if (m_ignoreOppos && playerId != startPlayerId)
+				if (playerId == constants.startPlayerId && levelNumber == 1)
+					move = message.move;
+				else if (constants.ignoreOppos && playerId != constants.startPlayerId)
 					move = Move::createPassMove();
 				else
-					move = message.game.currentPosition().staticBestMove();
+					move = game.currentPosition().staticBestMove();
 
 				int deadwoodScore = 0;
-				if (message.game.currentPosition().doesMoveEndGame(move))
+				if (game.currentPosition().doesMoveEndGame(move))
 				{
 					LetterString deadwood;
-					deadwoodScore = message.game.currentPosition().deadwood(&deadwood);
+					deadwoodScore = game.currentPosition().deadwood(&deadwood);
 					// account for deadwood in this move rather than a separate
 					// UnusedTilesBonus move.
 					move.score += deadwoodScore;
@@ -325,26 +327,26 @@ void Simulator::simulate(int plies)
 				scoresIt.score.incorporateValue(move.score);
 				scoresIt.bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
 
-				if (message.isLogging)
+				if (constants.isLogging)
 				{
-					message.logStream << message.xmlIndent << message.game.currentPosition().currentPlayer().rack().xml() << endl;
+					message.logStream << message.xmlIndent << game.currentPosition().currentPlayer().rack().xml() << endl;
 					message.logStream << message.xmlIndent << move.xml() << endl;
 				}
 
 				// record future-looking residuals
 				bool isFinalTurnForPlayerOfSimulation = false;
 
-				if (levelNumber == levels)
-					isFinalTurnForPlayerOfSimulation = playerNumber > decimalTurns;
-				else if (levelNumber == levels + 1)
-					isFinalTurnForPlayerOfSimulation = playerNumber <= decimalTurns;
+				if (levelNumber == constants.levelCount)
+					isFinalTurnForPlayerOfSimulation = playerNumber > constants.decimalTurns;
+				else if (levelNumber == constants.levelCount + 1)
+					isFinalTurnForPlayerOfSimulation = playerNumber <= constants.decimalTurns;
 
-				const bool isVeryFinalTurnOfSimulation = (decimalTurns == 0 && levelNumber == levels && playerNumber == numberOfPlayers) || (levelNumber == levels + 1 && playerNumber == decimalTurns);
+				const bool isVeryFinalTurnOfSimulation = (constants.decimalTurns == 0 && levelNumber == constants.levelCount && playerNumber == constants.playerCount) || (levelNumber == constants.levelCount + 1 && playerNumber == constants.decimalTurns);
 
-				if (isFinalTurnForPlayerOfSimulation && !(m_ignoreOppos && playerId != startPlayerId))
+				if (isFinalTurnForPlayerOfSimulation && !(constants.ignoreOppos && playerId != constants.startPlayerId))
 				{
-					double residualAddend = message.game.currentPosition().calculatePlayerConsideration(move);
-					if (message.isLogging)
+					double residualAddend = game.currentPosition().calculatePlayerConsideration(move);
+					if (constants.isLogging)
 						message.logStream << message.xmlIndent << "<pc value=\"" << residualAddend << "\" />" << endl;
 
 					if (isVeryFinalTurnOfSimulation)
@@ -352,14 +354,14 @@ void Simulator::simulate(int plies)
 						// experimental -- do shared resource considerations
 						// matter in a plied simulation?
 	
-						const double sharedResidual = message.game.currentPosition().calculateSharedConsideration(move);
+						const double sharedResidual = game.currentPosition().calculateSharedConsideration(move);
 						residualAddend += sharedResidual;
 
-						if (message.isLogging && sharedResidual != 0)
+						if (constants.isLogging && sharedResidual != 0)
 							message.logStream << message.xmlIndent << "<sc value=\"" << sharedResidual << "\" />" << endl;
 					}
 
-					if (playerId == startPlayerId)
+					if (playerId == constants.startPlayerId)
 						residual += residualAddend;
 					else
 						residual -= residualAddend;
@@ -368,11 +370,11 @@ void Simulator::simulate(int plies)
 				// commiting the move will account for deadwood again
 				// so avoid double counting from above.
 				move.score -= deadwoodScore; 
-				message.game.setCandidate(move);
+				game.setCandidate(move);
 
-				message.game.commitCandidate(!isVeryFinalTurnOfSimulation);
+				game.commitCandidate(!isVeryFinalTurnOfSimulation);
 
-				if (message.isLogging)
+				if (constants.isLogging)
 				{
 					message.xmlIndent = message.xmlIndent.substr(0, message.xmlIndent.length() - 1);
 					message.logStream << message.xmlIndent << "</ply>" << endl;
@@ -381,10 +383,10 @@ void Simulator::simulate(int plies)
 		}
 
 		message.residual = residual;
-		int spread = message.game.currentPosition().spread(startPlayerId);
+		int spread = game.currentPosition().spread(constants.startPlayerId);
 		message.gameSpread = spread;
 
-		if (message.game.currentPosition().gameOver())
+		if (game.currentPosition().gameOver())
 		{
 			message.bogowin = false;
 			message.wins = spread > 0? 1 : spread == 0? 0.5 : 0;
@@ -392,10 +394,10 @@ void Simulator::simulate(int plies)
 		else
 		{
 			message.bogowin = true;
-			if (message.game.currentPosition().currentPlayer().id() == startPlayerId)
-				message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), message.game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
+			if (game.currentPosition().currentPlayer().id() == constants.startPlayerId)
+				message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
 			else
-				message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), message.game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
+				message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
 		}
 		
 		incorporateMessage(message);
@@ -408,7 +410,7 @@ void Simulator::simulate(int plies)
 	}
 }
 
-void Simulator::incorporateMessage(const struct SimmedMoveMessage &message)
+void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 {
 	if (isLogging())
 		m_logfileStream << message.logStream.str();

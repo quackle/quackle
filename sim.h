@@ -172,10 +172,11 @@ inline void SimmedMove::setIncludeInSimulation(bool includeInSimulation)
 
 typedef vector<SimmedMove> SimmedMoveList;
 
-struct SimmedMoveMessage
+class SimmedMoveMessage
 {
+public:
     long id;
-    Game game;
+    Move move;
     LevelList levels;
     vector<double> score;
     vector<double> bingos;
@@ -185,8 +186,19 @@ struct SimmedMoveMessage
 
     bool bogowin;
     std::ostringstream logStream;
-    bool isLogging;
     UVString xmlIndent;
+};
+
+class SimmedMoveConstants
+{
+public:
+    Game game;
+    int startPlayerId;
+    int playerCount;
+    int decimalTurns;
+    int levelCount;
+    bool ignoreOppos;
+    bool isLogging;
 };
 
 class Simulator
@@ -266,7 +278,7 @@ public:
 
     // Incoporate the results of a single simulation into the
     // cumulative results
-    void incorporateMessage(const struct SimmedMoveMessage &message);
+    void incorporateMessage(const SimmedMoveMessage &message);
 
     // Set oppo's rack to some partially-known tiles.
     // Set this to an empty rack if no tiles are known, so
