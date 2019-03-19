@@ -42,6 +42,7 @@ class FixedLengthString
     FixedLengthString(size_type n, char c);
     FixedLengthString(const char* s);
     FixedLengthString(const FixedLengthString& s);
+    FixedLengthString(FixedLengthString&& s);
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -133,6 +134,14 @@ FixedLengthString::FixedLengthString(const char* s)
 
 inline
 FixedLengthString::FixedLengthString(const FixedLengthString& s)
+{
+    int sz = s.size();
+    memcpy(m_data, s.m_data, sz);
+    m_end = m_data + sz;
+}
+
+inline
+FixedLengthString::FixedLengthString(FixedLengthString&& s)
 {
     int sz = s.size();
     memcpy(m_data, s.m_data, sz);
