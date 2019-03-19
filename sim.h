@@ -20,7 +20,11 @@
 #define QUACKLE_SIM_H
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #include "alphabetparameters.h"
@@ -201,11 +205,38 @@ public:
     bool isLogging;
 };
 
+class SimmedMoveMessageQueue
+{
+public:
+    SimmedMoveMessageQueue() = default;
+    SimmedMoveMessageQueue(SimmedMoveMessageQueue&) = delete;
+    SimmedMoveMessageQueue(SimmedMoveMessageQueue&&) = delete;
+
+    void push(SimmedMoveMessage& msg);
+    SimmedMoveMessage pop();
+    std::pair<SimmedMoveMessage, bool> pop_or_terminate();
+    void send_terminate_all();
+    void send_terminate_one(const std::thread::id& id);
+
+    const SimmedMoveConstants& constants() { return m_constants; };
+    void setConstants(const SimmedMoveConstants& constants) { m_constants = constants; };
+
+private:
+    SimmedMoveConstants m_constants;
+    std::queue<SimmedMoveMessage> m_queue;
+    std::condition_variable m_condition;
+    std::mutex m_queueMutex;
+    bool m_terminateAll = false;
+    std::thread::id m_terminateOne;
+};
+
 class Simulator
 {
 public:
     // constructs a new simulator
     Simulator();
+    Simulator(const Simulator&) = delete;
+    Simulator(Simulator&&) = delete;
     ~Simulator();
 
     // Simulate moves on this position. Also initializes the
@@ -262,6 +293,9 @@ public:
     // if ignore is true, oppos will always pass in simulation
     void setIgnoreOppos(bool ignore);
     bool ignoreOppos() const;
+
+    static void simThreadFunc(SimmedMoveMessageQueue& incoming, SimmedMoveMessageQueue& outgoing);
+    void setThreadCount(size_t count);
 
     // set values for all levels of all moves to zero
     void resetNumbers();
@@ -337,6 +371,11 @@ protected:
 
     int m_iterations;
     bool m_ignoreOppos;
+
+    // Pair of thread and bool requesting to terminate
+    std::vector<std::thread> m_threadPool;
+    SimmedMoveMessageQueue m_sendQueue;
+    SimmedMoveMessageQueue m_receiveQueue;
 };
 
 inline GamePosition &Simulator::currentPosition()

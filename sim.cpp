@@ -38,10 +38,12 @@ Simulator::Simulator()
 	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false)
 {
 	m_originalGame.addPosition();
+	setThreadCount(2);
 }
 
 Simulator::~Simulator()
 {
+	setThreadCount(0);
 	closeLogfile();
 }
 
@@ -214,6 +216,42 @@ void Simulator::resetNumbers()
 	m_iterations = 0;
 }
 
+void Simulator::simThreadFunc(SimmedMoveMessageQueue& incoming, SimmedMoveMessageQueue& outgoing)
+{
+	while (true)
+	{
+		auto result = incoming.pop_or_terminate();
+		if (result.second)
+			break;
+		Simulator::simulateOnePosition(result.first, incoming.constants());
+		outgoing.push(result.first);
+	}
+}
+
+void Simulator::setThreadCount(size_t count)
+{
+	if (count == 0 && m_threadPool.size() != 0)
+	{
+		m_sendQueue.send_terminate_all();
+		for (auto& t : m_threadPool)
+			t.join();
+		m_threadPool.clear();
+	}
+
+    while (count > m_threadPool.size())
+    {
+        m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue));
+    }
+
+    while (count < m_threadPool.size())
+    {
+    	m_sendQueue.send_terminate_one(m_threadPool.back().get_id());
+    	m_threadPool.back().join();
+        m_threadPool.pop_back();
+    }
+}
+
+
 void Simulator::simulate(int plies, int iterations)
 {
 	for (int i = 0; i < iterations; ++i)
@@ -252,6 +290,8 @@ void Simulator::simulate(int plies)
 	constants.ignoreOppos = m_ignoreOppos;
 	constants.isLogging = isLogging();
 
+	m_sendQueue.setConstants(constants);
+
 	if (isLogging())
 	{
 		if (!m_hasHeader)
@@ -260,6 +300,8 @@ void Simulator::simulate(int plies)
 		m_logfileStream << m_xmlIndent << "<iteration index=\"" << m_iterations << "\">" << endl;
 		m_xmlIndent += MARK_UV('\t');
 	}
+
+	int messageCount = 0;
 
 	for (auto &moveIt : m_simmedMoves)
 	{
@@ -279,7 +321,13 @@ void Simulator::simulate(int plies)
 		message.levels = moveIt.levels;
 		message.xmlIndent = m_xmlIndent;
 
-		simulateOnePosition(message, constants);
+		m_sendQueue.push(message);
+		messageCount++;
+	}
+
+	while (messageCount-- > 0)
+	{
+		SimmedMoveMessage message(m_receiveQueue.pop());
 		incorporateMessage(message);
 	}
 
@@ -558,6 +606,57 @@ void AveragedValue::clear()
 	m_squaredValueSum = 0;
 	m_incorporatedValues = 0;
 }
+
+////////////
+
+void SimmedMoveMessageQueue::push(SimmedMoveMessage& msg)
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_queue.push(std::move(msg));
+	m_condition.notify_one();
+}
+
+std::pair<SimmedMoveMessage, bool> SimmedMoveMessageQueue::pop_or_terminate()
+{
+	std::unique_lock<std::mutex> lk(m_queueMutex);
+	if (m_queue.empty() && !m_terminateAll && m_terminateOne == std::thread::id())
+		m_condition.wait(lk);
+	std::pair<SimmedMoveMessage, bool> result;
+	result.second = m_terminateAll || m_terminateOne == std::this_thread::get_id();
+	if (result.second)
+		m_terminateOne = std::thread::id();
+	else
+	{
+		result.first = std::move(m_queue.front());
+		m_queue.pop();
+	}
+	return result;
+}
+
+SimmedMoveMessage SimmedMoveMessageQueue::pop()
+{
+	std::unique_lock<std::mutex> lk(m_queueMutex);
+	if (m_queue.empty())
+		m_condition.wait(lk);
+	SimmedMoveMessage result = std::move(m_queue.front());
+	m_queue.pop();
+	return result;
+}
+
+void SimmedMoveMessageQueue::send_terminate_all()
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_terminateAll = true;
+	m_condition.notify_all();
+}
+
+void SimmedMoveMessageQueue::send_terminate_one(const std::thread::id& id)
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_terminateOne = id;
+	m_condition.notify_all();
+}
+
 
 ////////////
 
