@@ -2170,7 +2170,9 @@ void TopLevel::about()
 				line = line.mid(startPos + 1);
 				int endPos = line.indexOf(':');
 				line = line.mid(0, endPos);
-				aboutText += "<li>" + line + "</li>";
+				// Only include lines with a copyright (the word or the symbol) in them
+				if (line.indexOf("copyright", 0, Qt::CaseInsensitive) != -1 || line.indexOf(QChar(0xA9)) != -1)
+					aboutText += "<li>" + line + "</li>";
 			}
 			line = strm.readLine();
 		}
