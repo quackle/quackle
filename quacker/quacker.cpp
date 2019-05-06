@@ -2145,10 +2145,11 @@ void TopLevel::about()
 	QString aboutText = tr(
 "<p><b>Quackle</b> 1.0.4 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2016 by</p>"
+"<p>Copyright 2005-2019 by</p>"
 "<ul>"
 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
+"<li>John Fultz &lt;jfultz@wolfram.com&gt;</li>"
 "</ul>"
 "<p>Quackle is free, open-source software licensed under the terms of the GNU General Public License Version 3. See</p>"
 "<p><tt><a href=\"http://quackle.org/LICENSE\">http://quackle.org/LICENSE</a></tt></p>"
