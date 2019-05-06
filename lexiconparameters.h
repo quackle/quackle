@@ -82,6 +82,7 @@ public:
 
 	string hashString(bool shortened) const;
 	string copyrightString() const;
+	string logoFileName() const;
 	const vector<string> &utf8Alphabet() const { return m_utf8Alphabet; };
 
 protected:
@@ -93,6 +94,9 @@ protected:
 	vector<string> m_utf8Alphabet;
 
 	LexiconInterpreter* createInterpreter(char version) const;
+
+private:
+	string getLexiconCopyrightLine() const;
 };
 
 }

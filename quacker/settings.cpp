@@ -100,6 +100,10 @@ void Settings::createGUI()
 		return;
 
 	QGridLayout *layout = new QGridLayout(this);
+	QMargins margins = layout->contentsMargins();
+	margins.setBottom(0); // let logo image flow off of bottom
+	layout->setContentsMargins(margins);
+	layout->setVerticalSpacing(2);
 
 	m_lexiconNameCombo = new QComboBox;
 	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
@@ -150,8 +154,12 @@ void Settings::createGUI()
 
 	m_buildGaddagLabel = new QLabel();
 	m_buildGaddagLabel->setWordWrap(true);
+	m_logoLabel = new QLabel();
+	m_logoLabel->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 	m_copyrightLabel = new QLabel();
 	m_copyrightLabel->setWordWrap(true);
+	m_separatorLabel = new QLabel();
+	m_separatorLabel->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 
 	layout->addWidget(lexiconNameLabel, 0, 0, Qt::AlignRight);
 	layout->addWidget(m_lexiconNameCombo, 0, 1);
@@ -167,12 +175,13 @@ void Settings::createGUI()
 	layout->addWidget(m_editBoard, 3, 2);
 	layout->addWidget(m_buildGaddag, 4, 1);
 	layout->addWidget(m_buildGaddagLabel, 5, 1);
-	layout->addWidget(m_copyrightLabel, 6, 0, 1, -1, Qt::AlignTop);
+	layout->addWidget(m_separatorLabel, 6, 0, 1, -1);
+	layout->addWidget(m_copyrightLabel, 7, 0, 1, -1, Qt::AlignTop);
+	layout->addWidget(m_logoLabel, 8, 0, 1, -1, Qt::AlignTop | Qt::AlignHCenter);
 
 	layout->setColumnMinimumWidth(3, 0);
 	layout->setColumnStretch(3, 1);
-	layout->setRowMinimumHeight(6, 0);
-	layout->setRowStretch(6, 1);
+	layout->setRowStretch(8, 1);
 
 
 	load();
@@ -188,6 +197,7 @@ void Settings::load()
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
 	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
+	//m_logoLabel->setPixmap(QPixmap());
 	m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 	setGaddagLabel();
 }
@@ -348,6 +358,11 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 				QUACKLE_DATAMANAGER->setBackupLexicon("default_english");
 		}
 		QUACKLE_STRATEGY_PARAMETERS->initialize(lexiconNameStr);
+		string logoFileName = QUACKLE_LEXICON_PARAMETERS->logoFileName();
+		if (logoFileName.empty())
+			m_logoLabel->setPixmap(QPixmap());
+		else
+			m_logoLabel->setPixmap(QPixmap(QString(logoFileName.c_str())));
 		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 		setGaddagLabel();
 	}

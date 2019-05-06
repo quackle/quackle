@@ -91,8 +91,10 @@ protected:
 	QPushButton *m_editTheme;
 	QPushButton *m_editBoard;
 	QPushButton *m_buildGaddag;
+	QLabel *m_logoLabel;
 	QLabel *m_copyrightLabel;
 	QLabel *m_buildGaddagLabel;
+	QLabel *m_separatorLabel;
 	QString m_appDataDir;
 	QString m_userDataDir;
 	QString m_themeName;

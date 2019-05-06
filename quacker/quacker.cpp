@@ -2164,9 +2164,14 @@ void TopLevel::about()
 		QString line = strm.readLine();
 		while (!line.isNull())
 		{
-			int pos = line.indexOf(':');
-			if (pos != -1 && pos + 1 < line.size())
-				aboutText += "<li>" + line.mid(pos + 1) + "</li>";
+			int startPos = line.indexOf(':');
+			if (startPos != -1 && startPos + 1 < line.size())
+			{
+				line = line.mid(startPos + 1);
+				int endPos = line.indexOf(':');
+				line = line.mid(0, endPos);
+				aboutText += "<li>" + line + "</li>";
+			}
 			line = strm.readLine();
 		}
 		fclose(file);
