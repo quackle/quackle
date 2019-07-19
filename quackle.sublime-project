@@ -7,7 +7,7 @@
 										"playabilities.raw", "smaller.raw", ".gitattributes",
 										"*.Debug", "*.Release", "*.pfx", "*.cer",
 										"makegaddag", "makeminidawg", "gaddagize", "Makefile", "*.dawg", "*.gaddag"],
-			"folder_exclude_patterns" : ["obj", "moc", "build", "*.xcodeproj", "lib", 
+			"folder_exclude_patterns" : ["obj", "moc", "build*", "*.xcodeproj", "lib", 
 										"debug", "release", "makeswelexicon", "lisp", "DerivedData"]
 		}
 	]

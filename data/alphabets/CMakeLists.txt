@@ -1,0 +1,18 @@
+set(DATA_ALPHABETS
+	${CMAKE_CURRENT_LIST_DIR}/english.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/english_super.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/english_wild.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/french.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/greek.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/korean.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/mandarin.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/norwegian.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/pinyin.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/polish.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/russian.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/swedish.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/turkish.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/tuvan.quackle_alphabet
+	${CMAKE_CURRENT_LIST_DIR}/zhuyin.quackle_alphabet
+	PARENT_SCOPE
+)
