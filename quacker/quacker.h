@@ -205,7 +205,7 @@ protected slots:
 	// update history views when a new position is added
 	void updateHistoryViews();
 
-	void setCaption(const QString &text = QString::null);
+	void setCaption(const QString &text = QString());
 	void setModified(bool modified);
 
 	// main timer

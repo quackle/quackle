@@ -230,7 +230,7 @@ void PlayerTab::addPlayer(const Quackle::Player &player)
 	setItem(item, player);
 
 	m_playersTreeWidget->clearSelection();
-	m_playersTreeWidget->setItemSelected(item, true);
+	item->setSelected(true);
 }
 
 Quackle::ComputerPlayer *PlayerTab::defaultComputerPlayer() const

@@ -77,7 +77,7 @@ Dict::WordList QuackleIO::DictImplementation::query(const QString &query, int fl
 		ret.setSortBy(Dict::WordList::Alphabetical);
 	}
 
-	qSort(ret);
+	std::sort(ret.begin(), ret.end());
 
 	return ret;
 }

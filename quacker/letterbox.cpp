@@ -657,7 +657,7 @@ QString Letterbox::arrangeLettersForUser(const QString &word)
 Clue Letterbox::clueFor(const QString &word)
 {
 	if (word.isNull())
-		return Clue(QString::null);
+		return Clue(QString());
 
 	if (LetterboxSettings::self()->mathMode)
 		return mathClue(word);
@@ -1259,7 +1259,7 @@ void HTMLRepresentation::setWords(Dict::WordListList::ConstIterator start, Dict:
 QString HTMLRepresentation::htmlForWordList(const Dict::WordList &wordList)
 {
 	if (wordList.isEmpty())
-		return QString::null;
+		return QString();
 
 	QString html = QString("<center><table border=1 cellspacing=%1 cellpadding=%2>").arg(m_tableSpacing).arg(m_tablePadding);
 

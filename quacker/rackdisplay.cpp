@@ -266,7 +266,7 @@ GraphicalRack::mousePressEvent (QMouseEvent* event)
 
     child->setPixmap (tempPixmap);
 
-    if (drag->start (Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction) {
+    if (drag->exec(Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction) {
         child->close();
     }
     else {

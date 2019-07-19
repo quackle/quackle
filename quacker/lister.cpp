@@ -139,7 +139,7 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 	buttonBox2->addStretch();
 	buttonBox2->addWidget(m_closeButton);
 
-	filenameChanged(QString::null); // disable write button initially
+	filenameChanged(QString()); // disable write button initially
 
 	connect(m_filenameEdit, SIGNAL(textChanged(const QString &)), this, SLOT(filenameChanged(const QString &)));
 	connect(m_writeButton, SIGNAL(clicked()), this, SLOT(writeButtonClicked()));
@@ -324,7 +324,7 @@ QString ListerDialog::run(QWidget *parent, const QString &settingsGroup, const Q
 	if (accepted)
 		return dialog.filename();
 
-	return QString::null;
+	return QString();
 }
 
 void ListerDialog::saveSettings()
@@ -419,13 +419,13 @@ QMap<QString, Dict::WordList> ListerDialog::anagramMap()
 QString ListerDialog::writeList(bool alphagrams)
 {
 	if (m_filename.isEmpty())
-		return QString::null;
+		return QString();
 
 	QFile file(m_filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		QMessageBox::critical(this, windowTitleWithAppName(tr("Error writing file")), tr("Could not open %1 for writing.").arg(m_filename));
-		return QString::null;
+		return QString();
 	}
 
 	QTextStream stream(&file);
@@ -568,7 +568,7 @@ void PlayabilityFilter::apply()
 		intermediateList.setSortBy(Dict::WordList::Probability);
 	else
 		intermediateList.setSortBy(Dict::WordList::Playability);
-	qSort(intermediateList);
+	std::sort(intermediateList.begin(), intermediateList.end());
 
 	Dict::WordList filteredList;
 

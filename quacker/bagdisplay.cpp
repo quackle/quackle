@@ -105,7 +105,12 @@ void BagDisplay::showTiles(const Quackle::LongLetterString &tiles)
 			line += sanitizedQString;
 		}
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+		// Kill Qt 5.13 deprecation warning without breaking pre-5.11 builds
+		const int lineWidth = metrics.horizontalAdvance(line);
+#else
 		const int lineWidth = metrics.width(line);
+#endif
 		if (lineWidth > maxLineWidth)
 			maxLineWidth = lineWidth;
 

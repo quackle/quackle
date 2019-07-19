@@ -1148,7 +1148,7 @@ void TopLevel::chooseLogfile()
 
 	fileDialog->setDirectory(userSpecifiedLogfile().isEmpty()? QDir::currentPath() : QFileInfo(userSpecifiedLogfile()).absolutePath());
 	fileDialog->setFileMode(QFileDialog::AnyFile);
-	fileDialog->setConfirmOverwrite(false);
+	fileDialog->setOption(QFileDialog::DontConfirmOverwrite);
 
 	if (fileDialog->exec())
 	{

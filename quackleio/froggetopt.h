@@ -81,7 +81,7 @@ private:
 
     struct Option {
         Option( OptionType t = OUnknown,
-                char s = 0, const QString &l = QString::null )
+                char s = 0, const QString &l = QString() )
             : type( t ),
               sname( s ),
               lname( l ),

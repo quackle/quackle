@@ -83,9 +83,9 @@ GraphicalBoardFrame::GraphicalBoardFrame(QWidget *parent)
 
     QColor color(PixmapCacher::self()->markColor);
     QPalette customPalette;
-    customPalette.setColor(QPalette::Light, color.light(s_highlightFactor));
+    customPalette.setColor(QPalette::Light, color.lighter(s_highlightFactor));
     customPalette.setColor(QPalette::Mid, color);
-    customPalette.setColor(QPalette::Dark, color.dark(130));
+    customPalette.setColor(QPalette::Dark, color.darker(130));
     setPalette(customPalette);
 
     PixmapCacher::self()->tileFont = font();
@@ -991,7 +991,7 @@ void PixmapCacher::readTheme(const QString& themeFile)
 
     // tiles on rack will be of different sizes and thus are slightly
     // altered to fool the pixmap cacher
-    rackColor = letterColor.light(101);
+    rackColor = letterColor.lighter(101);
 
     DLSColor = QColor(settings.value("DLS", "cornflowerblue").toString());
     TLSColor = QColor(settings.value("TLS", "slateblue").toString());
@@ -1228,7 +1228,7 @@ QString TileWidget::letterText()
                     return QString("%1WS").arg(m_information.bonusMultiplier);
             }
 
-            return QString::null;
+            return QString();
         }
     }
     else
@@ -1294,17 +1294,17 @@ QString TileWidget::miniText()
     if (m_information.letter != QUACKLE_NULL_MARK && QuackerSettings::self()->scoreLabels)
     {   
         if (m_information.isBlank)
-            return QString::null;
+            return QString();
         else
             return QString::number(QUACKLE_ALPHABET_PARAMETERS->score(m_information.letter));
     }
     else
-        return QString::null;
+        return QString();
 }
 
 QColor TileWidget::miniTextColor()
 {
-    return tileColor().light(170);
+    return tileColor().lighter(170);
 }
 
 QFont TileWidget::miniFont()
@@ -1366,8 +1366,8 @@ QPixmap TileWidget::generateTilePixmap()
         //const QColor outerColor(backgroundColor());
 
         QRadialGradient gradient(QPointF(radius, radius), radius * 3, QPointF(radius / 3, radius / 3));
-        gradient.setColorAt(0, color.light(GraphicalBoardFrame::s_highlightFactor));
-        gradient.setColorAt(.95, color.dark(GraphicalBoardFrame::s_highlightFactor));
+        gradient.setColorAt(0, color.lighter(GraphicalBoardFrame::s_highlightFactor));
+        gradient.setColorAt(.95, color.darker(GraphicalBoardFrame::s_highlightFactor));
 
         QPainter painter(&ret);
         painter.setBrush(gradient);
@@ -1375,7 +1375,7 @@ QPixmap TileWidget::generateTilePixmap()
         painter.drawEllipse((int)(midpoint.x() - radius), (int)(midpoint.y() - radius), (int)(radius * 2), (int)(radius * 2));
 
         QPalette customPalette;
-        customPalette.setColor(QPalette::Light, color.light(GraphicalBoardFrame::s_highlightFactor));
+        customPalette.setColor(QPalette::Light, color.lighter(GraphicalBoardFrame::s_highlightFactor));
         customPalette.setColor(QPalette::Dark, color);
         customPalette.setColor(QPalette::Mid, color);
 
@@ -1469,7 +1469,7 @@ void MarkWidget::setCol(int col)
 void MarkWidget::setCapstone()
 {
     m_capstone = true;
-    m_letterText = QString::null;
+    m_letterText = QString();
 }
 
 void MarkWidget::setSideLength(int sideLength)
@@ -1490,11 +1490,11 @@ QColor MarkWidget::tileColor()
 {
     // we slightly alter colors to fool the pixmap cacher!
     if (m_capstone)
-        return PixmapCacher::self()->markColor.light(101);
+        return PixmapCacher::self()->markColor.lighter(101);
     else if (m_horizontal)
         return PixmapCacher::self()->markColor;
     else
-        return PixmapCacher::self()->markColor.dark(101);
+        return PixmapCacher::self()->markColor.darker(101);
 }
 
 QColor MarkWidget::letterTextColor()

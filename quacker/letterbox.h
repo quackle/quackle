@@ -143,7 +143,7 @@ protected slots:
 	void mistakeDetector(const QString &text);
 	void timeout();
 
-	void setCaption(const QString &text = QString::null);
+	void setCaption(const QString &text = QString());
 	void setModified(bool modified);
 
 protected:
