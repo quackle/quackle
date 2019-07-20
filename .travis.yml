@@ -17,7 +17,7 @@ addons:
       - qt
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then export PATH="/usr/local/opt/qt5/bin:$PATH"; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew link --force qt; fi
 
 install:
   - export QT_SELECT=5
