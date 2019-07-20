@@ -17,11 +17,12 @@ addons:
       - qt
 
 before_install:
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew link --force qt; fi
 
 install:
   - export QT_SELECT=5
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install -y qtbase5-dev; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew link --force qt; fi
+  - qmake -v
 
 script:
   - qmake -r "QMAKE_CXX=$CXX" "QMAKE_CC=$CC" && make -j 2
