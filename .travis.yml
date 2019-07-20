@@ -15,6 +15,7 @@ addons:
   homebrew:
     packages:
       - qt
+    update: true
 
 before_install:
 
