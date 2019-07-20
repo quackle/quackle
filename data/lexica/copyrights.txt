@@ -3,6 +3,8 @@ de591703:NASPA School Word List 2018 (NSWL2018), Copyright © 2019 North America
 5a728cf0:School Scrabble Word List 2016 Edition (SSWL2016), Copyright © 2016 Hasbro, Inc.  Published under license with Merriam-Webster, Incorporated.
 9ea8d964:Official Tournament and Club Word List 2016 Edition (OTCWL2016), Copyright © 2016 Hasbro, Inc.  Published under license with Merriam-Webster, Incorporated.
 0109ce12:Official Tournament and Club Word List 2014 Edition (OTCWL2014), Copyright © 2014 Hasbro, Inc.  Published under license with Merriam-Webster, Incorporated.
+f4fec274:Collins Offical Scrabble™ Wordlist 2019, ©HarperCollins Publishers Ltd 2019
 48dea2c8:Collins Scrabble™ Words 2015, ©HarperCollins Publishers Ltd 2015
 eea8dfe5:Collins Scrabble™ Words 2012, ©HarperCollins Publishers Ltd 2015
+23cd8bb8:Collins Scrabble™ Words 2007 (April update), ©HarperCollins Publishers Ltd 2015
 d5aeccff:ODS7
