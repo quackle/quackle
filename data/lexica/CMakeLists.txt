@@ -7,6 +7,8 @@ set(DATA_LEXICA
 	${CMAKE_CURRENT_LIST_DIR}/cswapr07.dawg
 	${CMAKE_CURRENT_LIST_DIR}/greek.dawg
 	${CMAKE_CURRENT_LIST_DIR}/korean.dawg
+	${CMAKE_CURRENT_LIST_DIR}/nwl18.dawg
+	${CMAKE_CURRENT_LIST_DIR}/nswl18.dawg
 	${CMAKE_CURRENT_LIST_DIR}/norwegian.dawg
 	${CMAKE_CURRENT_LIST_DIR}/ods5.dawg
 	${CMAKE_CURRENT_LIST_DIR}/osps.dawg
