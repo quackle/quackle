@@ -72,6 +72,3 @@ set(LIBQUACKLE_HEADERS
 add_library(libquackle
 	${LIBQUACKLE_SOURCES} ${LIBQUACKLE_HEADERS}
 )
-
-set_target_properties(libquackle PROPERTIES COMPILE_FLAGS -fsanitize=address)
-set_target_properties(libquackle PROPERTIES LINK_FLAGS -fsanitize=address)

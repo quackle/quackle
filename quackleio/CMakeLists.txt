@@ -42,6 +42,3 @@ add_library(quackleio
 )
 target_include_directories(quackleio PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(quackleio Qt5::Core)
-
-set_target_properties(quackleio PROPERTIES COMPILE_FLAGS -fsanitize=address)
-set_target_properties(quackleio PROPERTIES LINK_FLAGS -fsanitize=address)

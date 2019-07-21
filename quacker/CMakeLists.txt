@@ -110,5 +110,3 @@ if(APPLE)
 endif()
 
 set_target_properties(Quackle PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Quackle.plist")
-set_target_properties(Quackle PROPERTIES COMPILE_FLAGS -fsanitize=address)
-set_target_properties(Quackle PROPERTIES LINK_FLAGS -fsanitize=address)
