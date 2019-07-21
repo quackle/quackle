@@ -19,8 +19,9 @@
 #ifndef QUACKLE_DATAMANAGER_H
 #define QUACKLE_DATAMANAGER_H
 
-#include <string>
+#include <mutex>
 #include <random>
+#include <string>
 
 #include "playerlist.h"
 
@@ -148,6 +149,7 @@ private:
 	PlayerList m_computerPlayers;
 
 	mt19937_64 m_mersenneTwisterRng;
+	mutex m_RngMutex;
 };
 
 inline DataManager *DataManager::self()

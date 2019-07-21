@@ -178,15 +178,18 @@ string DataManager::makeDataFilename(const string &subDirectory, const string &f
 
 void DataManager::seedRandomNumbers(unsigned int seed)
 {
+	lock_guard<mutex> lock(m_RngMutex);
 	m_mersenneTwisterRng.seed(seed);
 }
 
 void DataManager::seedRandomNumbers(seed_seq& seed)
 {
+	lock_guard<mutex> lock(m_RngMutex);
 	m_mersenneTwisterRng.seed(seed);
 }
 
 int DataManager::randomInteger(int low, int high)
 {
+	lock_guard<mutex> lock(m_RngMutex);
 	return uniform_int_distribution<>(low, high)(m_mersenneTwisterRng);
 }
