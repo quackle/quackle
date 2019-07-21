@@ -61,6 +61,7 @@ private:
 
 int main(int argc, char **argv)
 {
+	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 	QuackerApplication a(argc, argv);
 	TopLevel topLevel;
 	a.setTopLevel(&topLevel);
