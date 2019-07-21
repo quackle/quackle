@@ -185,7 +185,7 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 	m_endgameGame.commitCandidate(true);
 	
 	const int startPlayerId = m_endgameGame.currentPosition().currentPlayer().id();
-	const int numberOfPlayers = m_originalGame.currentPosition().players().size();
+	const size_t numberOfPlayers = m_originalGame.currentPosition().players().size();
 
 	int initialPlayNumber;
 	unsigned int nestedness = m_originalGame.currentPosition().nestedness();
@@ -283,7 +283,7 @@ Move Endgame::solve(int /* nestedness */)
 	setIncludedMoves(currentPosition().moves());
 
 	const int startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	const int numberOfPlayers = m_originalGame.currentPosition().players().size();
+	const size_t numberOfPlayers = m_originalGame.currentPosition().players().size();
 
 	double bestPessimistic = -1000;
 	EndgameMove bestPessMove(Move::createNonmove());
@@ -404,7 +404,7 @@ Move Endgame::solve(int /* nestedness */)
 void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 {
 	const int startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	const int numberOfPlayers = m_originalGame.currentPosition().players().size();
+	const size_t numberOfPlayers = m_originalGame.currentPosition().players().size();
 
 	Game playoutGame = m_originalGame;
 		
@@ -481,14 +481,14 @@ MoveList Endgame::moves(unsigned int nmoves)
 	MoveList playout;
 	MoveList ret;
 
-	unsigned int maxPlayedOut = nmoves;
+	size_t maxPlayedOut = nmoves;
 
 	if (maxPlayedOut > m_endgameMoves.size())
 		maxPlayedOut = m_endgameMoves.size();
 
 	playout.push_back(best);
 
-	unsigned int i = 0;
+	size_t i = 0;
 	const EndgameMoveList::const_iterator end = m_endgameMoves.end();
 	for (EndgameMoveList::const_iterator it = m_endgameMoves.begin(); (it != end) && (i < maxPlayedOut); ++it)
 	{

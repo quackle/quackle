@@ -115,7 +115,7 @@ inline bool Bag::empty() const
 
 inline int Bag::size() const
 {
-    return m_tiles.size();
+    return (int)m_tiles.size();
 }
 
 inline const LongLetterString &Bag::tiles() const

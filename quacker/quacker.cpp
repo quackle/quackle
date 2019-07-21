@@ -897,8 +897,8 @@ void TopLevel::kibitz()
 
 	if (confuseUser)
 	{
-		const int currentlyKibitzed = m_game->currentPosition().moves().size();
-		kibitz(currentlyKibitzed < kExtraPlaysToKibitz? kExtraPlaysToKibitz : currentlyKibitzed + kExtraPlaysToKibitz);
+		const size_t currentlyKibitzed = m_game->currentPosition().moves().size();
+		kibitz(currentlyKibitzed < kExtraPlaysToKibitz? kExtraPlaysToKibitz : (int)currentlyKibitzed + kExtraPlaysToKibitz);
 	}
 	else
 	{
@@ -2025,7 +2025,7 @@ QString TopLevel::playerString() const
 
 	bool begin = true;
 	int i = 0;
-	const int maximumIndex = players.size() - 1;
+	const size_t maximumIndex = players.size() - 1;
 	const Quackle::PlayerList::const_iterator end(players.end());
 	for (Quackle::PlayerList::const_iterator it = players.begin(); it != end; ++it, ++i)
 	{

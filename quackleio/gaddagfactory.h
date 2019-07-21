@@ -35,8 +35,8 @@ public:
 	GaddagFactory(const UVString &alphabetFile);
 	~GaddagFactory();
 
-	int wordCount() const { return m_gaddagizedWords.size(); };
-	int nodeCount() const { return m_nodelist.size(); };
+	int wordCount() const { return (int)m_gaddagizedWords.size(); };
+	int nodeCount() const { return (int)m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 

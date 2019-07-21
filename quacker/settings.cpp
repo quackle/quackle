@@ -516,7 +516,7 @@ void Settings::addBoard()
 
 		QByteArray boardParameterBytes = qCompress(
 							(const uchar *)boardParameterStream.str().data(),
-							boardParameterStream.str().size());
+							(int)boardParameterStream.str().size());
 		settings.setValue(boardName, QVariant(boardParameterBytes));
 		m_boardNameCombo->setCurrentIndex(-1);
 		boardChanged(boardName);

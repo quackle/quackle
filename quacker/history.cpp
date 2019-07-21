@@ -57,7 +57,7 @@ void History::historyChanged(const Quackle::History &history)
 		rowLabels.push_back(tr("Final"));
 
 	m_tableWidget->setRowCount(rowLabels.size());
-	m_tableWidget->setColumnCount(players.size());
+	m_tableWidget->setColumnCount((int)players.size());
 
 	Quackle::PlayerList currentScores(lastPosition.endgameAdjustedScores());
 

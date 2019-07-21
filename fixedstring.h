@@ -125,7 +125,7 @@ FixedLengthString::FixedLengthString(size_type n, char c)
 inline
 FixedLengthString::FixedLengthString(const char* s)
 {
-    unsigned int sz = strlen(s);
+    size_t sz = strlen(s);
     assert(sz < maxSize);
     memcpy(m_data, s, sz);
     m_end = m_data + sz;
@@ -182,7 +182,7 @@ FixedLengthString::erase(const iterator i)
 inline FixedLengthString::size_type
 FixedLengthString::length() const
 {
-    return m_end - m_data;
+    return FixedLengthString::size_type(m_end - m_data);
 }
 
 inline FixedLengthString

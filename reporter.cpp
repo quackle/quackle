@@ -93,7 +93,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 
 		int highestScore = 0;
 		double highestEquity = 0;
-		unsigned int widestPositionString = 0;
+		size_t widestPositionString = 0;
 		unsigned int widestMove = 0;
 		bool hasWinPercentages = false;
 		const Quackle::MoveList::const_iterator end(moves.end());

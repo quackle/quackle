@@ -33,7 +33,7 @@ public:
 
 	int wordCount() const { return m_encodableWords; };
 	string letterCountString() const;
-	int nodeCount() const { return m_nodelist.size(); };
+	int nodeCount() const { return (int)m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 	int duplicateWords() const { return m_duplicateWords; };

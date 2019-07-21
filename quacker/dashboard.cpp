@@ -81,7 +81,7 @@ Dashboard::~Dashboard()
 void Dashboard::historyChanged(const Quackle::History &history)
 {
 	const Quackle::PlayerList players(history.currentPosition().endgameAdjustedScores());
-	const int numberOfPlayers = players.size();
+	const size_t numberOfPlayers = players.size();
 	const bool gameOver = history.currentPosition().gameOver();
 
 	while (m_briefs.size() > numberOfPlayers)

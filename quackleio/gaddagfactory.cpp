@@ -120,7 +120,7 @@ void GaddagFactory::writeIndex(const string &fname)
 	out.put(1); // GADDAG format version 1
 	out.write(m_hash.charptr, sizeof(m_hash.charptr));
 
-	for (size_t i = 0; i < m_nodelist.size(); i++)
+	for (unsigned int i = 0; i < m_nodelist.size(); i++)
 	{
 		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
 		if (p != 0)
@@ -152,7 +152,7 @@ void GaddagFactory::Node::print(vector< Node* >& nodelist)
 {
 	if (children.size() > 0)
 	{
-		pointer = nodelist.size();
+		pointer = (int)nodelist.size();
 		children[children.size() - 1].lastchild = true;
 	}
 
@@ -180,7 +180,7 @@ void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
 	{
 		if (children[i].c == first)
 		{
-			index = i;
+			index = (int)i;
 			i = children.size();
 		}
 	}
@@ -193,7 +193,7 @@ void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
 		n.pointer = 0;
 		n.lastchild = false;
 		children.push_back(n);
-		index = children.size() - 1;
+		index = (int)children.size() - 1;
 	}
 
 	children[index].pushWord(rest);

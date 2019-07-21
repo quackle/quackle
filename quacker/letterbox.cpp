@@ -733,7 +733,7 @@ void Letterbox::processAnswer(const QString &answer)
 
 	QString upperAnswer(answer.toUpper());
 
-	if (m_submittedAnswers.contains(upperAnswer) > 0)
+	if (m_submittedAnswers.contains(upperAnswer))
 	{
 		statusBar()->showMessage(tr("You already submitted %1.").arg(upperAnswer));
 		m_lineEdit->clear();

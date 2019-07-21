@@ -111,7 +111,7 @@ MoveList SmartBogowin::moves(int nmoves)
     //
     // Make the Simulator able to select racks randomly from the ProbableRackList
     if (m_parameters.inferring) {
-        int numPlayers = currentPosition().players().size();
+        int numPlayers = (int)currentPosition().players().size();
         UVcout << "numPlayers: " << numPlayers << endl;
         if (numPlayers == 2) {
             bool hasPreviousPosition;

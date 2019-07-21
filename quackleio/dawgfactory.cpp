@@ -218,7 +218,7 @@ void DawgFactory::Node::print(vector< Node* > &nodelist)
 	if (!deleted)
 	{
 		//cout << "  Setting pointer to " << nodelist.size() << " before I push_back the children." << endl;
-		pointer = nodelist.size();
+		pointer = (int)nodelist.size();
 	}
 	else
 	{
@@ -276,7 +276,7 @@ bool DawgFactory::Node::pushWord(const Quackle::LetterString &word, bool inSmall
 			n.pointer = 0;
 			n.lastchild = false;
 			children.push_back(n);
-			index = children.size() - 1;
+			index = (int)children.size() - 1;
 		}
 
 		added = children[index].pushWord(rest, inSmaller, pb);
