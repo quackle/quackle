@@ -139,6 +139,8 @@ string DataManager::findDataFile(const string &subDirectory, const string &lexic
 	string fname = makeDataFilename(subDirectory, lexicon, file, true);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, lexicon, file, false);
+	if (!fileExists(fname) && lexicon.substr(0,3) == "csw")
+		fname = makeDataFilename(subDirectory, "csw", file, false);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, m_backupLexicon, file, false);
 	if (!fileExists(fname))
