@@ -80,15 +80,14 @@ set(QUACKLE_HEADERS
 )
 
 set(QUACKLE_RESOURCES
-	quacker.icns
-	${DATA_ALPHABETS}
+	"${PROJECT_SOURCE_DIR}/quacker.icns"
+	# ${DATA_ALPHABETS}
 )
 
-message( "${QUACKLE_RESOURCES} ${APPLE} $<1:abc>")
 if(APPLE AND BUNDLE)
 	add_executable(Quackle
 		MACOSX_BUNDLE
-		${QUACKLE_SOURCES} ${QUACKLE_HEADERS} quacker.rc
+		${QUACKLE_SOURCES} ${QUACKLE_HEADERS} quacker.icns
 	)
 else()
 	add_executable(Quackle
@@ -101,12 +100,13 @@ target_link_libraries(Quackle Qt5::Core Qt5::Widgets)
 
 if(APPLE)
 	target_link_libraries(Quackle "-framework CoreFoundation")
-	set_target_properties(Quackle PROPERTIES
-		$<$<BOOL:${BUNDLE}>:
-			MACOSX_BUNDLE TRUE
-			RESOURCE "${QUACKLE_RESOURCES}"
-		>
-	)
+	if (BUNDLE)
+		set_target_properties(Quackle
+				PROPERTIES
+				RESOURCE ${QUACKLE_RESOURCES}
+				MACOSX_BUNDLE_INFO_PLIST Info.plist
+		)
+	endif()
 endif()
 
 set_target_properties(Quackle PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Quackle.plist")

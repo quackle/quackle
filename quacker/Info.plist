@@ -19,6 +19,8 @@
 	<string>Quackle</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Created by Qt/QMake</string>
+	<key>CFBundleIconFile</key>
+	<string>quacker.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.Quackle.Quackle</string>
 	<key>CFBundlePackageType</key>
