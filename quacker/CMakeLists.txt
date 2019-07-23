@@ -91,6 +91,7 @@ if(APPLE AND BUNDLE)
 	)
 else()
 	add_executable(Quackle
+		WIN32
 		${QUACKLE_SOURCES} ${QUACKLE_HEADERS} quacker.rc
 	)
 endif()
