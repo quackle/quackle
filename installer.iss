@@ -4,7 +4,9 @@
 [Setup]
 AppName=Quackle
 AppVerName=Quackle 1.0.4
-DefaultDirName={pf}\Quackle
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+DefaultDirName={commonpf}\Quackle
 DefaultGroupName=Quackle
 ChangesAssociations=yes
 UninstallDisplayIcon={app}\Quackle.exe
@@ -21,11 +23,13 @@ Root: HKCR; Subkey: "QuackleGameFile\shell\open\command"; ValueType: string; Val
 
 
 [Files]
-Source: "quacker\release\Quackle.exe"; DestDir: "{app}"
+Source: "quacker\build\RelWithDebInfo\Quackle.exe"; DestDir: "{app}"
 Source: "LICENSE"; DestDir: "{app}"
-Source: "Qt5Core.dll"; DestDir: "{app}"
-Source: "Qt5Gui.dll"; DestDir: "{app}"
-Source: "Qt5Widgets.dll"; DestDir: "{app}"
+Source: "quacker\build\RelWithDebInfo\*.dll"; DestDir: "{app}"
+; Assuming either a cmake process or a human copied the DLL files
+; in the same dir.  Right now, I'm building from vcpkg, and the list of DLLs
+; is Qt5Core, Qt5Gui, Qt5Widgets, zlib1, bz2, freetype, harfbuzz, libpng16, pcre2-16.
+; But, depending upon your build chain, this will vary. -jfultz
 
 Source: "data\themes\*"; DestDir: "{app}\data\themes"
 Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"
