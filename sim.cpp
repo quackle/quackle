@@ -619,7 +619,7 @@ void SimmedMoveMessageQueue::push(SimmedMoveMessage& msg)
 std::pair<SimmedMoveMessage, bool> SimmedMoveMessageQueue::pop_or_terminate()
 {
 	std::unique_lock<std::mutex> lk(m_queueMutex);
-	if (m_queue.empty() && !m_terminateAll && m_terminateOne == std::thread::id())
+	while (m_queue.empty() && !m_terminateAll && m_terminateOne != std::this_thread::get_id())
 		m_condition.wait(lk);
 	std::pair<SimmedMoveMessage, bool> result;
 	result.second = m_terminateAll || m_terminateOne == std::this_thread::get_id();
@@ -636,7 +636,7 @@ std::pair<SimmedMoveMessage, bool> SimmedMoveMessageQueue::pop_or_terminate()
 SimmedMoveMessage SimmedMoveMessageQueue::pop()
 {
 	std::unique_lock<std::mutex> lk(m_queueMutex);
-	if (m_queue.empty())
+	while (m_queue.empty())
 		m_condition.wait(lk);
 	SimmedMoveMessage result = std::move(m_queue.front());
 	m_queue.pop();
