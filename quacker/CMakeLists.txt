@@ -105,7 +105,7 @@ if(APPLE)
 		set_target_properties(Quackle
 				PROPERTIES
 				RESOURCE ${QUACKLE_RESOURCES}
-				MACOSX_BUNDLE_INFO_PLIST Info.plist
+				MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Quackle.plist"
 		)
 	endif()
 endif()
