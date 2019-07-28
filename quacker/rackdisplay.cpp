@@ -140,6 +140,7 @@ GraphicalRack::setText(const Quackle::LetterString &text)
         info.isOnRack = true;
 		info.letter = text[i];
 		info.tileType = Quackle::Board::LetterTile;
+		tile.setDevicePixelRatio(devicePixelRatio());
 		tile.setInformation(info);
 		tile.setSideLength(50);
 		tile.prepare();

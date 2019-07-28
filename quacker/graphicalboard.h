@@ -244,6 +244,7 @@ public:
 
     virtual void setOriginalInformation(const Quackle::Board::TileInformation &originalInformation);
     virtual void setLocation(const QSize &location);
+    virtual void setDevicePixelRatio(qreal ratio);
 
     virtual void setCemented(bool cemented);
     bool cemented() const;
@@ -292,6 +293,7 @@ protected:
 
     QSize m_size;
     QPixmap m_pixmap;
+    qreal m_devicePixelRatio = 1.0;
 
     bool shouldShowVerboseLabels() const;
 

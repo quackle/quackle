@@ -192,7 +192,8 @@ void GraphicalBoardFrame::generateBoardPixmap(QPixmap *pixmap)
         return;
     }
 
-    *pixmap = QPixmap(m_sizeForBoard);
+    *pixmap = QPixmap(m_sizeForBoard * devicePixelRatio());
+    pixmap->setDevicePixelRatio(devicePixelRatio());
     QPainter painter(pixmap);
 
     for (QSize currentTile(0, 0); currentTile.height() < m_boardSize.height(); currentTile.setHeight(currentTile.height() + 1))
@@ -413,6 +414,7 @@ void GraphicalBoardFrame::recreateWidgets()
         {
             TileWidget *newTile = new TileWidget;
 
+            newTile->setDevicePixelRatio(devicePixelRatio());
             newTile->setLocation(currentTile);
             newTile->setAlwaysShowVerboseLabels(m_alwaysShowVerboseLabels);
             newTile->setOriginalInformation(emptyBoard.tileInformation(currentTile.height(), currentTile.width()));
@@ -425,6 +427,7 @@ void GraphicalBoardFrame::recreateWidgets()
     {
         MarkWidget *newMark = new MarkWidget;
 
+        newMark->setDevicePixelRatio(devicePixelRatio());
         if (row == 0)
             newMark->setCapstone();
         else
@@ -436,7 +439,10 @@ void GraphicalBoardFrame::recreateWidgets()
     for (int col = 1; col <= m_boardSize.width(); ++col)
     {
         MarkWidget *newMark = new MarkWidget;
+
+        newMark->setDevicePixelRatio(devicePixelRatio());
         newMark->setCol(col);
+
         addMark(QSize(col, 0), newMark);
     }
 }
@@ -1082,6 +1088,11 @@ void TileWidget::setLocation(const QSize &location)
     m_location = location;
 }
 
+void TileWidget::setDevicePixelRatio(qreal ratio)
+{
+    m_devicePixelRatio = ratio;
+}
+
 void TileWidget::setCemented(bool cemented)
 {
     m_cemented = cemented;
@@ -1353,7 +1364,8 @@ QPixmap TileWidget::generateTilePixmap()
     const QPointF midpoint((double)(currentSize.width() + borderWidth) / 2, (double)(currentSize.height() + borderWidth) / 2);
     const QColor color(tileColor());
 
-    QPixmap ret(currentSize);
+    QPixmap ret(currentSize * m_devicePixelRatio);
+    ret.setDevicePixelRatio(m_devicePixelRatio);
 
     if (PixmapCacher::self()->contains(color))
         ret = PixmapCacher::self()->get(color);
