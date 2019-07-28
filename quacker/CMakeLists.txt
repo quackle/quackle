@@ -109,5 +109,3 @@ if(APPLE)
 		)
 	endif()
 endif()
-
-set_target_properties(Quackle PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Quackle.plist")
