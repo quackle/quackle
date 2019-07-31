@@ -6,6 +6,8 @@ message("-- Configuring libquackle")
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/Settings.cmake")
 
+find_package(Threads REQUIRED)
+
 set(LIBQUACKLE_SOURCES
 	alphabetparameters.cpp
 	bag.cpp
@@ -72,3 +74,5 @@ set(LIBQUACKLE_HEADERS
 add_library(libquackle
 	${LIBQUACKLE_SOURCES} ${LIBQUACKLE_HEADERS}
 )
+
+target_link_libraries(libquackle Threads::Threads)
