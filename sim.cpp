@@ -352,7 +352,7 @@ void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMove
 
 		(*levelIt).setNumberScores(decimal);
 
-		int playerNumber = 1;
+		int playerNumber = 0;
 		for (auto &scoresIt : (*levelIt).statistics)
 		{
 			if (game.currentPosition().gameOver())
