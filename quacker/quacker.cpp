@@ -322,8 +322,7 @@ void TopLevel::setCandidateMove(const Quackle::Move &move, bool *carryOnPtr)
 					mb.addButton(QMessageBox::No);
 					QPushButton* mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
 					mb.exec();
-					if (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks)
-						carryOn = true;
+					carryOn = (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks);
 					if (mb.clickedButton() == mb_unknownRacks)
 						m_game->currentPosition().currentPlayer().setRacksAreKnown(false);
 				}
