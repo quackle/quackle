@@ -187,6 +187,7 @@ GraphicalRack::dropEvent (QDropEvent* event)
         QPoint sourcePos;
         QPoint offset;
         dataStream >> pixmap >> sourcePos >> offset;
+        pixmap.setDevicePixelRatio(devicePixelRatio());
 
         QLabel* droppedTile = new QLabel;
         droppedTile->setPixmap(pixmap);
