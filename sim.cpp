@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,14 +32,18 @@
 
 using namespace Quackle;
 
+std::atomic_long SimmedMove::objectIdCounter{0};
+
 Simulator::Simulator()
 	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false)
 {
 	m_originalGame.addPosition();
+	setThreadCount(2);
 }
 
 Simulator::~Simulator()
 {
+	setThreadCount(0);
 	closeLogfile();
 }
 
@@ -52,9 +56,8 @@ void Simulator::setPosition(const GamePosition &position)
 
 	m_consideredMoves.clear();
 	m_simmedMoves.clear();
-	MoveList::const_iterator end = m_originalGame.currentPosition().moves().end();
-	for (MoveList::const_iterator it = m_originalGame.currentPosition().moves().begin(); it != end; ++it)
-		m_simmedMoves.push_back(SimmedMove(*it));
+	for (const auto &it : m_originalGame.currentPosition().moves())
+		m_simmedMoves.push_back(SimmedMove(it));
 
 	resetNumbers();
 }
@@ -132,47 +135,46 @@ void Simulator::setDispatch(ComputerDispatch *dispatch)
 
 void Simulator::setIncludedMoves(const MoveList &moves)
 {
-	for (SimmedMoveList::iterator simmedMoveIt = m_simmedMoves.begin(); simmedMoveIt != m_simmedMoves.end(); ++simmedMoveIt)
-		(*simmedMoveIt).setIncludeInSimulation(false);
+	for (auto &simmedMoveIt : m_simmedMoves)
+		simmedMoveIt.setIncludeInSimulation(false);
 
-	MoveList::const_iterator end = moves.end();
-	for (MoveList::const_iterator it = moves.begin(); it != end; ++it)
+	for (auto &it : moves)
 	{
-		SimmedMoveList::iterator simmedMoveIt;
-		for (simmedMoveIt = m_simmedMoves.begin(); simmedMoveIt != m_simmedMoves.end(); ++simmedMoveIt)
+		bool found = false;
+		for (auto &simmedMoveIt : m_simmedMoves)
 		{
-			if ((*it) == (*simmedMoveIt).move)
+			if (it == simmedMoveIt.move)
 			{
-				(*simmedMoveIt).setIncludeInSimulation(true);
+				simmedMoveIt.setIncludeInSimulation(true);
+				found = true;
 				break;
 			}
 		}
 
-		// move wasn't found; add it
-		if (simmedMoveIt == m_simmedMoves.end())
-			m_simmedMoves.push_back(SimmedMove(*it));
+		if (!found)
+			m_simmedMoves.push_back(SimmedMove(it));
 	}
 }
 
 void Simulator::makeSureConsideredMovesAreIncluded()
 {
 	MoveList movesSuperset(moves(/* prune */ true, /* sort by win */ true));
-	for (MoveList::const_iterator it = m_consideredMoves.begin(); it != m_consideredMoves.end(); ++it)
-		if (!movesSuperset.contains(*it))
-			movesSuperset.push_back(*it);
+	for (const auto &it : m_consideredMoves)
+		if (!movesSuperset.contains(it))
+			movesSuperset.push_back(it);
 	setIncludedMoves(movesSuperset);
 }
 
 void Simulator::moveConsideredMovesToBeginning(MoveList &moves) const
 {
-	for (MoveList::const_iterator consideredIt = m_consideredMoves.begin(); consideredIt != m_consideredMoves.end(); ++consideredIt)
+	for (const auto &consideredIt : m_consideredMoves)
 	{
-		for (MoveList::iterator it = moves.begin(); it != moves.end(); ++it)
+		for (auto it = moves.begin(); it != moves.end(); it++)
 		{
-			if (*consideredIt == *it)
+			if (consideredIt == *it)
 			{
-				moves.erase(it);
-				moves.insert(moves.begin(), *consideredIt);
+				it = moves.erase(it);
+				moves.insert(moves.begin(), consideredIt);
 			}
 		}
 	}
@@ -208,12 +210,47 @@ void Simulator::pruneTo(double equityThreshold, int maxNumberOfMoves)
 
 void Simulator::resetNumbers()
 {
-	SimmedMoveList::iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::iterator moveIt = m_simmedMoves.begin(); moveIt != end; ++moveIt)
-		(*moveIt).clear();
+	for (auto &moveIt : m_simmedMoves)
+		moveIt.clear();
 
 	m_iterations = 0;
 }
+
+void Simulator::simThreadFunc(SimmedMoveMessageQueue& incoming, SimmedMoveMessageQueue& outgoing)
+{
+	while (true)
+	{
+		auto result = incoming.pop_or_terminate();
+		if (result.second)
+			break;
+		Simulator::simulateOnePosition(result.first, incoming.constants());
+		outgoing.push(result.first);
+	}
+}
+
+void Simulator::setThreadCount(size_t count)
+{
+	if (count == 0 && m_threadPool.size() != 0)
+	{
+		m_sendQueue.send_terminate_all();
+		for (auto& t : m_threadPool)
+			t.join();
+		m_threadPool.clear();
+	}
+
+    while (count > m_threadPool.size())
+    {
+        m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue));
+    }
+
+    while (count < m_threadPool.size())
+    {
+    	m_sendQueue.send_terminate_one(m_threadPool.back().get_id());
+    	m_threadPool.back().join();
+        m_threadPool.pop_back();
+    }
+}
+
 
 void Simulator::simulate(int plies, int iterations)
 {
@@ -236,20 +273,24 @@ void Simulator::simulate(int plies)
 	randomizeOppoRacks();
 	randomizeDrawingOrder();
 
-	const int startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	const int numberOfPlayers = m_originalGame.currentPosition().players().size();
-
 	if (plies < 0)
 		plies = 1000;
 
 	// specified plies doesn't include candidate play
 	++plies;
-	
-	// level one's first move is the zeroth ply (the candidate)
-	const int decimalTurns = (plies % numberOfPlayers);
 
+	SimmedMoveConstants constants;
+	constants.game = m_originalGame;
+	constants.startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
+	constants.playerCount = m_originalGame.currentPosition().players().size();
+	// level one's first move is the zeroth ply (the candidate)
+	constants.decimalTurns = (plies % constants.playerCount);
 	// also one-indexed
-	const int levels = (int)((plies - decimalTurns) / numberOfPlayers);
+	constants.levelCount = (int)((plies - constants.decimalTurns) / constants.playerCount);
+	constants.ignoreOppos = m_ignoreOppos;
+	constants.isLogging = isLogging();
+
+	m_sendQueue.setConstants(constants);
 
 	if (isLogging())
 	{
@@ -260,159 +301,195 @@ void Simulator::simulate(int plies)
 		m_xmlIndent += MARK_UV('\t');
 	}
 
-	SimmedMoveList::iterator moveEnd = m_simmedMoves.end();
-	for (SimmedMoveList::iterator moveIt = m_simmedMoves.begin(); moveIt != moveEnd; ++moveIt)
+	int messageCount = 0;
+
+	for (auto &moveIt : m_simmedMoves)
 	{
-		if (!(*moveIt).includeInSimulation())
+		if (!moveIt.includeInSimulation())
 			continue;
 
 #ifdef DEBUG_SIM
 		UVcout << "simulating " << (*moveIt).move << ":" << endl;
 #endif
 
-		if (isLogging())
-		{
-			m_logfileStream << m_xmlIndent << "<playahead>" << endl;
-			m_xmlIndent += MARK_UV('\t');
-		}
+		moveIt.levels.setNumberLevels(constants.levelCount + 1);
 
-		m_simulatedGame = m_originalGame;
-		double residual = 0;
+		SimmedMoveMessage message;
+		message.id = moveIt.id();
+		message.move = moveIt.move;
+		message.levels.setNumberLevels(constants.levelCount + 1);
+		message.levels = moveIt.levels;
+		message.xmlIndent = m_xmlIndent;
 
-		(*moveIt).setNumberLevels(levels + 1);
+		m_sendQueue.push(message);
+		messageCount++;
+	}
 
-		int levelNumber = 1;
-		for (LevelList::iterator levelIt = (*moveIt).levels.begin(); levelNumber <= levels + 1 && levelIt != (*moveIt).levels.end() && !m_simulatedGame.currentPosition().gameOver(); ++levelIt, ++levelNumber)
-		{
-			const int decimal = levelNumber == levels + 1? decimalTurns : numberOfPlayers;
-			if (decimal == 0)
-				continue;
-
-			(*levelIt).setNumberScores(decimal);
-
-			int playerNumber = 1;
-			for (PositionStatisticsList::iterator scoresIt = (*levelIt).statistics.begin(); scoresIt != (*levelIt).statistics.end() && !m_simulatedGame.currentPosition().gameOver(); ++scoresIt, ++playerNumber)
-			{
-				const int playerId = m_simulatedGame.currentPosition().currentPlayer().id();
-
-				if (isLogging())
-				{
-					m_logfileStream << m_xmlIndent << "<ply index=\"" << (levelNumber - 1) * numberOfPlayers + playerNumber - 1 << "\">" << endl;
-					m_xmlIndent += MARK_UV('\t');
-				}
-
-				Move move = Move::createNonmove();
-
-				if (playerId == startPlayerId && levelNumber == 1)
-					move = (*moveIt).move;
-				else if (m_ignoreOppos && playerId != startPlayerId)
-					move = Move::createPassMove();
-				else
-					move = m_simulatedGame.currentPosition().staticBestMove();
-
-				int deadwoodScore = 0;
-				if (m_simulatedGame.currentPosition().doesMoveEndGame(move))
-				{
-					LetterString deadwood;
-					deadwoodScore = m_simulatedGame.currentPosition().deadwood(&deadwood);
-					// account for deadwood in this move rather than a separate
-					// UnusedTilesBonus move.
-					move.score += deadwoodScore;
-				}
-
-				(*scoresIt).score.incorporateValue(move.score);
-				(*scoresIt).bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
-
-				if (isLogging())
-				{
-					m_logfileStream << m_xmlIndent << m_simulatedGame.currentPosition().currentPlayer().rack().xml() << endl;
-					m_logfileStream << m_xmlIndent << move.xml() << endl;
-				}
-
-				// record future-looking residuals
-				bool isFinalTurnForPlayerOfSimulation = false;
-
-				if (levelNumber == levels)
-					isFinalTurnForPlayerOfSimulation = playerNumber > decimalTurns;
-				else if (levelNumber == levels + 1)
-					isFinalTurnForPlayerOfSimulation = playerNumber <= decimalTurns;
-
-				const bool isVeryFinalTurnOfSimulation = (decimalTurns == 0 && levelNumber == levels && playerNumber == numberOfPlayers) || (levelNumber == levels + 1 && playerNumber == decimalTurns);
-
-				if (isFinalTurnForPlayerOfSimulation && !(m_ignoreOppos && playerId != startPlayerId))
-				{
-					double residualAddend = m_simulatedGame.currentPosition().calculatePlayerConsideration(move);
-					if (isLogging())
-						m_logfileStream << m_xmlIndent << "<pc value=\"" << residualAddend << "\" />" << endl;
-
-					if (isVeryFinalTurnOfSimulation)
-					{
-						// experimental -- do shared resource considerations
-						// matter in a plied simulation?
-	
-						const double sharedResidual = m_simulatedGame.currentPosition().calculateSharedConsideration(move);
-						residualAddend += sharedResidual;
-
-						if (isLogging() && sharedResidual != 0)
-							m_logfileStream << m_xmlIndent << "<sc value=\"" << sharedResidual << "\" />" << endl;
-					}
-
-					if (playerId == startPlayerId)
-						residual += residualAddend;
-					else
-						residual -= residualAddend;
-				}
-
-				// commiting the move will account for deadwood again
-				// so avoid double counting from above.
-				move.score -= deadwoodScore; 
-				m_simulatedGame.setCandidate(move);
-
-				m_simulatedGame.commitCandidate(!isVeryFinalTurnOfSimulation);
-
-				if (isLogging())
-				{
-					m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
-					m_logfileStream << m_xmlIndent << "</ply>" << endl;
-				}
-			}
-		}
-
-		(*moveIt).residual.incorporateValue(residual);
-
-		const int spread = m_simulatedGame.currentPosition().spread(startPlayerId);
-		(*moveIt).gameSpread.incorporateValue(spread);
-
-		if (m_simulatedGame.currentPosition().gameOver())
-		{
-			const float wins = spread > 0? 1 : spread == 0? 0.5F : 0;
-			(*moveIt).wins.incorporateValue(wins);
-
-			if (isLogging())
-			{
-				m_logfileStream << m_xmlIndent << "<gameover win=\"" << wins << "\" />" << endl;
-			}
-		}
-		else
-		{
-			if (m_simulatedGame.currentPosition().currentPlayer().id() == startPlayerId)
-				(*moveIt).wins.incorporateValue(QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
-			else
-				(*moveIt).wins.incorporateValue(1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), m_simulatedGame.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0));
-		}	
-		
-
-		if (isLogging())
-		{
-			m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
-			m_logfileStream << m_xmlIndent << "</playahead>" << endl;
-		}
+	while (messageCount-- > 0)
+	{
+		SimmedMoveMessage message(m_receiveQueue.pop());
+		incorporateMessage(message);
 	}
 
 	if (isLogging())
 	{
 		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
 		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
+	}
+}
+
+void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants)
+{
+	Game game = constants.game;
+	double residual = 0;
+
+	int levelNumber = 1;
+	for (LevelList::iterator levelIt = message.levels.begin(); levelNumber <= constants.levelCount + 1 && levelIt != message.levels.end() && !game.currentPosition().gameOver(); ++levelIt, ++levelNumber)
+	{
+		const int decimal = levelNumber == constants.levelCount + 1? constants.decimalTurns : constants.playerCount;
+		if (decimal == 0)
+			continue;
+
+		(*levelIt).setNumberScores(decimal);
+
+		int playerNumber = 0;
+		for (auto &scoresIt : (*levelIt).statistics)
+		{
+			if (game.currentPosition().gameOver())
+				break;
+			++playerNumber;
+			const int playerId = game.currentPosition().currentPlayer().id();
+
+			if (constants.isLogging)
+			{
+				message.logStream << message.xmlIndent << "<ply index=\"" << (levelNumber - 1) * constants.playerCount + playerNumber - 1 << "\">" << endl;
+				message.xmlIndent += MARK_UV('\t');
+			}
+
+			Move move = Move::createNonmove();
+
+			if (playerId == constants.startPlayerId && levelNumber == 1)
+				move = message.move;
+			else if (constants.ignoreOppos && playerId != constants.startPlayerId)
+				move = Move::createPassMove();
+			else
+				move = game.currentPosition().staticBestMove();
+
+			int deadwoodScore = 0;
+			if (game.currentPosition().doesMoveEndGame(move))
+			{
+				LetterString deadwood;
+				deadwoodScore = game.currentPosition().deadwood(&deadwood);
+				// account for deadwood in this move rather than a separate
+				// UnusedTilesBonus move.
+				move.score += deadwoodScore;
+			}
+
+			scoresIt.score.incorporateValue(move.score);
+			scoresIt.bingos.incorporateValue(move.isBingo? 1.0 : 0.0);
+
+			if (constants.isLogging)
+			{
+				message.logStream << message.xmlIndent << game.currentPosition().currentPlayer().rack().xml() << endl;
+				message.logStream << message.xmlIndent << move.xml() << endl;
+			}
+
+			// record future-looking residuals
+			bool isFinalTurnForPlayerOfSimulation = false;
+
+			if (levelNumber == constants.levelCount)
+				isFinalTurnForPlayerOfSimulation = playerNumber > constants.decimalTurns;
+			else if (levelNumber == constants.levelCount + 1)
+				isFinalTurnForPlayerOfSimulation = playerNumber <= constants.decimalTurns;
+
+			const bool isVeryFinalTurnOfSimulation = (constants.decimalTurns == 0 && levelNumber == constants.levelCount && playerNumber == constants.playerCount) || (levelNumber == constants.levelCount + 1 && playerNumber == constants.decimalTurns);
+
+			if (isFinalTurnForPlayerOfSimulation && !(constants.ignoreOppos && playerId != constants.startPlayerId))
+			{
+				double residualAddend = game.currentPosition().calculatePlayerConsideration(move);
+				if (constants.isLogging)
+					message.logStream << message.xmlIndent << "<pc value=\"" << residualAddend << "\" />" << endl;
+
+				if (isVeryFinalTurnOfSimulation)
+				{
+					// experimental -- do shared resource considerations
+					// matter in a plied simulation?
+
+					const double sharedResidual = game.currentPosition().calculateSharedConsideration(move);
+					residualAddend += sharedResidual;
+
+					if (constants.isLogging && sharedResidual != 0)
+						message.logStream << message.xmlIndent << "<sc value=\"" << sharedResidual << "\" />" << endl;
+				}
+
+				if (playerId == constants.startPlayerId)
+					residual += residualAddend;
+				else
+					residual -= residualAddend;
+			}
+
+			// commiting the move will account for deadwood again
+			// so avoid double counting from above.
+			move.score -= deadwoodScore; 
+			game.setCandidate(move);
+
+			game.commitCandidate(!isVeryFinalTurnOfSimulation);
+
+			if (constants.isLogging)
+			{
+				message.xmlIndent = message.xmlIndent.substr(0, message.xmlIndent.length() - 1);
+				message.logStream << message.xmlIndent << "</ply>" << endl;
+			}
+		}
+	}
+
+	message.residual = residual;
+	int spread = game.currentPosition().spread(constants.startPlayerId);
+	message.gameSpread = spread;
+
+	if (game.currentPosition().gameOver())
+	{
+		message.bogowin = false;
+		message.wins = spread > 0? 1 : spread == 0? 0.5 : 0;
+	}
+	else
+	{
+		message.bogowin = true;
+		if (game.currentPosition().currentPlayer().id() == constants.startPlayerId)
+			message.wins = QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(spread + residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
+		else
+			message.wins = 1.0 - QUACKLE_STRATEGY_PARAMETERS->bogowin((int)(-spread - residual), game.currentPosition().bag().size() + QUACKLE_PARAMETERS->rackSize(), 0);
+	}
+}
+
+void Simulator::incorporateMessage(const SimmedMoveMessage &message)
+{
+	if (isLogging())
+		m_logfileStream << message.logStream.str();
+	for (auto& moveIt : m_simmedMoves)
+	{
+		if (moveIt.id() == message.id)
+		{
+			if (isLogging())
+			{
+				m_logfileStream << m_xmlIndent << "<playahead>" << endl;
+				m_xmlIndent += MARK_UV('\t');
+			}
+
+			moveIt.levels = message.levels;
+			moveIt.residual.incorporateValue(message.residual);
+			moveIt.gameSpread.incorporateValue(message.gameSpread);
+			moveIt.wins.incorporateValue(message.wins);
+
+			if (isLogging())
+			{
+				if (!message.bogowin)
+					m_logfileStream << m_xmlIndent << "<gameover win=\"" << message.wins << "\" />" << endl;
+				m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
+				m_logfileStream << m_xmlIndent << "</playahead>" << endl;
+			}
+			break;
+		}
 	}
 }
 
@@ -426,10 +503,9 @@ void Simulator::randomizeOppoRacks()
 
 	Bag bag(m_originalGame.currentPosition().unseenBag());
 
-	const PlayerList::const_iterator end = m_originalGame.currentPosition().players().end();
-	for (PlayerList::const_iterator it = m_originalGame.currentPosition().players().begin(); it != end; ++it)
+	for (const auto &it : m_originalGame.currentPosition().players())
 	{
-		if (((*it) == m_originalGame.currentPosition().currentPlayer()))
+		if ((it == m_originalGame.currentPosition().currentPlayer()))
 			continue;
 
 		// TODO -- some kind of inference engine can be inserted here
@@ -440,7 +516,7 @@ void Simulator::randomizeOppoRacks()
 		bag.removeLetters(rack.tiles());
 		bag.refill(rack);
 
-		m_originalGame.currentPosition().setPlayerRack((*it).id(), rack, /* adjust bag */ true);
+		m_originalGame.currentPosition().setPlayerRack(it.id(), rack, /* adjust bag */ true);
 	}
 
 #ifdef DEBUG_SIM
@@ -466,18 +542,17 @@ MoveList Simulator::moves(bool prune, bool byWin) const
 
 	const bool useCalculatedEquity = hasSimulationResults();
 
-	const SimmedMoveList::const_iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::const_iterator it = m_simmedMoves.begin(); it != end; ++it)
+	for (const auto &it : m_simmedMoves)
 	{
-		if (prune && !(*it).includeInSimulation())
+		if (prune && !it.includeInSimulation())
 			continue;
 
-		Move move((*it).move);
+		Move move(it.move);
 
 		if (useCalculatedEquity)
 		{
-			move.equity = (*it).calculateEquity();
-			move.win = (*it).wins.averagedValue();
+			move.equity = it.calculateEquity();
+			move.win = it.wins.averagedValue();
 		}
 
 		ret.push_back(move);
@@ -493,10 +568,9 @@ MoveList Simulator::moves(bool prune, bool byWin) const
 
 const SimmedMove &Simulator::simmedMoveForMove(const Move &move) const
 {
-	const SimmedMoveList::const_iterator end = m_simmedMoves.end();
-	for (SimmedMoveList::const_iterator it = m_simmedMoves.begin(); it != end; ++it)
-		if ((*it).move == move)
-			return *it;
+	for (const auto &it : m_simmedMoves)
+		if (it.move == move)
+			return it;
 	
 	return m_simmedMoves.back();
 }
@@ -535,6 +609,57 @@ void AveragedValue::clear()
 
 ////////////
 
+void SimmedMoveMessageQueue::push(SimmedMoveMessage& msg)
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_queue.push(std::move(msg));
+	m_condition.notify_one();
+}
+
+std::pair<SimmedMoveMessage, bool> SimmedMoveMessageQueue::pop_or_terminate()
+{
+	std::unique_lock<std::mutex> lk(m_queueMutex);
+	while (m_queue.empty() && !m_terminateAll && m_terminateOne != std::this_thread::get_id())
+		m_condition.wait(lk);
+	std::pair<SimmedMoveMessage, bool> result;
+	result.second = m_terminateAll || m_terminateOne == std::this_thread::get_id();
+	if (result.second)
+		m_terminateOne = std::thread::id();
+	else
+	{
+		result.first = std::move(m_queue.front());
+		m_queue.pop();
+	}
+	return result;
+}
+
+SimmedMoveMessage SimmedMoveMessageQueue::pop()
+{
+	std::unique_lock<std::mutex> lk(m_queueMutex);
+	while (m_queue.empty())
+		m_condition.wait(lk);
+	SimmedMoveMessage result = std::move(m_queue.front());
+	m_queue.pop();
+	return result;
+}
+
+void SimmedMoveMessageQueue::send_terminate_all()
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_terminateAll = true;
+	m_condition.notify_all();
+}
+
+void SimmedMoveMessageQueue::send_terminate_one(const std::thread::id& id)
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_terminateOne = id;
+	m_condition.notify_all();
+}
+
+
+////////////
+
 double SimmedMove::calculateEquity() const
 {
 	if (levels.empty())
@@ -544,11 +669,11 @@ double SimmedMove::calculateEquity() const
 
 	double equity = 0;
 
-	for (LevelList::const_iterator levelIt = levels.begin(); levelIt != levels.end(); ++levelIt)
+	for (const auto &levelIt : levels)
 	{
-		for (PositionStatisticsList::const_iterator scoresIt = (*levelIt).statistics.begin(); scoresIt != (*levelIt).statistics.end(); ++scoresIt)
+		for (PositionStatisticsList::const_iterator scoresIt = levelIt.statistics.begin(); scoresIt != levelIt.statistics.end(); scoresIt++)
 		{
-			if (scoresIt == (*levelIt).statistics.begin())
+			if (scoresIt == levelIt.statistics.begin())
 				equity += (*scoresIt).score.averagedValue();
 			else
 				equity -= (*scoresIt).score.averagedValue();
@@ -565,10 +690,10 @@ double SimmedMove::calculateWinPercentage() const
 	return wins.hasValues()? wins.averagedValue() * 100 : move.win;
 }
 
-void SimmedMove::setNumberLevels(unsigned int number)
+void LevelList::setNumberLevels(unsigned int number)
 {
-	while (levels.size() < number)
-		levels.push_back(Level());
+	while (size() < number)
+		push_back(Level());
 }
 
 void SimmedMove::clear()
@@ -618,8 +743,8 @@ UVOStream& operator<<(UVOStream &o, const Quackle::PositionStatistics &value)
 
 UVOStream& operator<<(UVOStream &o, const Quackle::Level &level)
 {
-	for (Quackle::PositionStatisticsList::const_iterator it = level.statistics.begin(); it != level.statistics.end(); ++it)
-		o << *it;
+	for (const auto &it : level.statistics)
+		o << it;
     return o;
 }
 
@@ -627,9 +752,9 @@ UVOStream& operator<<(UVOStream &o, const Quackle::SimmedMove &move)
 {
 	o << "Simmed move " << move.move << ":";
 
-	int levelNumber = 1;
-	for (Quackle::LevelList::const_iterator it = move.levels.begin(); it != move.levels.end(); ++it, ++levelNumber)
-		o << endl << "level " << levelNumber << ": " << (*it);
+	int levelNumber = 0;
+	for (const auto &it : move.levels)
+		o << endl << "level " << ++levelNumber << ": " << it;
 	
 	o << endl;
 	o << "Being simmed: " << move.includeInSimulation() << endl;
@@ -641,9 +766,8 @@ UVOStream& operator<<(UVOStream &o, const Quackle::SimmedMove &move)
 
 UVOStream& operator<<(UVOStream& o, const Quackle::SimmedMoveList& moves)
 {
-	const Quackle::SimmedMoveList::const_iterator end(moves.end());
-	for (Quackle::SimmedMoveList::const_iterator it = moves.begin(); it != end; ++it)
-		o << (*it) << endl;
+	for (const auto &it : moves)
+		o << it << endl;
     return o;
 }
 

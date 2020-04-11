@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -115,7 +115,7 @@ inline bool Bag::empty() const
 
 inline int Bag::size() const
 {
-    return m_tiles.size();
+    return (int)m_tiles.size();
 }
 
 inline const LongLetterString &Bag::tiles() const

@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -89,6 +89,13 @@ TopLevel::TopLevel(QWidget *parent)
 
 TopLevel::~TopLevel()
 {
+	stopEverything();
+	for (const auto& it : m_otherOppoThreads)
+		it->wait();
+	for (const auto& it : m_oppoThreads)
+		it->wait();
+	kibitzThreadFinished();
+	computerPlayerDone();
 	QuackleIO::Queenie::cleanUp();
 	delete m_game;
 	delete m_simulator;
@@ -262,8 +269,10 @@ bool TopLevel::askToCarryOn(const QString &text)
 	return QMessageBox::question(this, tr("Verify Play - Quackle"), dialogText(text), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
 }
 
-void TopLevel::setCandidateMove(const Quackle::Move &move)
+void TopLevel::setCandidateMove(const Quackle::Move &move, bool *carryOnPtr)
 {
+	if (carryOnPtr != nullptr)
+		*carryOnPtr = true;
 	if (!m_game->hasPositions() || (move.action == Quackle::Move::Place && move.tiles().empty()))
 		return;
 
@@ -313,8 +322,7 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 					mb.addButton(QMessageBox::No);
 					QPushButton* mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
 					mb.exec();
-					if (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks)
-						carryOn = true;
+					carryOn = (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks);
 					if (mb.clickedButton() == mb_unknownRacks)
 						m_game->currentPosition().currentPlayer().setRacksAreKnown(false);
 				}
@@ -364,7 +372,11 @@ void TopLevel::setCandidateMove(const Quackle::Move &move)
 		}
 
 		if (!carryOn)
+		{
+			if (carryOnPtr != nullptr)
+				*carryOnPtr = false;
 			return;
+		}
 
 		if (playHasIllegalWords && QuackleIO::UtilSettings::self()->scoreInvalidAsZero)
 			prettiedMove.score = 0;
@@ -504,10 +516,10 @@ void TopLevel::stopEverything()
 	// stop simulation if it's going
 	simulate(false);
 
-	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end(); ++it)
-		(*it)->abort();
-	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end(); ++it)
-		(*it)->abort();
+	for (const auto& it : m_otherOppoThreads)
+		it->abort();
+	for (const auto& it : m_oppoThreads)
+		it->abort();
 }
 
 OppoThreadProgressBar *TopLevel::createProgressBarForThread(OppoThread *thread)
@@ -646,6 +658,11 @@ void TopLevel::initializeGame(const Quackle::PlayerList &players)
 		{
 			random_shuffle(newPlayers.begin(), newPlayers.end());
 			m_firstPlayerName = newPlayers.front().name();
+			if (all_of(newPlayers.begin(),
+					   newPlayers.end(),
+					   [&](const Quackle::Player& p) { return p.name() == prevFirst; }
+					   ))
+				break; // all player names are identical...break an infinite loop
 		}
 	}
 
@@ -806,7 +823,7 @@ void TopLevel::plugIntoMatrix(View *view)
 {
 	plugIntoBaseMatrix(view);
 
-	connect(view, SIGNAL(setCandidateMove(const Quackle::Move &)), this, SLOT(setCandidateMove(const Quackle::Move &)));
+	connect(view, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)), this, SLOT(setCandidateMove(const Quackle::Move &, bool *)));
 	connect(view, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SLOT(removeCandidateMoves(const Quackle::MoveList &)));
 	connect(view, SIGNAL(commit()), this, SLOT(commit()));
 	connect(view, SIGNAL(setRack(const Quackle::Rack &)), this, SLOT(setRack(const Quackle::Rack &)));
@@ -879,8 +896,8 @@ void TopLevel::kibitz()
 
 	if (confuseUser)
 	{
-		const int currentlyKibitzed = m_game->currentPosition().moves().size();
-		kibitz(currentlyKibitzed < kExtraPlaysToKibitz? kExtraPlaysToKibitz : currentlyKibitzed + kExtraPlaysToKibitz);
+		const size_t currentlyKibitzed = m_game->currentPosition().moves().size();
+		kibitz(currentlyKibitzed < kExtraPlaysToKibitz? kExtraPlaysToKibitz : (int)currentlyKibitzed + kExtraPlaysToKibitz);
 	}
 	else
 	{
@@ -914,6 +931,8 @@ void TopLevel::kibitz(int numberOfPlays, Quackle::ComputerPlayer *computerPlayer
 
 void TopLevel::kibitzThreadFinished()
 {
+	if (m_otherOppoThreads.begin() == m_otherOppoThreads.end())
+		return;
 	QString name;
 	QString rack;
 	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end(); )
@@ -1128,7 +1147,7 @@ void TopLevel::chooseLogfile()
 
 	fileDialog->setDirectory(userSpecifiedLogfile().isEmpty()? QDir::currentPath() : QFileInfo(userSpecifiedLogfile()).absolutePath());
 	fileDialog->setFileMode(QFileDialog::AnyFile);
-	fileDialog->setConfirmOverwrite(false);
+	fileDialog->setOption(QFileDialog::DontConfirmOverwrite);
 
 	if (fileDialog->exec())
 	{
@@ -1446,6 +1465,9 @@ void TopLevel::stopOutcraftyingCurrentPlayer()
 
 void TopLevel::computerPlayerDone()
 {
+	if (m_oppoThreads.begin() == m_oppoThreads.end())
+		return;
+
 	Quackle::MoveList moves;
 
 	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end(); )
@@ -1768,9 +1790,8 @@ void TopLevel::createMenu()
 
 	move->addSeparator();
 
-	QList<QAction *> kibitzAsActions = m_kibitzAsActions->actions();
-	for (QList<QAction *>::iterator it = kibitzAsActions.begin(); it != kibitzAsActions.end(); ++it)
-		move->addAction(*it);
+	for (const auto& it : m_kibitzAsActions->actions())
+		move->addAction(it);
 
 	move->addSeparator();
 
@@ -1789,9 +1810,8 @@ void TopLevel::createMenu()
 
 	QMenu *reports = menuBar()->addMenu(tr("Re&ports"));
 
-	QList<QAction *> reportAsActions = m_reportAsActions->actions();
-	for (QList<QAction *>::iterator it = reportAsActions.begin(); it != reportAsActions.end(); ++it)
-		reports->addAction(*it);
+	for (const auto& it : m_reportAsActions->actions())
+		reports->addAction(it);
 
 	reports->addSeparator();
 
@@ -1877,6 +1897,10 @@ void TopLevel::createWidgets()
 	QVBoxLayout *choicesLayout = new QVBoxLayout(m_choicesWidget);
 	Geometry::setupFramedLayout(choicesLayout);
 
+	m_frameWidget = new QFrame;
+	m_frameWidget->setFrameShape(QFrame::HLine);
+	m_frameWidget->setFrameShadow(QFrame::Sunken);
+
 	m_simulatorWidget = new QGroupBox(tr("Simulation"));
 	m_simulatorWidget->setFlat(true);
 	QVBoxLayout *simulatorLayout = new QVBoxLayout(m_simulatorWidget);
@@ -1955,6 +1979,7 @@ void TopLevel::createWidgets()
 
 	choicesLayout->addWidget(m_moveBox, 3);
 	choicesLayout->addWidget(m_noteEditor, 1);
+	choicesLayout->addWidget(m_frameWidget, 1);
 	choicesLayout->addWidget(m_simulatorWidget, 1);
 
 	m_history = new History;
@@ -1999,7 +2024,7 @@ QString TopLevel::playerString() const
 
 	bool begin = true;
 	int i = 0;
-	const int maximumIndex = players.size() - 1;
+	const size_t maximumIndex = players.size() - 1;
 	const Quackle::PlayerList::const_iterator end(players.end());
 	for (Quackle::PlayerList::const_iterator it = players.begin(); it != end; ++it, ++i)
 	{
@@ -2117,12 +2142,13 @@ void TopLevel::firstTimeRun()
 void TopLevel::about()
 {
 	QString aboutText = tr(
-"<p><b>Quackle</b> 1.0.4 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+"<p><b>Quackle</b> 1.0.4.1 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2016 by</p>"
+"<p>Copyright 2005-2019 by</p>"
 "<ul>"
 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
+"<li>John Fultz &lt;jfultz@wolfram.com&gt;</li>"
 "</ul>"
 "<p>Quackle is free, open-source software licensed under the terms of the GNU General Public License Version 3. See</p>"
 "<p><tt><a href=\"http://quackle.org/LICENSE\">http://quackle.org/LICENSE</a></tt></p>"
@@ -2137,9 +2163,16 @@ void TopLevel::about()
 		QString line = strm.readLine();
 		while (!line.isNull())
 		{
-			int pos = line.indexOf(':');
-			if (pos != -1 && pos + 1 < line.size())
-				aboutText += "<li>" + line.mid(pos + 1) + "</li>";
+			int startPos = line.indexOf(':');
+			if (startPos != -1 && startPos + 1 < line.size())
+			{
+				line = line.mid(startPos + 1);
+				int endPos = line.indexOf(':');
+				line = line.mid(0, endPos);
+				// Only include lines with a copyright (the word or the symbol) in them
+				if (line.indexOf("copyright", 0, Qt::CaseInsensitive) != -1 || line.indexOf(QChar(0xA9)) != -1)
+					aboutText += "<li>" + line + "</li>";
+			}
 			line = strm.readLine();
 		}
 		fclose(file);

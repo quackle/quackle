@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -94,14 +94,14 @@ bool Board::isConnected(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
-		const LetterString::const_iterator end(move.tiles().end());
-		for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+		for (const auto& it : move.tiles())
 		{
 			const int row = move.horizontal? move.startrow : i + move.startrow;
 			const int column = move.horizontal? i + move.startcol : move.startcol;
 
 			if (isNonempty(row, column) || (row > 0 && isNonempty(row - 1, column)) || (column > 0 && isNonempty(row, column - 1)) || (row < m_height - 1 && isNonempty(row + 1, column)) || (column < m_width - 1 && isNonempty(row, column + 1)))
 				return true;
+			i++;
 		}
 	}
 
@@ -116,14 +116,14 @@ bool Board::isUnacceptableOpeningMove(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
-		const LetterString::const_iterator end(move.tiles().end());
-		for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+		for (const auto& it : move.tiles())
 		{
 			const int row = move.horizontal? move.startrow : i + move.startrow;
 			const int column = move.horizontal? i + move.startcol : move.startcol;
 
 			if (row == QUACKLE_BOARD_PARAMETERS->startRow() && column == QUACKLE_BOARD_PARAMETERS->startColumn())
 				return false;
+			i++;
 		}
 	}
 
@@ -227,13 +227,12 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 			if (move.horizontal)
 			{
 				int i = 0;
-				const LetterString::const_iterator end(move.tiles().end());
-				for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+				for (const auto& it : move.tiles())
 				{
 					if (m_letters[move.startrow][i + move.startcol] == QUACKLE_NULL_MARK)
 					{
 						word.clear();
-						word += *it;
+						word += it;
 
 						int startRow = 0;
 						for (int j = move.startrow - 1; j >= 0; --j)
@@ -262,18 +261,18 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 							ret.push_back(Move::createPlaceMove(startRow, (i + move.startcol), /* vertical */ false, word));
 						}
 					}
+					i++;
 				}
 			}
 			else
 			{
 				int i = 0;
-				const LetterString::const_iterator end(move.tiles().end());
-				for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+				for (const auto& it : move.tiles())
 				{
 					if (m_letters[i + move.startrow][move.startcol] == QUACKLE_NULL_MARK)
 					{
 						word.clear();
-						word += *it;
+						word += it;
 
 						int startColumn = 0;
 						for (int j = move.startcol - 1; j >= 0; --j)
@@ -301,17 +300,18 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 						{
 							ret.push_back(Move::createPlaceMove((i + move.startrow), startColumn, /* horizontal */ true, word));
 						}
+						i++;
 					}
 				}
 			}
 		}
 	}
 
-	for (MoveList::iterator it = ret.begin(); it != ret.end(); ++it)
+	for (auto& it : ret)
 	{
-		(*it).setTiles(sanitizedTilesOfMove(*it));
-		(*it).setPrettyTiles(prettyTilesOfMove(*it));
-		(*it).score = score(*it);
+		it.setTiles(sanitizedTilesOfMove(it));
+		it.setPrettyTiles(prettyTilesOfMove(it));
+		it.score = score(it);
 	}
 
 	return ret;

@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,19 +50,19 @@ void View::positionChanged(const Quackle::GamePosition &position)
 
 void View::movesChanged(const Quackle::MoveList &moves)
 {
-	for (QList<View *>::iterator it = m_subviews.begin(); it != m_subviews.end(); ++it)
-		(*it)->movesChanged(moves);
+	for (auto& it : m_subviews)
+		it->movesChanged(moves);
 }
 
 void View::connectSubviewSignals()
 {
-	for (QList<View *>::iterator it = m_subviews.begin(); it != m_subviews.end(); ++it)
+	for (auto& it : m_subviews)
 	{
-		connect(*it, SIGNAL(statusMessage(const QString &)), this, SIGNAL(statusMessage(const QString &)));
-		connect(*it, SIGNAL(setCandidateMove(const Quackle::Move &)), this, SIGNAL(setCandidateMove(const Quackle::Move &)));
-		connect(*it, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)));
-		connect(*it, SIGNAL(commit()), this, SIGNAL(commit()));
-		connect(*it, SIGNAL(setRack(const Quackle::Rack &)), this, SIGNAL(setRack(const Quackle::Rack &)));
+		connect(it, SIGNAL(statusMessage(const QString &)), this, SIGNAL(statusMessage(const QString &)));
+		connect(it, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)), this, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)));
+		connect(it, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)));
+		connect(it, SIGNAL(commit()), this, SIGNAL(commit()));
+		connect(it, SIGNAL(setRack(const Quackle::Rack &)), this, SIGNAL(setRack(const Quackle::Rack &)));
 	}
 }
 

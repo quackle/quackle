@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ QuickEntryRack::QuickEntryRack(QWidget *parent)
 	QPushButton *shuffleButton = new QPushButton(tr("Shu&ffle"));
 	connect(shuffleButton, SIGNAL(clicked()), this, SLOT(shuffle()));
 
-	m_label = new QLabel(tr("&Rack"));
+	m_label = new QLabel(tr("&Rack:"));
 	m_label->setBuddy(m_lineEdit);
 	textLayout->addWidget(m_label, 1);
 	textLayout->addWidget(m_lineEdit, 4);
@@ -71,7 +71,6 @@ void QuickEntryRack::positionChanged(const Quackle::GamePosition &position)
 	m_rackTiles = position.currentPlayer().rack().tiles();
 	QString tiles = QuackleIO::Util::letterStringToQString(m_rackTiles);
 	m_lineEdit->setText(tiles);
-	m_label->setText(QString("%1's &rack:").arg(QuackleIO::Util::uvStringToQString(position.currentPlayer().name())));
 	m_tiles->setText(m_rackTiles);
 }
 
@@ -141,6 +140,7 @@ GraphicalRack::setText(const Quackle::LetterString &text)
         info.isOnRack = true;
 		info.letter = text[i];
 		info.tileType = Quackle::Board::LetterTile;
+		tile.setDevicePixelRatio(devicePixelRatio());
 		tile.setInformation(info);
 		tile.setSideLength(50);
 		tile.prepare();
@@ -187,6 +187,7 @@ GraphicalRack::dropEvent (QDropEvent* event)
         QPoint sourcePos;
         QPoint offset;
         dataStream >> pixmap >> sourcePos >> offset;
+        pixmap.setDevicePixelRatio(devicePixelRatio());
 
         QLabel* droppedTile = new QLabel;
         droppedTile->setPixmap(pixmap);
@@ -267,7 +268,7 @@ GraphicalRack::mousePressEvent (QMouseEvent* event)
 
     child->setPixmap (tempPixmap);
 
-    if (drag->start (Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction) {
+    if (drag->exec(Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction) {
         child->close();
     }
     else {

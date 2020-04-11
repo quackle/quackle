@@ -486,14 +486,14 @@ void GetOpt::setSwitch( const Option &o )
   Registers an option with the short name \a s and long name \a l to
   the parser. If this option is found during parsing the value will
   be stored in the string pointed to by \a v. By default \a *v will
-  be initialized to \c QString::null.
+  be initialized to \c QString().
  */
 void GetOpt::addOption( char s, const QString &l, QString *v )
 {
 	Option opt( OArg1, s, l );
 	opt.stringValue = v;
 	addOption( opt );
-	*v = QString::null;
+	*v = QString();
 }
 
 /**
@@ -548,7 +548,7 @@ opt.parse();
  */
 void GetOpt::addRepeatableOption( char s, QStringList *v )
 {
-	Option opt( ORepeat, s, QString::null );
+	Option opt( ORepeat, s, QString() );
 	opt.listValue = v;
 	addOption( opt );
 	*v = QStringList();
@@ -599,13 +599,13 @@ void GetOpt::addOptionalOption( char s, const QString &l,
 	opt.stringValue = v;
 	opt.def = def;
 	addOption( opt );
-	*v = QString::null;
+	*v = QString();
 }
 
 /**
   Registers a required command line argument \a name. If the argument
   is missing parse() will return false to indicate an error and \a *v
-  will remain with its default QString::null value. Otherwise \a *v
+  will remain with its default QString() value. Otherwise \a *v
   will be set to the value of the argument.
 
 Example:
@@ -634,7 +634,7 @@ void GetOpt::addArgument( const QString &name, QString *v )
 	opt.stringValue = v;
 	reqArg = opt;
 	++numReqArgs;
-	*v = QString::null;
+	*v = QString();
 }
 
 /**
@@ -648,7 +648,7 @@ void GetOpt::addOptionalArgument( const QString &name, QString *v )
 	opt.stringValue = v;
 	optArg = opt;
 	++numOptArgs;
-	*v = QString::null;
+	*v = QString();
 }
 
 /**

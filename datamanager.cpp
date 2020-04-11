@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,9 @@ DataManager::DataManager()
 	m_self = this;
 	setAppDataDirectory(".");
 	setUserDataDirectory(".");
-    seedRandomNumbers((int)time(NULL));
+
+	seed_seq session_seed = {(unsigned) random_device{}(), (unsigned) time(nullptr)};
+	seedRandomNumbers(session_seed);
 
 	m_alphabetParameters = new EnglishAlphabetParameters;
 	m_evaluator = new CatchallEvaluator;
@@ -137,6 +139,8 @@ string DataManager::findDataFile(const string &subDirectory, const string &lexic
 	string fname = makeDataFilename(subDirectory, lexicon, file, true);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, lexicon, file, false);
+	if (!fileExists(fname) && lexicon.substr(0,3) == "csw")
+		fname = makeDataFilename(subDirectory, "csw", file, false);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, m_backupLexicon, file, false);
 	if (!fileExists(fname))
@@ -176,10 +180,18 @@ string DataManager::makeDataFilename(const string &subDirectory, const string &f
 
 void DataManager::seedRandomNumbers(unsigned int seed)
 {
-    srand(seed);
+	lock_guard<mutex> lock(m_RngMutex);
+	m_mersenneTwisterRng.seed(seed);
 }
 
-int DataManager::randomNumber()
+void DataManager::seedRandomNumbers(seed_seq& seed)
 {
-	return rand();
+	lock_guard<mutex> lock(m_RngMutex);
+	m_mersenneTwisterRng.seed(seed);
+}
+
+int DataManager::randomInteger(int low, int high)
+{
+	lock_guard<mutex> lock(m_RngMutex);
+	return uniform_int_distribution<>(low, high)(m_mersenneTwisterRng);
 }

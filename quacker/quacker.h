@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ class QAction;
 class QActionGroup;
 class QComboBox;
 class QCheckBox;
+class QFrame;
 class QGroupBox;
 class QLineEdit;
 class QPushButton;
@@ -176,7 +177,7 @@ protected slots:
 	void statusMessage(const QString &mesage);
 
 	// set game's candidate to move and update views
-	void setCandidateMove(const Quackle::Move &move);
+	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
 	void removeCandidateMoves(const Quackle::MoveList &moves);
 
 	// set current player's rack and update views
@@ -204,7 +205,7 @@ protected slots:
 	// update history views when a new position is added
 	void updateHistoryViews();
 
-	void setCaption(const QString &text = QString::null);
+	void setCaption(const QString &text = QString());
 	void setModified(bool modified);
 
 	// main timer
@@ -320,6 +321,7 @@ private:
 	QWidget *m_choicesWidget;
 	View *m_moveBox;
 	View *m_noteEditor;
+	QFrame *m_frameWidget;
 
 	Settings *m_settings;
 

@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -171,9 +171,9 @@ void PlayerTab::populatePlayers()
 	else
 		playerIds  = settings.value("quackle/newgame/playerIds", QList<QVariant>()).toList();
 
-	for (QList<QVariant>::iterator it = playerIds.begin(); it != playerIds.end(); ++it)
+	for (const auto& it : playerIds)
 	{
-		int id = (*it).toInt();
+		int id = it.toInt();
 
 		QString infoString = settings.value(QString("quackle/newgame/players/%1").arg(id)).toString();
 		if (infoString.isNull())
@@ -230,7 +230,7 @@ void PlayerTab::addPlayer(const Quackle::Player &player)
 	setItem(item, player);
 
 	m_playersTreeWidget->clearSelection();
-	m_playersTreeWidget->setItemSelected(item, true);
+	item->setSelected(true);
 }
 
 Quackle::ComputerPlayer *PlayerTab::defaultComputerPlayer() const
@@ -296,11 +296,11 @@ void PlayerTab::addPlayer()
 void PlayerTab::removePlayer()
 {
 	QList<QTreeWidgetItem *> items = m_playersTreeWidget->selectedItems();
-	for (QList<QTreeWidgetItem *>::iterator it = items.begin(); it != items.end(); ++it)
+	for (auto& it : items)
 	{
-		delete *it;
+		delete it;
 
-		QList<Quackle::Player> correspondingPlayers(m_playerMap.keys(*it));
+		QList<Quackle::Player> correspondingPlayers(m_playerMap.keys(it));
 
 		if (correspondingPlayers.size() > 0)
 			m_playerMap.remove(correspondingPlayers.front());

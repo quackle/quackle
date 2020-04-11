@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -139,7 +139,7 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 	buttonBox2->addStretch();
 	buttonBox2->addWidget(m_closeButton);
 
-	filenameChanged(QString::null); // disable write button initially
+	filenameChanged(QString()); // disable write button initially
 
 	connect(m_filenameEdit, SIGNAL(textChanged(const QString &)), this, SLOT(filenameChanged(const QString &)));
 	connect(m_writeButton, SIGNAL(clicked()), this, SLOT(writeButtonClicked()));
@@ -244,15 +244,15 @@ void ListerDialog::openFile()
 				line = line.left(quoteMarkIndex).trimmed();
 
 			QStringList words(line.split(" "));
-			for (QStringList::Iterator it = words.begin(); it != words.end(); ++it)
+			for (const auto& it : words)
 			{
 				bool found = false;
-				Dict::WordList results(QuackleIO::DictFactory::querier()->query(*it));
-				for (Dict::WordList::Iterator resultsIt = results.begin(); resultsIt != results.end(); ++resultsIt)
+				Dict::WordList results(QuackleIO::DictFactory::querier()->query(it));
+				for (const auto& resultsIt : results)
 				{
-					if ((*resultsIt).word == *it)
+					if (resultsIt.word == it)
 					{
-						m_wordList.append(*resultsIt);
+						m_wordList.append(resultsIt);
 						found = true;
 						break;
 					}
@@ -324,7 +324,7 @@ QString ListerDialog::run(QWidget *parent, const QString &settingsGroup, const Q
 	if (accepted)
 		return dialog.filename();
 
-	return QString::null;
+	return QString();
 }
 
 void ListerDialog::saveSettings()
@@ -394,9 +394,8 @@ void ListerDialog::populateListBox()
 {
 	QStringList words;
 
-	Dict::WordList::Iterator end = m_wordList.end();
-	for (Dict::WordList::Iterator it = m_wordList.begin(); it != end; ++it)
-		words.append((*it).word + ((*it).british? "#" : ""));
+	for (const auto& it : m_wordList)
+		words.append(it.word + (it.british? "#" : ""));
 
 	m_listBox->clear();
 	m_listBox->addItems(words);
@@ -408,11 +407,10 @@ QMap<QString, Dict::WordList> ListerDialog::anagramMap()
 {
 	QMap<QString, Dict::WordList> anagramSets;
 
-	Dict::WordList::Iterator end = m_wordList.end();
-	for (Dict::WordList::Iterator it = m_wordList.begin(); it != end; ++it)
+	for (const auto& it : m_wordList)
 	{
-		QString alpha = QuackleIO::DictFactory::querier()->alphagram((*it).word);
-		anagramSets[alpha].append(*it);
+		QString alpha = QuackleIO::DictFactory::querier()->alphagram(it.word);
+		anagramSets[alpha].append(it);
 	}
 
 	return anagramSets;
@@ -421,13 +419,13 @@ QMap<QString, Dict::WordList> ListerDialog::anagramMap()
 QString ListerDialog::writeList(bool alphagrams)
 {
 	if (m_filename.isEmpty())
-		return QString::null;
+		return QString();
 
 	QFile file(m_filename);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
 		QMessageBox::critical(this, windowTitleWithAppName(tr("Error writing file")), tr("Could not open %1 for writing.").arg(m_filename));
-		return QString::null;
+		return QString();
 	}
 
 	QTextStream stream(&file);
@@ -435,12 +433,11 @@ QString ListerDialog::writeList(bool alphagrams)
 
 	QMap<QString, Dict::WordList> map(anagramMap());
 
-	Dict::WordList::Iterator end = m_wordList.end();
-	for (Dict::WordList::Iterator it = m_wordList.begin(); it != end; ++it)
+	for (const auto& it : m_wordList)
 	{
 		if (alphagrams)
 		{
-			QString alphagram(QuackleIO::DictFactory::querier()->alphagram((*it).word));
+			QString alphagram(QuackleIO::DictFactory::querier()->alphagram(it.word));
 			if (map.contains(alphagram))
 			{
 				stream << alphagram << "\n";
@@ -448,7 +445,7 @@ QString ListerDialog::writeList(bool alphagrams)
 			}
 		}
 		else
-			stream << (*it).word << "\n";
+			stream << it.word << "\n";
 	}
 	
 	file.close();
@@ -554,12 +551,12 @@ void PlayabilityFilter::apply()
 		Dict::Word newEntry;
 		newEntry.word = it.key();
 
-		for (Dict::WordList::Iterator extIt = it.value().begin(); extIt != it.value().end(); ++extIt)
+		for (const auto& extIt : it.value())
 		{
 			if (useProb)
-				newEntry.probability += (*extIt).probability;
+				newEntry.probability += extIt.probability;
 			else
-				newEntry.playability += (*extIt).playability;
+				newEntry.playability += extIt.playability;
 		}
 
 		intermediateList.append(newEntry);
@@ -571,12 +568,11 @@ void PlayabilityFilter::apply()
 		intermediateList.setSortBy(Dict::WordList::Probability);
 	else
 		intermediateList.setSortBy(Dict::WordList::Playability);
-	qSort(intermediateList);
+	std::sort(intermediateList.begin(), intermediateList.end());
 
 	Dict::WordList filteredList;
 
-	Dict::WordList::Iterator intermediateEnd = intermediateList.end();
-	for (Dict::WordList::Iterator it = intermediateList.begin(); it != intermediateEnd; ++it)
+	for (const auto& it : intermediateList)
 	{
 		++index;
 
@@ -586,7 +582,7 @@ void PlayabilityFilter::apply()
 		if (index < minimumRank)
 			continue;
 
-		filteredList += map[(*it).word];
+		filteredList += map[it.word];
 	}
 
 	m_dialog->setWordList(filteredList);
@@ -621,11 +617,10 @@ void RegexFilter::apply()
 	
 	Dict::WordList filteredList;
 	const Dict::WordList &list = m_dialog->wordList();;
-	Dict::WordList::ConstIterator end = list.end();
 
-	for (Dict::WordList::ConstIterator it = list.begin(); it != end; ++it)
-		if (regexp.indexIn((*it).word) >= 0)
-			filteredList.append(*it);
+	for (const auto& it : list)
+		if (regexp.indexIn(it.word) >= 0)
+			filteredList.append(it);
 
 	m_dialog->setWordList(filteredList);
 }
@@ -664,23 +659,22 @@ void NumAnagramsFilter::apply()
 
 	QMap<QString, Dict::WordList> map(m_dialog->anagramMap());
 
-	Dict::WordList::Iterator end = m_dialog->wordList().end();
-	for (Dict::WordList::Iterator it = m_dialog->wordList().begin(); it != end; ++it)
+	for (const auto& it : m_dialog->wordList())
 	{
 		int twl = 0;
 		int british = 0;
-		QString alphagram(QuackleIO::DictFactory::querier()->alphagram((*it).word));
+		QString alphagram(QuackleIO::DictFactory::querier()->alphagram(it.word));
 
-		for (Dict::WordList::Iterator word = map[alphagram].begin(); word != map[alphagram].end(); ++word)
+		for (const auto& word : map[alphagram])
 		{
-			if ((*word).british)
+			if (word.british)
 				british++;
 			else
 				twl++;
 		}
 
 		if ((twl == numTwlAnagrams) && (british == numOswOnlyAnagrams))
-			filteredList.append(*it);
+			filteredList.append(it);
 	}
 
 	m_dialog->setWordList(filteredList);
@@ -709,11 +703,10 @@ void KeepBritishFilter::apply()
 {
 	Dict::WordList filteredList;
 	const Dict::WordList &list = m_dialog->wordList();;
-	Dict::WordList::ConstIterator end = list.end();
 
-	for (Dict::WordList::ConstIterator it = list.begin(); it != end; ++it)
-		if ((*it).british)
-			filteredList.append(*it);
+	for (const auto& it : list)
+		if (it.british)
+			filteredList.append(it);
 
 	m_dialog->setWordList(filteredList);
 }

@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -83,9 +83,9 @@ GraphicalBoardFrame::GraphicalBoardFrame(QWidget *parent)
 
     QColor color(PixmapCacher::self()->markColor);
     QPalette customPalette;
-    customPalette.setColor(QPalette::Light, color.light(s_highlightFactor));
+    customPalette.setColor(QPalette::Light, color.lighter(s_highlightFactor));
     customPalette.setColor(QPalette::Mid, color);
-    customPalette.setColor(QPalette::Dark, color.dark(130));
+    customPalette.setColor(QPalette::Dark, color.darker(130));
     setPalette(customPalette);
 
     PixmapCacher::self()->tileFont = font();
@@ -192,7 +192,8 @@ void GraphicalBoardFrame::generateBoardPixmap(QPixmap *pixmap)
         return;
     }
 
-    *pixmap = QPixmap(m_sizeForBoard);
+    *pixmap = QPixmap(m_sizeForBoard * devicePixelRatio());
+    pixmap->setDevicePixelRatio(devicePixelRatio());
     QPainter painter(pixmap);
 
     for (QSize currentTile(0, 0); currentTile.height() < m_boardSize.height(); currentTile.setHeight(currentTile.height() + 1))
@@ -413,6 +414,7 @@ void GraphicalBoardFrame::recreateWidgets()
         {
             TileWidget *newTile = new TileWidget;
 
+            newTile->setDevicePixelRatio(devicePixelRatio());
             newTile->setLocation(currentTile);
             newTile->setAlwaysShowVerboseLabels(m_alwaysShowVerboseLabels);
             newTile->setOriginalInformation(emptyBoard.tileInformation(currentTile.height(), currentTile.width()));
@@ -425,6 +427,7 @@ void GraphicalBoardFrame::recreateWidgets()
     {
         MarkWidget *newMark = new MarkWidget;
 
+        newMark->setDevicePixelRatio(devicePixelRatio());
         if (row == 0)
             newMark->setCapstone();
         else
@@ -436,7 +439,10 @@ void GraphicalBoardFrame::recreateWidgets()
     for (int col = 1; col <= m_boardSize.width(); ++col)
     {
         MarkWidget *newMark = new MarkWidget;
+
+        newMark->setDevicePixelRatio(devicePixelRatio());
         newMark->setCol(col);
+
         addMark(QSize(col, 0), newMark);
     }
 }
@@ -745,7 +751,7 @@ void GraphicalBoardFrame::deleteHandler()
 
 void GraphicalBoardFrame::submitHandler()
 {
-    QTimer::singleShot(0, this, SLOT(setGlobalCandidate()));
+    QTimer::singleShot(0, this, [this] {setGlobalCandidate(nullptr);} );
 }
 
 void GraphicalBoardFrame::commitHandler()
@@ -753,7 +759,7 @@ void GraphicalBoardFrame::commitHandler()
     QTimer::singleShot(0, this, SLOT(setAndCommitGlobalCandidate()));
 }
 
-void GraphicalBoardFrame::setGlobalCandidate()
+void GraphicalBoardFrame::setGlobalCandidate(bool *carryOn)
 {
     if (m_candidate.action == Quackle::Move::Place && m_candidate.wordTilesWithNoPlayThru().empty())
     {
@@ -763,18 +769,20 @@ void GraphicalBoardFrame::setGlobalCandidate()
 
     if (m_candidate.wordTilesWithNoPlayThru().length() == 1) 
     {
-        emit setCandidateMove(flip(m_candidate));
+        emit setCandidateMove(flip(m_candidate), carryOn);
     }
     else
     {
-        emit setCandidateMove(m_candidate);
+        emit setCandidateMove(m_candidate, carryOn);
     }
 }
 
 void GraphicalBoardFrame::setAndCommitGlobalCandidate()
 {
-    setGlobalCandidate();
-    emit commit();
+    bool carryOn = false;
+    setGlobalCandidate(&carryOn);
+    if (carryOn)
+        emit commit();
 }
 
 void GraphicalBoardFrame::appendHandler(const QString &text, bool shiftPressed)
@@ -989,7 +997,7 @@ void PixmapCacher::readTheme(const QString& themeFile)
 
     // tiles on rack will be of different sizes and thus are slightly
     // altered to fool the pixmap cacher
-    rackColor = letterColor.light(101);
+    rackColor = letterColor.lighter(101);
 
     DLSColor = QColor(settings.value("DLS", "cornflowerblue").toString());
     TLSColor = QColor(settings.value("TLS", "slateblue").toString());
@@ -1078,6 +1086,11 @@ void TileWidget::setOriginalInformation(const Quackle::Board::TileInformation &o
 void TileWidget::setLocation(const QSize &location)
 {
     m_location = location;
+}
+
+void TileWidget::setDevicePixelRatio(qreal ratio)
+{
+    m_devicePixelRatio = ratio;
 }
 
 void TileWidget::setCemented(bool cemented)
@@ -1226,7 +1239,7 @@ QString TileWidget::letterText()
                     return QString("%1WS").arg(m_information.bonusMultiplier);
             }
 
-            return QString::null;
+            return QString();
         }
     }
     else
@@ -1292,17 +1305,17 @@ QString TileWidget::miniText()
     if (m_information.letter != QUACKLE_NULL_MARK && QuackerSettings::self()->scoreLabels)
     {   
         if (m_information.isBlank)
-            return QString::null;
+            return QString();
         else
             return QString::number(QUACKLE_ALPHABET_PARAMETERS->score(m_information.letter));
     }
     else
-        return QString::null;
+        return QString();
 }
 
 QColor TileWidget::miniTextColor()
 {
-    return tileColor().light(170);
+    return tileColor().lighter(170);
 }
 
 QFont TileWidget::miniFont()
@@ -1351,7 +1364,8 @@ QPixmap TileWidget::generateTilePixmap()
     const QPointF midpoint((double)(currentSize.width() + borderWidth) / 2, (double)(currentSize.height() + borderWidth) / 2);
     const QColor color(tileColor());
 
-    QPixmap ret(currentSize);
+    QPixmap ret(currentSize * m_devicePixelRatio);
+    ret.setDevicePixelRatio(m_devicePixelRatio);
 
     if (PixmapCacher::self()->contains(color))
         ret = PixmapCacher::self()->get(color);
@@ -1364,8 +1378,8 @@ QPixmap TileWidget::generateTilePixmap()
         //const QColor outerColor(backgroundColor());
 
         QRadialGradient gradient(QPointF(radius, radius), radius * 3, QPointF(radius / 3, radius / 3));
-        gradient.setColorAt(0, color.light(GraphicalBoardFrame::s_highlightFactor));
-        gradient.setColorAt(.95, color.dark(GraphicalBoardFrame::s_highlightFactor));
+        gradient.setColorAt(0, color.lighter(GraphicalBoardFrame::s_highlightFactor));
+        gradient.setColorAt(.95, color.darker(GraphicalBoardFrame::s_highlightFactor));
 
         QPainter painter(&ret);
         painter.setBrush(gradient);
@@ -1373,7 +1387,7 @@ QPixmap TileWidget::generateTilePixmap()
         painter.drawEllipse((int)(midpoint.x() - radius), (int)(midpoint.y() - radius), (int)(radius * 2), (int)(radius * 2));
 
         QPalette customPalette;
-        customPalette.setColor(QPalette::Light, color.light(GraphicalBoardFrame::s_highlightFactor));
+        customPalette.setColor(QPalette::Light, color.lighter(GraphicalBoardFrame::s_highlightFactor));
         customPalette.setColor(QPalette::Dark, color);
         customPalette.setColor(QPalette::Mid, color);
 
@@ -1467,7 +1481,7 @@ void MarkWidget::setCol(int col)
 void MarkWidget::setCapstone()
 {
     m_capstone = true;
-    m_letterText = QString::null;
+    m_letterText = QString();
 }
 
 void MarkWidget::setSideLength(int sideLength)
@@ -1488,11 +1502,11 @@ QColor MarkWidget::tileColor()
 {
     // we slightly alter colors to fool the pixmap cacher!
     if (m_capstone)
-        return PixmapCacher::self()->markColor.light(101);
+        return PixmapCacher::self()->markColor.lighter(101);
     else if (m_horizontal)
         return PixmapCacher::self()->markColor;
     else
-        return PixmapCacher::self()->markColor.dark(101);
+        return PixmapCacher::self()->markColor.darker(101);
 }
 
 QColor MarkWidget::letterTextColor()

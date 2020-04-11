@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -61,6 +61,9 @@ private:
 
 int main(int argc, char **argv)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 0))
+	QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+#endif
 	QuackerApplication a(argc, argv);
 	TopLevel topLevel;
 	a.setTopLevel(&topLevel);

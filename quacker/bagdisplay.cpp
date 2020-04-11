@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,10 +58,9 @@ void BagDisplay::positionChanged(const Quackle::GamePosition &position)
 	showTiles(position.unseenBag().tiles());
 
 	// Birthday
-	const Quackle::PlayerList &players = position.players();
-	for (Quackle::PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
+	for (const auto& it : position.players())
 	{
-		if ((*it).name() == "zorbonauts")
+		if (it.name() == "zorbonauts")
 		{
 			m_label->setText(tr("The bag is collapsed in a transparent dead jellyfish-like heap on the table while flies buzz round"));
 			break;
@@ -106,7 +105,12 @@ void BagDisplay::showTiles(const Quackle::LongLetterString &tiles)
 			line += sanitizedQString;
 		}
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+		// Kill Qt 5.13 deprecation warning without breaking pre-5.11 builds
+		const int lineWidth = metrics.horizontalAdvance(line);
+#else
 		const int lineWidth = metrics.width(line);
+#endif
 		if (lineWidth > maxLineWidth)
 			maxLineWidth = lineWidth;
 

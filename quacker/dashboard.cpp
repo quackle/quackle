@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ Dashboard::~Dashboard()
 void Dashboard::historyChanged(const Quackle::History &history)
 {
 	const Quackle::PlayerList players(history.currentPosition().endgameAdjustedScores());
-	const int numberOfPlayers = players.size();
+	const size_t numberOfPlayers = players.size();
 	const bool gameOver = history.currentPosition().gameOver();
 
 	while (m_briefs.size() > numberOfPlayers)

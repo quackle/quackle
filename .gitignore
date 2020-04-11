@@ -3,6 +3,7 @@
 .tags*
 .qmake.stash
 .vs
+build*
 obj
 Makefile
 !emscripten/Makefile

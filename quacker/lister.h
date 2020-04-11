@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,11 +43,11 @@ Q_OBJECT
 public:
 	enum ListerFlags { FullLister = 0x0000, IgnoreBritishness = 0x0001, ProbabilityInsteadOfPlayability = 0x0002, NothingToReturn = 0x0004 };
 
-	ListerDialog(QWidget *parent, const QString &settingsGroup, const QString &appName = QString::null, int flags = FullLister);
+	ListerDialog(QWidget *parent, const QString &settingsGroup, const QString &appName = QString(), int flags = FullLister);
 	~ListerDialog();
 
 	// use this for modal running! settingsGroup is like "letterbox"
-	static QString run(QWidget *parent, const QString &settingsGroup, const QString &appName = QString::null, int flags = FullLister);
+	static QString run(QWidget *parent, const QString &settingsGroup, const QString &appName = QString(), int flags = FullLister);
 
 	Dict::WordList &wordList();
 	void setWordList(Dict::WordList list);

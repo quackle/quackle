@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@ protected slots:
     void commitHandler();
     void appendHandler(const QString &text, bool shiftPressed);
 
-    void setGlobalCandidate();
+    void setGlobalCandidate(bool *carryOn); // returns false if the user canceled a badly formed move
     void setAndCommitGlobalCandidate();
 
     virtual void tileClicked(const QSize &tileLocation, const QMouseEvent * /* event */);
@@ -244,6 +244,7 @@ public:
 
     virtual void setOriginalInformation(const Quackle::Board::TileInformation &originalInformation);
     virtual void setLocation(const QSize &location);
+    virtual void setDevicePixelRatio(qreal ratio);
 
     virtual void setCemented(bool cemented);
     bool cemented() const;
@@ -292,6 +293,7 @@ protected:
 
     QSize m_size;
     QPixmap m_pixmap;
+    qreal m_devicePixelRatio = 1.0;
 
     bool shouldShowVerboseLabels() const;
 

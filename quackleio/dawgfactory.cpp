@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -218,7 +218,7 @@ void DawgFactory::Node::print(vector< Node* > &nodelist)
 	if (!deleted)
 	{
 		//cout << "  Setting pointer to " << nodelist.size() << " before I push_back the children." << endl;
-		pointer = nodelist.size();
+		pointer = (int)nodelist.size();
 	}
 	else
 	{
@@ -276,7 +276,7 @@ bool DawgFactory::Node::pushWord(const Quackle::LetterString &word, bool inSmall
 			n.pointer = 0;
 			n.lastchild = false;
 			children.push_back(n);
-			index = children.size() - 1;
+			index = (int)children.size() - 1;
 		}
 
 		added = children[index].pushWord(rest, inSmaller, pb);
