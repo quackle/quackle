@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -111,7 +111,7 @@ MoveList SmartBogowin::moves(int nmoves)
     //
     // Make the Simulator able to select racks randomly from the ProbableRackList
     if (m_parameters.inferring) {
-        int numPlayers = currentPosition().players().size();
+        int numPlayers = (int)currentPosition().players().size();
         UVcout << "numPlayers: " << numPlayers << endl;
         if (numPlayers == 2) {
             bool hasPreviousPosition;

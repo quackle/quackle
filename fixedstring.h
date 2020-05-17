@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ class FixedLengthString
     FixedLengthString(size_type n, char c);
     FixedLengthString(const char* s);
     FixedLengthString(const FixedLengthString& s);
+    FixedLengthString(FixedLengthString&& s);
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -125,7 +126,7 @@ FixedLengthString::FixedLengthString(size_type n, char c)
 inline
 FixedLengthString::FixedLengthString(const char* s)
 {
-    unsigned int sz = strlen(s);
+    size_t sz = strlen(s);
     assert(sz < maxSize);
     memcpy(m_data, s, sz);
     m_end = m_data + sz;
@@ -133,6 +134,14 @@ FixedLengthString::FixedLengthString(const char* s)
 
 inline
 FixedLengthString::FixedLengthString(const FixedLengthString& s)
+{
+    int sz = s.size();
+    memcpy(m_data, s.m_data, sz);
+    m_end = m_data + sz;
+}
+
+inline
+FixedLengthString::FixedLengthString(FixedLengthString&& s)
 {
     int sz = s.size();
     memcpy(m_data, s.m_data, sz);
@@ -182,7 +191,7 @@ FixedLengthString::erase(const iterator i)
 inline FixedLengthString::size_type
 FixedLengthString::length() const
 {
-    return m_end - m_data;
+    return FixedLengthString::size_type(m_end - m_data);
 }
 
 inline FixedLengthString

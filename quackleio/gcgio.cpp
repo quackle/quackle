@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	bool gameStarted = false;
 
 	QString line;
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	stream.setCodec(QTextCodec::codecForName("ISO-8859-1"));
 	while (!stream.atEnd())
 	{
 		line = stream.readLine();
@@ -329,7 +329,8 @@ bool GCGIO::canRead(QTextStream &stream) const
 void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 {
 	Quackle::PlayerList players = game.players();
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+    stream << "#character-encoding UTF-8" << endl;
 	for (Quackle::PlayerList::iterator it = players.begin(); it != players.end(); ++it)
 	{
 		stream << "#player" << (*it).id() + 1 << " " << Util::uvStringToQString((*it).abbreviatedName()) << " " << Util::uvStringToQString((*it).name()) << endl;

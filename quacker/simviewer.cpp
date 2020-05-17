@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -80,17 +80,16 @@ void AveragesTab::setSimulator(const Quackle::Simulator &simulator)
 
 	html += "<hr />";
 
-	const Quackle::SimmedMoveList::const_iterator end(simulator.simmedMoves().end());
-	for (Quackle::SimmedMoveList::const_iterator it = simulator.simmedMoves().begin(); it != end; ++it)
+	for (const auto& it : simulator.simmedMoves())
 	{
-		if (!(*it).includeInSimulation())
+		if (!it.includeInSimulation())
 			continue;
 
 		QString levels;
-		for (Quackle::LevelList::const_iterator levelIt = (*it).levels.begin(); levelIt != (*it).levels.end(); ++levelIt)
+		for (const auto& levelIt : it.levels)
 		{
 			QString plays;
-			for (Quackle::PositionStatisticsList::const_iterator valueIt = (*levelIt).statistics.begin(); valueIt != (*levelIt).statistics.end(); ++valueIt)
+			for (const auto& valueIt : levelIt.statistics)
 			{
 				//plays += QString("(%1) ").arg((*valueIt).score.averagedValue());
 				//plays += tr("(bingos %1) ").arg((*valueIt).bingos.averagedValue());
@@ -100,15 +99,15 @@ void AveragesTab::setSimulator(const Quackle::Simulator &simulator)
 				levels += QString("<li>%1</li>").arg(plays);
 		}
 
-		html += QString("<h3>%1</h3><ol>%2</ol>").arg(QuackleIO::Util::moveToDetailedString((*it).move)).arg(levels);
+		html += QString("<h3>%1</h3><ol>%2</ol>").arg(QuackleIO::Util::moveToDetailedString(it.move)).arg(levels);
 
 		html += "<ul>";
-		if ((*it).residual.hasValues())
-			html += tr("<li>Rack leftover value: %1</li>").arg((*it).residual.averagedValue());
-		if ((*it).gameSpread.hasValues())
-			html += tr("<li>Spread: %1 (sd %2)</li>").arg((*it).gameSpread.averagedValue()).arg((*it).gameSpread.standardDeviation());
-		html += tr("<li>Valuation: %1</li>").arg((*it).calculateEquity());
-		html += tr("<li>Bogowin %: %1%</li>").arg((*it).calculateWinPercentage());
+		if (it.residual.hasValues())
+			html += tr("<li>Rack leftover value: %1</li>").arg(it.residual.averagedValue());
+		if (it.gameSpread.hasValues())
+			html += tr("<li>Spread: %1 (sd %2)</li>").arg(it.gameSpread.averagedValue()).arg(it.gameSpread.standardDeviation());
+		html += tr("<li>Valuation: %1</li>").arg(it.calculateEquity());
+		html += tr("<li>Bogowin %: %1%</li>").arg(it.calculateWinPercentage());
 		html += "</ul>";
 	}
 

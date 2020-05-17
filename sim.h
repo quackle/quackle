@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,12 @@
 #ifndef QUACKLE_SIM_H
 #define QUACKLE_SIM_H
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <sstream>
+#include <thread>
 #include <vector>
 
 #include "alphabetparameters.h"
@@ -113,11 +119,19 @@ struct Level
     PositionStatisticsList statistics;
 };
 
-typedef vector<Level> LevelList;
+class LevelList : public vector<Level>
+{
+public:
+    // expand the levels list to be at least number long
+    void setNumberLevels(unsigned int number);
+};
 
 struct SimmedMove
 {
-    SimmedMove(const Move &_move) : move(_move), m_includeInSimulation(true) { }
+    SimmedMove(const Move &_move) :
+        move(_move),
+        m_id(++objectIdCounter),
+        m_includeInSimulation(true) { }
 
     // + our scores - their scores + residual, except if we have no levels,
     // in which case returns move.equity
@@ -127,14 +141,13 @@ struct SimmedMove
     // in which case returns move.win
     double calculateWinPercentage() const;
 
-    // expand the levels list to be at least number long
-    void setNumberLevels(unsigned int number);
-
     // clear all level values
     void clear();
 
     bool includeInSimulation() const;
     void setIncludeInSimulation(bool includeInSimulation);
+
+    long id() const { return m_id; };
 
     Move move;
     LevelList levels;
@@ -145,7 +158,10 @@ struct SimmedMove
     PositionStatistics getPositionStatistics(int level, int playerIndex) const;
 
 private:
+    long m_id;
     bool m_includeInSimulation;
+
+    static std::atomic_long objectIdCounter;
 };
 
 inline bool SimmedMove::includeInSimulation() const
@@ -160,11 +176,67 @@ inline void SimmedMove::setIncludeInSimulation(bool includeInSimulation)
 
 typedef vector<SimmedMove> SimmedMoveList;
 
+class SimmedMoveMessage
+{
+public:
+    long id;
+    Move move;
+    LevelList levels;
+    vector<double> score;
+    vector<double> bingos;
+    double residual;
+    double gameSpread;
+    double wins;
+
+    bool bogowin;
+    std::ostringstream logStream;
+    UVString xmlIndent;
+};
+
+class SimmedMoveConstants
+{
+public:
+    Game game;
+    int startPlayerId;
+    int playerCount;
+    int decimalTurns;
+    int levelCount;
+    bool ignoreOppos;
+    bool isLogging;
+};
+
+class SimmedMoveMessageQueue
+{
+public:
+    SimmedMoveMessageQueue() = default;
+    SimmedMoveMessageQueue(SimmedMoveMessageQueue&) = delete;
+    SimmedMoveMessageQueue(SimmedMoveMessageQueue&&) = delete;
+
+    void push(SimmedMoveMessage& msg);
+    SimmedMoveMessage pop();
+    std::pair<SimmedMoveMessage, bool> pop_or_terminate();
+    void send_terminate_all();
+    void send_terminate_one(const std::thread::id& id);
+
+    const SimmedMoveConstants& constants() { return m_constants; };
+    void setConstants(const SimmedMoveConstants& constants) { m_constants = constants; };
+
+private:
+    SimmedMoveConstants m_constants;
+    std::queue<SimmedMoveMessage> m_queue;
+    std::condition_variable m_condition;
+    std::mutex m_queueMutex;
+    bool m_terminateAll = false;
+    std::thread::id m_terminateOne;
+};
+
 class Simulator
 {
 public:
     // constructs a new simulator
     Simulator();
+    Simulator(const Simulator&) = delete;
+    Simulator(Simulator&&) = delete;
     ~Simulator();
 
     // Simulate moves on this position. Also initializes the
@@ -222,6 +294,9 @@ public:
     void setIgnoreOppos(bool ignore);
     bool ignoreOppos() const;
 
+    static void simThreadFunc(SimmedMoveMessageQueue& incoming, SimmedMoveMessageQueue& outgoing);
+    void setThreadCount(size_t count);
+
     // set values for all levels of all moves to zero
     void resetNumbers();
 
@@ -234,6 +309,11 @@ public:
 
     // simulate one iteration
     void simulate(int plies);
+    static void simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants);
+
+    // Incoporate the results of a single simulation into the
+    // cumulative results
+    void incorporateMessage(const SimmedMoveMessage &message);
 
     // Set oppo's rack to some partially-known tiles.
     // Set this to an empty rack if no tiles are known, so
@@ -282,7 +362,6 @@ protected:
     Rack m_partialOppoRack;
 
     Game m_originalGame;
-    Game m_simulatedGame;
     ComputerDispatch *m_dispatch;
 
     SimmedMoveList m_simmedMoves;
@@ -292,6 +371,11 @@ protected:
 
     int m_iterations;
     bool m_ignoreOppos;
+
+    // Pair of thread and bool requesting to terminate
+    std::vector<std::thread> m_threadPool;
+    SimmedMoveMessageQueue m_sendQueue;
+    SimmedMoveMessageQueue m_receiveQueue;
 };
 
 inline GamePosition &Simulator::currentPosition()

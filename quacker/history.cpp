@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ void History::historyChanged(const Quackle::History &history)
 		rowLabels.push_back(tr("Final"));
 
 	m_tableWidget->setRowCount(rowLabels.size());
-	m_tableWidget->setColumnCount(players.size());
+	m_tableWidget->setColumnCount((int)players.size());
 
 	Quackle::PlayerList currentScores(lastPosition.endgameAdjustedScores());
 

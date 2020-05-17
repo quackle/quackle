@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ void Bag::exch(const Move &move, Rack &rack)
 
 Letter Bag::pluck()
 {
-	return erase(DataManager::self()->randomNumber() % m_tiles.size());
+	return erase(DataManager::self()->randomInteger(0, (int)m_tiles.size() - 1));
 }
 
 bool Bag::removeLetters(const LetterString &letters)

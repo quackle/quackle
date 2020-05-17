@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -143,7 +143,7 @@ protected slots:
 	void mistakeDetector(const QString &text);
 	void timeout();
 
-	void setCaption(const QString &text = QString::null);
+	void setCaption(const QString &text = QString());
 	void setModified(bool modified);
 
 protected:

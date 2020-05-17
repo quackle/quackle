@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ void AlphabetParameters::setAlphabet(const Alphabet &alphabet)
 	Alphabet::const_iterator alphabetIt;
 	for (alphabetIt = m_alphabet.begin(); alphabetIt != alphabetEnd; ++alphabetIt) {
 		assert(m_letterLookup.find(alphabetIt->text()) == m_letterLookup.end());
-		m_letterLookup[alphabetIt->text()] = alphabetIt - m_alphabet.begin();
+		m_letterLookup[alphabetIt->text()] = int(alphabetIt - m_alphabet.begin());
 	}
 	
 }
@@ -138,7 +138,7 @@ void AlphabetParameters::setLetterParameter(Letter letter, const LetterParameter
 
 void AlphabetParameters::updateLength()
 {
-	m_length = m_alphabet.size() - QUACKLE_FIRST_LETTER;
+	m_length = int(m_alphabet.size() - QUACKLE_FIRST_LETTER);
 }
 
 Alphabet AlphabetParameters::emptyAlphabet()
@@ -317,7 +317,7 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 		UVString letterString;
 		UVString lowerLetterString;
 		letterString += charIndex;
-		lowerLetterString += towlower(charIndex);
+		lowerLetterString += (UVChar)towlower(charIndex);
 
 		const bool isVowel = (charIndex == MARK_UV('A')) || (charIndex == MARK_UV('E')) || (charIndex == MARK_UV('I')) || (charIndex == MARK_UV('O')) || (charIndex == MARK_UV('U'));
 

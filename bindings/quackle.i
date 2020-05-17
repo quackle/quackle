@@ -1,3 +1,7 @@
+%rename("$ignore") Quackle::SimmedMoveMessageQueue::pop;
+%rename("$ignore") Quackle::SimmedMoveMessageQueue::pop_or_terminate;
+%rename("$ignore") logStream;
+
 %module quackle
 %{
 #include "fixedstring.h"

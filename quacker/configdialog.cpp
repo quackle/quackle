@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,12 +36,12 @@ ConfigDialog::ConfigDialog()
 	m_configPages.push_back(new InterfacePage);
 	//m_configPages.push_back(new LetterboxPage);
 
-	for (QList<ConfigPage *>::iterator it = m_configPages.begin(); it != m_configPages.end(); ++it)
+	for (auto& it : m_configPages)
 	{
-		m_pagesWidget->addWidget(*it);
-		(*it)->readConfig();
+		m_pagesWidget->addWidget(it);
+		it->readConfig();
 
-		QListWidgetItem *button = new QListWidgetItem((*it)->pageTitle(), m_contentsWidget);
+		QListWidgetItem *button = new QListWidgetItem(it->pageTitle(), m_contentsWidget);
 		button->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 	}
 
@@ -87,9 +87,9 @@ void ConfigDialog::changePage(QListWidgetItem *current, QListWidgetItem *previou
 
 void ConfigDialog::apply()
 {
-	for (QList<ConfigPage *>::iterator it = m_configPages.begin(); it != m_configPages.end(); ++it)
+	for (auto& it : m_configPages)
 	{
-		(*it)->writeConfig();
+		it->writeConfig();
 	}
 
 	emit refreshViews();

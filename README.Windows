@@ -20,16 +20,18 @@ MinGW
 Qt 5.9
 git
 cygwin (optional) - if you want to debug, you'll need gdb from cygwin.
+cmake (optional)
 
 Microsoft Tools Build:
 ------------------------------------
 Visual C++
 Qt 5.9
 git
+cmake (optional)
 
 Installer build:
 ------------------------------------
-Inno Setup 5
+Inno Setup 6
 
 
 Also, you'll need to make sure the following things are set appropriately
@@ -74,12 +76,27 @@ working executable...
   projects (the minimum projects which are part of a standard Quackle install).
 
 
+NEW BUILD SYSTEM COMING
+-----------------------
+Quackle 1.0.4 was built with cmake and vcpkg.  This very much lowers the barrier
+to getting a build up and running.  Basic outline:
+
+* Install qt5 in vcpkg (note vcpkg defaults to 32-bit, so tell it if you want
+  64-bit)
+* Set environment variable Qt5DIR=<vcpkg_dir>\installed\<platform>\share\cmake\Qt5
+* Run cmake pointing to the quacker/ directory
+* Build from cmake as usual or, if you built using Visual Studio, you can open the
+  generated solution file
+
+More detailed instructions coming later.
+
+
 Additional things to know:
 --------------------------
 * To build the Quackle installer,
-  + Copy Qt5Core.dll, Qt5Widgets.dll and Qt5Gui.dll from Qt's bin/ directory into quackle\
-  + If you're building with MinGW, copy mingwm10.dll, libstdc++-6.dll, and
-    libgcc_s_dw2-1.dll from MinGW's bin/ directory into quackle\
+  + Run a cmake build in quacker\build
+  + Build the RelWithDebInfo build
+  + Copy any needed DLLs into build\RelWithDebInfo
   + From the Quackle directory, run the following...
     <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
   + Find the file QuackleInstaller.exe in the quackle\ directory.

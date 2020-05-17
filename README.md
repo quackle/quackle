@@ -10,7 +10,7 @@ See LICENSE in this directory.
 
 Building Quackle:
 -----------------
-Quackle is built and tested with the latest release of Qt 5.9.
+Quackle is built and tested with the latest releases of Qt 5.12 and 5.13.
 See README.MacOS and README.Windows for platform-specific instructions.  Generally:
 
 Clone the repo or download the tarball and untar.  Use qmake to build quackle.pro and quackleio/quackleio.pro:

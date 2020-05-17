@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 
 		int highestScore = 0;
 		double highestEquity = 0;
-		unsigned int widestPositionString = 0;
+		size_t widestPositionString = 0;
 		unsigned int widestMove = 0;
 		bool hasWinPercentages = false;
 		const Quackle::MoveList::const_iterator end(moves.end());

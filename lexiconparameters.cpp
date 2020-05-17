@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 
@@ -242,7 +243,7 @@ string LexiconParameters::hashString(bool shortened) const
 	return hashStr;
 }
 
-string LexiconParameters::copyrightString() const
+string LexiconParameters::getLexiconCopyrightLine() const
 {
 	string copyrightsFilename = QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false);
 	fstream copyrightsFile(copyrightsFilename, ios_base::in);
@@ -254,9 +255,24 @@ string LexiconParameters::copyrightString() const
 			continue;
 		if (hashString(true).compare(line.substr(0,8)) != 0)
 			continue;
-		return line.substr(9, line.size());
+		return line.substr(9);
 	}
 	return string();
+}
+string LexiconParameters::copyrightString() const
+{
+	string copyrightLine = getLexiconCopyrightLine();
+	size_t colonPos = min(copyrightLine.size(), copyrightLine.find_last_of(':'));
+	return copyrightLine.substr(0, colonPos);
+}
+
+string LexiconParameters::logoFileName() const
+{
+	string copyrightLine = getLexiconCopyrightLine();
+	size_t colonPos = copyrightLine.find_last_of(':');
+	if (colonPos == string::npos)
+		return string();
+	return QUACKLE_DATAMANAGER->makeDataFilename("lexica", copyrightLine.substr(colonPos + 1), false);
 }
 
 LexiconInterpreter* LexiconParameters::createInterpreter(char version) const

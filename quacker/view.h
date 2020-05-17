@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ signals:
 	// emit to alert the rest of the application to show this
 	// as candidate move - may eventually trigger positionChanged
 	// in response
-	void setCandidateMove(const Quackle::Move &move);
+	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
 	void removeCandidateMoves(const Quackle::MoveList &moves);
 	void commit();
 

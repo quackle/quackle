@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 {
 	if (item == 0)
 	{
-		emit setCandidateMove(Quackle::Move::createNonmove());
+		emit setCandidateMove(Quackle::Move::createNonmove(), nullptr);
 		return;
 	}
 
@@ -73,7 +73,7 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 	{
 		if (it.value() == item)
 		{
-			emit setCandidateMove(it.key());
+			emit setCandidateMove(it.key(), nullptr);
 			break;
 		}
 	}
@@ -94,11 +94,11 @@ void MoveBox::removeMove()
 	
 	Quackle::MoveList selectedMoves;
 
-	for (QList<QTreeWidgetItem *>::iterator it = selectedItems.begin(); it != selectedItems.end(); ++it)
+	for (const auto& it : selectedItems)
 	{
 		for (QMap<Quackle::Move, QTreeWidgetItem *>::iterator mapIt = m_moveMap.begin(); mapIt != m_moveMap.end(); ++mapIt)
 		{
-			if (mapIt.value() == *it)
+			if (mapIt.value() == it)
 			{
 				selectedMoves.push_back(mapIt.key());
 				break;
@@ -130,7 +130,7 @@ void MoveBox::removeMove()
 		{
 			if (mapIt.value() == nextSelection)
 			{
-				emit setCandidateMove(mapIt.key());
+				emit setCandidateMove(mapIt.key(), nullptr);
 				break;
 			}
 		}
@@ -236,8 +236,8 @@ void MoveBox::positionChanged(const Quackle::GamePosition &position)
 {
 	if (m_rack.tiles() != position.currentPlayer().rack().tiles())
 	{
-		for (QMap<Quackle::Move, QTreeWidgetItem *>::iterator mapIt = m_moveMap.begin(); mapIt != m_moveMap.end(); ++mapIt)
-			delete mapIt.value();
+		for (auto& mapIt : m_moveMap)
+			delete mapIt;
 
 		m_moveMap.clear();
 	}

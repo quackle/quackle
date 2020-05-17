@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public:
 
 	int wordCount() const { return m_encodableWords; };
 	string letterCountString() const;
-	int nodeCount() const { return m_nodelist.size(); };
+	int nodeCount() const { return (int)m_nodelist.size(); };
 	int encodableWords() const { return m_encodableWords; };
 	int unencodableWords() const { return m_unencodableWords; };
 	int duplicateWords() const { return m_duplicateWords; };

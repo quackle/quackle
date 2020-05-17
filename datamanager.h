@@ -1,6 +1,6 @@
 /*
  *  Quackle -- Crossword game artificial intelligence and analysis tool
- *  Copyright (C) 2005-2014 Jason Katz-Brown and John O'Laughlin.
+ *  Copyright (C) 2005-2019 Jason Katz-Brown, John O'Laughlin, and John Fultz.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 #ifndef QUACKLE_DATAMANAGER_H
 #define QUACKLE_DATAMANAGER_H
 
+#include <mutex>
+#include <random>
 #include <string>
 
 #include "playerlist.h"
@@ -122,7 +124,8 @@ public:
 	string userDataDirectory() { return m_userDataDirectory; }
 
 	void seedRandomNumbers(unsigned int seed);
-	int randomNumber();
+	void seedRandomNumbers(seed_seq& seed);
+	int randomInteger(int low, int high);
 
 private:
 	static DataManager *m_self;
@@ -144,6 +147,9 @@ private:
 	StrategyParameters *m_strategyParameters;
 
 	PlayerList m_computerPlayers;
+
+	mt19937_64 m_mersenneTwisterRng;
+	mutex m_RngMutex;
 };
 
 inline DataManager *DataManager::self()
