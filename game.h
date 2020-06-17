@@ -451,22 +451,22 @@ protected:
 inline const Player &GamePosition::currentPlayer() const
 {
 	return *m_currentPlayer;
-};
+}
 
 inline Player &GamePosition::currentPlayer()
 {
 	return *m_currentPlayer;
-};
+}
 
 inline const Player &GamePosition::playerOnTurn() const
 {
 	return *m_playerOnTurn;
-};
+}
 
 inline Player &GamePosition::playerOnTurn()
 {
 	return *m_playerOnTurn;
-};
+}
 
 inline const MoveList &GamePosition::moves() const
 {
