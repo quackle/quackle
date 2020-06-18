@@ -174,7 +174,7 @@ protected slots:
 	// handle an overdraw
 	void overdraw();
 
-	void statusMessage(const QString &mesage);
+	void statusMessage(const QString &message);
 
 	// set game's candidate to move and update views
 	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
