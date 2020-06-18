@@ -242,7 +242,11 @@ GraphicalRack::mousePressEvent (QMouseEvent* event)
     if (!child)
         return;
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	QPixmap pixmap = child->pixmap(Qt::ReturnByValue);
+#else
     QPixmap pixmap = *(child->pixmap());
+#endif
 
     QByteArray itemData;
     QDataStream dataStream (&itemData, QIODevice::WriteOnly);

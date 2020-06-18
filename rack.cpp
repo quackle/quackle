@@ -92,7 +92,7 @@ bool Rack::contains(const LetterString &used) const
 
 void Rack::shuffle()
 {
-	random_shuffle(m_tiles.begin(), m_tiles.end());
+	DataManager::self()->shuffle(m_tiles);
 }
 
 int Rack::score() const

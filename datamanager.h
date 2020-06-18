@@ -126,6 +126,11 @@ public:
 	void seedRandomNumbers(unsigned int seed);
 	void seedRandomNumbers(seed_seq& seed);
 	int randomInteger(int low, int high);
+	template <typename T> void shuffle(T& collection)
+	{
+		lock_guard<mutex> lock(m_RngMutex);
+		std::shuffle(collection.begin(), collection.end(), m_mersenneTwisterRng);
+	}
 
 private:
 	static DataManager *m_self;

@@ -656,7 +656,7 @@ void TopLevel::initializeGame(const Quackle::PlayerList &players)
 		UVString prevFirst = m_firstPlayerName;
 		while (m_firstPlayerName == prevFirst || m_firstPlayerName.empty())
 		{
-			random_shuffle(newPlayers.begin(), newPlayers.end());
+			QUACKLE_DATAMANAGER->shuffle(newPlayers);
 			m_firstPlayerName = newPlayers.front().name();
 			if (all_of(newPlayers.begin(),
 					   newPlayers.end(),

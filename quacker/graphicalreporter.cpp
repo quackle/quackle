@@ -94,27 +94,27 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 
 			if (image.save(filename, "PNG"))
 			{
-				m_indexStream << QString("<a href=\"%1\">%2</a>").arg(filebasename).arg(title) << endl;
+				m_indexStream << QString("<a href=\"%1\">%2</a>").arg(filebasename).arg(title) << m_endl;
 			}
 			else
 			{
 				QMessageBox::critical(0, GraphicalBoard::tr("Error Writing File - Quacker"), GraphicalBoard::tr("Could not write image %1.").arg(filename));        
 			}
 
-			m_indexStream << "<p><img src=\"" << filebasename << "\"></p>" << endl;
+			m_indexStream << "<p><img src=\"" << filebasename << "\"></p>" << m_endl;
 		}
 		else
 		{
 			m_indexStream << title;
 
 			const int boardTileSize = position.gameOver()? 45 : 25;
-			m_indexStream << QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString(position.board().htmlBoard(boardTileSize))) << endl;
+			m_indexStream << QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString(position.board().htmlBoard(boardTileSize))) << m_endl;
 		}
 	}
 
 	const Quackle::PlayerList players(position.endgameAdjustedScores());
 
-	m_indexStream << "<table cellspacing=6>" << endl;
+	m_indexStream << "<table cellspacing=6>" << m_endl;
 	for (Quackle::PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
 	{
 		m_indexStream << "<tr>";
@@ -131,9 +131,9 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 		<< "<td>" << QuackleIO::Util::sanitizeUserVisibleLetterString(QuackleIO::Util::uvStringToQString((*it).rack().toString())) << "</td>"
 		<< "<td>" << (*it).score() << "</td>"
 		<< "</tr>"
-		<< endl;
+		<< m_endl;
 	}
-	m_indexStream << "</table>" << endl;
+	m_indexStream << "</table>" << m_endl;
 
 	if (computerPlayer && !position.gameOver())
 	{
@@ -153,7 +153,7 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 			moves.push_back(position.committedMove());
 		}
 
-		m_indexStream << "<ol>" << endl;
+		m_indexStream << "<ol>" << m_endl;
 		for (Quackle::MoveList::const_iterator it = moves.begin(); it != moves.end(); ++it)
 		{
 			QString item;
@@ -203,9 +203,9 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 				item += QString(" &nbsp;&larr;");
 
 			if (!item.isEmpty())
-				m_indexStream << "<li>" << item << "</li>" << endl;
+				m_indexStream << "<li>" << item << "</li>" << m_endl;
 		}
-		m_indexStream << "</ol>" << endl;
+		m_indexStream << "</ol>" << m_endl;
 	}
 
 	m_indexStream << "\n\n";

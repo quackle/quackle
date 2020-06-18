@@ -41,7 +41,7 @@ void StreamingReporter::reportGame(const Quackle::Game &game, Quackle::ComputerP
 		Quackle::Reporter::reportPosition((*it), computerPlayer, &subreport);
 
 		// endl flushes the stream, which we want
-		stream << Util::uvStringToQString(subreport) << endl;
+		stream << Util::uvStringToQString(subreport) << m_endl;
 	}
 
 	UVString stats;

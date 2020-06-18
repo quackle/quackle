@@ -128,7 +128,11 @@ void BoardWithQuickEntry::provideHelp()
 
 void BoardWithQuickEntry::processCommand(const QString &command)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+	QStringList items(command.split(" ", Qt::SkipEmptyParts));
+#else
 	QStringList items(command.split(" ", QString::SkipEmptyParts));
+#endif
 	Quackle::Move move(Quackle::Move::createNonmove());
 
 	if (items.size() <= 0)

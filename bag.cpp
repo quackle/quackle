@@ -176,7 +176,7 @@ LetterString Bag::refill(Rack &rack, const LetterString &drawingOrder)
 LongLetterString Bag::shuffledTiles() const
 {
 	LongLetterString ret(m_tiles);
-	random_shuffle(ret.begin(), ret.end());
+	DataManager::self()->shuffle(ret);
 	return ret;
 }
 
