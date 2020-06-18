@@ -428,7 +428,7 @@ void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMove
 					residual -= residualAddend;
 			}
 
-			// commiting the move will account for deadwood again
+			// committing the move will account for deadwood again
 			// so avoid double counting from above.
 			move.score -= deadwoodScore; 
 			game.setCandidate(move);

@@ -311,7 +311,7 @@ public:
     void simulate(int plies);
     static void simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants);
 
-    // Incoporate the results of a single simulation into the
+    // Incorporate the results of a single simulation into the
     // cumulative results
     void incorporateMessage(const SimmedMoveMessage &message);
 
