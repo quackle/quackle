@@ -19,6 +19,7 @@
 #ifndef QUACKLE_DATAMANAGER_H
 #define QUACKLE_DATAMANAGER_H
 
+#include <algorithm>
 #include <mutex>
 #include <random>
 #include <string>
