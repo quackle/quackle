@@ -2189,7 +2189,6 @@ void TopLevel::hints()
 "<li>Double-click at any time during a game on any item in the History table to analyze that position. If you then commit a play, you will restart the game from that point and future plays will be lost.</li>"
 "<li>To analyze a real-life game, start a two-player game with two \"Human With Unknown Rack\" players. For one player, for each turn set the rack to the rack you had in the game and then analyze the position and commit the play that you made in real life. For the other player, commit your oppo's real-life plays.</li>"
 "<li>Stop simulations by unchecking \"Simulate\" in the Move menu. Sims can be stopped and restarted without losing their state, and sims of different plies can be combined. Check out the sim details during a simulation by choosing \"Show simulation details\" from the Move menu!</li>"
-"<li>Quackle doesn't include the new American word list (OTCWL2014) because licensing terms prevent us from obtaining and distributing it.</li>"
 "</ul>"
 "<p>Have fun using Quackle. We'd love your help developing it, especially if you can code, but we like suggestions too! Please join the Quackle Yahoo! group at</p>"
 "<p><tt>http://games.groups.yahoo.com/group/quackle/</tt></p>"
