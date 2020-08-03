@@ -113,13 +113,14 @@ bool GaddagFactory::writeIndex(const string &fname)
 {
 	m_nodelist.push_back(&m_root);
 
-	m_root.print(m_nodelist);    
-
+	// Store all the nodes, in a breadth-first fashion (this minimizes
+	// the offset sizes). Note that m_nodelist.size() grows all the time.
 	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
+		m_nodelist[i]->print(m_nodelist);
+
 		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
 		if (p != 0 && p - i > 0xFFFFFF) {
 			// Will not fit in our 24-byte offset field, so will give you garbage words.
-			// The OSPS dictionary is known to trigger such overflows.
 			return false;
 		}
 	}
@@ -168,9 +169,6 @@ void GaddagFactory::Node::print(vector< Node* >& nodelist)
 
 	for (size_t i = 0; i < children.size(); i++)
 		nodelist.push_back(&children[i]);
-
-	for (size_t i = 0; i < children.size(); i++)
-		children[i].print(nodelist);
 }
 
 
