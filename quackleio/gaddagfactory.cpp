@@ -109,11 +109,20 @@ void GaddagFactory::generate()
 	//		m_root.pushWord(words);
 }
 
-void GaddagFactory::writeIndex(const string &fname)
+bool GaddagFactory::writeIndex(const string &fname)
 {
 	m_nodelist.push_back(&m_root);
 
 	m_root.print(m_nodelist);    
+
+	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
+		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
+		if (p != 0 && p - i > 0xFFFFFF) {
+			// Will not fit in our 24-byte offset field, so will give you garbage words.
+			// The OSPS dictionary is known to trigger such overflows.
+			return false;
+		}
+	}
 
 	ofstream out(fname.c_str(), ios::out | ios::binary);
 
@@ -145,6 +154,7 @@ void GaddagFactory::writeIndex(const string &fname)
 		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
 		out.write(bytes, 4);
 	}
+	return true;
 }
 
 

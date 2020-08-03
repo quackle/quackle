@@ -259,17 +259,15 @@ void Settings::buildGaddag()
 
 	setGaddagLabel(tr("Words processed: 0"));
 	pushIndex(factory, word, 1, wordCount);
-	if (wordCount < QUACKLE_MAX_GADDAG_WORDCOUNT)
-	{
-		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Compressing...")).arg(wordCount));
-		factory.generate();
-		setGaddagLabel(QString(tr("Lexicon total: %1 words.  Writing to disk...")).arg(wordCount));
-		factory.writeIndex(gaddagFile);
+	setGaddagLabel(QString(tr("Lexicon total: %1 words.  Compressing...")).arg(wordCount));
+	factory.generate();
+	setGaddagLabel(QString(tr("Lexicon total: %1 words.  Writing to disk...")).arg(wordCount));
+	if (factory.writeIndex(gaddagFile)) {
 		QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
 		setGaddagLabel();
-	}
-	else
+	} else {
 		setGaddagLabel(tr("Your lexicon is too large to be represented using the internal database format.  Operation aborted."));
+	}
 }
 
 void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index, int &wordCount)
@@ -291,14 +289,10 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 			wordCount++;
 			if (wordCount % 1000 == 0)
 				setGaddagLabel(QString(tr("Words processed: %1")).arg(wordCount));
-			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
-				return;
 		}
 		if (p)
 		{
 			pushIndex(factory, word, p, wordCount);
-			if (wordCount > QUACKLE_MAX_GADDAG_WORDCOUNT)
-				return;
 		}
 		index++;
 		word.pop_back();

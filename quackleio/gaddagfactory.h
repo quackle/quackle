@@ -22,11 +22,6 @@
 #include <cstdint>
 #include "flexiblealphabet.h"
 
-// This isn't a strict maximum...you can go higher...but too much higher, and you risk overflowing
-// node pointers, which will get you garbage words.  The OSPS dictionary is known to trigger
-// such overflows.
-const int QUACKLE_MAX_GADDAG_WORDCOUNT = 500000;
-
 class GaddagFactory {
 public:
 
@@ -45,7 +40,7 @@ public:
 	void hashWord(const Quackle::LetterString &word);
 	void sortWords() { sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end()); };
 	void generate();
-	void writeIndex(const string &fname);
+	bool writeIndex(const string &fname);
 
 	const char* hashBytes() { return m_hash.charptr; };
 
