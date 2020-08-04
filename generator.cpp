@@ -18,6 +18,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <math.h>
 
 #include "datamanager.h"
@@ -1600,7 +1601,7 @@ void Generator::wordspit(int i, const LetterString &prefix, int flags)
 
 Move Generator::exchange()
 {
-	map<LetterString, bool> throwmap;
+	set<LetterString> throwmap;
 
 	const int rackSize = rack().tiles().length();
 	const int permutations = 1 << rackSize;
@@ -1618,15 +1619,24 @@ Move Generator::exchange()
 		move.score = 0;
 		move.equity = equity(move);
 
-		if (throwmap.find(move.tiles()) == throwmap.end())
-		{
-			if (m_recordall)
+		if (m_recordall) {
+			if (throwmap.find(move.tiles()) == throwmap.end()) {
 				m_moveList.push_back(move);
 
-			if (MoveList::equityComparator(best, move)) 
-				best = move;
+				if (MoveList::equityComparator(best, move))
+					best = move;
 
-			throwmap[move.tiles()] = true;
+				throwmap.insert(move.tiles());
+			}
+		} else {
+			if (best.action == Move::Exchange &&
+			    best.tiles() == move.tiles()) {
+				// Avoid an assertion in MoveList::equityComparator().
+				// TODO: Remove the assert instead?
+				continue;
+			}
+			if (MoveList::equityComparator(best, move))
+				best = move;
 		}
 	}
 
