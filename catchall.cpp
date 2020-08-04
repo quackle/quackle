@@ -60,7 +60,7 @@ double CatchallEvaluator::equity(const GamePosition &position, const Move &move)
 	
 	else if (position.bag().size() > 0)
 	{
-		int leftInBagPlusSeven = position.bag().size() - move.usedTiles().length() + 7;
+		int leftInBagPlusSeven = position.bag().size() - move.numUsedTiles() + 7;
 		double heuristicArray[13] =
 		{
 			0.0, -8.0, 0.0, -0.5, -2.0, -3.5, -2.0,

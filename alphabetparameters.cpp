@@ -80,18 +80,35 @@ LetterString String::setBlankness(const LetterString &letterString)
 
 LetterString String::usedTiles(const LetterString &letterString)
 {
-	LetterString used;
+	LetterString used = letterString;
 
+	// GCC can do this loop branch-free.
+	const LetterString::const_iterator end(used.end());
+	LetterString::iterator newEnd(used.begin());
+	for (LetterString::const_iterator it = used.begin(); it != end; ++it)
+	{
+		*newEnd = QUACKLE_ALPHABET_PARAMETERS->letterForUsedMap(*it);
+		if (*newEnd != QUACKLE_NULL_MARK)
+			++newEnd;
+	}
+
+	used.truncate(newEnd - used.begin());
+	return used;
+}
+
+int String::numUsedTiles(const LetterString &letterString)
+{
+	int ret = 0;
+
+	// GCC can do this loop branch-free.
 	const LetterString::const_iterator end(letterString.end());
 	for (LetterString::const_iterator it = letterString.begin(); it != end; ++it)
 	{
-		if (*it == QUACKLE_BLANK_MARK || QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(*it))
-			used += QUACKLE_BLANK_MARK;
-		else if (QUACKLE_ALPHABET_PARAMETERS->isPlainLetter(*it))
-			used += *it;
+		if (QUACKLE_ALPHABET_PARAMETERS->letterForUsedMap(*it))
+			++ret;
 	}
 
-	return used;
+	return ret;
 }
 
 void String::counts(const LetterString &letterString, char *countsArray)
@@ -133,7 +150,8 @@ void AlphabetParameters::setAlphabet(const Alphabet &alphabet)
 		assert(m_letterLookup.find(alphabetIt->text()) == m_letterLookup.end());
 		m_letterLookup[alphabetIt->text()] = int(alphabetIt - m_alphabet.begin());
 	}
-	
+
+	buildUsedMap();
 }
 
 void AlphabetParameters::setLetterParameter(Letter letter, const LetterParameter &letterParameter)
@@ -152,6 +170,19 @@ void AlphabetParameters::setLetterParameter(Letter letter, const LetterParameter
 void AlphabetParameters::updateLength()
 {
 	m_length = int(m_alphabet.size() - QUACKLE_FIRST_LETTER);
+	buildUsedMap();
+}
+
+void AlphabetParameters::buildUsedMap()
+{
+	for (int i = 0; i < 256; ++i) {
+		if (i == QUACKLE_BLANK_MARK || isBlankLetter(i))
+			m_usedMap[i] = QUACKLE_BLANK_MARK;
+		else if (isPlainLetter(i))
+			m_usedMap[i] = i;
+		else
+			m_usedMap[i] = QUACKLE_NULL_MARK;
+	}
 }
 
 Alphabet AlphabetParameters::emptyAlphabet()

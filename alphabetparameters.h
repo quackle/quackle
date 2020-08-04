@@ -71,6 +71,9 @@ LetterString setBlankness(const LetterString &letterString);
 // turns string like .ANELINn into .ANELIN?
 LetterString usedTiles(const LetterString &letterString);
 
+// A more efficient version of usedTiles.length().
+int numUsedTiles(const LetterString &letterString);
+
 // allocate a countsArray of size
 // QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE
 void counts(const LetterString &letterString, char *countsArray);
@@ -282,11 +285,16 @@ public:
 	string alphabetName() const;
 	void setAlphabetName(const string &name);
 
+	Letter letterForUsedMap(Letter letter) const {
+		return m_usedMap[(unsigned int)letter];
+	}
+
 	// finds a file in the alphabets data directory
 	static string findAlphabetFile(const string &alphabet);
 
 protected:
 	void updateLength();
+	void buildUsedMap();
 
 	int m_length;
 	Alphabet m_alphabet;
@@ -294,6 +302,11 @@ protected:
 	LetterLookupMap m_letterLookup;
 
 	string m_alphabetName;
+
+	// For blanks, contains QUACKLE_BLANK_MARK. For plain letters,
+	// contains the letter itself. For everything else, contains QUACKLE_NULL_MARK.
+	// Used to speed up String::usedTiles().
+	Letter m_usedMap[256];
 };
 
 inline int AlphabetParameters::length() const

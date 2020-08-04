@@ -80,6 +80,9 @@ public:
 	// Returns an empty string if this is a challenged phoney.
 	LetterString usedTiles() const;
 
+	// A more efficient version of usedTiles().length.
+	int numUsedTiles() const;
+
 	// Returns tiles like PANELING (pretty tiles, nonblank,
 	// without playthru markings)
 	LetterString wordTiles() const;

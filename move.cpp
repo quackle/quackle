@@ -83,6 +83,11 @@ LetterString Move::usedTiles() const
     return (m_isChallengedPhoney || action == BlindExchange) ? LetterString() : String::usedTiles(m_tiles);
 }
 
+int Move::numUsedTiles() const
+{
+    return (m_isChallengedPhoney || action == BlindExchange) ? 0 : String::numUsedTiles(m_tiles);
+}
+
 LetterString Move::wordTiles() const
 {
     LetterString word;
