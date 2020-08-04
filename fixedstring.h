@@ -75,6 +75,23 @@ class FixedLengthString
     char* m_end; // points at the terminating NULL
 };
 
+// Unrolled memcpy of FIXED_STRING_MAXIMUM_LENGTH. May copy more bytes
+// than a memcpy of variable length, but saves the function call and all
+// branches. Assumes no partial overlap.
+inline void
+fixedlen_memcpy(char *dst, const char *src)
+{
+    static_assert(FIXED_STRING_MAXIMUM_LENGTH == 40, "Code below needs adjustment");
+    // Note: Aliasing is allowed because the source types are char.
+    uint64_t *dptr = reinterpret_cast<uint64_t *>(dst);
+    const uint64_t *sptr = reinterpret_cast<const uint64_t *>(src);
+    dptr[0] = sptr[0];
+    dptr[1] = sptr[1];
+    dptr[2] = sptr[2];
+    dptr[3] = sptr[3];
+    dptr[4] = sptr[4];
+}
+
 
 inline FixedLengthString
 operator+(const FixedLengthString &lhs, const FixedLengthString& rhs)
@@ -136,24 +153,24 @@ FixedLengthString::FixedLengthString(const char* s)
 inline
 FixedLengthString::FixedLengthString(const FixedLengthString& s)
 {
-    int sz = s.size();
-    memcpy(m_data, s.m_data, sz);
+    size_t sz = s.size();
+    fixedlen_memcpy(m_data, s.m_data);
     m_end = m_data + sz;
 }
 
 inline
 FixedLengthString::FixedLengthString(FixedLengthString&& s)
 {
-    int sz = s.size();
-    memcpy(m_data, s.m_data, sz);
+    size_t sz = s.size();
+    fixedlen_memcpy(m_data, s.m_data);
     m_end = m_data + sz;
 }
 
 inline FixedLengthString & 
 FixedLengthString::operator=(const FixedLengthString &s)
 {
-    int sz = s.size();
-    memcpy(m_data, s.m_data, sz);
+    size_t sz = s.size();
+    fixedlen_memcpy(m_data, s.m_data);
     m_end = m_data + sz;
     return *this;
 }
@@ -219,7 +236,7 @@ FixedLengthString::operator+=(char c)
 inline FixedLengthString & 
 FixedLengthString::operator+=(const FixedLengthString& s)
 {
-    int sz = s.size();
+    size_t sz = s.size();
     assert(size() + sz < maxSize);
     memcpy(m_end, s.m_data, sz);
     m_end += sz;
@@ -242,10 +259,10 @@ FixedLengthString::pop_back()
 inline int
 FixedLengthString::compare(const FixedLengthString& s) const
 {
-    int size1 = size();
-    int size2 = s.size();
-    int sz = (size1 < size2) ? size1 : size2;
-    for (int i = 0; i < sz; ++i) {
+    size_t size1 = size();
+    size_t size2 = s.size();
+    size_t sz = (size1 < size2) ? size1 : size2;
+    for (size_t i = 0; i < sz; ++i) {
 	if (m_data[i] < s.m_data[i]) {
 	    return -1;
 	} else if (m_data[i] > s.m_data[i]) {
