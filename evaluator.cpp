@@ -70,6 +70,18 @@ double ScorePlusLeaveEvaluator::sharedConsideration(const GamePosition &position
 	return 0;
 }
 
+static const float vcvalues[8][8] =
+{
+	{  0.0,   0.0,  -1.0,  -2.5,  -5.0,  -8.5, -13.5, -18.5},
+	{ -1.0,   0.0,   0.5,   0.0,  -1.5,  -5.0, -10.0,   0.0},
+	{ -3.5,  -1.0,   0.5,   1.5,  -1.5,  -3.0,   0.0,   0.0},
+	{ -7.0,  -3.5,  -0.5,   2.5,   0.0,   0.0,   0.0,   0.0},
+	{-10.0,  -6.5,  -3.0,   0.0,   0.0,   0.0,   0.0,   0.0},
+	{-13.5, -11.5,  -8.0,   0.0,   0.0,   0.0,   0.0,   0.0},
+	{-18.5, -16.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
+	{-23.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
+};
+
 double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 {
 	LetterString alphabetized = String::alphabetize(leave);
@@ -134,18 +146,6 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 				cons++;
 		}
 	} 
-
-	const float vcvalues[8][8] =
-	{
-		{  0.0,   0.0,  -1.0,  -2.5,  -5.0,  -8.5, -13.5, -18.5},
-		{ -1.0,   0.0,   0.5,   0.0,  -1.5,  -5.0, -10.0,   0.0},
-		{ -3.5,  -1.0,   0.5,   1.5,  -1.5,  -3.0,   0.0,   0.0},
-		{ -7.0,  -3.5,  -0.5,   2.5,   0.0,   0.0,   0.0,   0.0},
-		{-10.0,  -6.5,  -3.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-13.5, -11.5,  -8.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-18.5, -16.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-23.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-	};
 
 #ifdef DEBUG_BOARD
 	UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " has " << vowels << " vowels, " << cons << " cons.  value of " << vcvalues[vowels][cons] << endl;
