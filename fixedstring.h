@@ -54,6 +54,7 @@ class FixedLengthString
     bool empty() const;
     size_type size() const { return length(); }
     void clear() { m_end = m_data; }
+    void truncate(size_t length) { assert(length <= size()); m_end = m_data + length; }
     void push_back(char c);
     void pop_back();
     const char* constData() const { return m_data; }

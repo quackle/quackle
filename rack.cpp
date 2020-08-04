@@ -41,39 +41,34 @@ bool Rack::unload(const LetterString &used)
 {
 	// UVcout << *this << ".unload(" << used << ")" << endl;
 
-	LetterString newtiles = m_tiles;
-	bool ret = true;
-
+	// Blank out rack spots that correspond to used tiles.
 	LetterString::const_iterator usedEnd(used.end());
 	for (LetterString::const_iterator usedIt = used.begin(); usedIt != usedEnd; ++usedIt)
 	{
-		bool found = false;
-
-		LetterString::iterator newEnd(newtiles.end());
-		for (LetterString::iterator newIt = newtiles.begin(); newIt != newEnd; ++newIt)
+		LetterString::iterator tileEnd(m_tiles.end());
+		for (LetterString::iterator tileIt = m_tiles.begin(); tileIt != tileEnd; ++tileIt)
 		{
-			if (*newIt == *usedIt)
+			if (*tileIt == *usedIt)
 			{
-				*newIt = QUACKLE_NULL_MARK;
-				found = true;
+				*tileIt = QUACKLE_NULL_MARK;
 				break;
 			}
 		}
-
-		if (!found)
-			ret = false;
 	}
 
-	// UVcout << "newtiles: " << newtiles << endl;
+	// Compress all blank spots. (GCC can do the body of this loop branch-free.)
+	LetterString::const_iterator tileEnd(m_tiles.end());
+	LetterString::iterator newTileEnd(m_tiles.begin());
+	for (LetterString::const_iterator tileIt = m_tiles.begin(); tileIt != tileEnd; ++tileIt)
+	{
+		*newTileEnd = *tileIt;
+		if (*tileIt != QUACKLE_NULL_MARK)
+			newTileEnd++;
+	}
 
-	m_tiles.clear();
-
-	LetterString::const_iterator newEnd(newtiles.end());
-	for (LetterString::const_iterator newIt = newtiles.begin(); newIt != newEnd; ++newIt)
-		if (*newIt != QUACKLE_NULL_MARK)
-			m_tiles += *newIt; 
-
-	return ret;
+	size_t expected_remaining_tiles = m_tiles.size() - used.size();
+	m_tiles.truncate(newTileEnd - m_tiles.begin());
+	return m_tiles.size() == expected_remaining_tiles;
 }
 
 void Rack::load(const LetterString &tiles)
