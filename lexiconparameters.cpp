@@ -20,6 +20,11 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netinet/in.h>
+#endif
 
 #include "datamanager.h"
 #include "lexiconparameters.h"
@@ -43,10 +48,12 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
 	{
 		int i = 0;
+		uint32_t *ptr = lexparams.m_gaddag;
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
-			i += 4;
+			file.read((char *)(ptr + i), 4);
+			ptr[i] = ntohl(ptr[i]);  // Convert into native endianness.
+			i++;
 		}
 	}
 
@@ -109,10 +116,12 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		}
 
 		size_t i = 0;
+		uint32_t *ptr = lexparams.m_gaddag;
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
-			i += 4;
+			file.read((char *)(ptr + i), 4);
+			ptr[i] = ntohl(ptr[i]);  // Convert into native endianness.
+			i++;
 		}
 	}
 
@@ -205,7 +214,7 @@ void LexiconParameters::loadGaddag(const string &filename)
 	if (versionByte < m_interpreter->versionNumber())
 		return;
 	file.seekg(0, ios_base::end);
-	m_gaddag = new unsigned char[file.tellg()];
+	m_gaddag = new uint32_t[file.tellg() / 4];
 	file.seekg(0, ios_base::beg);
 
 	// must create a local interpreter because dawg/gaddag versions might not match

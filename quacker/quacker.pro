@@ -44,6 +44,7 @@ SOURCES += *.cpp
 
 win32 {
 	RC_FILE = quacker.rc
+	LIBS += -lws2_32
 }
 
 macx {

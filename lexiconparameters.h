@@ -21,6 +21,8 @@
 
 #include <vector>
 
+#include <stdint.h>
+
 #include "gaddag.h"
 
 namespace Quackle
@@ -87,7 +89,7 @@ public:
 
 protected:
 	unsigned char *m_dawg;
-	unsigned char *m_gaddag;
+	uint32_t *m_gaddag;
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];

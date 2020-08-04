@@ -35,27 +35,27 @@ public:
 	const GaddagNode *nextSibling() const;
 	const GaddagNode *child(Letter l) const;
 private:
-	unsigned char data[4];
+	uint32_t data;
 };
 
 inline Letter
 GaddagNode::letter() const
 {
-	return (data[3] & 0x3F /*0b00111111*/);
+	return data & 0x3F;
 }
 
 inline bool
 GaddagNode::isTerminal() const
 {
-	return (data[3] & 0x40) != 0 /*0b01000000*/;
+	return data & 0x40;
 }
 
 inline const GaddagNode *
 GaddagNode::firstChild() const
 {
-	unsigned int p = (data[0] << 16) + (data[1] << 8) + (data[2]);
+	unsigned int p = data >> 8;
 	if (p == 0) {
-		return 0;
+		return nullptr;
 	} else {
 		return this + p;
 	}
@@ -65,7 +65,7 @@ GaddagNode::firstChild() const
 inline const GaddagNode *
 GaddagNode::firstChild() const
 {
-	int p = (data[0] << 16) + (data[1] << 8) + (data[2]);
+	int p = data >> 8;
 	if (p == 0) 
 	{
 		return 0;
@@ -82,7 +82,7 @@ GaddagNode::firstChild() const
 inline const GaddagNode *
 GaddagNode::nextSibling() const
 {
-	if (data[3] & 0x80 /*0b10000000*/) {
+	if (data & 0x80) {
 		return 0;
 	} else {
 		return this + 1; // assumes packed array of siblings

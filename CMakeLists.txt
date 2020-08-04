@@ -76,3 +76,6 @@ add_library(libquackle
 )
 
 target_link_libraries(libquackle Threads::Threads)
+if(WIN32)
+	target_link_libraries(libquackle ws2_32)
+endif()

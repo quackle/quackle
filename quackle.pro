@@ -6,6 +6,7 @@ QT -= gui core
 win32:!win32-g++ { # VS solutions don't like having two projects named "quackle"
   TARGET = libquackle
 }
+win32:LIBS += -lws2_32
 
 debug {
   OBJECTS_DIR = obj/debug
