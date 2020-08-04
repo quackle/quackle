@@ -39,7 +39,20 @@ LetterString String::left(const LetterString &letterString, int number)
 LetterString String::alphabetize(const LetterString &letterString)
 {
 	LetterString ret = letterString;
-	sort(ret.begin(), ret.end());
+
+	// Insertion sort; faster than calling the full complexities of
+	// std::sort for short, already nearly-sorted strings.
+	char *ptr = ret.begin();
+	for (unsigned int j = 1; j < ret.size(); ++j) {
+		Letter key = ptr[j];
+		int i = j - 1;
+		while (i >= 0 && ptr[i] > key) {
+			ptr[i + 1] = ptr[i];
+			--i;
+		}
+		ptr[i + 1] = key;
+	}
+
 	return ret;
 }
 
