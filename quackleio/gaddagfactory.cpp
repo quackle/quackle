@@ -17,12 +17,15 @@
  */
 
 
+#include <algorithm>
 #include <iostream>
 #include <QtCore>
 #include <QCryptographicHash>
 
 #include "gaddagfactory.h"
 #include "util.h"
+
+using namespace std;
 
 GaddagFactory::GaddagFactory(const UVString &alphabetFile)
 	: m_encodableWords(0), m_unencodableWords(0), m_alphas(NULL)
@@ -107,17 +110,57 @@ void GaddagFactory::generate()
 		m_root.pushWord(*wordsIt);
 	//	for (const auto& words : gaddaggizedWords)
 	//		m_root.pushWord(words);
-}
 
-bool GaddagFactory::writeIndex(const string &fname)
-{
 	m_nodelist.push_back(&m_root);
 
 	// Store all the nodes, in a breadth-first fashion (this minimizes
 	// the offset sizes). Note that m_nodelist.size() grows all the time.
 	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
 		m_nodelist[i]->print(m_nodelist);
+	}
+}
 
+// Similar to the serialized format, but with non-relative pointer value.
+void GaddagFactory::createDedupKey(const GaddagFactory::Node *n, char *bytes)
+{
+	unsigned int p = (unsigned int)(n->pointer);
+
+	bytes[0] = (p & 0xFF000000) >> 24;
+	bytes[1] = (p & 0x00FF0000) >> 16;
+	bytes[2] = (p & 0x0000FF00) >> 8;
+	bytes[3] = (p & 0x000000FF) >> 0;
+
+	unsigned char n4 = n->c;
+	if (n4 == internalSeparatorRepresentation)
+		n4 = QUACKLE_NULL_MARK;
+
+	if (n->t)
+		n4 |= 64;
+
+	// Don't bother with lastchild; it's implicit that the last node
+	// in the key has it set, and all the others have it cleared.
+
+	bytes[4] = n4;
+}
+
+void GaddagFactory::dedupTails()
+{
+	size_t initial_nodes = m_nodelist.size();
+	size_t deduped;
+	do {
+		deduped = dedupTailsOnePass();
+		UVcout << "Removed " << deduped << " nodes in this pass..." << endl;
+	} while (deduped > 0);
+
+	size_t removed_nodes = initial_nodes - m_nodelist.size();
+	UVcout << "Removed " << removed_nodes << " of " << initial_nodes << " nodes"
+	       << " (" << (100.0 * removed_nodes / initial_nodes) << "%), "
+	       << m_nodelist.size() << " remain." << endl;
+}
+
+bool GaddagFactory::writeIndex(const string &fname)
+{
+	for (unsigned int i = 0; i < m_nodelist.size(); i++) {
 		unsigned int p = (unsigned int)(m_nodelist[i]->pointer);
 		if (p != 0 && p - i > 0xFFFFFF) {
 			// Will not fit in our 24-byte offset field, so will give you garbage words.
@@ -158,6 +201,107 @@ bool GaddagFactory::writeIndex(const string &fname)
 	return true;
 }
 
+size_t GaddagFactory::dedupTailsOnePass()
+{
+	// For each node, find its contents (set of all accepted letters
+	// and which child nodes they point to, and flags), and serialize them
+	// into keys. (We don't do partial duplication yet; we deduplicate on
+	// exact match only.)
+	vector<pair<string, unsigned int>> keys;
+	string key;
+	size_t node_start = 0;
+	for (unsigned int i = 0; i < m_nodelist.size(); i++)
+	{
+		char bytes[5];
+		createDedupKey(m_nodelist[i], bytes);
+		key.append(bytes, bytes + 5);
+
+		if (m_nodelist[i]->lastchild)
+		{
+			// We found the end of this node, so store it and begin
+			// the key for the next one.
+			keys.push_back(make_pair(std::move(key), node_start));
+			key.clear();
+			node_start = i + 1;
+		}
+	}
+	assert(key.empty());
+
+	// Sort backwards, because when we choose between two identical nodes,
+	// we always want to pick the one with the highest ID. (This ensures that
+	// children pointers never start pointing backwards, although it can in
+	// theory increase the problem of ID overflows making very long word lists
+	// uncompilable.)
+	sort(keys.begin(), keys.end(), greater<>());
+
+	// Find all duplicated keys, which is easy now that the list is in order.
+	// dup_rewrites contains a mapping from old to new ID for each node ID
+	// in the list (including those that are not found to be duplicates,
+	// and those that are irrelevant -- it keeps the structure simpler).
+	unique_ptr<unsigned int[]> dup_rewrites(new unsigned int[m_nodelist.size()]);
+	for (unsigned int i = 0; i < m_nodelist.size(); i++)
+	{
+		dup_rewrites[i] = i;
+	}
+	const pair<string, unsigned int> *cur_key = nullptr;
+	for (const auto &key : keys)
+	{
+		if (cur_key == nullptr || key.first != cur_key->first)
+		{
+			// The first (and possibly only) instance of a new key.
+			cur_key = &key;
+			continue;
+		}
+		// A duplicate.
+		dup_rewrites[key.second] = cur_key->second;
+	}
+
+	// Compress away all nodes that are now obsolete, noting their new positions.
+	unique_ptr<unsigned int[]> post_compress_pos(new unsigned int[m_nodelist.size()]);
+	bool curr_node_is_deduped_away = false;
+	unsigned int write_pos = 0;
+	for (unsigned int i = 0; i < m_nodelist.size(); i++)
+	{
+		Node *n = m_nodelist[i];
+		if (dup_rewrites[i] != i)
+		{
+			assert(i == 0 || m_nodelist[i - 1]->lastchild);
+			curr_node_is_deduped_away = true;
+		}
+		if (!curr_node_is_deduped_away)
+		{
+			post_compress_pos[i] = write_pos;
+			m_nodelist[write_pos++] = n;
+		}
+		if (n->lastchild)
+		{
+			curr_node_is_deduped_away = false;
+		}
+	}
+	const int new_num_nodes = write_pos;
+
+	// Rewrite all the child pointers to match the new positions.
+	for (unsigned int i = 0; i < new_num_nodes; i++)
+	{
+		Node *n = m_nodelist[i];
+		if (n->pointer != 0)
+		{
+			// Account for deduplication, if appropriate.
+			n->pointer = dup_rewrites[n->pointer];
+
+			// Then account for the compression we just did.
+			n->pointer = post_compress_pos[n->pointer];
+		}
+	}
+
+	// Finally, discard all the nodes left over. We've now done one pass;
+	// this may have opened up the opportunity for more deduplication,
+	// so the caller should call us again as long as we managed to do any
+	// work.
+	size_t num_removed = m_nodelist.size() - new_num_nodes;
+	m_nodelist.resize(new_num_nodes);
+	return num_removed;
+}
 
 void GaddagFactory::Node::print(vector< Node* >& nodelist)
 {

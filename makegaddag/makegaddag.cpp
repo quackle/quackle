@@ -98,6 +98,9 @@ int main(int argc, char **argv)
 	UVcout << "Generating nodes...";
 	factory.generate();
 
+	UVcout << "Deduplicating tails...";
+	factory.dedupTails();
+
 	UVcout << "Writing index...";
 	factory.writeIndex(outputFilename.toUtf8().constData());
 

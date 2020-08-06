@@ -40,6 +40,7 @@ public:
 	void hashWord(const Quackle::LetterString &word);
 	void sortWords() { sort(m_gaddagizedWords.begin(), m_gaddagizedWords.end()); };
 	void generate();
+	void dedupTails();
 	bool writeIndex(const string &fname);
 
 	const char* hashBytes() { return m_hash.charptr; };
@@ -56,6 +57,8 @@ private:
 			void pushWord(const Quackle::LetterString& word);
 			void print(vector< Node* >& m_nodelist);
 	};
+	static void createDedupKey(const Node *n, char *bytes);
+	size_t dedupTailsOnePass();
 
 	int m_encodableWords;
 	int m_unencodableWords;

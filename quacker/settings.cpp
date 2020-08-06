@@ -261,6 +261,7 @@ void Settings::buildGaddag()
 	pushIndex(factory, word, 1, wordCount);
 	setGaddagLabel(QString(tr("Lexicon total: %1 words.  Compressing...")).arg(wordCount));
 	factory.generate();
+	factory.dedupTails();
 	setGaddagLabel(QString(tr("Lexicon total: %1 words.  Writing to disk...")).arg(wordCount));
 	if (factory.writeIndex(gaddagFile)) {
 		QUACKLE_LEXICON_PARAMETERS->loadGaddag(gaddagFile);
