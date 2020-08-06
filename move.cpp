@@ -24,7 +24,7 @@
 
 using namespace Quackle;
 
-bool operator==(const Move &move1, const Move &move2)
+bool Quackle::operator==(const Move &move1, const Move &move2)
 {
 	bool ret = false;
 

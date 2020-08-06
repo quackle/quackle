@@ -914,9 +914,9 @@ inline void Game::setTitle(const UVString &title)
 	m_title = title;
 }
 
-}
-
 bool operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2);
+
+}
 
 UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position);
 UVOStream& operator<<(UVOStream& o, const Quackle::PositionList &positions);

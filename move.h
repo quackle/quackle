@@ -218,11 +218,11 @@ inline bool Move::isAlreadyOnBoard(Letter letter)
 	return letter == QUACKLE_PLAYED_THRU_MARK;
 }
 
-}
-
 // we gotta overload so plays with diff equity 
 // are equal
 bool operator==(const Quackle::Move &move1, const Quackle::Move &move2);
+
+}
 
 UVOStream& operator<<(UVOStream& o, const Quackle::Move& m);
 UVOStream& operator<<(UVOStream& o, const Quackle::MoveList& moves);

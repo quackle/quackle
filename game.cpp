@@ -1317,7 +1317,7 @@ bool Quackle::operator<(const HistoryLocation &hl1, const HistoryLocation &hl2)
 	return hl1.playerId() < hl2.playerId();
 }
 
-bool operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2)
+bool Quackle::operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2)
 {
 	return hl1.turnNumber() == hl2.turnNumber() && hl1.playerId() == hl2.playerId();
 }

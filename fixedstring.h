@@ -284,8 +284,6 @@ operator<(const Quackle::FixedLengthString &lhs, const Quackle::FixedLengthStrin
 }
 
 
-} // end namespace
-
 inline bool
 operator==(const Quackle::FixedLengthString &lhs, const Quackle::FixedLengthString& rhs)
 {
@@ -297,5 +295,21 @@ operator!=(const Quackle::FixedLengthString &lhs, const Quackle::FixedLengthStri
 {
     return (lhs.compare(rhs) != 0);
 }
+
+} // end namespace
+
+namespace std {
+
+template<>
+class hash<Quackle::FixedLengthString>
+{
+  public:
+    size_t operator() (const Quackle::FixedLengthString &str) const
+    {
+        return std::hash<std::string>() (std::string(str.begin(), str.end()));
+    }
+};
+
+}  // end namespace
 
 #endif

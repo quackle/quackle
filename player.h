@@ -104,11 +104,11 @@ inline bool operator<(const Quackle::Player &player1, const Quackle::Player &pla
 	return player1.id() < player2.id();
 }
 
-}
-
 inline bool operator==(const Quackle::Player &player1, const Quackle::Player &player2)
 {
 	return player1.id() == player2.id();
+}
+
 }
 
 UVOStream &operator<<(UVOStream &o, const Quackle::Player &player);
