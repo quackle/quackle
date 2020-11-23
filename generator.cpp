@@ -94,7 +94,7 @@ void Generator::filterOutDuplicatePlays()
 
 			const int row = (*it).startrow + ((*it).horizontal? 0 : actualTileIndex);
 			const int column = (*it).startcol + ((*it).horizontal? actualTileIndex : 0);
-			int key = row + QUACKLE_MAXIMUM_BOARD_SIZE * column + (QUACKLE_MAXIMUM_BOARD_SIZE * QUACKLE_MAXIMUM_BOARD_SIZE) * String::front(usedTiles);
+			int key = row + QUACKLE_MAXIMUM_BOARD_SIZE * column + (QUACKLE_MAXIMUM_BOARD_SIZE * QUACKLE_MAXIMUM_BOARD_SIZE) * tiles[actualTileIndex];
 
 			if (oneTilePlayMap.find(key) == oneTilePlayMap.end())
 			{
