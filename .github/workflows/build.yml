@@ -22,16 +22,21 @@ jobs:
             env:
               CXX: clang++
               CC: clang
-          - name: ubuntu-latest-clang++
+          - name: ubuntu-clang++-10.0
             os: ubuntu-latest
             env:
-              CXX: clang++
-              CC: clang
-          - name: ubuntu-latest-g++
+              CXX: clang++-10.0
+              CC: clang-10.0
+          - name: ubuntu-g++-7
             os: ubuntu-latest
             env:
-              CXX: g++
-              CC: gcc
+              CXX: g++-7
+              CC: gcc-7
+          - name: ubuntu-g++-10
+            os: ubuntu-latest
+            env:
+              CXX: g++-10
+              CC: gcc-10
           - name: windows-latest-cl.exe
             os: windows-latest
             env:
@@ -60,13 +65,28 @@ jobs:
         arch: 'win64_msvc2019_64'
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: Generate and build
-      uses: lukka/run-cmake@v3
-      # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
+    # - name: Generate and build
+    #   uses: lukka/run-cmake@v3
+    #   # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
 
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        cmakeListsTxtPath: '${{ github.workspace }}/quacker/CMakeLists.txt'
-        cmakeAppendedArgs: '-GNinja'
-        buildWithCMakeArgs: '-- -v'
-        buildDirectory: '${{ github.workspace }}/build/'
+    #   with:
+    #     cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+    #     cmakeListsTxtPath: '${{ github.workspace }}/quacker/CMakeLists.txt'
+    #     cmakeAppendedArgs: '-GNinja'
+    #     buildWithCMakeArgs: '-- -v'
+    #     buildDirectory: '${{ github.workspace }}/build/'
+
+    - name: Generate and build
+      run: |
+        cmake -G Ninja
+        ninja -v
+      if: ${{ runner.os }} != "Windows"
+
+    - name: Generate and build
+      run: |
+        C:\"Program Files (x86)"\"Microsoft Visual Studio"\2019\Enterprise\Common7\Tools\vsdevcmd.bat -arch=amd64 -host_arch=amd64
+        cmake -G Ninja
+        ninja -v
+      shell: cmd
+      if: ${{ runner.os }} == "Windows"
+
