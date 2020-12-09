@@ -52,7 +52,6 @@ jobs:
             env:
               CXX: cl
               C: cl
-              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
               GH_QT_ARCH: win64_msvc2019_64
               GH_QT_VER: 5.15.1
               GH_MSVC_ARCH: x64
@@ -61,7 +60,6 @@ jobs:
             env:
               CXX: cl
               C: cl
-              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
               GH_QT_ARCH: win32_msvc2019
               GH_QT_VER: 5.15.1
               GH_MSVC_ARCH: x86
