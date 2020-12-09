@@ -80,7 +80,16 @@ jobs:
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: Generate and build
+    - name: Generate and build - Windows
+      if: runner.os == 'Windows'
+      run: |
+        mkdir build
+        cd build
+        cmake -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl ../quacker
+        ninja -v
+
+    - name: Generate and build - Unix
+      if: runner.os != 'Windows'
       run: |
         mkdir build
         cd build
