@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [ master, actions_ci ]
 
-env:
-
 jobs:
   job:
     name: ${{ matrix.name }}-build
