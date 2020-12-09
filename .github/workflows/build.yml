@@ -15,10 +15,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [macos-clang++]
+        os: [macos-clang, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++]
         qt_ver: [5.12.0, 5.15.1]
         include:
-          - name: macos-clang++
+          - name: macos-clang
             os: macos-latest
             env:
               CXX: clang++
@@ -38,7 +38,7 @@ jobs:
             env:
               CXX: g++
               CC: gcc
-          - name: windows-x64-vs19
+          - name: windows-x64-vs19-qt-5.15.1
             qt_ver: 5.15.1
             os: windows-latest
             msvc_arch: x64
@@ -46,7 +46,7 @@ jobs:
             env:
               CXX: cl
               C: cl
-          - name: windows-x64-vs19
+          - name: windows-x64-vs19-qt-5.12.0
             qt_ver: 5.12.0
             os: windows-latest
             msvc_arch: x64
@@ -54,7 +54,7 @@ jobs:
             env:
               CXX: cl
               C: cl
-          - name: windows-x86-vs19
+          - name: windows-x86-vs19-qt-5.15.1
             qt_ver: 5.15.1
             os: windows-latest
             msvc_arch: x86
@@ -62,11 +62,11 @@ jobs:
             env:
               CXX: cl
               C: cl
-          - name: windows-x86-vs19
-            qt_ver: 5.15.1
+          - name: windows-x86-vs19-qt-5.12.0
+            qt_ver: 5.12.0
             os: windows-latest
             msvc_arch: x86
-            qt_arch: win32_msvc2019
+            qt_arch: win32_msvc2017
             env:
               CXX: cl
               C: cl
