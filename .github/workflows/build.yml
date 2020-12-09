@@ -37,6 +37,7 @@ jobs:
             env:
               CXX: cl.exe
               CC: cl.exe
+              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
 
     steps:
     - name: Check out sources
@@ -59,7 +60,7 @@ jobs:
         arch: 'win64_msvc2019_64'
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
-    - name: configure and build
+    - name: Generate and build
       uses: lukka/run-cmake@v3
       # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
 
