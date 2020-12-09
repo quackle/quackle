@@ -40,8 +40,8 @@ jobs:
           - name: windows-latest-cl
             os: windows-latest
             env:
-              CMAKE_C_COMPILER: cl.exe
-              CMAKE_CXX_COMPILER: cl.exe
+              CXX: cl
+              C: cl
               VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
 
     steps:
@@ -79,8 +79,6 @@ jobs:
     - name: Add MSVC to path
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1.0.2
-      with:
-        vswhere-path: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
 
     - name: Generate and build
       run: |
