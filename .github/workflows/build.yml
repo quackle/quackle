@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [macos-latest-clang++, ubuntu-latest-clang++, ubuntu-latest-g++, windows-latest-cl.exe]
+        name: [macos-latest-clang++, ubuntu-clang++-10.0, ubuntu-g++-7, ubuntu-g++-10, windows-latest-cl]
         include:
           - name: macos-latest-clang++
             os: macos-latest
@@ -37,7 +37,7 @@ jobs:
             env:
               CXX: g++-10
               CC: gcc-10
-          - name: windows-latest-cl.exe
+          - name: windows-latest-cl
             os: windows-latest
             env:
               CXX: cl.exe
