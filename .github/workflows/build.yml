@@ -77,7 +77,7 @@ jobs:
     #     buildDirectory: '${{ github.workspace }}/build/'
 
     - name: Add MSVC to path
-      uses: ilammy/msvc-dev-cmd@v1.3.0
+      uses: ilammy/msvc-dev-cmd@v1
 
     - name: Generate and build - Windows
       if: runner.os == 'Windows'
