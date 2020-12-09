@@ -1,0 +1,74 @@
+# Continuous integration and pull request validation builds
+name: CI builds
+on:
+  push:
+    branches: [ master ]
+  pullrequest:
+    branches: [ master ]
+
+env:
+
+jobs:
+  job:
+    name: ${{ matrix.name }}-build
+    runs-on: ${{ matrix.os }}
+    env: ${{ matrix.env }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [macos-latest-clang++, ubuntu-latest-clang++, ubuntu-latest-g++, windows-latest-cl.exe]
+        include:
+          - name: macos-latest-clang++
+            os: macos-latest
+            env:
+              CXX: clang++
+              CC: clang
+          - name: ubuntu-latest-clang++
+            os: ubuntu-latest
+            env:
+              CXX: clang++
+              CC: clang
+          - name: ubuntu-latest-g++
+            os: ubuntu-latest
+            env:
+              CXX: g++
+              CC: gcc
+          - name: windows-latest-cl.exe
+            os: windows-latest
+            env:
+              CXX: cl.exe
+              CC: cl.exe
+
+    steps:
+    - name: Check out sources
+    - uses: actions/checkout@v2
+
+    - name: Get latest CMake and ninja
+      uses: lukka/get-cmake@latest
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-QtCache
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.15.1'
+        arch: 'win64_msvc2019_64'
+        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+    - name: configure and build
+      uses: lukka/run-cmake@v3
+      # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
+      env:
+
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/quacker/CMakeLists.txt'
+        cmakeAppendedArgs: '-GNinja'
+        buildWithCMakeArgs: '-- -v'
+        buildDirectory: '${{ github.workspace }}/build/'
