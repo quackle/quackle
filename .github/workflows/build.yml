@@ -89,8 +89,8 @@ jobs:
 
     - name: Add MSVC to path
       uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ env.GH_MSVC_ARCH }}
+      with:
+        arch: ${{ env.GH_MSVC_ARCH }}
 
     - name: Generate and build - Unix
       run: |
