@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-clang, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++]
+        name: [macos-clang, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++]
         qt_ver: [5.12.0, 5.15.1]
         include:
           - name: macos-clang
@@ -66,7 +66,7 @@ jobs:
             qt_ver: 5.12.0
             os: windows-latest
             msvc_arch: x86
-            qt_arch: win32_msvc2017
+            qt_arch: win32_msvc2019
             env:
               CXX: cl
               C: cl
@@ -95,7 +95,7 @@ jobs:
     - name: Add MSVC to path
       uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: ${{ env.msvc_arch }}
+        arch: ${{ matrix.msvc_arch }}
 
     - name: Generate and build
       run: |
