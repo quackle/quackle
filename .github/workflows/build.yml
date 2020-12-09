@@ -62,7 +62,6 @@ jobs:
     - name: configure and build
       uses: lukka/run-cmake@v3
       # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
-      env:
 
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
