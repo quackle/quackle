@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [macos-latest-clang++, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++, windows-latest-cl]
+        name: [macos-latest-clang++, macos-10.13.clang++, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++, windows-x64-cl, windows-x86-cl]
         include:
           - name: macos-latest-clang++
             os: macos-latest
