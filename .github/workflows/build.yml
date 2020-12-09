@@ -15,54 +15,61 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [macos-latest-clang++, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++, windows-x64-cl, windows-x86-cl]
+        name: []
+        qt_ver: [5.12.0, 5.15.1]
         include:
-          - name: macos-latest-clang++
+          - name: macos-clang++
             os: macos-latest
             env:
               CXX: clang++
               CC: clang
-              GH_QT_VER: 5.15.1
-          # - name: macos-10.13-clang++
-          #   os: macos-10.13
-          #   env:
-          #     CXX: clang++
-          #     CC: clang
-          #     GH_QT_VER: 5.15.1
           - name: ubuntu-20.04-clang
             os: ubuntu-20.04
             env:
               CXX: clang++
               CC: clang
-              GH_QT_VER: 5.15.1
           - name: ubuntu-18.04-g++
             os: ubuntu-18.04
             env:
               CXX: g++
               CC: gcc
-              GH_QT_VER: 5.15.1
           - name: ubuntu-20.04-g++
             os: ubuntu-20.04
             env:
               CXX: g++
               CC: gcc
-              GH_QT_VER: 5.15.1
-          - name: windows-x64-cl
+          - name: windows-x64-vs19
+            qt_ver: 5.15.1
             os: windows-latest
+            msvc_arch: x64
+            qt_arch: win64_msvc2019_64
             env:
               CXX: cl
               C: cl
-              GH_QT_ARCH: win64_msvc2019_64
-              GH_QT_VER: 5.15.1
-              GH_MSVC_ARCH: x64
-          - name: windows-x86-cl
+          - name: windows-x64-vs19
+            qt_ver: 5.12.0
             os: windows-latest
+            msvc_arch: x64
+            qt_arch: win64_msvc2017_64
             env:
               CXX: cl
               C: cl
-              GH_QT_ARCH: win32_msvc2019
-              GH_QT_VER: 5.15.1
-              GH_MSVC_ARCH: x86
+          - name: windows-x86-vs19
+            qt_ver: 5.15.1
+            os: windows-latest
+            msvc_arch: x86
+            qt_arch: win32_msvc2019
+            env:
+              CXX: cl
+              C: cl
+          - name: windows-x86-vs19
+            qt_ver: 5.15.1
+            os: windows-latest
+            msvc_arch: x86
+            qt_arch: win32_msvc2019
+            env:
+              CXX: cl
+              C: cl
 
     steps:
     - name: Check out sources
@@ -73,24 +80,24 @@ jobs:
 
     - name: Cache Qt
       id: cache-qt
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ../Qt
-        key: ${{ runner.os }}-${{ env.GH_QT_VER }}-QtCache
+        key: ${{ runner.os }}-${{ matrix.qt_ver }}-${{ matrix.qt_arch }}-Qt-cache
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
-        version: ${{ env.GH_QT_VER }}
-        arch: ${{ env.GH_QT_ARCH }}
+        version: ${{ matrix.qt_ver }}
+        arch: ${{ matrix.qt_arch }}
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Add MSVC to path
       uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: ${{ env.GH_MSVC_ARCH }}
+        arch: ${{ env.msvc_arch }}
 
-    - name: Generate and build - Unix
+    - name: Generate and build
       run: |
         mkdir build
         cd build
