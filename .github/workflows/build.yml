@@ -40,8 +40,9 @@ jobs:
           - name: windows-latest-cl
             os: windows-latest
             env:
-              CXX: cl.exe
-              CC: cl.exe
+              CMAKE_C_COMPILER: cl.exe
+              CMAKE_CXX_COMPILER: cl.exe
+              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
 
     steps:
     - name: Check out sources
