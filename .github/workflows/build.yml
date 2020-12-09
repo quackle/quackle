@@ -15,7 +15,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: []
         qt_ver: [5.12.0, 5.15.1]
         include:
           - name: macos-clang++
