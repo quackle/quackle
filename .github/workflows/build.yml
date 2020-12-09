@@ -79,6 +79,8 @@ jobs:
     - name: Add MSVC to path
       if: runner.os == 'Windows'
       uses: microsoft/setup-msbuild@v1.0.2
+      with:
+        vswhere-path: 'C:\Program Files (x86)\Microsoft Visual Studio\Installer'
 
     - name: Generate and build
       run: |
