@@ -78,7 +78,7 @@ jobs:
 
     - name: Add MSVC to path
       if: runner.os == 'Windows'
-      uses: microsoft/setup-msbuild@1.0.2
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Generate and build
       run: |
