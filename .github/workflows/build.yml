@@ -22,27 +22,49 @@ jobs:
             env:
               CXX: clang++
               CC: clang
+              GH_QT_VER: 5.15.1
+          - name: macos-10.13-clang++
+            os: macos-10.13
+            env:
+              CXX: clang++
+              CC: clang
+              GH_QT_VER: 5.15.1
           - name: ubuntu-20.04-clang
             os: ubuntu-20.04
             env:
               CXX: clang++
               CC: clang
+              GH_QT_VER: 5.15.1
           - name: ubuntu-18.04-g++
             os: ubuntu-18.04
             env:
               CXX: g++
               CC: gcc
+              GH_QT_VER: 5.15.1
           - name: ubuntu-20.04-g++
             os: ubuntu-20.04
             env:
               CXX: g++
               CC: gcc
-          - name: windows-latest-cl
+              GH_QT_VER: 5.15.1
+          - name: windows-x64-cl
             os: windows-latest
             env:
               CXX: cl
               C: cl
               VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
+              GH_QT_ARCH: win64_msvc2019_64
+              GH_QT_VER: 5.15.1
+              GH_MSVC_ARCH: x64
+          - name: windows-x86-cl
+            os: windows-latest
+            env:
+              CXX: cl
+              C: cl
+              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
+              GH_QT_ARCH: win32_msvc2019
+              GH_QT_VER: 5.15.1
+              GH_MSVC_ARCH: x86
 
     steps:
     - name: Check out sources
@@ -56,39 +78,21 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ../Qt
-        key: ${{ runner.os }}-QtCache
+        key: ${{ runner.os }}-${{ env.GH_QT_VER }}-QtCache
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v2
       with:
-        version: '5.15.1'
-        arch: 'win64_msvc2019_64'
+        version: ${{ env.GH_QT_VER }}
+        arch: ${{ env.GH_QT_ARCH }}
         cached: ${{ steps.cache-qt.outputs.cache-hit }}
-
-    # - name: Generate and build
-    #   uses: lukka/run-cmake@v3
-    #   # settings: https://github.com/lukka/run-cmake/blob/main/action.yml
-
-    #   with:
-    #     cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-    #     cmakeListsTxtPath: '${{ github.workspace }}/quacker/CMakeLists.txt'
-    #     cmakeAppendedArgs: '-GNinja'
-    #     buildWithCMakeArgs: '-- -v'
-    #     buildDirectory: '${{ github.workspace }}/build/'
 
     - name: Add MSVC to path
       uses: ilammy/msvc-dev-cmd@v1
-
-    - name: Generate and build - Windows
-      if: runner.os == 'Windows'
-      run: |
-        mkdir build
-        cd build
-        cmake -G Ninja -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl ../quacker
-        ninja -v
+        with:
+          arch: ${{ env.GH_MSVC_ARCH }}
 
     - name: Generate and build - Unix
-      if: runner.os != 'Windows'
       run: |
         mkdir build
         cd build
