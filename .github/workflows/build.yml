@@ -76,16 +76,16 @@ jobs:
     #     buildWithCMakeArgs: '-- -v'
     #     buildDirectory: '${{ github.workspace }}/build/'
 
-    - name: Generate and build
-      if: ${{ runner.os }} != 'Windows'
+    - name: Generate and build - Unix
+      if: runner.os != 'Windows'
       run: |
         mkdir $GITHUB_WORKSPACE/build
         cd $GITHUB_WORKSPACE/build
         cmake -G Ninja $GITHUB_WORKSPACE/quacker
         ninja -v
 
-    - name: Generate and build
-      if: ${{ runner.os }} == 'Windows'
+    - name: Generate and build - Windows
+      if: runner.os == 'Windows'
       run: |
         C:\"Program Files (x86)"\"Microsoft Visual Studio"\2019\Enterprise\Common7\Tools\vsdevcmd.bat -arch=amd64 -host_arch=amd64
         mkdir %GITHUB_WORKSPACE%\build
