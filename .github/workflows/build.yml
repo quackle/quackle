@@ -15,34 +15,33 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [macos-latest-clang++, ubuntu-clang++-10.0, ubuntu-g++-7, ubuntu-g++-10, windows-latest-cl]
+        name: [macos-latest-clang++, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++, windows-latest-cl]
         include:
           - name: macos-latest-clang++
             os: macos-latest
             env:
               CXX: clang++
               CC: clang
-          - name: ubuntu-clang++-10.0
-            os: ubuntu-latest
+          - name: ubuntu-20.04-clang
+            os: ubuntu-20.04
             env:
-              CXX: clang++-10.0
-              CC: clang-10.0
-          - name: ubuntu-g++-7
-            os: ubuntu-latest
+              CXX: clang++
+              CC: clang
+          - name: ubuntu-18.04-g++
+            os: ubuntu-18.04
             env:
-              CXX: g++-7
-              CC: gcc-7
-          - name: ubuntu-g++-10
-            os: ubuntu-latest
+              CXX: g++
+              CC: gcc
+          - name: ubuntu-20.04-g++
+            os: ubuntu-20.04
             env:
-              CXX: g++-10
-              CC: gcc-10
+              CXX: g++
+              CC: gcc
           - name: windows-latest-cl
             os: windows-latest
             env:
               CXX: cl.exe
               CC: cl.exe
-              VS160COMNTOOLS: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools
 
     steps:
     - name: Check out sources
@@ -92,5 +91,5 @@ jobs:
         cd %GITHUB_WORKSPACE%\build
         cmake -G Ninja %GITHUB_WORKSPACE%\quacker
         ninja -v
-      shell: cmd
+      shell: powershell
 
