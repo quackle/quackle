@@ -8,6 +8,9 @@ obj
 Makefile
 Makefile.Debug
 Makefile.Release
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
 debug
 object_script.*
 release

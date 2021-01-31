@@ -331,6 +331,7 @@ int GamePosition::validateMove(const Move &move) const
 	switch (move.action)
 	{
 	case Move::Place:
+	case Move::PlaceError:
 	case Move::Exchange:
 		if (!currentPlayer().rack().contains(move.usedTiles()))
 			ret |= InvalidTiles;

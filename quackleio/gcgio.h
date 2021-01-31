@@ -40,6 +40,11 @@ private:
 	int readSignedInt(const QString &intString) const;
 };
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)) && !defined(m_endl)
+#	define m_endl Qt::endl
+#elif !defined(m_endl)
+#	define m_endl endl
+#endif
 }
 
 #endif

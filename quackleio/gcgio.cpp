@@ -36,7 +36,7 @@ Quackle::Game *GCGIO::read(const QString &filename, int flags)
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << endl;
+		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << m_endl;
 		return new Quackle::Game;
 	}
 
@@ -64,7 +64,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	while (!stream.atEnd())
 	{
 		line = stream.readLine();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		QStringList strings = line.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+#else
 		QStringList strings = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+#endif
 
 		if (line.startsWith("#"))
 		{
@@ -77,7 +81,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player abbreviation in #player" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player abbreviation in #player" << m_endl;
 					return ret;
 				}
 
@@ -86,7 +90,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player name in #player" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player name in #player" << m_endl;
 					return ret;
 				}
 
@@ -112,7 +116,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no rack in #rack" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no rack in #rack" << m_endl;
 					return ret;
 				}
 
@@ -148,7 +152,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 			if (strings.isEmpty())
 			{
-				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << endl;
+				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
 				return ret;
 			}
 
@@ -169,7 +173,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 			if (strings.isEmpty())
 			{
-				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << endl;
+				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
 				return ret;
 			}
 
@@ -209,7 +213,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
 					return ret;
 				}
 			}
@@ -219,7 +223,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
 					return ret;
 				}
 
@@ -235,7 +239,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
 					return ret;
 				}
 
@@ -330,17 +334,17 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 {
 	Quackle::PlayerList players = game.players();
     stream.setCodec(QTextCodec::codecForName("UTF-8"));
-    stream << "#character-encoding UTF-8" << endl;
+    stream << "#character-encoding UTF-8" << m_endl;
 	for (Quackle::PlayerList::iterator it = players.begin(); it != players.end(); ++it)
 	{
-		stream << "#player" << (*it).id() + 1 << " " << Util::uvStringToQString((*it).abbreviatedName()) << " " << Util::uvStringToQString((*it).name()) << endl;
+		stream << "#player" << (*it).id() + 1 << " " << Util::uvStringToQString((*it).abbreviatedName()) << " " << Util::uvStringToQString((*it).name()) << m_endl;
 	}
 
 	if (!game.title().empty())
-		stream << "#title " << Util::uvStringToQString(game.title()) << endl;
+		stream << "#title " << Util::uvStringToQString(game.title()) << m_endl;
 
 	if (!game.description().empty())
-		stream << "#description " << Util::uvStringToQString(game.description()) << endl;
+		stream << "#description " << Util::uvStringToQString(game.description()) << m_endl;
 
 	const Quackle::PositionList::const_iterator end(game.history().end());
 	for (Quackle::PositionList::const_iterator it = game.history().begin(); it != end; ++it)
@@ -365,11 +369,11 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 			QString rackString = Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles());
 			if (move.action == Quackle::Move::UnusedTilesBonusError)
 				rackString = QString();
-			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << endl;
+			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " " << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score() << m_endl;
 
 			if (move.isChallengedPhoney())
 			{
-				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << endl;
+				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " --  -" << outputScore << " " << move.effectiveScore() + (*it).currentPlayer().score() << m_endl;
 			}
 
 			if (outputScoreAddition != 0)
@@ -393,19 +397,19 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 					}
 				}
 
-				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << nextRack << " (challenge) " << ((outputScoreAddition > 0)? "+" : "") << outputScoreAddition << " " << (outputScoreAddition + outputScore + (*it).currentPlayer().score()) << endl;
+				stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << nextRack << " (challenge) " << ((outputScoreAddition > 0)? "+" : "") << outputScoreAddition << " " << (outputScoreAddition + outputScore + (*it).currentPlayer().score()) << m_endl;
 			}
 		}
 
 		if (!(*it).explanatoryNote().empty())
-			stream << "#note " << Util::uvStringToQString((*it).explanatoryNote()) << endl;
+			stream << "#note " << Util::uvStringToQString((*it).explanatoryNote()) << m_endl;
 	}
 
 	const Quackle::GamePosition &lastPosition = game.history().lastPosition();
 
 	if (!lastPosition.gameOver())
 	{
-		stream << "#rack" << lastPosition.currentPlayer().id() + 1 << " " << Util::letterStringToQString(lastPosition.currentPlayer().rack().alphaTiles()) << endl;
+		stream << "#rack" << lastPosition.currentPlayer().id() + 1 << " " << Util::letterStringToQString(lastPosition.currentPlayer().rack().alphaTiles()) << m_endl;
 	}
 }
 

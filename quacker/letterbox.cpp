@@ -358,7 +358,11 @@ ClueResult Letterbox::parseComment(const QString &comment)
 	if (comment.isEmpty())
 		return ClueResult();
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+	QStringList items = comment.split(" ", Qt::SkipEmptyParts);
+#else
 	QStringList items = comment.split(" ", QString::SkipEmptyParts);
+#endif
 
 	ClueResult ret;
 		

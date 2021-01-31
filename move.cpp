@@ -145,6 +145,7 @@ UVString Move::xml() const
 		break;
 
 	case Place:
+	case PlaceError:
 	{
 		actionString = MARK_UV("place");
 

@@ -19,6 +19,7 @@
 #ifndef QUACKER_LETTERBOX_H
 #define QUACKER_LETTERBOX_H
 
+#include <QElapsedTimer>
 #include <QMainWindow>
 #include <QValidator>
 #include <QTextEdit>
@@ -204,8 +205,8 @@ private:
 	ListerDialog *m_listerDialog;
 
 	QTimer *m_timer;
-	QTime m_time;
-	QTime m_pauseTime;
+	QElapsedTimer m_time;
+	QElapsedTimer m_pauseTime;
 	int m_pauseMs;
 	int m_keystrokes;
 

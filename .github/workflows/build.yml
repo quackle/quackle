@@ -1,0 +1,105 @@
+# Continuous integration and pull request validation builds
+name: CI builds
+on:
+  push:
+    branches: [ master, actions_ci ]
+  pull_request:
+    branches: [ master, actions_ci ]
+
+jobs:
+  job:
+    name: ${{ matrix.name }}-build
+    runs-on: ${{ matrix.os }}
+    env: ${{ matrix.env }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [macos-clang, ubuntu-20.04-clang, ubuntu-18.04-g++, ubuntu-20.04-g++]
+        qt_ver: [5.12.0, 5.15.1]
+        include:
+          - name: macos-clang
+            os: macos-latest
+            env:
+              CXX: clang++
+              CC: clang
+          - name: ubuntu-20.04-clang
+            os: ubuntu-20.04
+            env:
+              CXX: clang++
+              CC: clang
+          - name: ubuntu-18.04-g++
+            os: ubuntu-18.04
+            env:
+              CXX: g++
+              CC: gcc
+          - name: ubuntu-20.04-g++
+            os: ubuntu-20.04
+            env:
+              CXX: g++
+              CC: gcc
+          - name: windows-x64-vs19-qt-5.15.1
+            qt_ver: 5.15.1
+            os: windows-latest
+            msvc_arch: x64
+            qt_arch: win64_msvc2019_64
+            env:
+              CXX: cl
+              C: cl
+          - name: windows-x64-vs19-qt-5.12.0
+            qt_ver: 5.12.0
+            os: windows-latest
+            msvc_arch: x64
+            qt_arch: win64_msvc2017_64
+            env:
+              CXX: cl
+              C: cl
+          - name: windows-x86-vs19-qt-5.15.1
+            qt_ver: 5.15.1
+            os: windows-latest
+            msvc_arch: x86
+            qt_arch: win32_msvc2019
+            env:
+              CXX: cl
+              C: cl
+          - name: windows-x86-vs19-qt-5.12.0
+            qt_ver: 5.12.0
+            os: windows-latest
+            msvc_arch: x86
+            qt_arch: win32_msvc2017
+            env:
+              CXX: cl
+              C: cl
+
+    steps:
+    - name: Check out sources
+      uses: actions/checkout@v2
+
+    - name: Get latest CMake and ninja
+      uses: lukka/get-cmake@latest
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v2
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-${{ matrix.qt_ver }}-${{ matrix.qt_arch }}-Qt-cache
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: ${{ matrix.qt_ver }}
+        arch: ${{ matrix.qt_arch }}
+        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+
+    - name: Add MSVC to path
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ matrix.msvc_arch }}
+
+    - name: Generate and build
+      run: |
+        mkdir build
+        cd build
+        cmake -G Ninja ../quacker
+        ninja -v

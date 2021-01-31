@@ -296,7 +296,7 @@ public:
 	// the move made will
 	// be set to the proper UnusedTilesBonus move.
 	// The score of the bonus is *not* added to score of current player,
-	// therefor this method is quite misnamed.
+	// therefore this method is quite misnamed.
 	void adjustScoresToFinishGame();
 
 	// this is a little special: don't subtract score of bonus from
@@ -451,22 +451,22 @@ protected:
 inline const Player &GamePosition::currentPlayer() const
 {
 	return *m_currentPlayer;
-};
+}
 
 inline Player &GamePosition::currentPlayer()
 {
 	return *m_currentPlayer;
-};
+}
 
 inline const Player &GamePosition::playerOnTurn() const
 {
 	return *m_playerOnTurn;
-};
+}
 
 inline Player &GamePosition::playerOnTurn()
 {
 	return *m_playerOnTurn;
-};
+}
 
 inline const MoveList &GamePosition::moves() const
 {
@@ -824,7 +824,7 @@ public:
 	// If the game is over, does nothing.
 	void commitCandidate(bool maintainBoard = true);
 
-	// convience to set move as candidate and then commit the candidate
+	// convenience to set move as candidate and then commit the candidate
 	void commitMove(const Move &move);
 
 	const UVString &description() const;

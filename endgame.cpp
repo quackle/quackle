@@ -216,8 +216,8 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 		m_endgameGame.setCandidate(hope.move);
 		m_endgameGame.commitCandidate(true);
 
-		int levelNumber = 1;
-		int playerNumber = 1;
+		size_t levelNumber = 1;
+		size_t playerNumber = 1;
 
 		while (!m_endgameGame.currentPosition().gameOver())
 		{
@@ -304,8 +304,8 @@ Move Endgame::solve(int /* nestedness */)
 		
 		double beforeSpread = m_endgameGame.currentPosition().spread(startPlayerId);
 		
-		int levelNumber = 1;
-		int playerNumber = 1;
+		size_t levelNumber = 1;
+		size_t playerNumber = 1;
 
 		while (!m_endgameGame.currentPosition().gameOver())
 		{
@@ -408,8 +408,8 @@ void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 
 	Game playoutGame = m_originalGame;
 		
-	int levelNumber = 1;
-	int playerNumber = 1;
+	size_t levelNumber = 1;
+	size_t playerNumber = 1;
 
 	double beforeSpread = playoutGame.currentPosition().spread(startPlayerId);
 

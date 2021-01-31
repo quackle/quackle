@@ -152,6 +152,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 			switch ((*it).action)
 			{
 			case Move::Place:
+			case Move::PlaceError:
 				s << (*it).positionString();
 				break;
 
