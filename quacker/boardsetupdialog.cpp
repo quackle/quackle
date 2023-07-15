@@ -114,11 +114,11 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	m_saveChanges->setDefault(true);
 
 	// hook up signals and slots
-	connect(m_horizontalDimension, SIGNAL(activated(const QString &)), this, SLOT(parametersChanged(const QString &)));
-	connect(m_horizontalDimension, SIGNAL(activated(const QString &)), this, SLOT(symmetryChanged()));
-	connect(m_verticalDimension, SIGNAL(activated(const QString &)), this, SLOT(parametersChanged(const QString &)));
-	connect(m_verticalDimension, SIGNAL(activated(const QString &)), this, SLOT(symmetryChanged()));
-	connect(m_boardName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(const QString &)));
+	connect(m_horizontalDimension, SIGNAL(activated(int)), this, SLOT(parametersChanged(int)));
+	connect(m_horizontalDimension, SIGNAL(activated(int)), this, SLOT(symmetryChanged()));
+	connect(m_verticalDimension, SIGNAL(activated(int)), this, SLOT(parametersChanged(int)));
+	connect(m_verticalDimension, SIGNAL(activated(int)), this, SLOT(symmetryChanged()));
+	connect(m_boardName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(0)));
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_undoAll, SIGNAL(clicked()), this, SLOT(undoAllChanges()));
@@ -134,7 +134,7 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	QUACKLE_BOARD_PARAMETERS->Serialize(boardStream);
 	m_serializedOriginalBoard = boardStream.str();
 	
-	parametersChanged(QString());
+	parametersChanged(0);
 	symmetryChanged();
 }
 
@@ -175,7 +175,7 @@ void BoardSetupDialog::initializeBoardName()
 	}
 }
 
-void BoardSetupDialog::parametersChanged(const QString &)
+void BoardSetupDialog::parametersChanged(int unused)
 {
 	QUACKLE_BOARD_PARAMETERS->setWidth(m_horizontalDimension->currentIndex() + QUACKLE_MINIMUM_BOARD_SIZE);
 	QUACKLE_BOARD_PARAMETERS->setHeight(m_verticalDimension->currentIndex() + QUACKLE_MINIMUM_BOARD_SIZE);
@@ -242,7 +242,7 @@ void BoardSetupDialog::undoAllChanges()
 	istringstream boardStream(m_serializedOriginalBoard);
 	
 	QUACKLE_DATAMANAGER->setBoardParameters(Quackle::BoardParameters::Deserialize(boardStream));
-	parametersChanged(QString());
+	parametersChanged(0);
 }
 
 void BoardSetupDialog::deleteBoard()

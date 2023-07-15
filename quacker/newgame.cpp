@@ -121,7 +121,7 @@ PlayerTab::PlayerTab(QWidget *parent)
 	}
 	m_playerType->addItems(playerTypes);
 
-	connect(m_playerType, SIGNAL(activated(const QString &)), this, SLOT(playerEdited()));
+	connect(m_playerType, SIGNAL(activated(int)), this, SLOT(playerEdited()));
 	editLayout->addWidget(m_playerType);
 
 	QVBoxLayout *topLayout = new QVBoxLayout;

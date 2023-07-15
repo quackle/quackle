@@ -45,7 +45,7 @@ public:
 	virtual void reject();
 
 protected slots:
-	void parametersChanged(const QString &unused);
+	void parametersChanged(int unused);
 	void symmetryChanged();
 	void undoAllChanges();
 	void deleteBoard();

@@ -1080,8 +1080,9 @@ void TopLevel::timeout()
 	UVcout << "toplevel::timeout" << endl;
 }
 
-void TopLevel::pliesSet(const QString &plyString)
+void TopLevel::pliesSet(int plyIndex)
 {
+	QString plyString = m_pliesCombo->currentText();
 	if (plyString == tr("Many"))
 		m_plies = -1;
 	else
@@ -1918,7 +1919,7 @@ void TopLevel::createWidgets()
 	plyOptions.push_back(tr("Many"));
 
 	m_pliesCombo->addItems(plyOptions);
-	connect(m_pliesCombo, SIGNAL(activated(const QString &)), this, SLOT(pliesSet(const QString &)));
+	connect(m_pliesCombo, SIGNAL(activated(int)), this, SLOT(pliesSet(int)));
 
 	QLabel *plyLabel = new QLabel(tr("p&lies"));
 	plyLabel->setBuddy(m_pliesCombo);

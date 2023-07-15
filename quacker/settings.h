@@ -63,10 +63,10 @@ public slots:
 	void createGUI();
 
 protected slots:
-	void lexiconChanged(const QString &lexiconName);
-	void alphabetChanged(const QString &alphabetName);
-	void themeChanged(const QString &themeName);
-	void boardChanged(const QString &boardName);
+	void lexiconChanged(int lexiconIndex);
+	void alphabetChanged(int alphabetIndex);
+	void themeChanged(int themeIndex);
+	void boardChanged(int boardIndex);
 
 	void addBoard();
 	void editBoard();
@@ -106,6 +106,9 @@ private:
 	void setGaddagLabel();
 	void setGaddagLabel(const QString &label);
 	void pushIndex(GaddagFactory &factory, Quackle::LetterString &word, int index, int &wordCount);
+
+	void lexiconChanged(const QString &lexiconName);
+	void boardChanged(const QString &boardName);
 
 	static Settings *m_self;
 	int m_lastGoodLexiconValue;

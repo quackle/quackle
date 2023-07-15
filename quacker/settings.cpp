@@ -106,7 +106,7 @@ void Settings::createGUI()
 	layout->setVerticalSpacing(2);
 
 	m_lexiconNameCombo = new QComboBox;
-	connect(m_lexiconNameCombo, SIGNAL(activated(const QString &)), this, SLOT(lexiconChanged(const QString &)));
+	connect(m_lexiconNameCombo, SIGNAL(activated(int)), this, SLOT(lexiconChanged(int)));
 
 	populateComboFromFilenames(m_lexiconNameCombo, "lexica", ".dawg", "lexicon");
 
@@ -117,7 +117,7 @@ void Settings::createGUI()
 	connect(m_editLexicon, SIGNAL(clicked()), this, SLOT(editLexicon()));
 
 	m_alphabetNameCombo = new QComboBox;
-	connect(m_alphabetNameCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
+	connect(m_alphabetNameCombo, SIGNAL(activated(int)), this, SLOT(alphabetChanged(int)));
 
 	populateComboFromFilenames(m_alphabetNameCombo, "alphabets", ".quackle_alphabet", "");
 
@@ -128,7 +128,7 @@ void Settings::createGUI()
 	connect(m_editAlphabet, SIGNAL(clicked()), this, SLOT(editAlphabet()));
 
 	m_themeNameCombo = new QComboBox;
-	connect(m_themeNameCombo, SIGNAL(activated(const QString &)), this, SLOT(themeChanged(const QString &)));
+	connect(m_themeNameCombo, SIGNAL(activated(int)), this, SLOT(themeChanged(int)));
 
 	populateComboFromFilenames(m_themeNameCombo, "themes", ".ini", "");
 
@@ -139,7 +139,7 @@ void Settings::createGUI()
 	connect(m_editTheme, SIGNAL(clicked()), this, SLOT(editTheme()));
 
 	m_boardNameCombo = new QComboBox;
-	connect(m_boardNameCombo, SIGNAL(activated(const QString &)), this, SLOT(boardChanged(const QString &)));
+	connect(m_boardNameCombo, SIGNAL(activated(int)), this, SLOT(boardChanged(int)));
 
 	populateComboFromFilenames(m_boardNameCombo, "boards", "", "board");
 
@@ -428,11 +428,8 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 	loadBoardNameCombo();
 }
 
-void Settings::lexiconChanged(const QString &lexiconName)
+void Settings::lexiconChanged(int lexiconIndex)
 {
-	QString lexicon = lexiconName;
-	if (lexicon.endsWith("*"))
-		lexicon.truncate(lexicon.size() - 1);
 	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
 	{
 		editLexicon();
@@ -441,6 +438,15 @@ void Settings::lexiconChanged(const QString &lexiconName)
 			m_lexiconNameCombo->setCurrentIndex(m_lastGoodLexiconValue);
 		return;
 	}
+	lexiconChanged(m_lexiconNameCombo->currentText());
+}
+
+void Settings::lexiconChanged(const QString &lexiconName)
+{
+	QString lexicon = lexiconName;
+	if (lexicon.endsWith("*"))
+		lexicon.truncate(lexicon.size() - 1);
+
 	setQuackleToUseLexiconName(lexicon);
 	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
 
@@ -450,7 +456,7 @@ void Settings::lexiconChanged(const QString &lexiconName)
 	emit refreshViews();
 }
 
-void Settings::alphabetChanged(const QString &alphabetName)
+void Settings::alphabetChanged(int alphabetIndex)
 {
 	// Uncomment when we support an add/edit alphabet dialog
 	// if (m_alphabetNameCombo->currentIndex() == m_alphabetNameCombo->count() - 1)
@@ -458,6 +464,7 @@ void Settings::alphabetChanged(const QString &alphabetName)
 	// 	editAlphabet();
 	// 	return;
 	// }
+	QString alphabetName = m_alphabetNameCombo->currentText();
 	setQuackleToUseAlphabetName(alphabetName);
 
 	CustomQSettings settings;
@@ -466,7 +473,7 @@ void Settings::alphabetChanged(const QString &alphabetName)
 	emit refreshViews();
 }
 
-void Settings::themeChanged(const QString &themeName)
+void Settings::themeChanged(int themIndex)
 {
 	// Uncomment when we support an add/edit theme dialog
 	// if (m_themeNameCombo->currentIndex() == m_themeNameCombo->count() - 1)
@@ -474,15 +481,15 @@ void Settings::themeChanged(const QString &themeName)
 	// 	editTheme();
 	// 	return;
 	// }
-	setQuackleToUseThemeName(themeName);
+	setQuackleToUseThemeName(m_themeNameCombo->currentText());
 
 	CustomQSettings settings;
-	settings.setValue("quackle/settings/theme-name", themeName);
+	settings.setValue("quackle/settings/theme-name", m_themeNameCombo->currentText());
 
 	emit refreshViews();
 }
 
-void Settings::boardChanged(const QString &boardName)
+void Settings::boardChanged(int boardIndex)
 {
 	if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1)
 	{
@@ -492,6 +499,11 @@ void Settings::boardChanged(const QString &boardName)
 			m_boardNameCombo->setCurrentIndex(m_lastGoodBoardValue);
 		return;
 	}
+	boardChanged(m_boardNameCombo->currentText());
+}
+
+void Settings::boardChanged(const QString &boardName)
+{
 	CustomQSettings settings;
 	settings.setValue("quackle/settings/board-name", boardName);
 

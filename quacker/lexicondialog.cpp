@@ -113,13 +113,13 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_deleteLexicon, SIGNAL(clicked()), this, SLOT(deleteLexicon()));
-	connect(m_alphabetCombo, SIGNAL(activated(const QString &)), this, SLOT(alphabetChanged(const QString &)));
+	connect(m_alphabetCombo, SIGNAL(activated(int)), this, SLOT(alphabetChanged(int)));
 
 	setWindowTitle(tr("Configure Lexicon - Quackle"));
 
 	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", ".quackle_alphabet", "");
 	m_alphabetCombo->setCurrentIndex(m_alphabetCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
-	alphabetChanged(m_alphabetCombo->currentText());
+	alphabetChanged(m_alphabetCombo->currentIndex());
 
 	m_lexiconName->setValidator(m_fileNameValidator);
 	m_lexiconName->setText(m_originalName);
@@ -163,8 +163,9 @@ void LexiconDialog::addWordsFromFile()
 	updateLexiconInformation();
 }
 
-void LexiconDialog::alphabetChanged(const QString &alphabet)
+void LexiconDialog::alphabetChanged(int alphabetIndex)
 {
+	QString alphabet = m_alphabetCombo->currentText();
 	delete m_wordFactory;
 	m_wordFactory = NULL;
 	updateLexiconInformation();

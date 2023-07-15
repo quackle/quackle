@@ -216,7 +216,7 @@ protected slots:
 	void updateSimViews();
 
 	// simulator settings:
-	void pliesSet(const QString &plyString);
+	void pliesSet(int plyIndex);
 	void ignoreOpposChanged();
 	void updatePliesCombo();
 	void logfileEnabled(bool on);

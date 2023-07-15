@@ -54,7 +54,7 @@ protected slots:
 	void parametersChanged(const QString &) { updateLexiconInformation(); };
 	void deleteLexicon();
 	void addWordsFromFile();
-	void alphabetChanged(const QString &);
+	void alphabetChanged(int);
 	void loadOriginalDictionary();
 
 protected:
