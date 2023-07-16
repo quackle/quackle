@@ -83,19 +83,11 @@ jobs:
     - name: Get latest CMake and ninja
       uses: lukka/get-cmake@latest
 
-    - name: Cache Qt
-      id: cache-qt
-      uses: actions/cache@v3
-      with:
-        path: Qt
-        key: ${{ runner.os }}-${{ matrix.qt_ver }}-${{ matrix.qt_arch }}-Qt-cache
-
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
         version: ${{ matrix.qt_ver }}
         arch: ${{ matrix.qt_arch }}
-        cached: ${{ steps.cache-qt.outputs.cache-hit }}
 
     - name: Add MSVC to path
       uses: ilammy/msvc-dev-cmd@v1
