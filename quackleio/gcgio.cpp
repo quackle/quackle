@@ -60,7 +60,11 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	bool gameStarted = false;
 
 	QString line;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	stream.setCodec(QTextCodec::codecForName("ISO-8859-1"));
+#else
+	stream.setEncoding(QStringConverter::Encoding::Latin1);
+#endif
 	while (!stream.atEnd())
 	{
 		line = stream.readLine();
@@ -135,8 +139,16 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 			}
 			else if (line.startsWith("#character-encoding"))
 			{
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 				QString encoding{line.right(line.length() - 20).trimmed()};
 				stream.setCodec(QTextCodec::codecForName(encoding.toLatin1()));
+#else
+				QString encodingName{line.right(line.length() - 20).trimmed()};
+				std::string encodingNameStr = encodingName.toStdString();
+				auto encoding = QStringConverter::encodingForName(encodingNameStr.data());
+				if (encoding)
+					stream.setEncoding(*encoding);
+#endif
 			}
 		}
 		else if (line.startsWith(">"))
