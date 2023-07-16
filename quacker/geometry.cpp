@@ -26,5 +26,5 @@ void Geometry::setupFramedLayout(QBoxLayout *layout)
 
 void Geometry::setupInnerLayout(QBoxLayout *layout)
 {
-	layout->setMargin(0);
+	layout->setContentsMargins(QMargins());
 }

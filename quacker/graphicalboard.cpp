@@ -581,8 +581,8 @@ void GraphicalBoardFrame::keyPressEvent(QKeyEvent *event)
         
         case Append:
 			if (event->text().isEmpty() ||
-				(event->text().at(0) >= 0xa8 && event->text().at(0) <= 0xb8) || // combining character
-				(event->text().at(0) >= 0x2b9 && event->text().at(0) <= 0x2ff)) // combining character
+				(event->text().at(0) >= QChar(0xa8) && event->text().at(0) <= QChar(0xb8)) || // combining character
+				(event->text().at(0) >= QChar(0x2b9) && event->text().at(0) <= QChar(0x2ff))) // combining character
 				break; // let AltGr (Ctrl+Alt) and other composite keyboard events slip through
             else if (event->modifiers() & Qt::AltModifier || event->modifiers() & Qt::ControlModifier)
             {
