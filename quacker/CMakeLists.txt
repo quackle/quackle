@@ -7,12 +7,19 @@ message("-- Configuring Quackle")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 
 option(BUNDLE "Build app bundle on macOS; does not populate with resources" OFF)
+set(QT_VERSION "5" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
+
 
 add_subdirectory(.. libquackle)
 add_subdirectory(../quackleio quackleio)
 add_subdirectory(../data data)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+if("${QT_VERSION}" MATCHES "^6")
+	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+else()
+	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+endif()
+
 set(CMAKE_AUTOMOC ON)
 
 set(QUACKLE_SOURCES
@@ -97,7 +104,12 @@ else()
 endif()
 
 target_link_libraries(Quackle quackleio libquackle)
-target_link_libraries(Quackle Qt5::Core Qt5::Widgets)
+if("${QT_VERSION}" MATCHES "^6")
+	target_link_libraries(Quackle Qt6::Core Qt6::Widgets)
+else()
+	target_link_libraries(Quackle Qt5::Core Qt5::Widgets)
+endif()
+
 
 if(APPLE)
 	target_link_libraries(Quackle "-framework CoreFoundation")
