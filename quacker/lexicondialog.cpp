@@ -218,7 +218,7 @@ void LexiconDialog::addWordsFromTextFile(const QString &textFile)
 		return;
 
 	QTextStream stream(&file);
-	stream.setCodec("UTF-8");
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 	QString word;
 	while (!stream.atEnd())
 	{

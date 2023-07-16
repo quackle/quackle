@@ -229,6 +229,6 @@ void GraphicalReporter::openIndex()
 
 		m_indexStream.setDevice(&m_indexFile);
 	}
-	m_indexStream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(m_indexStream);
 }
 

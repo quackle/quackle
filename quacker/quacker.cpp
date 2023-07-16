@@ -1335,7 +1335,7 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 		Quackle::ComputerPlayer *clone = player->clone();
 
 		QTextStream stream(&file);
-		stream.setCodec(QTextCodec::codecForName("UTF-8"));
+		SET_QTEXTSTREAM_TO_UTF8(stream);
 		QuackleIO::StreamingReporter::reportGame(*m_game, clone, stream);
 		delete clone;
 	}
@@ -2100,7 +2100,7 @@ void TopLevel::writeAsciiToFile(const QString &text, const QString &filename)
 	}
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 	stream << text << "\n";
 
 	file.close();
@@ -2126,7 +2126,7 @@ void TopLevel::print()
 	}
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 	//stream << printer.html() << "\n";
 
 	file.close();
@@ -2160,7 +2160,7 @@ void TopLevel::about()
 	if (file)
 	{
 		QTextStream strm(file);
-		strm.setCodec("UTF-8");
+		SET_QTEXTSTREAM_TO_UTF8(strm);
 		QString line = strm.readLine();
 		while (!line.isNull())
 		{

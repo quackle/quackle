@@ -22,6 +22,7 @@ using namespace std;
 #include <QtWidgets>
 
 #include <quackleio/dictfactory.h>
+#include <quackleio/util.h>
 
 #include "lister.h"
 #include "customqsettings.h"
@@ -233,7 +234,7 @@ void ListerDialog::openFile()
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		QTextStream stream(&file);
-		stream.setCodec(QTextCodec::codecForName("UTF-8"));
+		SET_QTEXTSTREAM_TO_UTF8(stream);
 		QString line;
 		while (!stream.atEnd())
 		{
@@ -429,7 +430,7 @@ QString ListerDialog::writeList(bool alphagrams)
 	}
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 
 	QMap<QString, Dict::WordList> map(anagramMap());
 

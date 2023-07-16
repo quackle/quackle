@@ -22,6 +22,12 @@
 #include <QString>
 #include <QRegularExpression>
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#define SET_QTEXTSTREAM_TO_UTF8(stream) stream.setCodec(QTextCodec::codecForName("UTF-8"))
+#else // QTextStream::setEncoding is gone in Qt6, but streams are UTF8 by default
+#define SET_QTEXTSTREAM_TO_UTF8(stream) 0
+#endif
+
 #include <alphabetparameters.h>
 #include <datamanager.h>
 #include <uv.h>

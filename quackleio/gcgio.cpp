@@ -333,7 +333,7 @@ bool GCGIO::canRead(QTextStream &stream) const
 void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 {
 	Quackle::PlayerList players = game.players();
-    stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
     stream << "#character-encoding UTF-8" << m_endl;
 	for (Quackle::PlayerList::iterator it = players.begin(); it != players.end(); ++it)
 	{

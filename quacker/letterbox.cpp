@@ -232,7 +232,7 @@ void Letterbox::loadFile()
 
 	QTextStream stream(&file);
 	QString line;
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 
 	m_initializationChuu = true;
 
@@ -522,7 +522,7 @@ void Letterbox::outputResults()
 	}    
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 
 	if (m_numberIterator < m_clueResults.count())
 		stream << "\" Resume: " << m_numberIterator << "\n";
@@ -558,7 +558,7 @@ void Letterbox::outputResults()
 		}    
 
 		QTextStream stream(&missesFile);
-		stream.setCodec(QTextCodec::codecForName("UTF-8"));
+		SET_QTEXTSTREAM_TO_UTF8(stream);
 
     	for (const auto& it : m_clueResults)
 		{
@@ -924,7 +924,7 @@ void Letterbox::print()
 	setModified(wasModified);
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 	stream << printer.html() << "\n";
 
 	file.close();
@@ -955,7 +955,7 @@ void Letterbox::printStudy()
 	jumpTo(m_clueResults.size() - 1);
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 	stream << generateStudySheet(m_answers.begin(), m_answers.end()) << "\n";
 
 	file.close();

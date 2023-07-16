@@ -44,7 +44,7 @@ bool FlexibleAlphabetParameters::load(const QString &filename)
 	}
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 
 	QString line;
 	Quackle::Letter letter = QUACKLE_FIRST_LETTER;

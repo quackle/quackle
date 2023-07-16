@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	}
 
 	QTextStream stream(&file);
-	stream.setCodec(QTextCodec::codecForName("UTF-8"));
+	SET_QTEXTSTREAM_TO_UTF8(stream);
 
 	while (!stream.atEnd())
 	{
