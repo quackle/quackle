@@ -1,6 +1,7 @@
 Quackle   ![Icon](https://github.com/quackle/quackle/raw/master/IconSmall.png)
 =======
 
+![GitHub Actions CI build](https://github.com/quackle/quackle/actions/workflows/build.yml/badge.svg)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/ttcu5vruvcdljwel/branch/master?svg=true)](https://ci.appveyor.com/project/jfultz/quackle/branch/master)
 [![CI builds](https://github.com/quackle/quackle/workflows/CI%20builds/badge.svg)](https://github.com/quackle/quackle/actions?query=workflow%3A%22CI+Builds%22+event%3Apush)
 
@@ -13,16 +14,14 @@ Building Quackle:
 Quackle runs automated GitHub CI builds on Qt 5.12 and 5.15, so it should work with any Qt version in that range.
 See README.MacOS and README.Windows for platform-specific instructions.  Generally:
 
-Clone the repo or download the tarball and untar.  Use qmake to build quackle.pro and quackleio/quackleio.pro:
+Clone the repo or download the tarball and untar.  Use cmake to build quacker, which will automatically build quackle and quackleio:
 
-	qmake quackle.pro && make
-	cd quackleio && qmake && make && cd ..
+	cd quacker
+	mkdir build && cd build
+	cmake ..
+	cmake --build .
 
-Finally, build the main binary.
-
-	cd quacker && qmake && make
-
-The binary will build as 'Quackle'.  It might be found in the quacker directory or in the release subdirectory.
+The binary will build as 'Quackle'.
 
 
 File organization:
