@@ -1,9 +1,7 @@
 Quackle   ![Icon](https://github.com/quackle/quackle/raw/master/IconSmall.png)
 =======
 
-![GitHub Actions CI build](https://github.com/quackle/quackle/actions/workflows/build.yml/badge.svg)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/ttcu5vruvcdljwel/branch/master?svg=true)](https://ci.appveyor.com/project/jfultz/quackle/branch/master)
-[![CI builds](https://github.com/quackle/quackle/workflows/CI%20builds/badge.svg)](https://github.com/quackle/quackle/actions?query=workflow%3A%22CI+Builds%22+event%3Apush)
+[![CI builds](https://github.com/quackle/quackle/actions/workflows/build.yml/badge.svg)](https://github.com/quackle/quackle/actions/workflows/build.yml)
 
 Crossword game artificial intelligence and analysis tool.
 

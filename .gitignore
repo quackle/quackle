@@ -1,4 +1,5 @@
 .sconsign
+.cache
 .gitattributes
 .tags*
 .qmake.stash
