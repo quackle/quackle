@@ -65,9 +65,9 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 	{
 		line = stream.readLine();
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-		QStringList strings = line.split(QRegExp("\\s+"), Qt::SkipEmptyParts);
+		QStringList strings = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
 #else
-		QStringList strings = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+		QStringList strings = line.split(QRegularExpression("\\s+"), QString::SkipEmptyParts);
 #endif
 
 		if (line.startsWith("#"))

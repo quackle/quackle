@@ -612,14 +612,13 @@ RegexFilter::RegexFilter(ListerDialog *dialog)
 
 void RegexFilter::apply()
 {
-	QRegExp regexp(m_lineEdit->text());
-	regexp.setCaseSensitivity(Qt::CaseInsensitive);
+	QRegularExpression regexp(m_lineEdit->text(), QRegularExpression::PatternOption::CaseInsensitiveOption);
 	
 	Dict::WordList filteredList;
 	const Dict::WordList &list = m_dialog->wordList();;
 
 	for (const auto& it : list)
-		if (regexp.indexIn(it.word) >= 0)
+		if (regexp.match(it.word).hasMatch())
 			filteredList.append(it);
 
 	m_dialog->setWordList(filteredList);

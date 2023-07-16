@@ -20,6 +20,7 @@
 #define QUACKER_UTIL_H
 
 #include <QString>
+#include <QRegularExpression>
 
 #include <alphabetparameters.h>
 #include <datamanager.h>

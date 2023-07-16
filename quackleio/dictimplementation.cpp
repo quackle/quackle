@@ -42,8 +42,8 @@ Dict::WordList QuackleIO::DictImplementation::query(const QString &query, int fl
 	if (flags & Dict::Querier::NoRequireAllLetters)
 		anagramFlags |= Quackle::Generator::NoRequireAllLetters;
 
-	QRegExp wildcardRegexp("[\\*/]");
-	if (wildcardRegexp.indexIn(modifiedQuery) >= 0)
+	QRegularExpression wildcardRegexp("[\\*/]");
+	if (wildcardRegexp.match(modifiedQuery).hasMatch())
 	{
 		if (!(flags & Dict::Querier::NoRequireAllLetters))
 			anagramFlags |= Quackle::Generator::AddAnyLetters;

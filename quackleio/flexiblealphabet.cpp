@@ -51,7 +51,7 @@ bool FlexibleAlphabetParameters::load(const QString &filename)
 	while (!stream.atEnd())
 	{
 		line = stream.readLine().simplified();
-		QStringList strings = line.split(QRegExp("\\s+"));
+		QStringList strings = line.split(QRegularExpression("\\s+"));
 
 		if (line.startsWith("#"))
 			continue;

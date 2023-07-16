@@ -216,7 +216,7 @@ Quackle::PlayerList PlayerTab::players() const
 		if (ret.back().name().empty())
 			ret.back().setName(QuackleIO::Util::qstringToString(tr("No Name")));
 
-		QStringList splitName = QuackleIO::Util::uvStringToQString(ret.back().name()).split(QRegExp("\\s+"));
+		QStringList splitName = QuackleIO::Util::uvStringToQString(ret.back().name()).split(QRegularExpression("\\s+"));
 		ret.back().setAbbreviatedName(QuackleIO::Util::qstringToString(splitName.join("_")));
 	}
 
