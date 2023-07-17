@@ -24,6 +24,8 @@
 #include "gaddagfactory.h"
 #include "util.h"
 
+using namespace std;
+
 GaddagFactory::GaddagFactory(const UVString &alphabetFile)
 	: m_encodableWords(0), m_unencodableWords(0), m_alphas(NULL)
 {

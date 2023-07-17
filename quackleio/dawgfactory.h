@@ -24,6 +24,7 @@
 #include <vector>
 #include "flexiblealphabet.h"
 
+using std::vector;
 
 class DawgFactory {
 public:

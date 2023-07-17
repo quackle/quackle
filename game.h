@@ -610,7 +610,7 @@ inline void GamePosition::setExplanatoryNote(const UVString &explanatoryNote)
 }
 
 // simple modifiable list of positions
-typedef vector<GamePosition> PositionList;
+typedef std::vector<GamePosition> PositionList;
 
 class Game;
 
@@ -836,7 +836,7 @@ public:
 protected:
 	History m_positions;
 
-	typedef map<int, ComputerPlayer *> ComputerPlayerMap;
+	typedef std::map<int, ComputerPlayer *> ComputerPlayerMap;
 	ComputerPlayer *m_defaultComputerPlayer;
 	ComputerPlayerMap m_computerPlayers;
 

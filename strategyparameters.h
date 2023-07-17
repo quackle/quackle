@@ -60,7 +60,7 @@ protected:
 	static const int m_bogowinArrayWidth = 601;
 	static const int m_bogowinArrayHeight = 94;
 	double m_bogowin[m_bogowinArrayWidth][m_bogowinArrayHeight];
-	typedef map<LetterString, double> SuperLeavesMap;
+	typedef std::map<LetterString, double> SuperLeavesMap;
 	SuperLeavesMap m_superleaves;
 	bool m_hasSyn2;
 	bool m_hasWorths;

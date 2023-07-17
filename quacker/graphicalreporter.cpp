@@ -39,6 +39,8 @@ const char *kHtmlHeader =
 "\n\n"
 ;
 
+using namespace std;
+
 GraphicalReporter::GraphicalReporter(const QString &outputDirectory, bool generateImages)
 	: m_output(outputDirectory), m_generateImages(generateImages)
 {

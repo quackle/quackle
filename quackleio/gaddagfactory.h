@@ -20,7 +20,10 @@
 #define QUACKLE_GADDAGFACTORY_H
 
 #include <cstdint>
+#include <vector>
 #include "flexiblealphabet.h"
+
+using std::vector;
 
 // This isn't a strict maximum...you can go higher...but too much higher, and you risk overflowing
 // node pointers, which will get you garbage words.  The OSPS dictionary is known to trigger

@@ -29,6 +29,7 @@
 //#define DEBUG_COMPUTERPLAYER
 
 using namespace Quackle;
+using namespace std;
 
 SmartBogowin::SmartBogowin()
 {

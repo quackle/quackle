@@ -28,6 +28,7 @@
 #include "reporter.h"
 
 using namespace Quackle;
+using namespace std;
 
 void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *computerPlayer, UVString *report)
 {

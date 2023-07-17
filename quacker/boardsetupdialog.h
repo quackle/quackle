@@ -25,8 +25,6 @@
 #include <QWidget>
 #include <QDialog>
 
-using namespace std;
-
 class QCheckBox;
 class QComboBox;
 class QLineEdit;

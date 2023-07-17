@@ -24,14 +24,12 @@
 #include "alphabetparameters.h"
 #include "player.h"
 
-using namespace std;
-
 namespace Quackle
 {
 
 class Player;
 
-class PlayerList : public vector<Player>
+class PlayerList : public std::vector<Player>
 {
 public:
 	PlayerList();

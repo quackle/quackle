@@ -23,6 +23,7 @@
 #include "datamanager.h"
 
 using namespace Quackle;
+using namespace std;
 
 LetterString String::left(const LetterString &letterString, int number)
 {

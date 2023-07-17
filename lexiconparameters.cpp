@@ -26,6 +26,7 @@
 #include "uv.h"
 
 using namespace Quackle;
+using namespace std;
 
 class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 {

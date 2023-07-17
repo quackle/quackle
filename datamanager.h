@@ -26,8 +26,6 @@
 
 #include "playerlist.h"
 
-using namespace std;
-
 #define QUACKLE_DATAMANAGER Quackle::DataManager::self()
 #define QUACKLE_DATAMANAGER_EXISTS Quackle::DataManager::exists()
 #define QUACKLE_EVALUATOR Quackle::DataManager::self()->evaluator()
@@ -125,11 +123,11 @@ public:
 	string userDataDirectory() { return m_userDataDirectory; }
 
 	void seedRandomNumbers(unsigned int seed);
-	void seedRandomNumbers(seed_seq& seed);
+	void seedRandomNumbers(std::seed_seq& seed);
 	int randomInteger(int low, int high);
 	template <typename T> void shuffle(T& collection)
 	{
-		lock_guard<mutex> lock(m_RngMutex);
+		std::lock_guard<std::mutex> lock(m_RngMutex);
 		std::shuffle(collection.begin(), collection.end(), m_mersenneTwisterRng);
 	}
 
@@ -154,8 +152,8 @@ private:
 
 	PlayerList m_computerPlayers;
 
-	mt19937_64 m_mersenneTwisterRng;
-	mutex m_RngMutex;
+	std::mt19937_64 m_mersenneTwisterRng;
+	std::mutex m_RngMutex;
 };
 
 inline DataManager *DataManager::self()

@@ -28,6 +28,7 @@
 // #define DEBUG_ENDGAME
 
 using namespace Quackle;
+using namespace std;
 
 Endgame::Endgame()
 	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0)

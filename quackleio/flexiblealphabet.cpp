@@ -22,6 +22,7 @@
 #include "util.h"
 
 using namespace QuackleIO;
+using namespace std;
 
 FlexibleAlphabetParameters::FlexibleAlphabetParameters()
 {

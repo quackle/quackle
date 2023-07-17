@@ -22,8 +22,6 @@
 #include "alphabetparameters.h"
 #include "rack.h"
 
-using namespace std;
-
 namespace Quackle
 {
 

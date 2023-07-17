@@ -25,7 +25,7 @@
 #include "game.h"
 #include "move.h"
 
-using namespace std;
+using std::vector;
 
 namespace Quackle
 {

@@ -34,6 +34,7 @@
 #define QUACKLDEBUG
 
 using namespace Quackle;
+using namespace std;
 
 DataManager *DataManager::m_self = 0;
 

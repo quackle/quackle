@@ -27,6 +27,7 @@
 #include "resolvent.h"
 
 using namespace Quackle;
+using namespace std;
 
 Preendgame::Preendgame()
 	: m_initialCandidates(30), m_nestednessDenominatorBase(2)

@@ -20,10 +20,9 @@
 #define QUACKLE_ENUMERATOR_H
 
 #include <vector>
+using std::vector;
 
 #include "bag.h"
-
-using namespace std;
 
 namespace Quackle
 {

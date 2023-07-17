@@ -30,8 +30,8 @@ public:
 	BoardParameters();
 
 	// Does not serialize name...caller still has to get/set name manually
-	void Serialize(ostream &stream);
-	static BoardParameters *Deserialize(istream &stream);
+	void Serialize(std::ostream &stream);
+	static BoardParameters *Deserialize(std::istream &stream);
 	
 	int width() const;
 	void setWidth(int width);

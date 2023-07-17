@@ -24,8 +24,6 @@
 #include <sstream>
 #include <string>
 
-using namespace std;
-
 /** Beginning of define options */
 
 // Whether to use wchar for Quackle's user-visible strings.
@@ -38,30 +36,30 @@ using namespace std;
 
 
 #if QUACKLE_USE_WCHAR_FOR_USER_VISIBLE
-typedef wstring UVString;
+typedef std::wstring UVString;
 typedef wchar_t UVChar;
-typedef wstringstream UVStringStream;
-typedef wistream UVIStream;
-typedef wostream UVOStream;
-typedef wostringstream UVOStringStream;
-typedef wistringstream UVIStringStream;
-typedef wifstream UVIFStream;
-typedef wofstream UVOFStream;
-#define UVcout wcout
-#define UVcerr wcerr
+typedef std::wstringstream UVStringStream;
+typedef std::wistream UVIStream;
+typedef std::wostream UVOStream;
+typedef std::wostringstream UVOStringStream;
+typedef std::wistringstream UVIStringStream;
+typedef std::wifstream UVIFStream;
+typedef std::wofstream UVOFStream;
+#define UVcout std::wcout
+#define UVcerr std::wcerr
 #define MARK_UV(theString)  L ## theString
 #else
-typedef string UVString;
+typedef std::string UVString;
 typedef char UVChar;
-typedef stringstream UVStringStream;
-typedef istream UVIStream;
-typedef ostream UVOStream;
-typedef istringstream UVIStringStream;
-typedef ostringstream UVOStringStream;
-typedef ifstream UVIFStream;
-typedef ofstream UVOFStream;
-#define UVcout cout
-#define UVcerr cerr
+typedef std::stringstream UVStringStream;
+typedef std::istream UVIStream;
+typedef std::ostream UVOStream;
+typedef std::istringstream UVIStringStream;
+typedef std::ostringstream UVOStringStream;
+typedef std::ifstream UVIFStream;
+typedef std::ofstream UVOFStream;
+#define UVcout std::cout
+#define UVcerr std::cerr
 #define MARK_UV(theString)  theString
 #endif
 

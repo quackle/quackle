@@ -44,6 +44,8 @@
 #include "graphicalboard.h"
 #include "lexicondialog.h"
 
+using namespace std;
+
 Settings *Settings::m_self = 0;
 Settings *Settings::self()
 {

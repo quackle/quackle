@@ -27,9 +27,7 @@
 #include "move.h"
 #include "rack.h"
 
-using namespace std;
-
-typedef bitset<QUACKLE_MAXIMUM_ALPHABET_SIZE> LetterBitset;
+typedef std::bitset<QUACKLE_MAXIMUM_ALPHABET_SIZE> LetterBitset;
 
 #define QUACKLE_MAXIMUM_BOARD_SIZE LETTER_STRING_MAXIMUM_LENGTH
 #define QUACKLE_MINIMUM_BOARD_SIZE 7

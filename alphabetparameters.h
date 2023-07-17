@@ -25,7 +25,7 @@
 #include "fixedstring.h"
 #include "uv.h"
 
-using namespace std;
+using std::string;
 
 #define QUACKLE_MAXIMUM_ALPHABET_SIZE 55
 #define QUACKLE_MINIMUM_ALPHABET_SIZE 1
@@ -213,7 +213,7 @@ inline void LetterParameter::setVowel(bool isVowel)
 	m_isVowel = isVowel;
 }
 
-typedef vector<LetterParameter> Alphabet;
+typedef std::vector<LetterParameter> Alphabet;
 
 class AlphabetParameters
 {
@@ -290,7 +290,7 @@ protected:
 
 	int m_length;
 	Alphabet m_alphabet;
-	typedef map<UVString, int> LetterLookupMap;
+	typedef std::map<UVString, int> LetterLookupMap;
 	LetterLookupMap m_letterLookup;
 
 	string m_alphabetName;

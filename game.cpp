@@ -31,6 +31,7 @@
 #define DEBUG_BAG
 
 using namespace Quackle;
+using namespace std;
 
 Game::Game()
 	: m_defaultComputerPlayer(0)

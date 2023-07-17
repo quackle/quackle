@@ -30,6 +30,8 @@
 #include "alphabetparameters.h"
 #include "game.h"
 
+using std::vector;
+
 namespace Quackle
 {
 

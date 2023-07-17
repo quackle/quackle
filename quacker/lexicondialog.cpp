@@ -278,7 +278,7 @@ void LexiconDialog::accept()
 
 void LexiconDialog::updateLexiconInformation(bool firstTime)
 {
-	QByteArray hash = m_wordFactory ? QByteArray(m_wordFactory->hashBytes(), 16).toHex() : "";
+	QByteArray hash = m_wordFactory ? QByteArray(m_wordFactory->hashBytes(), 16).toHex() : QByteArray("");
 	QString text;
 	QString lengthText;
 

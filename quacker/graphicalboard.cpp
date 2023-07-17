@@ -33,6 +33,8 @@
 #include "quackersettings.h"
 #include "settings.h"
 
+using namespace std;
+
 const double GraphicalBoardFrame::s_markOtherLengthMultiplier = 0.6;
 
 const double TileWidget::s_defaultLetterScale = 0.7;

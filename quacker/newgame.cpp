@@ -27,6 +27,8 @@
 #include "newgame.h"
 #include "customqsettings.h"
 
+using namespace std;
+
 NewGameDialog::NewGameDialog(QWidget *parent)
 	: QDialog(parent)
 {

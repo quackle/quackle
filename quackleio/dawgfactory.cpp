@@ -26,6 +26,7 @@
 #include "dawgfactory.h"
 #include "util.h"
 
+using namespace std;
 
 DawgFactory::DawgFactory(const QString &alphabetFile)
 	: m_encodableWords(0), m_unencodableWords(0), m_duplicateWords(0),

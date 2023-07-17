@@ -31,6 +31,7 @@
 //#define DEBUG_SIM
 
 using namespace Quackle;
+using namespace std;
 
 std::atomic_long SimmedMove::objectIdCounter{0};
 

@@ -32,6 +32,8 @@
 #include "widgetfactory.h"
 #include "settings.h"
 
+using namespace std;
+
 BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 {
 	resize(700,550);

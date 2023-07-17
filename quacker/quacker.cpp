@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 #include <QtWidgets>
 
 #include <game.h>
@@ -54,6 +52,8 @@ using namespace std;
 #include "simviewer.h"
 #include "widgetfactory.h"
 #include "view.h"
+
+using namespace std;
 
 const int kExtraPlaysToKibitz = 15;
 

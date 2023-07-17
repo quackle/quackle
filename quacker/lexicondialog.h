@@ -26,7 +26,6 @@
 #include <QWidget>
 #include <QDialog>
 
-using namespace std;
 using namespace Quackle;
 
 class QComboBox;

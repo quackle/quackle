@@ -23,6 +23,7 @@
 #include "move.h"
 
 using namespace Quackle;
+using namespace std;
 
 bool operator==(const Move &move1, const Move &move2)
 {

@@ -23,8 +23,6 @@
 
 #include "alphabetparameters.h"
 
-using namespace std;
-
 namespace Quackle
 {
 
@@ -136,7 +134,7 @@ private:
 // comparison based on action, then tiles, then horizontalness, then startrow, then endcol
 bool operator<(const Quackle::Move &move1, const Quackle::Move &move2);
 
-class MoveList : public vector<Move>
+class MoveList : public std::vector<Move>
 {
 public:
 	enum SortType { Equity, Score, Alphabetical, Win};

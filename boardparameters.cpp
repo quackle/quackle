@@ -19,6 +19,7 @@
 #include "boardparameters.h"
 
 using namespace Quackle;
+using namespace std;
 
 BoardParameters::BoardParameters()
 	: m_width(15), m_height(15), m_startRow(7), m_startColumn(7)

@@ -23,6 +23,8 @@
 
 #include "gaddag.h"
 
+using std::vector;
+
 namespace Quackle
 {
 
@@ -31,8 +33,8 @@ class LexiconParameters;
 class LexiconInterpreter
 {
 public:
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams) = 0;
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual void loadDawg(std::ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual void loadGaddag(std::ifstream &file, LexiconParameters &lexparams) = 0;
 	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const = 0;
 	virtual int versionNumber() const = 0;
 	virtual ~LexiconInterpreter() {};

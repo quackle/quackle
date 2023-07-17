@@ -31,8 +31,6 @@ class QCheckBox;
 class QPushButton;
 class QLabel;
 
-using namespace std;
-
 class Settings : public QWidget
 {
 Q_OBJECT

@@ -21,8 +21,6 @@
 
 #include "alphabetparameters.h"
 
-using namespace std;
-
 namespace Quackle
 {
 

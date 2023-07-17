@@ -23,6 +23,8 @@
 
 #include "oppothread.h"
 
+using namespace std;
+
 QuackerDispatch::QuackerDispatch(QObject *parent)
 	: QObject(parent), m_shouldAbort(false)
 {

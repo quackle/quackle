@@ -17,7 +17,6 @@
  */
 
 #include <iostream>
-using namespace std;
 
 #include <QtWidgets>
 
@@ -26,6 +25,8 @@ using namespace std;
 
 #include "lister.h"
 #include "customqsettings.h"
+
+using namespace std;
 
 ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const QString &appName, int flags)
 	: QDialog(parent), m_settingsGroup(settingsGroup), m_appName(appName), m_flags(flags)

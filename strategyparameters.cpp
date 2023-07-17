@@ -25,6 +25,7 @@
 #include "strategyparameters.h"
 
 using namespace Quackle;
+using namespace std;
 
 StrategyParameters::StrategyParameters()
 	: m_hasSyn2(false)
