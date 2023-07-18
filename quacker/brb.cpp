@@ -72,7 +72,7 @@ void BRB::grabFocus()
 	m_rackDisplay->grabFocus();
 }
 
-void BRB::positionChanged(const Quackle::GamePosition &position)
+void BRB::positionChanged(const Quackle::GamePosition *position)
 {
 	View::positionChanged(position);
 }

@@ -41,8 +41,8 @@ public:
 	void setMoves(const Quackle::MoveList &moves, const Quackle::Move &selectedMove);
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
-	virtual void movesChanged(const Quackle::MoveList &moves);
+	virtual void positionChanged(const Quackle::GamePosition *position);
+	virtual void movesChanged(const Quackle::MoveList *moves);
 
 private slots:
 	void moveActivated(QTreeWidgetItem *item);

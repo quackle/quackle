@@ -133,7 +133,7 @@ public:
     static void staticDrawPosition(const Quackle::GamePosition &position, const QSize &size, QPixmap *pixmap);
 
 public slots:
-    virtual void positionChanged(const Quackle::GamePosition &position);
+    virtual void positionChanged(const Quackle::GamePosition *position);
     virtual void expandToSize(const QSize &maxSize);
 
 protected slots:
@@ -149,7 +149,7 @@ protected slots:
     virtual void tileClicked(const QSize &tileLocation, const QMouseEvent * /* event */);
     virtual void prepare();
 
-    void setLocalCandidate(const Quackle::Move &candidate);
+    void setLocalCandidate(const Quackle::Move *candidate);
 
 protected:
     Quackle::Board m_board;
@@ -196,7 +196,7 @@ protected:
     bool m_alwaysShowVerboseLabels;
 
 signals:
-    void localCandidateChanged(const Quackle::Move &candidate);
+    void localCandidateChanged(const Quackle::Move *candidate);
     void tileFontChanged(const QFont &font);
 
 private:

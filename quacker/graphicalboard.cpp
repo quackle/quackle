@@ -43,7 +43,7 @@ GraphicalBoard::GraphicalBoard(QWidget *parent)
     : BoardWithQuickEntry(parent)
 {
     m_boardFrame = new GraphicalBoardFrame;
-    connect(m_boardFrame, SIGNAL(localCandidateChanged(const Quackle::Move &)), this, SLOT(setLocalCandidate(const Quackle::Move &)));
+    connect(m_boardFrame, SIGNAL(localCandidateChanged(const Quackle::Move *)), this, SLOT(setLocalCandidate(const Quackle::Move *)));
 
     m_boardWrapper = new QWidget;
 
@@ -110,21 +110,21 @@ GraphicalBoardFrame::~GraphicalBoardFrame()
 void GraphicalBoardFrame::staticDrawPosition(const Quackle::GamePosition &position, const QSize &size, QPixmap *pixmap)
 {
     GraphicalBoardFrame doozy;
-    doozy.positionChanged(position);
+    doozy.positionChanged(&position);
     doozy.expandToSize(size);
     doozy.generateBoardPixmap(pixmap);
 }
 
-void GraphicalBoardFrame::positionChanged(const Quackle::GamePosition &position)
+void GraphicalBoardFrame::positionChanged(const Quackle::GamePosition *position)
 {
-    m_board = position.board();
-    m_rack = position.currentPlayer().rack();
-    m_ignoreRack = !position.currentPlayer().racksAreKnown();
+    m_board = position->board();
+    m_rack = position->currentPlayer().rack();
+    m_ignoreRack = !position->currentPlayer().racksAreKnown();
 
     m_board.updateBritishness();
 
     resetArrow();
-    m_candidate = position.moveMade();
+    m_candidate = position->moveMade();
 
     prepare();
 }
@@ -649,21 +649,22 @@ void GraphicalBoardFrame::prettifyAndSetLocalCandidate(const Quackle::Move &cand
 
     if (m_candidate.wordTilesWithNoPlayThru().length() == 1) 
     {
-        emit localCandidateChanged(flip(m_candidate));
+        const Quackle::Move &move = flip(m_candidate);
+        emit localCandidateChanged(&move);
 
         emit statusMessage(tr("Press Enter to add %1 to candidate list, or Control+Enter to commit to it immediately.").arg(QuackleIO::Util::moveToDetailedString(flip(m_candidate))));
     }
     else
     {
-        emit localCandidateChanged(m_candidate);
+        emit localCandidateChanged(&m_candidate);
 
         emit statusMessage(tr("Press Enter to add %1 to candidate list, or Control+Enter to commit to it immediately.").arg(QuackleIO::Util::moveToDetailedString(m_candidate)));
     }
 }
 
-void GraphicalBoardFrame::setLocalCandidate(const Quackle::Move &candidate)
+void GraphicalBoardFrame::setLocalCandidate(const Quackle::Move *candidate)
 {
-    m_candidate = candidate;
+    m_candidate = *candidate;
     resetArrow();
     prepare();
 }
@@ -748,7 +749,8 @@ void GraphicalBoardFrame::backspaceHandler()
 
 void GraphicalBoardFrame::deleteHandler()
 {
-    setLocalCandidate(Quackle::Move::createNonmove());
+    const Quackle::Move move = Quackle::Move::createNonmove();
+    setLocalCandidate(&move);
 }
 
 void GraphicalBoardFrame::submitHandler()
@@ -771,11 +773,12 @@ void GraphicalBoardFrame::setGlobalCandidate(bool *carryOn)
 
     if (m_candidate.wordTilesWithNoPlayThru().length() == 1) 
     {
-        emit setCandidateMove(flip(m_candidate), carryOn);
+        Quackle::Move flippedMove = flip(m_candidate);
+        emit setCandidateMove(&flippedMove, carryOn);
     }
     else
     {
-        emit setCandidateMove(m_candidate, carryOn);
+        emit setCandidateMove(&m_candidate, carryOn);
     }
 }
 

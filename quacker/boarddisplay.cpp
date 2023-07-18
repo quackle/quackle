@@ -66,20 +66,20 @@ BoardWithQuickEntry::~BoardWithQuickEntry()
 {
 }
 
-void BoardWithQuickEntry::positionChanged(const Quackle::GamePosition &position)
+void BoardWithQuickEntry::positionChanged(const Quackle::GamePosition *position)
 {
 	View::positionChanged(position);
-	setLocalCandidate(position.moveMade());
+	setLocalCandidate(&position->moveMade());
 }
 
-void BoardWithQuickEntry::setLocalCandidate(const Quackle::Move &candidate)
+void BoardWithQuickEntry::setLocalCandidate(const Quackle::Move *candidate)
 {
-	m_localCandidateMove = candidate;
+	m_localCandidateMove = *candidate;
 
-	if (candidate.isAMove())
+	if (candidate->isAMove())
 	{
-		m_lineEdit->setText(QuackleIO::Util::moveToDetailedString(candidate));
-		m_commitButton->setText(tr("Commit %1").arg(QuackleIO::Util::moveToDetailedString(candidate)));
+		m_lineEdit->setText(QuackleIO::Util::moveToDetailedString(*candidate));
+		m_commitButton->setText(tr("Commit %1").arg(QuackleIO::Util::moveToDetailedString(*candidate)));
 	}
 	else
 	{
@@ -87,7 +87,7 @@ void BoardWithQuickEntry::setLocalCandidate(const Quackle::Move &candidate)
 		m_commitButton->setText(tr("Commit"));
 	}
 
-	m_commitButton->setEnabled(candidate.isAMove());
+	m_commitButton->setEnabled(candidate->isAMove());
 }
 
 void BoardWithQuickEntry::quickEditReturnPressed()
@@ -107,18 +107,19 @@ void BoardWithQuickEntry::quickEditShiftReturnPressed()
 void BoardWithQuickEntry::plusFive()
 {
 	m_localCandidateMove.setScoreAddition(m_localCandidateMove.scoreAddition() + 5);
-	emit setCandidateMove(m_localCandidateMove, nullptr);
+	emit setCandidateMove(&m_localCandidateMove, nullptr);
 }
 
 void BoardWithQuickEntry::performCommit()
 {
-	emit setCandidateMove(m_localCandidateMove, nullptr);
+	emit setCandidateMove(&m_localCandidateMove, nullptr);
 	emit commit();
 }
 
 void BoardWithQuickEntry::reset()
 {
-	emit setCandidateMove(Quackle::Move::createNonmove(), nullptr);
+	Quackle::Move move = Quackle::Move::createNonmove();
+	emit setCandidateMove(&move, nullptr);
 }
 
 void BoardWithQuickEntry::provideHelp()
@@ -207,7 +208,7 @@ void BoardWithQuickEntry::processCommand(const QString &command)
 	}
 
 	if (move.isAMove())
-		emit setCandidateMove(move, nullptr);
+		emit setCandidateMove(&move, nullptr);
 }
 
 ///////////
@@ -223,11 +224,11 @@ TextBoard::TextBoard(QWidget *parent)
 	m_textEdit->setReadOnly(true);
 }
 
-void TextBoard::positionChanged(const Quackle::GamePosition &position)
+void TextBoard::positionChanged(const Quackle::GamePosition *position)
 {
 	BoardWithQuickEntry::positionChanged(position);
 	//m_textEdit->setHtml(QString("<html><font size=\"+4\"><pre>%1</pre></font></html>").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
-	m_textEdit->setPlainText(QString("%1").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
+	m_textEdit->setPlainText(QString("%1").arg(QuackleIO::Util::uvStringToQString(position->boardAfterMoveMade().toString())));
 }
 
 ///////////

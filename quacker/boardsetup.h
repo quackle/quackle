@@ -55,7 +55,7 @@ public:
 	void parametersChanged();
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition & /* position */) {};
+	virtual void positionChanged(const Quackle::GamePosition * /* position */) {};
 
 protected slots:
 	virtual void tileClicked(const QSize &tileLocation, const QMouseEvent *event);

@@ -44,10 +44,10 @@ public:
 	virtual ~BoardWithQuickEntry();
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 
 protected slots:
-	void setLocalCandidate(const Quackle::Move &candidate);
+	void setLocalCandidate(const Quackle::Move *candidate);
 
 private slots:
 	void quickEditReturnPressed();
@@ -76,7 +76,7 @@ public:
 	TextBoard(QWidget *parent = 0);
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 
 private:
 	QTextEdit *m_textEdit;

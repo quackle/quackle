@@ -50,9 +50,9 @@ QSize NoteEditor::sizeHint() const
 	return QSize(hint.width(), hint.height() / 2);
 }
 
-void NoteEditor::positionChanged(const Quackle::GamePosition &position)
+void NoteEditor::positionChanged(const Quackle::GamePosition *position)
 {
-	showNote(position.explanatoryNote());
+	showNote(position->explanatoryNote());
 }
 
 void NoteEditor::showNote(const UVString &note)

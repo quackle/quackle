@@ -59,8 +59,8 @@ signals:
 	// emit to alert the rest of the application to show this
 	// as candidate move - may eventually trigger positionChanged
 	// in response
-	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
-	void removeCandidateMoves(const Quackle::MoveList &moves);
+	void setCandidateMove(const Quackle::Move *move, bool *carryOnPtr = nullptr);
+	void removeCandidateMoves(const Quackle::MoveList *moves);
 	void commit();
 
 	// emit to alert the rest of the application to reset the current
@@ -80,11 +80,11 @@ public slots:
 	// 
 	// The default implementation calls positionChanged(position) for all subviews
 	// in m_subviews.
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 
 	// called when user starts a simulation and this move list should
 	// supercede that from the position
-	virtual void movesChanged(const Quackle::MoveList &moves);
+	virtual void movesChanged(const Quackle::MoveList *moves);
 
 	virtual void grabFocus();
 
@@ -107,7 +107,7 @@ signals:
 	// emit to alert the rest of the application to show this
 	// as candidate move - may eventually trigger positionChanged
 	// in response
-	void goToHistoryLocation(const Quackle::HistoryLocation &location);
+	void goToHistoryLocation(const Quackle::HistoryLocation *location);
 
 public slots:
 	// called whenever history is added to

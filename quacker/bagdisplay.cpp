@@ -53,12 +53,12 @@ BagDisplay::~BagDisplay()
 {
 }
 
-void BagDisplay::positionChanged(const Quackle::GamePosition &position)
+void BagDisplay::positionChanged(const Quackle::GamePosition *position)
 {
-	showTiles(position.unseenBag().tiles());
+	showTiles(position->unseenBag().tiles());
 
 	// Birthday
-	for (const auto& it : position.players())
+	for (const auto& it : position->players())
 	{
 		if (it.name() == "zorbonauts")
 		{

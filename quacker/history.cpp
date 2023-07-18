@@ -148,7 +148,7 @@ void History::itemActivated(QTableWidgetItem *item)
 	{
 		if (it.value() == item)
 		{
-			emit goToHistoryLocation(it.key());
+			emit goToHistoryLocation(&it.key());
 			break;
 		}
 	}

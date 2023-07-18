@@ -223,7 +223,7 @@ void TopLevel::commit()
 void TopLevel::pass()
 {
 	Quackle::Move pass(Quackle::Move::createPassMove());
-	setCandidateMove(pass);
+	setCandidateMove(&pass);
 }
 
 void TopLevel::overdraw()
@@ -269,14 +269,14 @@ bool TopLevel::askToCarryOn(const QString &text)
 	return QMessageBox::question(this, tr("Verify Play - Quackle"), dialogText(text), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
 }
 
-void TopLevel::setCandidateMove(const Quackle::Move &move, bool *carryOnPtr)
+void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 {
 	if (carryOnPtr != nullptr)
 		*carryOnPtr = true;
-	if (!m_game->hasPositions() || (move.action == Quackle::Move::Place && move.tiles().empty()))
+	if (!m_game->hasPositions() || (move->action == Quackle::Move::Place && move->tiles().empty()))
 		return;
 
-	Quackle::Move prettiedMove(move);
+	Quackle::Move prettiedMove(*move);
 	m_game->currentPosition().ensureMoveTilesDoNotIncludePlayThru(prettiedMove);
 	m_game->currentPosition().ensureMovePrettiness(prettiedMove);
 
@@ -447,13 +447,13 @@ bool TopLevel::validifyMove(Quackle::Move &move)
 	return true;
 }
 
-void TopLevel::removeCandidateMoves(const Quackle::MoveList &moves)
+void TopLevel::removeCandidateMoves(const Quackle::MoveList *moves)
 {
 	if (!m_game->hasPositions())
 		return;
 
-	const Quackle::MoveList::const_iterator end(moves.end());
-	for (Quackle::MoveList::const_iterator it = moves.begin(); it != end; ++it)
+	const Quackle::MoveList::const_iterator end(moves->end());
+	for (Quackle::MoveList::const_iterator it = moves->begin(); it != end; ++it)
 		m_game->currentPosition().removeMove(*it);
 
 	ensureUpToDateSimulatorMoveList();
@@ -492,7 +492,7 @@ void TopLevel::setNote(const UVString &note)
 	setModified(true);
 }
 
-void TopLevel::goToHistoryLocation(const Quackle::HistoryLocation &location)
+void TopLevel::goToHistoryLocation(const Quackle::HistoryLocation *location)
 {
 	if (!m_game->hasPositions())
 		return;
@@ -507,7 +507,7 @@ void TopLevel::goToHistoryLocation(const Quackle::HistoryLocation &location)
 	stopEverything();
 	stopOutcraftyingCurrentPlayer();
 
-	m_game->setCurrentPosition(location);
+	m_game->setCurrentPosition(*location);
 	showToHuman();
 }
 
@@ -571,7 +571,7 @@ void TopLevel::updateAllViews()
 
 void TopLevel::updatePositionViews()
 {
-	emit positionChanged(m_game->currentPosition());
+	emit positionChanged(&m_game->currentPosition());
 
 	m_simulateAction->setEnabled(!m_game->currentPosition().moves().empty());
 	m_simulateDetailsAction->setEnabled(!m_game->currentPosition().moves().empty());
@@ -621,9 +621,15 @@ void TopLevel::updatePositionViews()
 void TopLevel::updateMoveViews()
 {
 	if (m_simulator->hasSimulationResults())
-		emit movesChanged(m_simulator->moves(/* prune */ true, /* sort by win */ true));
+	{
+		const Quackle::MoveList& moveList = m_simulator->moves(/* prune */ true, /* sort by win */ true);
+		emit movesChanged(&moveList);
+	}
 	else
-		emit movesChanged(m_game->currentPosition().moves());
+	{
+		const Quackle::MoveList moveList = m_game->currentPosition().moves();
+		emit movesChanged(&moveList);
+	}
 
 	m_simulateAction->setEnabled(!m_game->currentPosition().moves().empty());
 	m_simulateDetailsAction->setEnabled(!m_game->currentPosition().moves().empty());
@@ -635,7 +641,7 @@ void TopLevel::updateHistoryViews()
 	emit historyChanged(m_game->history());
 }
 
-void TopLevel::initializeGame(const Quackle::PlayerList &players)
+void TopLevel::initializeGame(const Quackle::PlayerList *players)
 {
 	stopEverything();
 
@@ -644,10 +650,10 @@ void TopLevel::initializeGame(const Quackle::PlayerList &players)
 	m_logania = 0;
 	setModified(false);
 
-	if (players.empty())
+	if (players->empty())
 		return;
 
-	Quackle::PlayerList newPlayers(players);
+	Quackle::PlayerList newPlayers(*players);
 
 	// shuffle so same person doesn't go first twice in a row,
 	// if there are multiple players in the game
@@ -768,8 +774,11 @@ void TopLevel::newGame()
 	switch (newGameDialog.exec())
 	{
 	case QDialog::Accepted:
-		initializeGame(newGameDialog.players());
+	{
+		const Quackle::PlayerList &players = newGameDialog.players();
+		initializeGame(&players);
 		break;
+	}
 
 	case QDialog::Rejected:
 		break;
@@ -823,8 +832,8 @@ void TopLevel::plugIntoMatrix(View *view)
 {
 	plugIntoBaseMatrix(view);
 
-	connect(view, SIGNAL(setCandidateMove(const Quackle::Move &, bool *)), this, SLOT(setCandidateMove(const Quackle::Move &, bool *)));
-	connect(view, SIGNAL(removeCandidateMoves(const Quackle::MoveList &)), this, SLOT(removeCandidateMoves(const Quackle::MoveList &)));
+	connect(view, SIGNAL(setCandidateMove(const Quackle::Move *, bool *)), this, SLOT(setCandidateMove(const Quackle::Move *, bool *)));
+	connect(view, SIGNAL(removeCandidateMoves(const Quackle::MoveList *)), this, SLOT(removeCandidateMoves(const Quackle::MoveList *)));
 	connect(view, SIGNAL(commit()), this, SLOT(commit()));
 	connect(view, SIGNAL(setRack(const Quackle::Rack &)), this, SLOT(setRack(const Quackle::Rack &)));
 	connect(view, SIGNAL(setNote(const UVString &)), this, SLOT(setNote(const UVString &)));
@@ -832,19 +841,19 @@ void TopLevel::plugIntoMatrix(View *view)
 
 void TopLevel::plugIntoPositionMatrix(View *view)
 {
-	connect(this, SIGNAL(positionChanged(const Quackle::GamePosition &)), view, SLOT(positionChanged(const Quackle::GamePosition &)));
+	connect(this, SIGNAL(positionChanged(const Quackle::GamePosition *)), view, SLOT(positionChanged(const Quackle::GamePosition *)));
 }
 
 void TopLevel::plugIntoMoveMatrix(View *view)
 {
-	connect(this, SIGNAL(movesChanged(const Quackle::MoveList &)), view, SLOT(movesChanged(const Quackle::MoveList &)));
+	connect(this, SIGNAL(movesChanged(const Quackle::MoveList *)), view, SLOT(movesChanged(const Quackle::MoveList *)));
 }
 
 void TopLevel::plugIntoHistoryMatrix(HistoryView *view)
 {
 	plugIntoBaseMatrix(view);
 
-	connect(view, SIGNAL(goToHistoryLocation(const Quackle::HistoryLocation &)), this, SLOT(goToHistoryLocation(const Quackle::HistoryLocation &)));
+	connect(view, SIGNAL(goToHistoryLocation(const Quackle::HistoryLocation *)), this, SLOT(goToHistoryLocation(const Quackle::HistoryLocation *)));
 
 	connect(this, SIGNAL(historyChanged(const Quackle::History &)), view, SLOT(historyChanged(const Quackle::History &)));
 }
@@ -991,7 +1000,8 @@ void TopLevel::firstPosition()
 	const Quackle::GamePosition &firstPozzy = m_game->history().firstPosition(&exists);
 	if (exists)
 	{
-		goToHistoryLocation(firstPozzy.location());
+		const Quackle::HistoryLocation &location = firstPozzy.location();
+		goToHistoryLocation(&location);
 	}
 }
 
@@ -1001,7 +1011,8 @@ void TopLevel::nextPosition()
 	const Quackle::GamePosition &nextPozzy = m_game->history().nextPosition(&exists);
 	if (exists)
 	{
-		goToHistoryLocation(nextPozzy.location());
+		const Quackle::HistoryLocation &location = nextPozzy.location();
+		goToHistoryLocation(&location);
 	}
 }
 
@@ -1011,7 +1022,8 @@ void TopLevel::previousPosition()
 	const Quackle::GamePosition &previousPozzy = m_game->history().previousPosition(&exists);
 	if (exists)
 	{
-		goToHistoryLocation(previousPozzy.location());
+		const Quackle::HistoryLocation &location = previousPozzy.location();
+		goToHistoryLocation(&location);
 	}
 }
 

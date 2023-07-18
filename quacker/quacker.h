@@ -129,7 +129,7 @@ public slots:
 	void showConfigDialog();
 
 	// set up our game object based on a shuffled playerList
-	void initializeGame(const Quackle::PlayerList &players);
+	void initializeGame(const Quackle::PlayerList *players);
 
 	// call timerControl, and tell user about it
 	void pause(bool paused);
@@ -177,8 +177,8 @@ protected slots:
 	void statusMessage(const QString &message);
 
 	// set game's candidate to move and update views
-	void setCandidateMove(const Quackle::Move &move, bool *carryOnPtr = nullptr);
-	void removeCandidateMoves(const Quackle::MoveList &moves);
+	void setCandidateMove(const Quackle::Move *move, bool *carryOnPtr = nullptr);
+	void removeCandidateMoves(const Quackle::MoveList *moves);
 
 	// set current player's rack and update views
 	void setRack(const Quackle::Rack &rack);
@@ -187,7 +187,7 @@ protected slots:
 	void setNote(const UVString &note);
 
 	// set history location to view
-	void goToHistoryLocation(const Quackle::HistoryLocation &location);
+	void goToHistoryLocation(const Quackle::HistoryLocation *location);
 
 	// stop simulation, opponenent thread, etc
 	void stopEverything();
@@ -235,9 +235,9 @@ signals:
 	// emitted when views (eg board) should update based on the
 	// current position (includes board information, current candidate play
 	// that should be shown)
-	void positionChanged(const Quackle::GamePosition &position);
+	void positionChanged(const Quackle::GamePosition *position);
 
-	void movesChanged(const Quackle::MoveList &moves);
+	void movesChanged(const Quackle::MoveList *moves);
 
 	// emitted when views of history must update
 	void historyChanged(const Quackle::History &history);

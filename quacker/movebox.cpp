@@ -61,7 +61,8 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 {
 	if (item == 0)
 	{
-		emit setCandidateMove(Quackle::Move::createNonmove(), nullptr);
+		Quackle::Move nonMove = Quackle::Move::createNonmove();
+		emit setCandidateMove(&nonMove, nullptr);
 		return;
 	}
 
@@ -73,7 +74,8 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 	{
 		if (it.value() == item)
 		{
-			emit setCandidateMove(it.key(), nullptr);
+			const auto& key = it.key();
+			emit setCandidateMove(&key, nullptr);
 			break;
 		}
 	}
@@ -106,7 +108,7 @@ void MoveBox::removeMove()
 		}
 	}
 
-	emit removeCandidateMoves(selectedMoves);
+	emit removeCandidateMoves(&selectedMoves);
 
 	// TODO make this code work to select the next item
 	QTreeWidgetItem *prevLastSelection = m_moveMap.value(selectedMoves.back());
@@ -130,7 +132,8 @@ void MoveBox::removeMove()
 		{
 			if (mapIt.value() == nextSelection)
 			{
-				emit setCandidateMove(mapIt.key(), nullptr);
+				const auto& key = mapIt.key();
+				emit setCandidateMove(&key, nullptr);
 				break;
 			}
 		}
@@ -232,9 +235,9 @@ void MoveBox::checkGeometry()
 	m_treeWidget->resizeColumnToContents(PlayColumn);
 }
 
-void MoveBox::positionChanged(const Quackle::GamePosition &position)
+void MoveBox::positionChanged(const Quackle::GamePosition *position)
 {
-	if (m_rack.tiles() != position.currentPlayer().rack().tiles())
+	if (m_rack.tiles() != position->currentPlayer().rack().tiles())
 	{
 		for (auto& mapIt : m_moveMap)
 			delete mapIt;
@@ -242,13 +245,13 @@ void MoveBox::positionChanged(const Quackle::GamePosition &position)
 		m_moveMap.clear();
 	}
 
-	m_rack = position.currentPlayer().rack();
-	setMoves(position.moves(), position.moveMade());
+	m_rack = position->currentPlayer().rack();
+	setMoves(position->moves(), position->moveMade());
 }
 
-void MoveBox::movesChanged(const Quackle::MoveList &moves)
+void MoveBox::movesChanged(const Quackle::MoveList *moves)
 {
-	setMoves(moves, m_previousSelection);
+	setMoves(*moves, m_previousSelection);
 }
 
 QTreeWidgetItem *MoveBox::createItem(const Quackle::Move &move)

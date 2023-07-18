@@ -63,12 +63,12 @@ QuickEntryRack::~QuickEntryRack()
 {
 }
 
-void QuickEntryRack::positionChanged(const Quackle::GamePosition &position)
+void QuickEntryRack::positionChanged(const Quackle::GamePosition *position)
 {
-	if (m_rackTiles == position.currentPlayer().rack().tiles())
+	if (m_rackTiles == position->currentPlayer().rack().tiles())
 		return;
 
-	m_rackTiles = position.currentPlayer().rack().tiles();
+	m_rackTiles = position->currentPlayer().rack().tiles();
 	QString tiles = QuackleIO::Util::letterStringToQString(m_rackTiles);
 	m_lineEdit->setText(tiles);
 	m_tiles->setText(m_rackTiles);

@@ -34,7 +34,7 @@ public:
 	virtual ~BagDisplay();
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 
 protected slots:
 	virtual void showTiles(const Quackle::LongLetterString &tiles);

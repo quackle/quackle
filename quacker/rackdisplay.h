@@ -38,7 +38,7 @@ public:
 	virtual ~QuickEntryRack();
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 	virtual void grabFocus();
 
 private slots:

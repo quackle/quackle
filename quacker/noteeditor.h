@@ -35,7 +35,7 @@ public:
 	virtual QSize sizeHint() const;
 
 public slots:
-	virtual void positionChanged(const Quackle::GamePosition &position);
+	virtual void positionChanged(const Quackle::GamePosition *position);
 
 protected slots:
 	virtual void showNote(const UVString &note);
