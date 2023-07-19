@@ -93,7 +93,7 @@ bool GaddagFactory::pushWord(const Quackle::LetterString &word)
 void GaddagFactory::hashWord(const Quackle::LetterString &word)
 {
 	QCryptographicHash wordhash(QCryptographicHash::Md5);
-	wordhash.addData(word.constData(), word.length());
+	wordhash.addData(QByteArray::fromRawData(word.constData(), word.length()));
 	QByteArray wordhashbytes = wordhash.result();
 	m_hash.int32ptr[0] ^= ((const int32_t*)wordhashbytes.constData())[0];
 	m_hash.int32ptr[1] ^= ((const int32_t*)wordhashbytes.constData())[1];

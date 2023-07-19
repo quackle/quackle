@@ -193,7 +193,11 @@ GraphicalRack::dropEvent (QDropEvent* event)
         droppedTile->setPixmap(pixmap);
         droppedTile->setAttribute (Qt::WA_DeleteOnClose);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        QPoint dropPos = event->position().toPoint() - offset;
+#else
         QPoint dropPos = event->pos() - offset;
+#endif
 
         // Move the tile an extra half tile width in the direction of the
         // move.  This allows the tile to assume a new spot if it is dragged
