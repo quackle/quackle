@@ -189,7 +189,7 @@ GamePosition::GamePosition(const PlayerList &players)
 	setEmptyBoard();
 	resetMoveMade();
 	resetBag();
-	m_tilesInBag = m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * m_players.size()); 
+	m_tilesInBag = m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * int(m_players.size())); 
 }
 
 GamePosition::GamePosition(const GamePosition &position)

@@ -263,7 +263,7 @@ bool GetOpt::parse( bool untilFirstSwitchOnly )
 				}
 				t = LongOpt;
 				// split key=value style arguments
-				int equal = a.indexOf( '=' );
+				qsizetype equal = a.indexOf( '=' );
 				if ( equal >= 0 ) {
 					stack.push( a.mid( equal + 1 ) );
 					currArg--;

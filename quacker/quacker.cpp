@@ -2176,11 +2176,11 @@ void TopLevel::about()
 		QString line = strm.readLine();
 		while (!line.isNull())
 		{
-			int startPos = line.indexOf(':');
+			qsizetype startPos = line.indexOf(':');
 			if (startPos != -1 && startPos + 1 < line.size())
 			{
 				line = line.mid(startPos + 1);
-				int endPos = line.indexOf(':');
+				qsizetype endPos = line.indexOf(':');
 				line = line.mid(0, endPos);
 				// Only include lines with a copyright (the word or the symbol) in them
 				if (line.indexOf("copyright", 0, Qt::CaseInsensitive) != -1 || line.indexOf(QChar(0xA9)) != -1)

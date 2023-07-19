@@ -255,7 +255,7 @@ void Letterbox::loadFile()
 		QString letters = line;
 		QString comment;
 
-		int quoteMarkIndex = line.indexOf("\"");
+		int quoteMarkIndex = int(line.indexOf("\""));
 		if (quoteMarkIndex >= 0)
 		{
 			letters = line.left(quoteMarkIndex).trimmed();
@@ -306,7 +306,7 @@ void Letterbox::jumpTo()
 	pause(true);
 
 	bool ok;
-	int index = QInputDialog::getInt(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1, m_clueResults.count(), 1, &ok);
+	int index = QInputDialog::getInt(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1, int(m_clueResults.count()), 1, &ok);
 	if (ok)
 	{
 		jumpTo(index);
@@ -454,7 +454,7 @@ void Letterbox::skip()
 	for (auto& it : m_clueResultsIterator->words)
 	{
 		it.missed = false;
-		it.keystrokes = it.word.length();
+		it.keystrokes = int(it.word.length());
 		it.time = timerLength();
 	}
 
@@ -496,7 +496,7 @@ int Letterbox::timerLength()
 	if (!isInQuiz())
 		return 0;
 
-	return LetterboxSettings::self()->msecWaitBase + LetterboxSettings::self()->msecWaitExtraPerSolution * (*m_answersIterator).count();
+	return LetterboxSettings::self()->msecWaitBase + LetterboxSettings::self()->msecWaitExtraPerSolution * int(m_answersIterator->count());
 }
 
 void Letterbox::listFinished()
@@ -916,7 +916,7 @@ void Letterbox::print()
 	bool wasModified = m_modified;
 	int previousNumber = m_numberIterator;
 	statusBar()->showMessage(tr("Generating HTML..."));
-	jumpTo(m_clueResults.size() - 1);
+	jumpTo(int(m_clueResults.size() - 1));
 
 	printer.setWords(m_answers.begin(), m_answers.end());
 
@@ -952,7 +952,7 @@ void Letterbox::printStudy()
 	bool wasModified = m_modified;
 	int previousNumber = m_numberIterator;
 	statusBar()->showMessage(tr("Generating study sheet..."));
-	jumpTo(m_clueResults.size() - 1);
+	jumpTo(int(m_clueResults.size() - 1));
 
 	QTextStream stream(&file);
 	SET_QTEXTSTREAM_TO_UTF8(stream);
@@ -975,7 +975,7 @@ QString Letterbox::generateStudySheet(Dict::WordListList::ConstIterator start, D
 
 	for (Dict::WordListList::ConstIterator it = start; it != end; ++it) 
 	{
-		int length = (*it).front().word.length();
+		int length = int((*it).front().word.length());
 		QString pad = "  ";
 		for (int i = 0; i < length; ++i)
 			pad += " ";
@@ -1393,8 +1393,7 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 		{
 			if (extensionChars >= LetterboxSettings::self()->numExtensionChars)
 			{
-				int numExtensions = 0;
-				numExtensions = list.size();
+				int numExtensions = int(list.size());
 				
 				ret += QString("...%1(%2)").arg(space).arg(numExtensions);
 				return ret;

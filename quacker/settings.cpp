@@ -561,7 +561,7 @@ void Settings::editBoard()
 
 		QByteArray boardParameterBytes = qCompress(
 							(const char *)boardParameterStream.str().data(),
-							boardParameterStream.str().size());
+							int(boardParameterStream.str().size()));
 		settings.setValue(newBoardName, QVariant(boardParameterBytes));
 		boardChanged(newBoardName);
 	}
@@ -669,7 +669,7 @@ void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path,
 	QStringList::iterator i;
 	QString fileName;
 	QStringList list;
-	int periodPos;
+	qsizetype periodPos;
 
 	for (i = fileList.begin(); i != fileList.end(); ++i)
 	{

@@ -283,7 +283,7 @@ void Simulator::simulate(int plies)
 	SimmedMoveConstants constants;
 	constants.game = m_originalGame;
 	constants.startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	constants.playerCount = m_originalGame.currentPosition().players().size();
+	constants.playerCount = int(m_originalGame.currentPosition().players().size());
 	// level one's first move is the zeroth ply (the candidate)
 	constants.decimalTurns = (plies % constants.playerCount);
 	// also one-indexed
@@ -580,14 +580,14 @@ int Simulator::numLevels() const
 {
 	if (m_simmedMoves.empty())
 		return 0;
-	return m_simmedMoves.front().levels.size();
+	return int(m_simmedMoves.front().levels.size());
 }
 
 int Simulator::numPlayersAtLevel(int levelIndex) const
 {
 	if (m_simmedMoves.empty())
 		return 0;
-	return m_simmedMoves.front().levels[levelIndex].statistics.size();
+	return int(m_simmedMoves.front().levels[levelIndex].statistics.size());
 }
 
 ////////////

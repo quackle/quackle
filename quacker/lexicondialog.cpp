@@ -230,7 +230,7 @@ void LexiconDialog::addWordsFromTextFile(const QString &textFile)
 		if (firstChar < 'A')
 			continue; // allows the usage of most punctuation characters as comments
 		int playability = 0;
-		for (int i = word.size() - 1; i > 0; i--)
+		for (int i = int(word.size()) - 1; i > 0; i--)
 		{
 			if (word[i].isDigit())
 				playability = playability * 10 + word[i].digitValue();

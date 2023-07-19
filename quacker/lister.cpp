@@ -241,7 +241,7 @@ void ListerDialog::openFile()
 		{
 			line = stream.readLine();
 
-			int quoteMarkIndex = line.indexOf("\"");
+			qsizetype quoteMarkIndex = line.indexOf("\"");
 			if (quoteMarkIndex >= 0)
 				line = line.left(quoteMarkIndex).trimmed();
 

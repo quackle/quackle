@@ -56,8 +56,8 @@ void History::historyChanged(const Quackle::History &history)
 	if (gameOver)
 		rowLabels.push_back(tr("Final"));
 
-	m_tableWidget->setRowCount(rowLabels.size());
-	m_tableWidget->setColumnCount((int)players.size());
+	m_tableWidget->setRowCount(int(rowLabels.size()));
+	m_tableWidget->setColumnCount(int(players.size()));
 
 	Quackle::PlayerList currentScores(lastPosition.endgameAdjustedScores());
 
@@ -92,7 +92,7 @@ void History::historyChanged(const Quackle::History &history)
 			QString scoreString(QString::number((*currentScoresIt).score()));
 
 			QTableWidgetItem *item = createPlainItem(scoreString);
-			m_tableWidget->setItem(rowLabels.size() - 1, playerCountFromZero, item);
+			m_tableWidget->setItem(int(rowLabels.size()) - 1, playerCountFromZero, item);
 
 			if (history.currentPosition().gameOver())
 				currentItem = item;

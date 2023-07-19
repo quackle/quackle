@@ -41,7 +41,7 @@ public:
 	WordResult(QString w);
 	void resetStats();
 	QString word;
-	int time;
+	qint64 time;
 	bool missed;
 	int keystrokes;
 };
