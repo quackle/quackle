@@ -120,7 +120,7 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	connect(m_horizontalDimension, SIGNAL(activated(int)), this, SLOT(symmetryChanged()));
 	connect(m_verticalDimension, SIGNAL(activated(int)), this, SLOT(parametersChanged(int)));
 	connect(m_verticalDimension, SIGNAL(activated(int)), this, SLOT(symmetryChanged()));
-	connect(m_boardName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(0)));
+	connect(m_boardName, SIGNAL(textEdited(const QString &)), this, SLOT(parametersChanged(const QString &)));
 	connect(m_saveChanges, SIGNAL(clicked()), this, SLOT(accept()));
 	connect(m_cancel, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(m_undoAll, SIGNAL(clicked()), this, SLOT(undoAllChanges()));
@@ -175,6 +175,11 @@ void BoardSetupDialog::initializeBoardName()
 		}
 		QUACKLE_BOARD_PARAMETERS->setName(QuackleIO::Util::qstringToString(generatedName));
 	}
+}
+
+void BoardSetupDialog::parametersChanged(const QString& unused)
+{
+	parametersChanged(0);
 }
 
 void BoardSetupDialog::parametersChanged(int unused)

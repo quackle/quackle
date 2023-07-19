@@ -44,6 +44,7 @@ public:
 
 protected slots:
 	void parametersChanged(int unused);
+	void parametersChanged(const QString &);
 	void symmetryChanged();
 	void undoAllChanges();
 	void deleteBoard();
