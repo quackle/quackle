@@ -21,6 +21,14 @@ Clone the repo or download the tarball and untar.  Use cmake to build quacker, w
 
 The binary will build as 'Quackle'.
 
+If you're building with Qt provided by cmake, then invoke cmake as...
+
+	cmake -DCMAKE_PREFIX_PATH="<path_to_vcpkg>/installed/<arch>" ..
+
+The Quackle cmake build system uses Qt5 by default.  But you can specify Qt6 by invoking...
+
+	cmake -DQT_VERSION=6 ..
+
 
 File organization:
 ------------------

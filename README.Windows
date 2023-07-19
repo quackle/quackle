@@ -4,91 +4,12 @@ copyright.
 Quackle was first ported to Windows by John Fultz, jfultz@wolfram.com, who
 is also the original author of this ReadMe.
 
-I maintain the Windows version so that it can be built with either
-Visual C++ or the GNU-based MinGW compiler.  As of Quackle 1.0.4,
-I use the Visual Studio tools bundled with Qt 5.9.1 to build the release
-version.  The build ought to work with Visual C++ Express, as well, but
-I'm not sure whether Microsoft disables useful optimizations in that version,
-so I won't guarantee that you'll get nice and fast optimized binaries.
+The cmake build steps documented in [README.md](README.md) work fine under Windows with
+Visual C++.  Quackle used to build with mingw, and perhaps it can still be made to
+do so, but that configuration is no longer supported.
 
-All build commands are run from Windows' regular command shell.  The
-tools are:
-
-Free Tools Build:
-------------------------------------
-MinGW
-Qt 5.9
-git
-cygwin (optional) - if you want to debug, you'll need gdb from cygwin.
-cmake (optional)
-
-Microsoft Tools Build:
-------------------------------------
-Visual C++
-Qt 5.9
-git
-cmake (optional)
-
-Installer build:
-------------------------------------
-Inno Setup 6
-
-
-Also, you'll need to make sure the following things are set appropriately
-in your environment...
-
-* INCLUDE needs to include Qt's include\ directory
-* LIB needs to include Qt's lib\ directory
-* PATH needs to include MinGW's bin\ directory and Qt's bin/ directory.
-* cygwin's bin directory (if present) should be on PATH, and it must
-  be after MinGW.
-
-
-Building is very straightforward.  The following steps will get you to a
-working executable...
-
-* Make sure your PATH includes Qt's 'bin' directory.  If you're building
-  with MinGW, make sure your PATH includes MinGW's 'bin' directory, and
-  that it's earlier than Qt's 'bin' directory on the PATH (otherwise,
-  attempts to run it from the build layout may fail with DLL errors).
-
-* In the directories quackle\, quackle\quackleio, and quackle\quacker,
-  do the following...
-  	qmake
-
-    Free tools:                    Microsoft tools:
-  	mingw32-make <target>          nmake <target>
- <target> can be debug, release, or empty if you want to build both.
-
-* You can now run quackle\quacker\release\Quackle.exe
-
-* If, when running Visual Studio builds, you get a "fatal error CVT1100",
-  then it can be fixed as follows:
-  + In the Solution Explorer, open up Quackle, then Generated Files
-  + Look for any copies of quacker.res
-  + Right-click on each one and choose Exclude From Project 
-
-* Recent versions of Visual Studio no longer build XP-compatible binaries
-  by default.  To change this in the project file, bring up the
-  Quackle Properties page, and under the General configuration,
-  change the "Platform Toolset" to one which indicates Windows XP
-  compatibility.  Do this for the Quackle, quackleio, and libquackle
-  projects (the minimum projects which are part of a standard Quackle install).
-
-
-NEW BUILD SYSTEM COMING
------------------------
-Quackle 1.0.4 was built with cmake and vcpkg.  This very much lowers the barrier
-to getting a build up and running.  Basic outline:
-
-* Install qt5 in vcpkg (note vcpkg defaults to 32-bit, so tell it if you want
-  64-bit)
-* Set environment variable Qt5DIR=<vcpkg_dir>\installed\<platform>\share\cmake\Qt5
-* Run cmake pointing to the quacker/ directory
-* Build from cmake as usual or, if you built using Visual Studio, you can open the
-  generated solution file
-
-More detailed instructions coming later.
+A note about using cmake under Windows...cmake is finicky about backslashes.  Specify
+all pathnames (e.g., in the CMAKE_PREFIX_PATH) with forward slashes (/).
 
 
 Additional things to know:
@@ -100,43 +21,3 @@ Additional things to know:
   + From the Quackle directory, run the following...
     <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
   + Find the file QuackleInstaller.exe in the quackle\ directory.
-
-* MinGW doesn't seem to come with a debugger, but the cygwin gdb
-  seems to work great on MinGW-generated binaries.  Watch for
-  conflicts between MinGW and cygwin if both are on the path at
-  once, though.
-
-* If you're more comfortable with project files you can run
-    qmake -tp vc
-  to generate project files.  I've included a 'quackle.sln' which contains
-  all of the projects including all of the various utilities.  If you're
-  not interested in the additional utilities, you can simply ignore
-  Visual C++'s warnings about missing project files.  Only the quackle,
-  quackleio, and quacker projects are absolutely necessary, and if you
-  run qmake -tp vc in the directories mentioned above, you'll have those
-  project files.
-
-
-Building Qt libraries
----------------------
-  You can download the mingw or Visual Studio versions of the prebuilt
-  Qt libraries.
-  
-  To build your own libraries, download
-    qt-win-opensource-src-<ver>.zip
-  from Trolltech or a mirror.  Unpack it someplace.  Set your
-  PATH so that it contains Qt's bin directory.  It should also
-  include MinGW's bin directory if you're building for MinGW, or
-  the results of having run VSVARS32.BAT (found in Common7\Tools)
-  if you're building on Visual Studio.
-
-  If you have cygwin installed, make sure that you do *not* have
-  it on your PATH.  Then run
-  
-    configure -debug-and-release
-
-  and follow the directions given at the end of the [moderately lengthy]
-  configure process.
-
-  Here's a helpful document on the process:
-  https://doc.qt.io/qt-5/windows-support.html#downloading-and-installing-qt

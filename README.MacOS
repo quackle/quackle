@@ -2,23 +2,18 @@ Requirements:
 -------------
 
 1. Xcode 9 or above (for the compiler and build tools)
-2. A version of Qt 5.  I use HomeBrew to grab the latest version,
-   presently Qt 5.13.0. Installing in HomeBrew is as easy as
+2. A version of Qt 5 or 6.  Homebrew, vcpkg, macports, or whatever you prefer.  For
+   example, in HomeBrew...
 		brew install qt
+
+Note that Qt6 imposes greater Xcode and macOS requirements.  Qt6 uses `std::filesystem`, which
+is only implemented with a 10.15 or later minimum macOS deployment target.
 
 Building Quackle:
 -----------------
 
-Clone the repo.  Use qmake to build quackle.pro and quackleio/quackleio.pro:
-
-	qmake quackle.pro && make
-	cd quackleio && qmake && make && cd ..
-
-Then make an Xcode project for quacker using qmake.
-
-	cd quacker && qmake -spec macx-xcode && cd ..
-
-You can now open the project in Xcode, build and run as usual.
+Follow the cmake instructions in [README.md](README.md).  You can use the Xcode generator
+to make an Xcode project if you wish.
 
 
 Creating the DMG:
