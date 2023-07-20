@@ -21,6 +21,7 @@
 
 #include <QElapsedTimer>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QValidator>
 #include <QTextEdit>
 #include <QTime>
@@ -189,7 +190,7 @@ protected:
 	static Letterbox *m_self;
 
 	// returns 0 for save, 1 for discard, 2 for cancel
-	int askToSave();
+	QMessageBox::StandardButton askToSave();
 
 	// used to know when to update UI when querying anagrammer
 	bool m_initializationChuu;

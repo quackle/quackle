@@ -258,8 +258,8 @@ void BoardSetupDialog::deleteBoard()
 	message += m_originalName;
 	message += "\"?";
 	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message,
-			QMessageBox::Yes | QMessageBox::Default,
-			QMessageBox::No | QMessageBox::Escape) == QMessageBox::Yes)
+			QMessageBox::Yes | QMessageBox::No,
+			QMessageBox::No) == QMessageBox::Yes)
 	{
 		CustomQSettings settings;
 		settings.beginGroup("quackle/boardparameters");

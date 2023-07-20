@@ -23,6 +23,7 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QMessageBox>
 
 #include <datamanager.h>
 #include "oppothread.h"
@@ -252,7 +253,7 @@ private:
 	void loadSettings();
 
 	// returns 0 for save, 1 for discard, 2 for cancel
-	int askToSave();
+	QMessageBox::StandardButton askToSave();
 
 	// returns true if user wants to make play anyway
 	bool askToCarryOn(const QString &text);

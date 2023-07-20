@@ -65,16 +65,17 @@ bool Letterbox::tryToClose()
 	{
 		switch (askToSave())
 		{
-		case 0:
+		case QMessageBox::Save:
 			qApp->processEvents();
 			writeFile();
 
 			// fall through
 
-		case 1:
+		case QMessageBox::Discard:
 			return true;
 
-		case 2:
+		case QMessageBox::Cancel:
+		default:
 			return false;
 		}
 	}
@@ -115,13 +116,14 @@ void Letterbox::open()
 	{
 		switch (askToSave())
 		{
-		case 0:
+		case QMessageBox::Save:
 			writeFile();
 
-		case 1:
+		case QMessageBox::Discard:
 			break;
 
-		case 2:
+		case QMessageBox::Cancel:
+		default:
 			return;
 		}
 	}
@@ -145,13 +147,14 @@ void Letterbox::openParticularFile(const QString &filename)
 		{
 			switch (askToSave())
 			{
-				case 0:
+				case QMessageBox::Save:
 					writeFile();
 
-				case 1:
+				case QMessageBox::Discard:
 					break;
 
-				case 2:
+				case QMessageBox::Cancel:
+				default:
 					return;
 			}
 		}
@@ -186,9 +189,9 @@ bool Letterbox::dictCheck()
 	return true;
 }
 
-int Letterbox::askToSave()
+QMessageBox::StandardButton Letterbox::askToSave()
 {
-	return QMessageBox::warning(this, tr("Unsaved Results - Quackle Letterbox"), tr("There are unsaved results in the current Letterbox list. Save them?"), tr("&Save"), tr("&Discard"), tr("&Cancel"), 0, 2);
+	return QMessageBox::warning(this, tr("Unsaved Results - Quackle Letterbox"), tr("There are unsaved results in the current Letterbox list. Save them?"), QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 }
 
 void Letterbox::generateList()

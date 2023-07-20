@@ -121,17 +121,18 @@ void TopLevel::closeEvent(QCloseEvent *closeEvent)
 	{
 		switch (askToSave())
 		{
-		case 0:
+		case QMessageBox::Save:
 			qApp->processEvents();
 			save();
 
 			// fall through
 
-		case 1:
+		case QMessageBox::Discard:
 			closeEvent->accept();
 			break;
 
-		case 2:
+		case QMessageBox::Cancel:
+		default:
 			closeEvent->ignore();
 		}
 	}
@@ -698,13 +699,14 @@ void TopLevel::open()
 	{
 		switch (askToSave())
 		{
-		case 0:
+		case QMessageBox::Save:
 			save();
 
-		case 1:
+		case QMessageBox::Discard:
 			break;
 
-		case 2:
+		case QMessageBox::Cancel:
+		default:
 			return;
 		}
 	}
@@ -759,13 +761,14 @@ void TopLevel::newGame()
 	{
 		switch (askToSave())
 		{
-		case 0:
+		case QMessageBox::Save:
 			save();
 
-		case 1:
+		case QMessageBox::Discard:
 			break;
 
-		case 2:
+		case QMessageBox::Cancel:
+		default:
 			return;
 		}
 	}
@@ -858,9 +861,9 @@ void TopLevel::plugIntoHistoryMatrix(HistoryView *view)
 	connect(this, SIGNAL(historyChanged(const Quackle::History &)), view, SLOT(historyChanged(const Quackle::History &)));
 }
 
-int TopLevel::askToSave()
+QMessageBox::StandardButton TopLevel::askToSave()
 {
-	return QMessageBox::warning(this, tr("Unsaved Moves - Quackle"), dialogText(tr("There are unsaved moves in the current game. Save them?")), tr("&Save"), tr("&Discard"), tr("&Cancel"), 0, 2);
+	return QMessageBox::warning(this, tr("Unsaved Moves - Quackle"), dialogText(tr("There are unsaved moves in the current game. Save them?")), QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 }
 
 void TopLevel::generateList()
