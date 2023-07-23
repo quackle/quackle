@@ -300,8 +300,8 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 						{
 							ret.push_back(Move::createPlaceMove((i + move.startrow), startColumn, /* horizontal */ true, word));
 						}
-						i++;
 					}
+					i++;
 				}
 			}
 		}
