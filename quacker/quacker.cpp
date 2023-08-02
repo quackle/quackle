@@ -2372,6 +2372,8 @@ void KibitzerListener::reportTriggered()
 {
 	if (slownessCheck())
 		emit reportAs(m_computerPlayer);
+
+    QMessageBox::information(nullptr, QString("Report Finished"), QString("Your full-game report has been successfully created."));
 }
 
 bool KibitzerListener::slownessCheck()
