@@ -1183,19 +1183,23 @@ void Generator::leftpart(const LetterString &partial, int i, int limit,
 	} 
 }
 
-void Generator::setupCounts(const LetterString &letters)
+void Generator::setupCounts(const LetterString & /*letters*/)
 {
-	// Log the LetterString being passed to String::counts
-	fprintf(stderr, "[generator_setupCounts] LetterString length=%d\n", (int)letters.length());
-	for (int i = 0; i < std::min((int)letters.length(), 40); ++i) {
-		char c = letters[i];
-		fprintf(stderr, "[generator_setupCounts] letters[%d]='%c' code=%u\n", 
-			i, (c >= 32 && c <= 126) ? c : '?', (unsigned)(unsigned char)c);
+	for (int j = 0; j < QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE; ++j)
+		m_counts[j] = 0;
+
+	// Conta i 7 slot della rack direttamente dalla posizione (evita iterazione su FLS via end())
+	const FixedLengthString &rk = m_position.currentPlayer().rack().tiles();
+	int n = static_cast<int>(rk.length());
+	if (n > 7) n = 7; // rack standard
+
+	for (int i = 0; i < n; ++i) {
+		int v = static_cast<int>(static_cast<unsigned char>(rk[i]));
+		if (v >= QUACKLE_FIRST_LETTER &&
+		    v < (QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE)) {
+			m_counts[v]++;
+		}
 	}
-	
-	// Zero-init count arrays before use
-	memset(m_counts, 0, sizeof(m_counts));
-	String::counts(letters, m_counts);
 }
 
 double Generator::equity(const Move &move) const

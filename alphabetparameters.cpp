@@ -85,38 +85,33 @@ LetterString String::usedTiles(const LetterString &letterString)
 
 void String::counts(const LetterString &letterString, char *countsArray)
 {
-	// Banner una tantum per confermare che questa build include il guard
-	static bool s_banner = (fprintf(stderr, "[counts_guard] ACTIVE\n"), true);
-	(void)s_banner;
-	
-	for (int j = 0; j < QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE; j++)
+	for (int j = 0; j < QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE; ++j)
 		countsArray[j] = 0;
 
 	const LetterString::const_iterator end(letterString.end());
-	for (LetterString::const_iterator it = letterString.begin(); it != end; ++it)
-	{
-		unsigned char uc = (unsigned char)*it;
-		
-		// CRITICAL FIX: LetterString already contains internal letters, not ASCII
-		int idx = (int)uc;
-		
-		int maxIdx = QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE - 1;
-		if (idx < QUACKLE_FIRST_LETTER || idx > maxIdx) {
-			fprintf(stderr, "[counts] skip OOB: internal_letter=%d maxIdx=%d\n", idx, maxIdx);
-			continue;
+	for (LetterString::const_iterator it = letterString.begin(); it != end; ++it) {
+		int idx = static_cast<int>(static_cast<unsigned char>(*it));
+		if (idx >= QUACKLE_FIRST_LETTER &&
+		    idx < (QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE)) {
+			countsArray[idx]++;
 		}
-		countsArray[idx]++;
+		// Ignora valori fuori range per evitare OOB
 	}
 }
 
 void String::counts(const LongLetterString &letterString, char *countsArray)
 {
-	for (int j = 0; j < QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE; j++)
+	for (int j = 0; j < QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE; ++j)
 		countsArray[j] = 0;
 
 	const LongLetterString::const_iterator end(letterString.end());
-	for (LongLetterString::const_iterator it = letterString.begin(); it != end; ++it)
-		countsArray[(int)*it]++;
+	for (LongLetterString::const_iterator it = letterString.begin(); it != end; ++it) {
+		int idx = static_cast<int>(static_cast<unsigned char>(*it));
+		if (idx >= QUACKLE_FIRST_LETTER &&
+		    idx < (QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE)) {
+			countsArray[idx]++;
+		}
+	}
 }
 
 ////////////
