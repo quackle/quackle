@@ -12,12 +12,12 @@ Other top-level directories (`makeminidawg/`, `makegaddag/`, etc.) build standal
 
 ## Build status
 
-Qt5 and Qt6.2.4 both build and run on macOS (Apple Silicon), including universal
-(`x86_64;arm64`) builds. Qt 6.12.0 not yet verified.
+Qt5, Qt6.2.4, and Qt6.12.0 all build and run on macOS (Apple Silicon), including
+universal (`x86_64;arm64`) builds.
 
 - Qt 5.15.2 (`~/dev/qt/5.15.2`) - working
 - Qt 6.2.4 (`~/dev/qt/6.2.4`) - working
-- Qt 6.12.0 (`~/dev/qt/6.12.0`) - not yet verified
+- Qt 6.12.0 (`~/dev/qt/6.12.0`) - working
 
 Only macOS is currently working. Windows/Linux build setups aren't addressed yet.
 
