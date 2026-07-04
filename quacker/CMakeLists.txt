@@ -106,6 +106,24 @@ endif()
 target_link_libraries(Quackle quackleio libquackle)
 if("${QT_VERSION}" MATCHES "^6")
 	target_link_libraries(Quackle Qt6::Core Qt6::Widgets)
+	if(APPLE)
+		# Qt6's FindWrapOpenGL.cmake (used by Qt6Gui through 6.4ish) links
+		# -framework AGL unconditionally, even though nothing actually calls
+		# into it. Xcode 15+ dropped AGL.framework from the SDK entirely, so
+		# the link fails there even though the framework is still resolvable
+		# at runtime via the dyld shared cache. Point the linker at an SDK
+		# that still ships the (unused) stub, if one is present.
+		find_path(QUACKLE_AGL_FRAMEWORK_DIR AGL.framework
+			PATHS
+				/Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk/System/Library/Frameworks
+				/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/System/Library/Frameworks
+				/System/Library/Frameworks
+			NO_DEFAULT_PATH
+		)
+		if(QUACKLE_AGL_FRAMEWORK_DIR)
+			target_link_options(Quackle PRIVATE "-F${QUACKLE_AGL_FRAMEWORK_DIR}")
+		endif()
+	endif()
 else()
 	target_link_libraries(Quackle Qt5::Core Qt5::Widgets)
 endif()
