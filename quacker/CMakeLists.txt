@@ -7,7 +7,7 @@ message("-- Configuring Quackle")
 include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 
 option(BUNDLE "Build app bundle on macOS; does not populate with resources" OFF)
-set(QT_VERSION "5" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
+set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
 
 
 add_subdirectory(.. libquackle)

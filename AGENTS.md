@@ -23,14 +23,16 @@ Only macOS is currently working. Windows/Linux build setups aren't addressed yet
 
 ## Building (macOS)
 
-From a build directory, configure against `quacker/` (which pulls in libquackle and libquackleio) and build with Ninja. For Qt5:
+From a build directory, configure against `quacker/` (which pulls in libquackle and libquackleio) and build with Ninja. `QT_VERSION` defaults to `6`. For Qt6:
 
 ```
-cmake --fresh -DCMAKE_PREFIX_PATH=~/dev/qt/5.15.2/clang_64/ -GNinja -DCMAKE_OSX_ARCHITECTURES=x86_64 ../quacker/
+cmake --fresh -DCMAKE_PREFIX_PATH=~/dev/qt/6.2.4/macos/ -GNinja -DCMAKE_OSX_ARCHITECTURES=x86_64 ../quacker/
 ninja
 ```
 
-For Qt6, add `-DQT_VERSION=6` and use the `macos/` subdirectory instead of `clang_64/`, e.g. `-DCMAKE_PREFIX_PATH=~/dev/qt/6.2.4/macos/`. For a universal build, set `-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"`.
+For a universal build, set `-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"`.
+
+For Qt5, add `-DQT_VERSION=5` and use the `clang_64/` subdirectory instead of `macos/`, e.g. `-DCMAKE_PREFIX_PATH=~/dev/qt/5.15.2/clang_64/`.
 
 ### Qt6 + AGL.framework on newer Xcode
 

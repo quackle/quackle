@@ -6,7 +6,7 @@ message("-- Configuring libquackleio")
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 
-set(QT_VERSION "5" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
+set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
 
 if("${QT_VERSION}" MATCHES "^6")
 	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
