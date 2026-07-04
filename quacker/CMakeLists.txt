@@ -15,6 +15,8 @@ add_subdirectory(../quackleio quackleio)
 add_subdirectory(../data data)
 
 if("${QT_VERSION}" MATCHES "^6")
+	# See quackleio/CMakeLists.txt for why this is set.
+	set(QT_SKIP_AUTO_PLUGIN_INCLUSION ON)
 	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 else()
 	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)

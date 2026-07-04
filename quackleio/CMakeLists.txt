@@ -9,6 +9,12 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
 
 if("${QT_VERSION}" MATCHES "^6")
+	# Widgets' plugin auto-discovery pulls in QtQuick/QtQml packages we don't
+	# use, one of which (Qt6QmlAssetDownloaderPrivateplugin) depends on
+	# Qt6TaskTree, which some Qt6 installs don't ship. That produces a
+	# harmless but noisy "Could NOT find Qt6TaskTree" warning; skip the
+	# auto-discovery since Quackle doesn't rely on it.
+	set(QT_SKIP_AUTO_PLUGIN_INCLUSION ON)
 	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 else()
 	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
