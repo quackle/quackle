@@ -9,7 +9,7 @@ See LICENSE in this directory.
 
 Building Quackle:
 -----------------
-Quackle runs automated GitHub CI builds on Qt 5.12 and 5.15, so it should work with any Qt version in that range.
+Quackle runs automated GitHub CI builds on Qt 5.15, 6.2, and 6.12, so it should work with any Qt version in those ranges.
 See README.MacOS and README.Windows for platform-specific instructions.  Generally:
 
 Clone the repo or download the tarball and untar.  Use cmake to build quacker, which will automatically build quackle and quackleio:
