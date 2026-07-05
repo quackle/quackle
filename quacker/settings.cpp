@@ -21,7 +21,7 @@
 
 #include <QtWidgets>
 
-#ifdef Q_OS_MAC
+#ifdef Q_OS_APPLE
 #include <CoreFoundation/CoreFoundation.h>
 #endif // Q_OS_MAC
 
@@ -58,7 +58,7 @@ Settings::Settings(QWidget *parent)
 	m_self = this;
 	QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 
- #ifdef Q_OS_MAC
+ #ifdef Q_OS_APPLE
 	if (CFBundleGetMainBundle())
 	{
 		 CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
@@ -77,7 +77,7 @@ Settings::Settings(QWidget *parent)
 			 CFRelease(macPath);
 		 }
 	}
- #endif // Q_OS_MAC
+ #endif // Q_OS_APPLE
 
 	if (QFile::exists("data"))
 		m_appDataDir = "data";
