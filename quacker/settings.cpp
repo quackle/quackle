@@ -217,7 +217,7 @@ void Settings::initialize()
 	QUACKLE_DATAMANAGER->setAppDataDirectory(m_appDataDir.toStdString());
 	QUACKLE_DATAMANAGER->setUserDataDirectory(m_userDataDir.toStdString());
 
-	QString lexiconName = settings.value("quackle/settings/lexicon-name", QString("nwl18")).toString();
+	QString lexiconName = settings.value("quackle/settings/lexicon-name", QString("nwl23")).toString();
 
 	// Handle Collins update.
 	if (lexiconName == "cswfeb07" || lexiconName == "cswapr07")
