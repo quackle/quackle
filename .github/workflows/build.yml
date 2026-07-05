@@ -23,6 +23,13 @@ jobs:
             env:
               CXX: clang++
               CC: clang
+          - name: macos-clang
+            qt_ver: 5.15.2
+            # Qt 5.15.x's official macOS package is x86_64-only (Apple
+            # Silicon support never shipped for Qt5), but macos-latest
+            # runners are arm64. Force an x86_64 build for this combo only;
+            # Rosetta 2 handles running it if ever needed.
+            osx_arch: x86_64
           - name: ubuntu-22.04-clang
             os: ubuntu-22.04
             env:
@@ -44,7 +51,13 @@ jobs:
               CXX: g++
               CC: gcc
           - name: windows-x64-vs22
-            qt_ver: 6.12.*
+            # 6.11.0+ (including 6.12.x) trips a bug in aqtinstall 3.3.0's
+            # Windows package-path construction (it requests
+            # qt6_NNNN/qt6_NNNN/Updates.xml instead of
+            # qt6_NNNN/qt6_NNNN_msvc2022_64/Updates.xml, confirmed against
+            # miurahr/aqtinstall#1007 and empirically here). 6.10.x is the
+            # newest line confirmed to still install correctly.
+            qt_ver: 6.10.*
             os: windows-latest
             msvc_arch: x64
             qt_arch: win64_msvc2022_64
@@ -75,5 +88,5 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DQT_VERSION=${{ matrix.qt_ver }} ../quacker
+        cmake -G Ninja -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
         ninja -v
