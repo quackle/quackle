@@ -113,15 +113,29 @@ if("${QT_VERSION}" MATCHES "^6")
 		# -framework AGL unconditionally, even though nothing actually calls
 		# into it. Xcode 15+ dropped AGL.framework from the SDK entirely, so
 		# the link fails there even though the framework is still resolvable
-		# at runtime via the dyld shared cache. Point the linker at an SDK
-		# that still ships the (unused) stub, if one is present.
-		find_path(QUACKLE_AGL_FRAMEWORK_DIR AGL.framework
-			PATHS
-				/Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk/System/Library/Frameworks
-				/Library/Developer/CommandLineTools/SDKs/MacOSX15.4.sdk/System/Library/Frameworks
-				/System/Library/Frameworks
-			NO_DEFAULT_PATH
-		)
+		# at runtime via the dyld shared cache. Point the linker at any
+		# installed SDK that still ships the (unused) stub, if one is
+		# present. Don't hardcode a specific SDK version here: it varies by
+		# machine (and by whichever Xcode/CLT happens to be installed on a
+		# given CI runner).
+		if(NOT QUACKLE_AGL_FRAMEWORK_DIR)
+			file(GLOB _quackle_agl_sdk_roots
+				"/Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk"
+				"/Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk"
+			)
+			list(SORT _quackle_agl_sdk_roots COMPARE NATURAL ORDER DESCENDING)
+			set(_quackle_agl_frameworks_dirs "")
+			foreach(_quackle_agl_sdk_root ${_quackle_agl_sdk_roots})
+				list(APPEND _quackle_agl_frameworks_dirs "${_quackle_agl_sdk_root}/System/Library/Frameworks")
+			endforeach()
+			list(APPEND _quackle_agl_frameworks_dirs "/System/Library/Frameworks")
+			foreach(_quackle_agl_frameworks_dir ${_quackle_agl_frameworks_dirs})
+				if(EXISTS "${_quackle_agl_frameworks_dir}/AGL.framework")
+					set(QUACKLE_AGL_FRAMEWORK_DIR "${_quackle_agl_frameworks_dir}" CACHE PATH "Directory containing an AGL.framework usable for linking Qt6 on Apple")
+					break()
+				endif()
+			endforeach()
+		endif()
 		if(QUACKLE_AGL_FRAMEWORK_DIR)
 			target_link_options(Quackle PRIVATE "-F${QUACKLE_AGL_FRAMEWORK_DIR}")
 		endif()

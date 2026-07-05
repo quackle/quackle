@@ -8,7 +8,7 @@ on:
 
 jobs:
   job:
-    name: ${{ matrix.name }}-build
+    name: ${{ matrix.name }}-qt${{ matrix.qt_ver }}-build
     runs-on: ${{ matrix.os }}
     env: ${{ matrix.env }}
 
@@ -43,7 +43,7 @@ jobs:
             env:
               CXX: g++
               CC: gcc
-          - name: windows-x64-vs22-qt-6.12.*
+          - name: windows-x64-vs22
             qt_ver: 6.12.*
             os: windows-latest
             msvc_arch: x64
