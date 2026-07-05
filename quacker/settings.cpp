@@ -160,6 +160,9 @@ void Settings::createGUI()
 	m_logoLabel->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
 	m_copyrightLabel = new QLabel();
 	m_copyrightLabel->setWordWrap(true);
+	m_naspaLinkLabel = new QLabel(tr("<a href=\"https://www.scrabbleplayers.org\">www.scrabbleplayers.org</a>"));
+	m_naspaLinkLabel->setOpenExternalLinks(true);
+	m_naspaLinkLabel->setVisible(false);
 	m_separatorLabel = new QLabel();
 	m_separatorLabel->setFrameStyle(QFrame::HLine | QFrame::Sunken);
 
@@ -179,11 +182,12 @@ void Settings::createGUI()
 	layout->addWidget(m_buildGaddagLabel, 5, 1);
 	layout->addWidget(m_separatorLabel, 6, 0, 1, -1);
 	layout->addWidget(m_copyrightLabel, 7, 0, 1, -1, Qt::AlignTop);
-	layout->addWidget(m_logoLabel, 8, 0, 1, -1, Qt::AlignTop | Qt::AlignHCenter);
+	layout->addWidget(m_naspaLinkLabel, 8, 0, 1, -1, Qt::AlignTop);
+	layout->addWidget(m_logoLabel, 9, 0, 1, -1, Qt::AlignTop | Qt::AlignHCenter);
 
 	layout->setColumnMinimumWidth(3, 0);
 	layout->setColumnStretch(3, 1);
-	layout->setRowStretch(8, 1);
+	layout->setRowStretch(9, 1);
 
 
 	load();
@@ -365,6 +369,9 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 			m_logoLabel->setPixmap(QPixmap());
 		else
 			m_logoLabel->setPixmap(QPixmap(QString(logoFileName.c_str())));
+		static const string naspaLogoSuffix = "naspa.gif";
+		m_naspaLinkLabel->setVisible(logoFileName.size() >= naspaLogoSuffix.size() &&
+			logoFileName.compare(logoFileName.size() - naspaLogoSuffix.size(), naspaLogoSuffix.size(), naspaLogoSuffix) == 0);
 		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 		setGaddagLabel();
 	}

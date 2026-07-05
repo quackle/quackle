@@ -91,6 +91,7 @@ protected:
 	QPushButton *m_buildGaddag;
 	QLabel *m_logoLabel;
 	QLabel *m_copyrightLabel;
+	QLabel *m_naspaLinkLabel;
 	QLabel *m_buildGaddagLabel;
 	QLabel *m_separatorLabel;
 	QString m_appDataDir;
