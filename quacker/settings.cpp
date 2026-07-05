@@ -46,6 +46,19 @@
 
 using namespace std;
 
+namespace
+{
+	// CMake's add_subdirectory(../data data) creates an empty "data"
+	// directory (just CMakeFiles/ and cmake_install.cmake) inside the
+	// build directory, so a bare QFile::exists("data") can match that
+	// stub instead of the real data directory. Check for a file that
+	// only exists in the real thing.
+	bool isDataDirectory(const QString &path)
+	{
+		return QFile::exists(path + "/alphabets/english.quackle_alphabet");
+	}
+}
+
 Settings *Settings::m_self = 0;
 Settings *Settings::self()
 {
@@ -79,16 +92,27 @@ Settings::Settings(QWidget *parent)
 	}
  #endif // Q_OS_APPLE
 
-	if (QFile::exists("data"))
+	if (isDataDirectory("data"))
 		m_appDataDir = "data";
-	else if (QFile::exists("../data"))
+	else if (isDataDirectory("../data"))
 		m_appDataDir = "../data";
-	else if (QFile::exists("Quackle.app/Contents/data"))
+	else if (isDataDirectory("Quackle.app/Contents/data"))
 		m_appDataDir = "Quackle.app/Contents/data";
 	else
 	{
-		if (!directory.cd("data") || !directory.cd("../data"))
+		QDir dataDir = directory;
+		bool found = dataDir.cd("data") && isDataDirectory(dataDir.absolutePath());
+		if (!found)
+		{
+			dataDir = directory;
+			found = dataDir.cdUp() && dataDir.cd("data") && isDataDirectory(dataDir.absolutePath());
+		}
+
+		if (!found)
 			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
+		else
+			directory = dataDir;
+
 		m_appDataDir = directory.absolutePath();
 	}
 	m_userDataDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
