@@ -155,3 +155,34 @@ if(APPLE)
 		)
 	endif()
 endif()
+
+if(WIN32)
+	if("${QT_VERSION}" MATCHES "^6")
+		get_target_property(_quackle_qmake_exe Qt6::qmake IMPORTED_LOCATION)
+	else()
+		get_target_property(_quackle_qmake_exe Qt5::qmake IMPORTED_LOCATION)
+	endif()
+	get_filename_component(_quackle_qt_bin_dir "${_quackle_qmake_exe}" DIRECTORY)
+	find_program(QUACKLE_WINDEPLOYQT windeployqt HINTS "${_quackle_qt_bin_dir}")
+	if(QUACKLE_WINDEPLOYQT)
+		add_custom_command(TARGET Quackle POST_BUILD
+			COMMAND "${QUACKLE_WINDEPLOYQT}"
+				$<$<CONFIG:Debug>:--debug>
+				$<$<NOT:$<CONFIG:Debug>>:--release>
+				--no-compiler-runtime
+				--no-translations
+				--no-opengl-sw
+				--no-system-d3d-compiler
+				--no-system-dxc-compiler
+				--no-network
+				--no-svg
+				--no-svgwidgets
+				--skip-plugin-types generic,iconengines,networkinformation,tls
+				--exclude-plugins qico,qjpeg,qsvg,qsvgicon
+				"$<TARGET_FILE:Quackle>"
+			COMMENT "Deploying Qt DLLs and plugins alongside Quackle.exe"
+		)
+	else()
+		message(WARNING "windeployqt not found; Quackle.exe will not run outside the Qt build environment without manually copying Qt DLLs")
+	endif()
+endif()
