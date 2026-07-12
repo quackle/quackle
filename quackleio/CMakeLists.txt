@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.16)
 
 project (quackleio)
 
@@ -52,6 +52,7 @@ set(QUACKLEIO_HEADERS
 add_library(quackleio
 	${QUACKLEIO_SOURCES} ${QUACKLEIO_HEADERS}
 )
+target_precompile_headers(quackleio PRIVATE <QtCore>)
 target_include_directories(quackleio PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 if("${QT_VERSION}" MATCHES "^6")
 	target_link_libraries(quackleio Qt6::Core)

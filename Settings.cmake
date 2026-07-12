@@ -4,6 +4,10 @@ message("-- Including settings")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(MSVC)
+  add_compile_options(/MP)
+endif()
+
 # Commented out so that automated builds can work
 # but we'll need to set this and set up matching Qt libs
 # for building a final app bundle

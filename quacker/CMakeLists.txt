@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.16)
 
 project (Quackle VERSION 1.0.4)
 
@@ -104,6 +104,8 @@ else()
 		${QUACKLE_SOURCES} ${QUACKLE_HEADERS} quacker.rc
 	)
 endif()
+
+target_precompile_headers(Quackle PRIVATE <QtWidgets>)
 
 target_link_libraries(Quackle quackleio libquackle)
 if("${QT_VERSION}" MATCHES "^6")
