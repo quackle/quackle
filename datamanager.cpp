@@ -19,6 +19,8 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <cstdlib>
+#include <functional>
+#include <thread>
 
 #include "catchall.h"
 #include "computerplayer.h"
@@ -37,6 +39,9 @@ using namespace Quackle;
 using namespace std;
 
 DataManager *DataManager::m_self = 0;
+
+thread_local mt19937_64 DataManager::m_mersenneTwisterRng;
+thread_local bool DataManager::m_rngSeeded = false;
 
 DataManager::DataManager()
 	: m_evaluator(0), m_parameters(0), m_alphabetParameters(0), m_boardParameters(0), m_lexiconParameters(0), m_strategyParameters(0)
@@ -181,18 +186,29 @@ string DataManager::makeDataFilename(const string &subDirectory, const string &f
 
 void DataManager::seedRandomNumbers(unsigned int seed)
 {
-	lock_guard<mutex> lock(m_RngMutex);
 	m_mersenneTwisterRng.seed(seed);
+	m_rngSeeded = true;
 }
 
 void DataManager::seedRandomNumbers(seed_seq &seed)
 {
-	lock_guard<mutex> lock(m_RngMutex);
 	m_mersenneTwisterRng.seed(seed);
+	m_rngSeeded = true;
+}
+
+void DataManager::ensureRngSeeded()
+{
+	if (!m_rngSeeded)
+	{
+		seed_seq seed = { (unsigned)random_device {}(), (unsigned)time(nullptr),
+			(unsigned)hash<thread::id>{}(this_thread::get_id()) };
+		m_mersenneTwisterRng.seed(seed);
+		m_rngSeeded = true;
+	}
 }
 
 int DataManager::randomInteger(int low, int high)
 {
-	lock_guard<mutex> lock(m_RngMutex);
+	ensureRngSeeded();
 	return uniform_int_distribution<>(low, high)(m_mersenneTwisterRng);
 }

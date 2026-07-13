@@ -20,7 +20,6 @@
 #define QUACKLE_DATAMANAGER_H
 
 #include <algorithm>
-#include <mutex>
 #include <random>
 #include <string>
 
@@ -122,12 +121,14 @@ public:
 	void setUserDataDirectory(string directory) { m_userDataDirectory = directory; }
 	string userDataDirectory() { return m_userDataDirectory; }
 
+	// Each thread has its own independent generator (see m_mersenneTwisterRng
+	// below), so these only affect the calling thread's random sequence.
 	void seedRandomNumbers(unsigned int seed);
 	void seedRandomNumbers(std::seed_seq &seed);
 	int randomInteger(int low, int high);
 	template <typename T> void shuffle(T &collection)
 	{
-		std::lock_guard<std::mutex> lock(m_RngMutex);
+		ensureRngSeeded();
 		std::shuffle(collection.begin(), collection.end(), m_mersenneTwisterRng);
 	}
 
@@ -135,6 +136,10 @@ private:
 	static DataManager *m_self;
 
 	bool fileExists(const string &filename);
+
+	// Lazily seeds the calling thread's RNG from entropy if it hasn't
+	// been seeded yet (explicitly via seedRandomNumbers or lazily here).
+	static void ensureRngSeeded();
 
 	string m_appDataDirectory;
 
@@ -152,8 +157,11 @@ private:
 
 	PlayerList m_computerPlayers;
 
-	std::mt19937_64 m_mersenneTwisterRng;
-	std::mutex m_RngMutex;
+	// Thread-local so that concurrent simulation threads can generate
+	// random numbers without contending on a shared lock. Each thread
+	// gets its own independently-seeded generator.
+	static thread_local std::mt19937_64 m_mersenneTwisterRng;
+	static thread_local bool m_rngSeeded;
 };
 
 inline DataManager *DataManager::self()
