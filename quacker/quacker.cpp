@@ -2071,11 +2071,16 @@ void TopLevel::showAscii()
 	Quackle::Reporter::reportPosition(m_game->currentPosition(), 0, &report);
 	text += QuackleIO::Util::uvStringToQString(report);
 
-	int result = QMessageBox::question(this, tr("Plaintext board - Quackle"), QString("<pre>%1</pre>").arg(text), tr("&Write to file"), tr("Copy to clip&board"), tr("&OK"), 1);
+	QMessageBox msgBox(this);
+	msgBox.setWindowTitle(tr("Plaintext board - Quackle"));
+	msgBox.setText(QString("<pre>%1</pre>").arg(text));
+	QAbstractButton *writeButton = msgBox.addButton(tr("&Write to file"), QMessageBox::ActionRole);
+	QAbstractButton *clipboardButton = msgBox.addButton(tr("Copy to clip&board"), QMessageBox::ActionRole);
+	msgBox.addButton(tr("&OK"), QMessageBox::RejectRole);
+	msgBox.setDefaultButton(static_cast<QPushButton *>(clipboardButton));
+	msgBox.exec();
 
-	switch (result)
-	{
-	case 0:
+	if (msgBox.clickedButton() == writeButton)
 	{
 		QString filename = QFileDialog::getSaveFileName(this, tr("Choose file to print plaintext board to - Quackle"), getInitialDirectory());
 
@@ -2084,15 +2089,10 @@ void TopLevel::showAscii()
 			setInitialDirectory(filename);
 			writeAsciiToFile(text, filename);
 		}
-		break;
 	}
-
-	case 1:
+	else if (msgBox.clickedButton() == clipboardButton)
+	{
 		copyToClipboard(text);
-		break;
-
-	case 2:
-		break;
 	}
 }
 
@@ -2171,7 +2171,12 @@ void TopLevel::about()
 "<p>Dictionary copyrights</p><ul>"
 );
 
+#ifdef _MSC_VER
+	FILE* file = nullptr;
+	fopen_s(&file, QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false).c_str(), "r");
+#else
 	FILE* file = fopen(QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false).c_str(), "r");
+#endif
 	if (file)
 	{
 		QTextStream strm(file);

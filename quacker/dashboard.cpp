@@ -84,13 +84,13 @@ void Dashboard::historyChanged(const Quackle::History &history)
 	const size_t numberOfPlayers = players.size();
 	const bool gameOver = history.currentPosition().gameOver();
 
-	while (m_briefs.size() > numberOfPlayers)
+	while (static_cast<size_t>(m_briefs.size()) > numberOfPlayers)
 	{
 		delete m_briefs.back();
 		m_briefs.pop_back();
 	}
 
-	while (m_briefs.size() < numberOfPlayers)
+	while (static_cast<size_t>(m_briefs.size()) < numberOfPlayers)
 	{
 		m_briefs.push_back(new PlayerBrief);
 		m_hlayout->addWidget(m_briefs.back());
