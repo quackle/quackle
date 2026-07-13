@@ -439,7 +439,11 @@ bool MoveList::wordPosComparator(const Move &move1, const Move &move2)
 		return move1.effectiveScore() < move2.effectiveScore();
 	}
 
-	assert(move1.tiles() != move2.tiles());
+	// AppleClang stable_sort in debug mode runs  a sanity check on the comparator
+	// looking for "valid strict-weak ordering" violations, which leads to this
+	// assert firing, so comment it out even though it's potentially useful.
+	//
+	// assert(move1.tiles() != move2.tiles());
 	return move1.tiles() < move2.tiles();
 }
 
