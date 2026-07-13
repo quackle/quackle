@@ -12,6 +12,8 @@ Other top-level directories (`makeminidawg/`, `makegaddag/`, etc.) build standal
 
 ## Build status
 
+Builds work on all platforms: macOS, Windows, and Linux.
+
 Qt5, Qt6.2.4, and Qt6.12.0 all build and run on macOS (Apple Silicon), including
 universal (`x86_64;arm64`) builds.
 
@@ -19,7 +21,9 @@ universal (`x86_64;arm64`) builds.
 - Qt 6.2.4 (`~/dev/qt/6.2.4`) - working
 - Qt 6.12.0 (`~/dev/qt/6.12.0`) - working
 
-Only macOS is currently working. Windows/Linux build setups aren't addressed yet.
+Linux uses the same Qt locations as macOS (`~/dev/qt/<ver>/...`).
+
+Windows is only built against Qt 6.10.3, installed at `C:\dev\qt\<ver>\<arch>` (e.g. `C:\dev\qt\6.10.3\msvc2022_64`).
 
 ## Building (macOS)
 
@@ -37,3 +41,7 @@ For Qt5, add `-DQT_VERSION=5` and use the `clang_64/` subdirectory instead of `m
 ### Qt6 + AGL.framework on newer Xcode
 
 Qt6 releases up through roughly 6.4 link `-framework AGL` (via `FindWrapOpenGL.cmake`) even though nothing actually calls into it. Xcode 15+ dropped `AGL.framework` from the SDK, so linking fails there, even though the framework still resolves fine at runtime via the dyld shared cache. `quacker/CMakeLists.txt` works around this by searching known Command Line Tools SDK locations for a copy of `AGL.framework` and adding it to the linker's framework search path when building Qt6 on Apple. If no such SDK is found on a given machine, install the Xcode Command Line Tools (which bundles an older SDK) to unblock the link.
+
+## Code formatting
+
+Run `clang-format` (config in `.clang-format`) on source files you add or modify.
