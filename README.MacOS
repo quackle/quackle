@@ -13,35 +13,56 @@ Building Quackle:
 -----------------
 
 Follow the cmake instructions in [README.md](README.md).  You can use the Xcode generator
-to make an Xcode project if you wish.
+to make an Xcode project if you wish.  That builds the raw `Quackle` executable, which runs
+against the data/ directory in the source tree.
 
 
-Creating the DMG:
----------------------------------
-* Set up Xcode with your Mac Developer account, and make sure you
-  have a Developer ID Application signing certificate installed into
-  your Keychain.
-* In the Xcode settings, set the deployment target to 10.9 (earlier versions
-  don't appear to work with C++11).
-* Create an Archive build using XCode.
-* From the Archive interface, click Validate... and validate for a Developer
-  ID-signed Application.  If you have a signing profile, this validation
-  should work.
-* Click Export... and export as a Mac Application.
-* You now have an unsigned application which is missing Qt frameworks, but
-  will work locally.
-* From the Qt4 distribution, run 'macdeployqt Quackle.app'.
-* But, it turns out that the Frameworks installed by macdeployqt are partly
-  broken and can't be code-signed.  So, remove the Frameworks directory, clone
-  	https://github.com/jfultz/MacQt4Frameworks.git
-  and cp -R the entire Frameworks directory into Quackle.app/Contents.
-* Run 'codesign -s <identity> --force --deep Quackle.app' where <identity>
-  is the SHA1 of your certificate (if you open it in Keychain and scroll all
-  the way to the bottom, you'l see it...but you'll have to strip the spaces).
-* Verify code-signing with
+Building the app bundle:
+------------------------
+
+To build a Quackle.app bundle instead of the raw executable, configure with `-DBUNDLE=ON`.
+This builds the .app, sets its Info.plist and icon, and copies the data/ directory
+(alphabets, lexica, strategy, themes) into Contents/Resources/data so the bundled app is
+self-contained.  From quackle/quacker/:
+
+	mkdir build && cd build
+	cmake -DCMAKE_PREFIX_PATH=<path_to_qt> -DBUNDLE=ON ..
+	cmake --build .
+
+`<path_to_qt>` is your Qt prefix, e.g. ~/dev/qt/6.12.0/macos or the Homebrew/vcpkg prefix.
+If you use the Xcode generator, add `--config Release` (or Debug) to the build command.
+
+At this point Quackle.app runs locally, but it still links against the Qt frameworks in
+your Qt install, so it won't run on a machine without Qt.
+
+
+Deploying (bundling Qt) and creating the DMG:
+---------------------------------------------
+
+The build defines a separate `macdeploy` target that runs Qt's `macdeployqt` to copy the Qt
+frameworks and plugins into the bundle and rewrite the link paths.  It's a separate target
+(not part of the normal build) because it rewrites the bundle in place and is only needed
+for distribution:
+
+	cmake --build . --target macdeploy
+
+To code-sign as part of deployment, pass a Developer ID Application identity at configure
+time (a certificate name, or its SHA-1 with spaces stripped, from Keychain).  When set,
+`macdeploy` signs the app with a hardened runtime (required for notarization):
+
+	cmake -DCMAKE_PREFIX_PATH=<path_to_qt> -DBUNDLE=ON \
+		-DQUACKLE_CODESIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ..
+	cmake --build . --target macdeploy
+
+Leave `QUACKLE_CODESIGN_IDENTITY` unset for an unsigned local bundle.  (You can also sign
+after the fact with `codesign -s <identity> --force --deep Quackle.app`.)
+
+Verify code-signing with:
+
 	spctl --assess --type execute --verbose Quackle.app
-* Package it up in a .dmg.  I used the *very* nice package create-dmg off of
-  Github with the following command-line:
 
-create-dmg --app-drop-link 400 100 --icon Quackle.app 100 100 \
---window-size 500 250 --background DmgBackground.png Quackle.dmg Quackle.app
+Finally, package it into a .dmg.  The *very* nice create-dmg tool from GitHub works well
+(run from the directory containing the built Quackle.app and DmgBackground.png):
+
+	create-dmg --app-drop-link 400 100 --icon Quackle.app 100 100 \
+	--window-size 500 250 --background DmgBackground.png Quackle.dmg Quackle.app

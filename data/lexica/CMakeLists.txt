@@ -12,4 +12,5 @@ set(DATA_LEXICA
 	${CMAKE_CURRENT_LIST_DIR}/osps.dawg
 	${CMAKE_CURRENT_LIST_DIR}/sowpods.dawg
 	${CMAKE_CURRENT_LIST_DIR}/turkish.dawg
+	PARENT_SCOPE
 )

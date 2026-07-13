@@ -6,7 +6,7 @@ message("-- Configuring Quackle")
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 
-option(BUNDLE "Build app bundle on macOS; does not populate with resources" OFF)
+option(BUNDLE "Build a macOS .app bundle populated with data resources (use the macdeploy target to add Qt frameworks)" OFF)
 set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
 
 
@@ -149,12 +149,99 @@ endif()
 
 if(APPLE)
 	target_link_libraries(Quackle "-framework CoreFoundation")
+
+	# On macOS the double-arrow glyphs used to indicate secondary board
+	# arrows render poorly in the system fonts, so prefer the single-arrow
+	# forms. This matches the historical qmake (quacker.pro) build.
+	target_compile_definitions(Quackle PRIVATE FORCE_SECONDARY_ARROW_GLYPHS=1)
+
 	if (BUNDLE)
 		set_target_properties(Quackle
 				PROPERTIES
 				RESOURCE ${QUACKLE_RESOURCES}
 				MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Quackle.plist"
 		)
+
+		# Populate the bundle with the data/ tree (alphabets, lexica,
+		# strategy, themes). At runtime Settings looks these up via
+		# CFBundleCopyResourceURL under Contents/Resources/data (see
+		# quacker/settings.cpp). The DATA_* lists come from the data/
+		# subdirectory added above; copy each file into the bundle while
+		# preserving its path relative to data/ (strategy/ in particular
+		# has subdirectories).
+		set(_quackle_data_src_dir "${CMAKE_CURRENT_SOURCE_DIR}/../data")
+		set(_quackle_bundle_data_dir "$<TARGET_BUNDLE_CONTENT_DIR:Quackle>/Resources/data")
+
+		set(_quackle_data_reldirs "")
+		foreach(_quackle_data_file
+				${DATA_ALPHABETS} ${DATA_LEXICA} ${DATA_STRATEGY} ${DATA_THEMES})
+			file(RELATIVE_PATH _quackle_data_rel "${_quackle_data_src_dir}" "${_quackle_data_file}")
+			get_filename_component(_quackle_data_reldir "${_quackle_data_rel}" DIRECTORY)
+			string(MAKE_C_IDENTIFIER "${_quackle_data_reldir}" _quackle_data_key)
+			if(NOT _quackle_data_reldir IN_LIST _quackle_data_reldirs)
+				list(APPEND _quackle_data_reldirs "${_quackle_data_reldir}")
+				set(_quackle_data_group_${_quackle_data_key} "")
+			endif()
+			list(APPEND _quackle_data_group_${_quackle_data_key} "${_quackle_data_file}")
+		endforeach()
+
+		foreach(_quackle_data_reldir ${_quackle_data_reldirs})
+			string(MAKE_C_IDENTIFIER "${_quackle_data_reldir}" _quackle_data_key)
+			add_custom_command(TARGET Quackle POST_BUILD
+				COMMAND "${CMAKE_COMMAND}" -E make_directory
+					"${_quackle_bundle_data_dir}/${_quackle_data_reldir}"
+				COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+					${_quackle_data_group_${_quackle_data_key}}
+					"${_quackle_bundle_data_dir}/${_quackle_data_reldir}"
+				VERBATIM
+			)
+		endforeach()
+
+		# `macdeploy` bundles the Qt frameworks and plugins into
+		# Quackle.app so it runs on a machine without Qt installed and can
+		# be signed and packaged into a .dmg. It is a separate target
+		# (not run on every build) because it rewrites the bundle in place
+		# and is only needed for distribution. Building it first (re)builds
+		# Quackle, so the data copy above has already run.
+		#
+		# Qt6's package sets MACDEPLOYQT_EXECUTABLE; fall back to searching
+		# the Qt bin dir for Qt5.
+		if(NOT MACDEPLOYQT_EXECUTABLE)
+			if("${QT_VERSION}" MATCHES "^6")
+				get_target_property(_quackle_qmake_exe Qt6::qmake IMPORTED_LOCATION)
+			else()
+				get_target_property(_quackle_qmake_exe Qt5::qmake IMPORTED_LOCATION)
+			endif()
+			get_filename_component(_quackle_qt_bin_dir "${_quackle_qmake_exe}" DIRECTORY)
+			find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_quackle_qt_bin_dir}")
+		endif()
+
+		if(MACDEPLOYQT_EXECUTABLE)
+			# Optional code-signing identity (a certificate name or SHA-1).
+			# When set, macdeployqt signs the app (with a hardened runtime,
+			# required for notarization). Leave empty for an unsigned local
+			# build.
+			set(QUACKLE_CODESIGN_IDENTITY "" CACHE STRING
+				"Code-signing identity for the macdeploy target (empty = don't sign)")
+			set(_quackle_macdeploy_args "")
+			if(QUACKLE_CODESIGN_IDENTITY)
+				list(APPEND _quackle_macdeploy_args
+					"-codesign=${QUACKLE_CODESIGN_IDENTITY}"
+					"-hardened-runtime")
+			endif()
+
+			add_custom_target(macdeploy
+				COMMAND "${MACDEPLOYQT_EXECUTABLE}"
+					"$<TARGET_BUNDLE_DIR:Quackle>"
+					${_quackle_macdeploy_args}
+				DEPENDS Quackle
+				COMMENT "Bundling Qt frameworks into Quackle.app with macdeployqt"
+				VERBATIM
+			)
+		else()
+			message(WARNING "macdeployqt not found; the `macdeploy` target is unavailable "
+				"and Quackle.app will not run without Qt installed")
+		endif()
 	endif()
 endif()
 
