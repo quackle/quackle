@@ -1670,6 +1670,25 @@ QString TopLevel::gameTitle()
 	return ret;
 }
 
+#ifdef Q_OS_MAC
+// QMacStyle's rendering of a toolbar QToolButton's hover/pressed/checked
+// states is broken: the background is a flat gray blob rather than the
+// native NSToolbarItem highlight, and it also swaps the label to a
+// hardcoded white that assumes a dark highlight will sit behind it. That
+// text color isn't reachable through a style sheet (QMacStyle picks it
+// natively, ignoring the "color" property), so rather than fight it, give
+// these specific buttons Fusion's style, which renders all three states
+// correctly.
+static void useFusionStyle(QToolBar *bar)
+{
+	static QStyle *fusionStyle = QStyleFactory::create("Fusion");
+
+	for (QAction *action : bar->actions())
+		if (QWidget *widget = bar->widgetForAction(action))
+			widget->setStyle(fusionStyle);
+}
+#endif
+
 void TopLevel::createMenu()
 {
 	const bool enableCommitAction = true;
@@ -1940,12 +1959,20 @@ void TopLevel::createMenu()
 	moveBar->addAction(m_simulateAction);
 
 	// study toolbar
+	QToolBar *studyBar = NULL;
 	if (enableLetterbox)
 	{
-		QToolBar *studyBar = addToolBar(tr("Study"));
+		studyBar = addToolBar(tr("Study"));
 		studyBar->setObjectName("study-toolbar");
 		studyBar->addAction(letterboxAction);
 	}
+
+#ifdef Q_OS_MAC
+	useFusionStyle(fileBar);
+	useFusionStyle(moveBar);
+	if (studyBar)
+		useFusionStyle(studyBar);
+#endif
 }
 
 void TopLevel::createWidgets()
