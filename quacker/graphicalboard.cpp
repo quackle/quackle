@@ -490,11 +490,14 @@ void GraphicalBoardFrame::flushPixmapsAndRedraw()
 
 void GraphicalBoardFrame::paintEvent(QPaintEvent *event)
 {
+	// QFrame::paintEvent must run first: on Windows' current style, drawing the
+	// styled panel repaints the whole contents rect, which would otherwise wipe
+	// out the board pixmap drawn below it.
+	QFrame::paintEvent(event);
+
 	QPainter painter(this);
 	painter.drawPixmap(contentsRect().topLeft(), m_pixmap);
 	painter.end();
-
-	QFrame::paintEvent(event);
 }
 
 void GraphicalBoardFrame::mousePressEvent(QMouseEvent *event)
