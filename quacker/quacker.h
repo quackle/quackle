@@ -48,18 +48,18 @@ class OppoThreadProgressBar;
 
 namespace Quackle
 {
-	class ComputerPlayer;
-	class Game;
-	class GamePosition;
-	class History;
-	class HistoryLocation;
-	class Move;
-	class Rack;
+class ComputerPlayer;
+class Game;
+class GamePosition;
+class History;
+class HistoryLocation;
+class Move;
+class Rack;
 }
 
 namespace QuackleIO
 {
-	class Logania;
+class Logania;
 }
 
 class BaseView;
@@ -73,7 +73,7 @@ class View;
 
 class TopLevel : public QMainWindow
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	TopLevel(QWidget *parent = 0);
@@ -313,7 +313,7 @@ private:
 
 	QVBoxLayout *m_leftSideLayout;
 
-	enum TabIndex { HistoryTabIndex = 0, ChoicesTabIndex = 1, SettingsTabIndex = 2};
+	enum TabIndex { HistoryTabIndex = 0, ChoicesTabIndex = 1, SettingsTabIndex = 2 };
 	QTabWidget *m_tabWidget;
 
 	HistoryView *m_history;
@@ -332,7 +332,7 @@ private:
 	Letterbox *m_letterbox;
 	QuackerSettings *m_quackerSettings;
 
-// encapsulated simulator settings widget
+	// encapsulated simulator settings widget
 	QGroupBox *m_simulatorWidget;
 	QPushButton *m_showDetailsButton;
 	QLineEdit *m_logfileEdit;
@@ -366,7 +366,7 @@ private:
 	QString partialOppoRack() const;
 
 	int m_plies;
-// end encapsulation, hah
+	// end encapsulation, hah
 
 	QString m_filename;
 	QuackleIO::Logania *m_logania;
@@ -422,7 +422,7 @@ private:
 
 class KibitzerListener : public QObject
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	KibitzerListener(Quackle::ComputerPlayer *computerPlayer, QObject *parent);

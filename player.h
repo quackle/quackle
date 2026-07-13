@@ -30,7 +30,7 @@ class ComputerPlayer;
 class Player
 {
 public:
-	enum PlayerType { ComputerPlayerType = 0, HumanPlayerType = 1};
+	enum PlayerType { ComputerPlayerType = 0, HumanPlayerType = 1 };
 
 	// creates a Computer player whose id is -1 and zero score
 	Player();

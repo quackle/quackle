@@ -40,7 +40,7 @@ MoveBox::MoveBox(QWidget *parent)
 	QStringList headers;
 	headers << tr("Move") << tr("Score") << tr("Leave") << tr("Win %") << tr("Valuation");
 	m_treeWidget->setHeaderLabels(headers);
-	
+
 	QHBoxLayout *buttonLayout = new QHBoxLayout;
 	Geometry::setupInnerLayout(buttonLayout);
 	m_removeButton = new QPushButton(tr("Remove"));
@@ -74,7 +74,7 @@ void MoveBox::moveActivated(QTreeWidgetItem *item)
 	{
 		if (it.value() == item)
 		{
-			const auto& key = it.key();
+			const auto &key = it.key();
 			emit setCandidateMove(&key, nullptr);
 			break;
 		}
@@ -93,10 +93,10 @@ void MoveBox::removeMove()
 	QList<QTreeWidgetItem *> selectedItems = m_treeWidget->selectedItems();
 	if (selectedItems.empty())
 		return;
-	
+
 	Quackle::MoveList selectedMoves;
 
-	for (const auto& it : selectedItems)
+	for (const auto &it : selectedItems)
 	{
 		for (QMap<Quackle::Move, QTreeWidgetItem *>::iterator mapIt = m_moveMap.begin(); mapIt != m_moveMap.end(); ++mapIt)
 		{
@@ -132,7 +132,7 @@ void MoveBox::removeMove()
 		{
 			if (mapIt.value() == nextSelection)
 			{
-				const auto& key = mapIt.key();
+				const auto &key = mapIt.key();
 				emit setCandidateMove(&key, nullptr);
 				break;
 			}
@@ -190,13 +190,13 @@ void MoveBox::setMoves(const Quackle::MoveList &moves, const Quackle::Move &sele
 		hasNewItems = true;
 		m_moveMap.insert(*it, createItem(*it));
 
-		foundFirstPass:
+	foundFirstPass:
 		continue;
 	}
 
 	if (resorted)
 	{
-		for (QMutableMapIterator<Quackle::Move, QTreeWidgetItem *> mapIt(m_moveMap); mapIt.hasNext(); )
+		for (QMutableMapIterator<Quackle::Move, QTreeWidgetItem *> mapIt(m_moveMap); mapIt.hasNext();)
 		{
 			mapIt.next();
 
@@ -207,7 +207,7 @@ void MoveBox::setMoves(const Quackle::MoveList &moves, const Quackle::Move &sele
 			delete mapIt.value();
 			mapIt.remove();
 
-			found:
+		found:
 			continue;
 		}
 	}
@@ -239,7 +239,7 @@ void MoveBox::positionChanged(const Quackle::GamePosition *position)
 {
 	if (m_rack.tiles() != position->currentPlayer().rack().tiles())
 	{
-		for (auto& mapIt : m_moveMap)
+		for (auto &mapIt : m_moveMap)
 			delete mapIt;
 
 		m_moveMap.clear();
@@ -285,16 +285,17 @@ void MoveBox::setSelectionWatchingEnabled(bool enabled)
 		// the former is single-click to select on all platforms,
 		// latter is always double-click to select on most platforms
 		connect(m_treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(moveActivated(QTreeWidgetItem *)));
-		//connect(m_treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, SLOT(moveActivated(QTreeWidgetItem *)));
+		// connect(m_treeWidget, SIGNAL(itemActivated(QTreeWidgetItem *, int)), this, SLOT(moveActivated(QTreeWidgetItem *)));
 
 		// to allow the arrow keys to be used to select moves
-		// connect(m_treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(moveActivated(QTreeWidgetItem *)));
+		// connect(m_treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(moveActivated(QTreeWidgetItem
+		// *)));
 	}
 	else
 	{
 		disconnect(m_treeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 		disconnect(m_treeWidget, SIGNAL(itemClicked(QTreeWidgetItem *, int)), this, SLOT(moveActivated(QTreeWidgetItem *)));
-		// disconnect(m_treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this, SLOT(moveActivated(QTreeWidgetItem *)));
+		// disconnect(m_treeWidget, SIGNAL(currentItemChanged(QTreeWidgetItem *, QTreeWidgetItem *)), this,
+		// SLOT(moveActivated(QTreeWidgetItem *)));
 	}
 }
-

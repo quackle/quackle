@@ -27,7 +27,7 @@ class QTextEdit;
 
 class BagDisplay : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BagDisplay(QWidget *parent = 0);

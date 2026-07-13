@@ -44,7 +44,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 	for (PlayerList::const_iterator it = players.begin(); it != players.end(); ++it)
 	{
 		s.width(3);
-		s << right << ((*it) == position.currentPlayer()? MARK_UV("->") : MARK_UV(" "));
+		s << right << ((*it) == position.currentPlayer() ? MARK_UV("->") : MARK_UV(" "));
 		s << MARK_UV(' ');
 		s.width(24);
 		s << left << (*it).name() << MARK_UV(' ');
@@ -145,7 +145,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 				s << (highestEquity - (*it).equity);
 			}
 
-			s << (i == ourMoveIndex? MARK_UV("*") : MARK_UV(" "));
+			s << (i == ourMoveIndex ? MARK_UV("*") : MARK_UV(" "));
 
 			// column 3, the position string.
 			s << left;
@@ -178,7 +178,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 			s << left << QUACKLE_ALPHABET_PARAMETERS->userVisible((*it).prettyTiles()) << MARK_UV(" ");
 
 			// column 5, the score
-			s.width(highestScore >= 100? 3 : (highestScore >= 10? 2 : 1));
+			s.width(highestScore >= 100 ? 3 : (highestScore >= 10 ? 2 : 1));
 			s << left << (*it).score << MARK_UV(" ");
 
 			// column 6, the win percentage
@@ -223,7 +223,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 
 	UVString reportString = s.str();
 	UVString boardString = position.board().toString();
-	
+
 	*report = titleStream.str();
 
 	// Ensure that the board ends with a newline.
@@ -284,7 +284,7 @@ void Reporter::reportHeader(const Game & /* game */, UVString *report)
 
 void Reporter::reportGameStatistics(const Game &game, UVString *report)
 {
-        (void) game;
+	(void)game;
 	UVOStringStream s;
 	*report = s.str();
 }

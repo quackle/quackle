@@ -22,7 +22,7 @@
 #include <QtWidgets>
 
 #ifdef Q_OS_APPLE
-#include <CoreFoundation/CoreFoundation.h>
+#	include <CoreFoundation/CoreFoundation.h>
 #endif // Q_OS_MAC
 
 #include "alphabetparameters.h"
@@ -48,15 +48,15 @@ using namespace std;
 
 namespace
 {
-	// CMake's add_subdirectory(../data data) creates an empty "data"
-	// directory (just CMakeFiles/ and cmake_install.cmake) inside the
-	// build directory, so a bare QFile::exists("data") can match that
-	// stub instead of the real data directory. Check for a file that
-	// only exists in the real thing.
-	bool isDataDirectory(const QString &path)
-	{
-		return QFile::exists(path + "/alphabets/english.quackle_alphabet");
-	}
+// CMake's add_subdirectory(../data data) creates an empty "data"
+// directory (just CMakeFiles/ and cmake_install.cmake) inside the
+// build directory, so a bare QFile::exists("data") can match that
+// stub instead of the real data directory. Check for a file that
+// only exists in the real thing.
+bool isDataDirectory(const QString &path)
+{
+	return QFile::exists(path + "/alphabets/english.quackle_alphabet");
+}
 }
 
 Settings *Settings::m_self = 0;
@@ -71,26 +71,26 @@ Settings::Settings(QWidget *parent)
 	m_self = this;
 	QDir directory = QFileInfo(qApp->arguments().at(0)).absoluteDir();
 
- #ifdef Q_OS_APPLE
+#ifdef Q_OS_APPLE
 	if (CFBundleGetMainBundle())
 	{
-		 CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
-		 if (dataUrlRef)
-		 {
-		 	 CFStringRef macPath = CFURLCopyFileSystemPath(dataUrlRef, kCFURLPOSIXPathStyle);
-			 size_t sizeOfBuf = CFStringGetMaximumSizeOfFileSystemRepresentation(macPath);
-			 char* buf = (char*) malloc(sizeOfBuf);
+		CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
+		if (dataUrlRef)
+		{
+			CFStringRef macPath = CFURLCopyFileSystemPath(dataUrlRef, kCFURLPOSIXPathStyle);
+			size_t sizeOfBuf = CFStringGetMaximumSizeOfFileSystemRepresentation(macPath);
+			char *buf = (char *)malloc(sizeOfBuf);
 
-			 CFStringGetFileSystemRepresentation(macPath, buf, sizeOfBuf);
-		 	 directory = QDir(buf);
-		 	 directory.cdUp();
+			CFStringGetFileSystemRepresentation(macPath, buf, sizeOfBuf);
+			directory = QDir(buf);
+			directory.cdUp();
 
-			 free(buf);
-			 CFRelease(dataUrlRef);
-			 CFRelease(macPath);
-		 }
+			free(buf);
+			CFRelease(dataUrlRef);
+			CFRelease(macPath);
+		}
 	}
- #endif // Q_OS_APPLE
+#endif // Q_OS_APPLE
 
 	if (isDataDirectory("data"))
 		m_appDataDir = "data";
@@ -109,7 +109,9 @@ Settings::Settings(QWidget *parent)
 		}
 
 		if (!found)
-			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"), tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as the current directory.</p>"));
+			QMessageBox::critical(0, tr("Error Initializing Data Files - Quacker"),
+				tr("<p>Could not open data directory. Quackle will be useless. Try running the quacker executable with quackle/quacker/ as "
+				   "the current directory.</p>"));
 		else
 			directory = dataDir;
 
@@ -213,7 +215,6 @@ void Settings::createGUI()
 	layout->setColumnStretch(3, 1);
 	layout->setRowStretch(9, 1);
 
-
 	load();
 }
 
@@ -221,13 +222,15 @@ void Settings::load()
 {
 	m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str())));
 	if (m_lexiconNameCombo->currentIndex() == -1)
-		m_lexiconNameCombo->setCurrentIndex(m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str()) + "*"));
+		m_lexiconNameCombo->setCurrentIndex(
+			m_lexiconNameCombo->findText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->lexiconName().c_str()) + "*"));
 	m_lastGoodLexiconValue = m_lexiconNameCombo->currentIndex();
-	m_alphabetNameCombo->setCurrentIndex(m_alphabetNameCombo->findText(QString::fromUtf8(QUACKLE_ALPHABET_PARAMETERS->alphabetName().c_str())));
+	m_alphabetNameCombo->setCurrentIndex(
+		m_alphabetNameCombo->findText(QString::fromUtf8(QUACKLE_ALPHABET_PARAMETERS->alphabetName().c_str())));
 	m_themeNameCombo->setCurrentIndex(m_themeNameCombo->findText(m_themeName));
 	m_boardNameCombo->setCurrentIndex(m_boardNameCombo->findText(QuackleIO::Util::uvStringToQString(QUACKLE_BOARD_PARAMETERS->name())));
 	m_lastGoodBoardValue = m_boardNameCombo->currentIndex();
-	//m_logoLabel->setPixmap(QPixmap());
+	// m_logoLabel->setPixmap(QPixmap());
 	m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 	setGaddagLabel();
 }
@@ -262,7 +265,8 @@ void Settings::setGaddagLabel()
 	QString gaddagLabelString;
 	if (!QUACKLE_LEXICON_PARAMETERS->hasGaddag())
 	{
-		gaddagLabelString = tr("Lexicon database is not up to date.  Press the button to begin building the database.  This may take several minutes to complete.");
+		gaddagLabelString = tr("Lexicon database is not up to date.  Press the button to begin building the database.  This may take "
+							   "several minutes to complete.");
 		m_buildGaddag->setEnabled(true);
 	}
 	else
@@ -335,7 +339,6 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 	} while (!lastchild);
 }
 
-
 void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 {
 	QUACKLE_DATAMANAGER->setBackupLexicon("default");
@@ -373,7 +376,7 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		// strategy files with twl06 ones (until I can start generating better).  It's an imperfect
 		// test...it captures the ODS dictionary, for example, which seems pretty wrong.  But I
 		// don't want to hard-code lexicon names here, so this is about as good as I can do.
-		const vector<string> & alphabet = QUACKLE_LEXICON_PARAMETERS->utf8Alphabet();
+		const vector<string> &alphabet = QUACKLE_LEXICON_PARAMETERS->utf8Alphabet();
 		if (alphabet.size() == 26)
 		{
 			vector<string>::const_iterator it;
@@ -394,8 +397,8 @@ void Settings::setQuackleToUseLexiconName(const QString &lexiconName)
 		else
 			m_logoLabel->setPixmap(QPixmap(QString(logoFileName.c_str())));
 		static const string naspaLogoSuffix = "naspa.gif";
-		m_naspaLinkLabel->setVisible(logoFileName.size() >= naspaLogoSuffix.size() &&
-			logoFileName.compare(logoFileName.size() - naspaLogoSuffix.size(), naspaLogoSuffix.size(), naspaLogoSuffix) == 0);
+		m_naspaLinkLabel->setVisible(logoFileName.size() >= naspaLogoSuffix.size()
+			&& logoFileName.compare(logoFileName.size() - naspaLogoSuffix.size(), naspaLogoSuffix.size(), naspaLogoSuffix) == 0);
 		m_copyrightLabel->setText(QString::fromUtf8(QUACKLE_LEXICON_PARAMETERS->copyrightString().c_str()));
 		setGaddagLabel();
 	}
@@ -414,7 +417,12 @@ void Settings::setQuackleToUseAlphabetName(const QString &alphabetName)
 		{
 			if (flexure->length() != QUACKLE_ALPHABET_PARAMETERS->length() && QUACKLE_ALPHABET_PARAMETERS->alphabetName() != "default")
 			{
-				QMessageBox::warning(this, tr("Alphabet mismatch - Quackle"), QString("<html>%1</html>").arg(tr("%1 has a different number of letters than %2, so please start a new game or else Quackle will crash or act strangely.").arg(QuackleIO::Util::stdStringToQString(flexure->alphabetName())).arg(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName()))));
+				QMessageBox::warning(this, tr("Alphabet mismatch - Quackle"),
+					QString("<html>%1</html>")
+						.arg(tr("%1 has a different number of letters than %2, so please start a new game or else Quackle will crash or "
+								"act strangely.")
+								.arg(QuackleIO::Util::stdStringToQString(flexure->alphabetName()))
+								.arg(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName()))));
 			}
 
 			QUACKLE_DATAMANAGER->setAlphabetParameters(flexure);
@@ -452,7 +460,7 @@ void Settings::setQuackleToUseBoardName(const QString &boardName)
 	{
 		QByteArray boardParameterBytes = qUncompress(settings.value(boardName).toByteArray());
 		string boardParameterBuf;
-		boardParameterBuf.assign((const char *) boardParameterBytes, boardParameterBytes.size());
+		boardParameterBuf.assign((const char *)boardParameterBytes, boardParameterBytes.size());
 		istringstream boardParameterStream(boardParameterBuf);
 
 		QUACKLE_DATAMANAGER->setBoardParameters(Quackle::BoardParameters::Deserialize(boardParameterStream));
@@ -466,8 +474,7 @@ void Settings::lexiconChanged(int lexiconIndex)
 	if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1)
 	{
 		editLexicon();
-		if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1 &&
-			m_lexiconNameCombo->currentIndex() != 0)
+		if (m_lexiconNameCombo->currentIndex() == m_lexiconNameCombo->count() - 1 && m_lexiconNameCombo->currentIndex() != 0)
 			m_lexiconNameCombo->setCurrentIndex(m_lastGoodLexiconValue);
 		return;
 	}
@@ -527,8 +534,7 @@ void Settings::boardChanged(int boardIndex)
 	if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1)
 	{
 		addBoard();
-		if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1 &&
-			m_boardNameCombo->currentIndex() != 0)
+		if (m_boardNameCombo->currentIndex() == m_boardNameCombo->count() - 1 && m_boardNameCombo->currentIndex() != 0)
 			m_boardNameCombo->setCurrentIndex(m_lastGoodBoardValue);
 		return;
 	}
@@ -559,9 +565,8 @@ void Settings::addBoard()
 		ostringstream boardParameterStream;
 		QUACKLE_BOARD_PARAMETERS->Serialize(boardParameterStream);
 
-		QByteArray boardParameterBytes = qCompress(
-							(const uchar *)boardParameterStream.str().data(),
-							(int)boardParameterStream.str().size());
+		QByteArray boardParameterBytes
+			= qCompress((const uchar *)boardParameterStream.str().data(), (int)boardParameterStream.str().size());
 		settings.setValue(boardName, QVariant(boardParameterBytes));
 		m_boardNameCombo->setCurrentIndex(-1);
 		boardChanged(boardName);
@@ -590,9 +595,7 @@ void Settings::editBoard()
 		ostringstream boardParameterStream;
 		QUACKLE_BOARD_PARAMETERS->Serialize(boardParameterStream);
 
-		QByteArray boardParameterBytes = qCompress(
-							(const char *)boardParameterStream.str().data(),
-							int(boardParameterStream.str().size()));
+		QByteArray boardParameterBytes = qCompress((const char *)boardParameterStream.str().data(), int(boardParameterStream.str().size()));
 		settings.setValue(newBoardName, QVariant(boardParameterBytes));
 		boardChanged(newBoardName);
 	}
@@ -684,11 +687,11 @@ void Settings::editTheme()
 #endif // 0
 }
 
-void Settings::populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label)
+void Settings::populateComboFromFilenames(QComboBox *combo, const QString &path, const QString &extension, const QString &label)
 {
 	while (combo->count() > 0)
 		combo->removeItem(0);
-	
+
 	QStringList fileList;
 	QDir dir(self()->m_appDataDir);
 	if (dir.cd(path))

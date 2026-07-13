@@ -16,7 +16,6 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <iostream>
 #include <QtCore>
 #include <QCryptographicHash>
@@ -38,7 +37,7 @@ GaddagFactory::GaddagFactory(const UVString &alphabetFile)
 
 	// So the separator is sorted to last.
 	m_root.t = false;
-	m_root.c = QUACKLE_NULL_MARK;  // "_"
+	m_root.c = QUACKLE_NULL_MARK; // "_"
 	m_root.pointer = 0;
 	m_root.lastchild = true;
 
@@ -53,7 +52,7 @@ GaddagFactory::~GaddagFactory()
 bool GaddagFactory::pushWord(const UVString &word)
 {
 	UVString leftover;
-    Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
+	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
 	if (leftover.empty())
 	{
 		pushWord(encodedWord);
@@ -81,7 +80,7 @@ bool GaddagFactory::pushWord(const Quackle::LetterString &word)
 
 		if (i < word.length())
 		{
-			newword.push_back(internalSeparatorRepresentation);  // "^"
+			newword.push_back(internalSeparatorRepresentation); // "^"
 			for (unsigned j = i; j < word.length(); j++)
 				newword.push_back(word[j]);
 		}
@@ -95,10 +94,10 @@ void GaddagFactory::hashWord(const Quackle::LetterString &word)
 	QCryptographicHash wordhash(QCryptographicHash::Md5);
 	wordhash.addData(QByteArray::fromRawData(word.constData(), word.length()));
 	QByteArray wordhashbytes = wordhash.result();
-	m_hash.int32ptr[0] ^= ((const int32_t*)wordhashbytes.constData())[0];
-	m_hash.int32ptr[1] ^= ((const int32_t*)wordhashbytes.constData())[1];
-	m_hash.int32ptr[2] ^= ((const int32_t*)wordhashbytes.constData())[2];
-	m_hash.int32ptr[3] ^= ((const int32_t*)wordhashbytes.constData())[3];
+	m_hash.int32ptr[0] ^= ((const int32_t *)wordhashbytes.constData())[0];
+	m_hash.int32ptr[1] ^= ((const int32_t *)wordhashbytes.constData())[1];
+	m_hash.int32ptr[2] ^= ((const int32_t *)wordhashbytes.constData())[2];
+	m_hash.int32ptr[3] ^= ((const int32_t *)wordhashbytes.constData())[3];
 }
 
 void GaddagFactory::generate()
@@ -115,7 +114,7 @@ void GaddagFactory::writeIndex(const string &fname)
 {
 	m_nodelist.push_back(&m_root);
 
-	m_root.print(m_nodelist);    
+	m_root.print(m_nodelist);
 
 	ofstream out(fname.c_str(), ios::out | ios::binary);
 
@@ -132,7 +131,7 @@ void GaddagFactory::writeIndex(const string &fname)
 		unsigned char n1 = (p & 0x00FF0000) >> 16;
 		unsigned char n2 = (p & 0x0000FF00) >> 8;
 		unsigned char n3 = (p & 0x000000FF) >> 0;
-		unsigned char n4; 
+		unsigned char n4;
 
 		n4 = m_nodelist[i]->c;
 		if (n4 == internalSeparatorRepresentation)
@@ -144,13 +143,15 @@ void GaddagFactory::writeIndex(const string &fname)
 		if (m_nodelist[i]->lastchild)
 			n4 |= 128;
 
-		bytes[0] = n1; bytes[1] = n2; bytes[2] = n3; bytes[3] = n4;
+		bytes[0] = n1;
+		bytes[1] = n2;
+		bytes[2] = n3;
+		bytes[3] = n4;
 		out.write(bytes, 4);
 	}
 }
 
-
-void GaddagFactory::Node::print(vector< Node* >& nodelist)
+void GaddagFactory::Node::print(vector<Node *> &nodelist)
 {
 	if (children.size() > 0)
 	{
@@ -165,8 +166,7 @@ void GaddagFactory::Node::print(vector< Node* >& nodelist)
 		children[i].print(nodelist);
 }
 
-
-void GaddagFactory::Node::pushWord(const Quackle::LetterString& word)
+void GaddagFactory::Node::pushWord(const Quackle::LetterString &word)
 {
 	if (word.length() == 0)
 	{

@@ -26,7 +26,7 @@ class QTextEdit;
 
 class NoteEditor : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	NoteEditor(QWidget *parent = 0);

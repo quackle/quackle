@@ -130,4 +130,3 @@ void InterfacePage::writeConfig()
 	QuackleIO::UtilSettings::self()->octothorpBritish = m_octothorpCheck->isChecked();
 	QuackleIO::UtilSettings::self()->scoreInvalidAsZero = m_scoreInvalidAsZero->isChecked();
 }
-

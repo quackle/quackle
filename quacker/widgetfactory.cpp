@@ -67,4 +67,3 @@ View *BoardSetupFactory::createBagDisplay()
 {
 	return new View;
 }
-

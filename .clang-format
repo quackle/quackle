@@ -1,5 +1,45 @@
 ---
-BasedOnStyle: LLVM
----
-Language: Cpp
+BasedOnStyle: WebKit
+UseTab: ForContinuationAndIndentation
+TabWidth: 4
 
+
+AllowShortFunctionsOnASingleLine: Inline
+
+BreakBeforeBraces: Custom
+
+BraceWrapping:
+    AfterCaseLabel: true
+    AfterClass: true
+    AfterControlStatement: true
+    AfterEnum: false
+    AfterFunction: true
+    AfterNamespace: true
+    AfterObjCDeclaration: false
+    AfterStruct: true
+    AfterUnion: true
+    AfterExternBlock: true
+    BeforeCatch: true
+    BeforeElse: true
+    BeforeLambdaBody: false
+    BeforeWhile: false
+    SplitEmptyFunction: true
+
+ColumnLimit: 140
+
+IndentPPDirectives: AfterHash
+
+NamespaceIndentation: None
+
+PackConstructorInitializers: NextLineOnly
+
+PointerAlignment: Right
+
+ReferenceAlignment: Pointer
+
+SortIncludes: false
+
+SpaceInEmptyBraces: Never
+
+StatementMacros:
+  - Q_OBJECT

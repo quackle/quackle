@@ -32,7 +32,7 @@ class QTreeWidgetItem;
 
 class MoveBox : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	MoveBox(QWidget *parent = 0);

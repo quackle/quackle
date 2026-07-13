@@ -24,13 +24,9 @@
 
 #include "dictimplementation.h"
 
-QuackleIO::DictImplementation::DictImplementation()
-{
-}
+QuackleIO::DictImplementation::DictImplementation() {}
 
-QuackleIO::DictImplementation::~DictImplementation()
-{
-}
+QuackleIO::DictImplementation::~DictImplementation() {}
 
 Dict::WordList QuackleIO::DictImplementation::query(const QString &query, int flags)
 {
@@ -99,4 +95,3 @@ bool QuackleIO::DictImplementation::isBritish(const Quackle::LetterString &word)
 	m_generator.storeWordInfo(&wordWithInfo);
 	return wordWithInfo.british;
 }
-

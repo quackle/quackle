@@ -40,13 +40,13 @@ public:
 	}
 };
 
-LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDialog(parent),
-	m_deleted(false), m_wordFactory(NULL)
+LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName)
+	: QDialog(parent), m_deleted(false), m_wordFactory(NULL)
 {
 	m_originalName = originalName;
 
-	resize(450,350);
-	
+	resize(450, 350);
+
 	// construct the UI elements
 	m_lexiconName = new QLineEdit();
 	m_alphabetCombo = new QComboBox();
@@ -54,7 +54,6 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 
 	m_addWordsFromFile = new QPushButton(tr("Add words from &file..."));
 	m_clearAllWords = new QPushButton(tr("Clear &words and start again"));
-
 
 	m_lexiconInformation = new QLabel("");
 	m_lexiconInformation->setWordWrap(true);
@@ -64,21 +63,21 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	m_cancel = new QPushButton(tr("&Cancel"));
 	m_deleteLexicon = new QPushButton(tr("&Delete Lexicon"));
 
-	QLabel * lexiconNameLabel = new QLabel(tr("&Lexicon name:"));
-	QLabel * alphabetLabel = new QLabel(tr("&Alphabet:"));
+	QLabel *lexiconNameLabel = new QLabel(tr("&Lexicon name:"));
+	QLabel *alphabetLabel = new QLabel(tr("&Alphabet:"));
 	lexiconNameLabel->setBuddy(m_lexiconName);
 	alphabetLabel->setBuddy(m_alphabetCombo);
 
-	QVBoxLayout * layout = new QVBoxLayout;
+	QVBoxLayout *layout = new QVBoxLayout;
 	Geometry::setupFramedLayout(layout);
-	QHBoxLayout * lexiconRow = new QHBoxLayout;
+	QHBoxLayout *lexiconRow = new QHBoxLayout;
 	Geometry::setupInnerLayout(lexiconRow);
-	QHBoxLayout * addRemoveWordsRow = new QHBoxLayout;
+	QHBoxLayout *addRemoveWordsRow = new QHBoxLayout;
 	Geometry::setupInnerLayout(addRemoveWordsRow);
-	QHBoxLayout * buttonRow = new QHBoxLayout;
+	QHBoxLayout *buttonRow = new QHBoxLayout;
 	Geometry::setupInnerLayout(buttonRow);
-	QGroupBox * lexiconInformationGroup = new QGroupBox(tr("Lexicon information"));
-	QVBoxLayout * lexiconInformationLayout = new QVBoxLayout(lexiconInformationGroup);
+	QGroupBox *lexiconInformationGroup = new QGroupBox(tr("Lexicon information"));
+	QVBoxLayout *lexiconInformationLayout = new QVBoxLayout(lexiconInformationGroup);
 
 	// build the layout
 	lexiconRow->addWidget(lexiconNameLabel);
@@ -118,7 +117,8 @@ LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName) : QDi
 	setWindowTitle(tr("Configure Lexicon - Quackle"));
 
 	Settings::populateComboFromFilenames(m_alphabetCombo, "alphabets", ".quackle_alphabet", "");
-	m_alphabetCombo->setCurrentIndex(m_alphabetCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
+	m_alphabetCombo->setCurrentIndex(
+		m_alphabetCombo->findText(QuackleIO::Util::stdStringToQString(QUACKLE_ALPHABET_PARAMETERS->alphabetName())));
 	alphabetChanged(m_alphabetCombo->currentIndex());
 
 	m_lexiconName->setValidator(m_fileNameValidator);
@@ -147,7 +147,7 @@ void LexiconDialog::addWordsFromFile()
 	QFileDialog browser(this, tr("Choose a file containing words to be added to the lexicon..."));
 	QStringList filters;
 	filters << "Dictionary files (*.txt *.dawg *.raw)"
-		<< "All files (*.*)";
+			<< "All files (*.*)";
 	browser.setNameFilters(filters);
 	browser.setFileMode(QFileDialog::ExistingFiles);
 	browser.exec();
@@ -288,7 +288,7 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 		delete m_wordFactory;
 		m_wordFactory = NULL;
 	}
- 	if (m_wordFactory)
+	if (m_wordFactory)
 		lengthText = QString::fromStdString(m_wordFactory->letterCountString());
 
 	if (firstTime)
@@ -303,6 +303,6 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 
 	m_lexiconInformation->setText(text);
 
-	m_saveChanges->setEnabled(true/*hash != m_originalHash && !m_lexiconName->text().isEmpty()*/);
+	m_saveChanges->setEnabled(true /*hash != m_originalHash && !m_lexiconName->text().isEmpty()*/);
 	m_clearAllWords->setEnabled(hash != m_originalHash);
 }

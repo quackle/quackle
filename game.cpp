@@ -39,9 +39,7 @@ Game::Game()
 	reset();
 }
 
-Game::~Game()
-{
-}
+Game::~Game() {}
 
 void Game::reset()
 {
@@ -184,16 +182,36 @@ void Game::commitMove(const Move &move)
 ///////////
 
 GamePosition::GamePosition(const PlayerList &players)
-	: m_players(players), m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false), m_tilesOnRack(QUACKLE_PARAMETERS->rackSize())
+	: m_players(players)
+	, m_currentPlayer(m_players.end())
+	, m_playerOnTurn(m_players.end())
+	, m_turnNumber(0)
+	, m_nestedness(0)
+	, m_scorelessTurnsInARow(0)
+	, m_gameOver(false)
+	, m_tilesOnRack(QUACKLE_PARAMETERS->rackSize())
 {
 	setEmptyBoard();
 	resetMoveMade();
 	resetBag();
-	m_tilesInBag = m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * int(m_players.size())); 
+	m_tilesInBag = m_bag.fullBagTileCount() - (QUACKLE_PARAMETERS->rackSize() * int(m_players.size()));
 }
 
 GamePosition::GamePosition(const GamePosition &position)
-	: m_players(position.m_players), m_moves(position.m_moves), m_moveMade(position.m_moveMade), m_committedMove(position.m_committedMove), m_turnNumber(position.m_turnNumber), m_nestedness(position.m_nestedness), m_scorelessTurnsInARow(position.m_scorelessTurnsInARow), m_gameOver(position.m_gameOver), m_tilesInBag(position.m_tilesInBag), m_tilesOnRack(position.m_tilesOnRack), m_board(position.m_board), m_bag(position.m_bag), m_drawingOrder(position.m_drawingOrder), m_explanatoryNote(position.m_explanatoryNote)
+	: m_players(position.m_players)
+	, m_moves(position.m_moves)
+	, m_moveMade(position.m_moveMade)
+	, m_committedMove(position.m_committedMove)
+	, m_turnNumber(position.m_turnNumber)
+	, m_nestedness(position.m_nestedness)
+	, m_scorelessTurnsInARow(position.m_scorelessTurnsInARow)
+	, m_gameOver(position.m_gameOver)
+	, m_tilesInBag(position.m_tilesInBag)
+	, m_tilesOnRack(position.m_tilesOnRack)
+	, m_board(position.m_board)
+	, m_bag(position.m_bag)
+	, m_drawingOrder(position.m_drawingOrder)
+	, m_explanatoryNote(position.m_explanatoryNote)
 {
 	// reset iterator
 	if (position.turnNumber() == 0)
@@ -240,7 +258,12 @@ const GamePosition &GamePosition::operator=(const GamePosition &position)
 }
 
 GamePosition::GamePosition()
-	: m_currentPlayer(m_players.end()), m_playerOnTurn(m_players.end()), m_turnNumber(0), m_nestedness(0), m_scorelessTurnsInARow(0), m_gameOver(false)
+	: m_currentPlayer(m_players.end())
+	, m_playerOnTurn(m_players.end())
+	, m_turnNumber(0)
+	, m_nestedness(0)
+	, m_scorelessTurnsInARow(0)
+	, m_gameOver(false)
 {
 	setEmptyBoard();
 	resetMoveMade();
@@ -250,7 +273,7 @@ GamePosition::GamePosition()
 void GamePosition::kibitz(int nmoves)
 {
 	Generator generator(*this);
-	generator.kibitz(nmoves, exchangeAllowed()? Generator::RegularKibitz : Generator::CannotExchange);
+	generator.kibitz(nmoves, exchangeAllowed() ? Generator::RegularKibitz : Generator::CannotExchange);
 
 	m_moves = generator.kibitzList();
 
@@ -397,7 +420,7 @@ bool GamePosition::formsAcceptableWords(const Move &move) const
 
 MoveList GamePosition::allWordsFormedBy(const Move &move) const
 {
-    return m_board.allWordsFormedBy(move);
+	return m_board.allWordsFormedBy(move);
 }
 
 bool GamePosition::isAcceptableWord(const LetterString &word) const
@@ -500,8 +523,8 @@ Bag GamePosition::unseenBag() const
 Bag GamePosition::unseenBagFromPlayerPerspective(const Player &player) const
 {
 	// one way:
-	//Bag ret(m_board.tilesNotOnBoard());
-	//ret.removeLetters(currentPlayer().rack().usedTiles());
+	// Bag ret(m_board.tilesNotOnBoard());
+	// ret.removeLetters(currentPlayer().rack().usedTiles());
 
 	// other way:
 	Bag ret(m_bag);
@@ -548,13 +571,14 @@ void GamePosition::ensureProperBag() const
 		if (allTilesCounts[(int)(letter)] != fullCounts[(int)(letter)])
 		{
 			mismatch = true;
-			if (debugString.empty()) {
-			    debugString += MARK_UV("-------------------------\n");
-			    debugString += MARK_UV("tiles on board: ");
-			    debugString += m_board.tilesOnBoard().toString() + MARK_UV("\n");
-			    debugString += MARK_UV("racks: ") + racks.toString() + MARK_UV("\n");
-			    debugString += MARK_UV("bag: ") + m_bag.toString() + MARK_UV("\n");
-			    debugString += MARK_UV("All tiles: ") + allTiles.toString() + MARK_UV("\n");
+			if (debugString.empty())
+			{
+				debugString += MARK_UV("-------------------------\n");
+				debugString += MARK_UV("tiles on board: ");
+				debugString += m_board.tilesOnBoard().toString() + MARK_UV("\n");
+				debugString += MARK_UV("racks: ") + racks.toString() + MARK_UV("\n");
+				debugString += MARK_UV("bag: ") + m_bag.toString() + MARK_UV("\n");
+				debugString += MARK_UV("All tiles: ") + allTiles.toString() + MARK_UV("\n");
 			}
 			debugString += MARK_UV("Letter doesn't match: ") + QUACKLE_ALPHABET_PARAMETERS->userVisible(letter) + MARK_UV("\n");
 		}
@@ -678,7 +702,7 @@ bool GamePosition::canSetCurrentPlayerRackWithoutBagExpansion(const Rack &rack) 
 
 bool GamePosition::canSetPlayerRackWithoutBagExpansion(int playerID, const Rack &rack) const
 {
-        (void) playerID;
+	(void)playerID;
 	Bag someTiles(m_bag);
 
 	for (const auto &it : m_players)
@@ -769,7 +793,7 @@ void GamePosition::resetBag()
 	m_bag.prepareFullBag();
 }
 
-bool GamePosition::incrementTurn(const History* history)
+bool GamePosition::incrementTurn(const History *history)
 {
 	if (gameOver() || m_players.empty())
 		return false;
@@ -855,14 +879,16 @@ bool GamePosition::incrementTurn(const History* history)
 			}
 		}
 
-		if ((m_moveMade.action == Move::Place && m_moveMade.effectiveScore() == 0) || m_moveMade.action == Move::Exchange || m_moveMade.action == Move::BlindExchange || m_moveMade.action == Move::Pass)
+		if ((m_moveMade.action == Move::Place && m_moveMade.effectiveScore() == 0) || m_moveMade.action == Move::Exchange
+			|| m_moveMade.action == Move::BlindExchange || m_moveMade.action == Move::Pass)
 			++m_scorelessTurnsInARow;
 		else
 			m_scorelessTurnsInARow = 0;
 
 		if (!m_gameOver)
 		{
-			if (QUACKLE_PARAMETERS->numberOfScorelessTurnsThatEndsGame() >= 0 && m_scorelessTurnsInARow >= QUACKLE_PARAMETERS->numberOfScorelessTurnsThatEndsGame() && !m_board.isEmpty())
+			if (QUACKLE_PARAMETERS->numberOfScorelessTurnsThatEndsGame() >= 0
+				&& m_scorelessTurnsInARow >= QUACKLE_PARAMETERS->numberOfScorelessTurnsThatEndsGame() && !m_board.isEmpty())
 			{
 				// magic!
 				++m_turnNumber;
@@ -984,7 +1010,7 @@ PlayerList::const_iterator GamePosition::nextPlayer() const
 PlayerList::const_iterator GamePosition::playerWithAbbreviatedName(const UVString &abbreviatedName, bool &found) const
 {
 	PlayerList::const_iterator it = m_currentPlayer;
-	for (++it; ; ++it)
+	for (++it;; ++it)
 	{
 		if (it == m_players.end())
 			it = m_players.begin();
@@ -1133,7 +1159,7 @@ bool GamePosition::doesMoveEndGame(const Move &move) const
 	return (currentPlayer().rack() - move).empty() && m_bag.empty();
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position)
+UVOStream &operator<<(UVOStream &o, const Quackle::GamePosition &position)
 {
 	o << "------------" << endl;
 	o << "Position [turnNumber = " << position.turnNumber() << ", current player " << position.currentPlayer() << endl;
@@ -1147,10 +1173,10 @@ UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position)
 	if (position.gameOver())
 		o << "Game over." << endl;
 	o << "------------" << endl;
-    return o;
+	return o;
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::PositionList &positions)
+UVOStream &operator<<(UVOStream &o, const Quackle::PositionList &positions)
 {
 	for (const auto &it : positions)
 		o << it << endl;
@@ -1184,12 +1210,14 @@ const GamePosition &History::positionAt(const HistoryLocation &location, bool *e
 	{
 		if ((*it).playerOnTurn().id() == location.playerId() && (*it).turnNumber() == location.turnNumber())
 		{
-			if (exists) *exists = true;
+			if (exists)
+				*exists = true;
 			return *it;
 		}
 	}
 
-	if (exists) *exists = false;
+	if (exists)
+		*exists = false;
 	return back();
 }
 
@@ -1199,12 +1227,14 @@ GamePosition &History::mutablePositionAt(const HistoryLocation &location, bool *
 	{
 		if ((*it).playerOnTurn().id() == location.playerId() && (*it).turnNumber() == location.turnNumber())
 		{
-			if (exists) *exists = true;
+			if (exists)
+				*exists = true;
 			return *it;
 		}
 	}
 
-	if (exists) *exists = false;
+	if (exists)
+		*exists = false;
 	return back();
 }
 
@@ -1215,7 +1245,8 @@ const GamePosition &History::nextPosition(bool *exists) const
 	{
 		if (found)
 		{
-			if (exists) *exists = true;
+			if (exists)
+				*exists = true;
 			return *it;
 		}
 
@@ -1225,7 +1256,8 @@ const GamePosition &History::nextPosition(bool *exists) const
 		}
 	}
 
-	if (exists) *exists = false;
+	if (exists)
+		*exists = false;
 	return back();
 }
 
@@ -1236,7 +1268,8 @@ const GamePosition &History::previousPosition(bool *exists) const
 	{
 		if (found)
 		{
-			if (exists) *exists = true;
+			if (exists)
+				*exists = true;
 			return *it;
 		}
 
@@ -1246,7 +1279,8 @@ const GamePosition &History::previousPosition(bool *exists) const
 		}
 	}
 
-	if (exists) *exists = false;
+	if (exists)
+		*exists = false;
 	return back();
 }
 
@@ -1257,7 +1291,8 @@ const GamePosition &History::nextPositionFacedBy(int playerID, bool *exists) con
 	{
 		if (found && (*it).playerOnTurn().id() == playerID)
 		{
-			if (exists) *exists = true;
+			if (exists)
+				*exists = true;
 			return *it;
 		}
 
@@ -1267,7 +1302,8 @@ const GamePosition &History::nextPositionFacedBy(int playerID, bool *exists) con
 		}
 	}
 
-	if (exists) *exists = false;
+	if (exists)
+		*exists = false;
 	return back();
 }
 
@@ -1275,11 +1311,13 @@ const GamePosition &History::firstPosition(bool *exists) const
 {
 	if (empty())
 	{
-		if (exists) *exists = false;
+		if (exists)
+			*exists = false;
 		return back();
 	}
 
-	if (exists) *exists = true;
+	if (exists)
+		*exists = true;
 	return front();
 }
 
@@ -1323,9 +1361,8 @@ bool operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocat
 	return hl1.turnNumber() == hl2.turnNumber() && hl1.playerId() == hl2.playerId();
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::HistoryLocation &historyLocation)
+UVOStream &operator<<(UVOStream &o, const Quackle::HistoryLocation &historyLocation)
 {
 	o << "location turn number " << historyLocation.turnNumber() << ", player id " << historyLocation.playerId();
 	return o;
 }
-

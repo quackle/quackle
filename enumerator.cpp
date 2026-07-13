@@ -54,7 +54,7 @@ void Enumerator::enumerate(ProbableRackList *racks, unsigned int rackSize)
 	m_bag.letterCounts(m_bagcounts);
 
 	m_possibleBag = m_bag;
-	
+
 	recurse(LetterString(), 0, 0, racks, rackSize);
 
 	normalizeProbabilities(racks);
@@ -71,18 +71,17 @@ void Enumerator::enumeratePossible(ProbableRackList *racks, const Bag &bag)
 
 	m_bag.letterCounts(m_bagcounts);
 
-	//UVcout << "enumeratePossible called with bag: " << bag << endl;
+	// UVcout << "enumeratePossible called with bag: " << bag << endl;
 
 	m_possibleBag = m_bag;
 	m_possibleBag.removeLetters(bag.tiles());
 
-	//UVcout << "m_bag: " << m_bag << endl;
-	//UVcout << "m_possibleBag: " << m_possibleBag << endl;
+	// UVcout << "m_bag: " << m_bag << endl;
+	// UVcout << "m_possibleBag: " << m_possibleBag << endl;
 
 	recurse(LetterString(), 0, 0, racks, QUACKLE_PARAMETERS->rackSize());
 
 	normalizeProbabilities(racks);
-
 }
 
 void Enumerator::recurse(LetterString prefix, int i, Letter start, ProbableRackList *racks, unsigned int rackSize)

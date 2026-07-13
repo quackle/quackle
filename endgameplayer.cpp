@@ -20,7 +20,7 @@
 
 #include "endgameplayer.h"
 
-//#define DEBUG_COMPUTERPLAYER
+// #define DEBUG_COMPUTERPLAYER
 
 using namespace Quackle;
 
@@ -30,9 +30,7 @@ EndgamePlayer::EndgamePlayer()
 	m_id = 2;
 }
 
-EndgamePlayer::~EndgamePlayer()
-{
-}
+EndgamePlayer::~EndgamePlayer() {}
 
 Move EndgamePlayer::move()
 {
@@ -54,8 +52,9 @@ MoveList EndgamePlayer::moves(int nmoves)
 	}
 
 	m_endgame.setPosition(currentPosition());
-	
-    if (nmoves > 1) return m_endgame.moves(nmoves);
+
+	if (nmoves > 1)
+		return m_endgame.moves(nmoves);
 
 #ifdef DEBUG_ENDGAME
 	UVcout << "EndgamePlayer solving endgame from position:" << endl;

@@ -33,7 +33,7 @@ class QLabel;
 
 class Settings : public QWidget
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	Settings(QWidget *parent = 0);
@@ -41,7 +41,7 @@ public:
 	static Settings *self();
 
 	// load up an item list based on a list of filenames
-	static void populateComboFromFilenames(QComboBox* combo, const QString &path, const QString &extension, const QString &label);
+	static void populateComboFromFilenames(QComboBox *combo, const QString &path, const QString &extension, const QString &label);
 
 signals:
 	void refreshViews();
@@ -68,7 +68,7 @@ protected slots:
 
 	void addBoard();
 	void editBoard();
-	
+
 	void editLexicon();
 	void editAlphabet();
 	void editTheme();

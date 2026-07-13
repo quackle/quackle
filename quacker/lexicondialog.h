@@ -37,7 +37,7 @@ class FileNameValidator;
 
 class LexiconDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	LexiconDialog(QWidget *parent = 0, const QString &originalName = QString());
@@ -67,12 +67,12 @@ private:
 	QPushButton *m_addWordsFromFile;
 	QPushButton *m_clearAllWords;
 	QLabel *m_lexiconInformation;
-	FileNameValidator * m_fileNameValidator;
-	
+	FileNameValidator *m_fileNameValidator;
+
 	QPushButton *m_saveChanges;
 	QPushButton *m_cancel;
 	QPushButton *m_deleteLexicon;
-	
+
 	QString m_originalName;
 	QString m_alphabetFileName;
 	QByteArray m_originalHash;

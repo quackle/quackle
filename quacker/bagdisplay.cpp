@@ -49,16 +49,14 @@ BagDisplay::BagDisplay(QWidget *parent)
 	showTiles(Quackle::LongLetterString());
 }
 
-BagDisplay::~BagDisplay()
-{
-}
+BagDisplay::~BagDisplay() {}
 
 void BagDisplay::positionChanged(const Quackle::GamePosition *position)
 {
 	showTiles(position->unseenBag().tiles());
 
 	// Birthday
-	for (const auto& it : position->players())
+	for (const auto &it : position->players())
 	{
 		if (it.name() == "zorbonauts")
 		{
@@ -101,7 +99,8 @@ void BagDisplay::showTiles(const Quackle::LongLetterString &tiles)
 		const bool separateWithSpaces = qstring != sanitizedQString;
 		for (int i = 0; i < count; ++i)
 		{
-			if (separateWithSpaces && i > 0) line += " ";
+			if (separateWithSpaces && i > 0)
+				line += " ";
 			line += sanitizedQString;
 		}
 
@@ -125,9 +124,9 @@ void BagDisplay::showTiles(const Quackle::LongLetterString &tiles)
 	if (maxLineWidth < minimumMaxLineWidth)
 		maxLineWidth = minimumMaxLineWidth;
 
-	const int maximumWidth = maxLineWidth + m_textEdit->frameWidth() * 2 + (m_textEdit->verticalScrollBar()->isVisible()? m_textEdit->verticalScrollBar()->width() : 0) + 10;
+	const int maximumWidth = maxLineWidth + m_textEdit->frameWidth() * 2
+		+ (m_textEdit->verticalScrollBar()->isVisible() ? m_textEdit->verticalScrollBar()->width() : 0) + 10;
 	m_textEdit->setMaximumSize(maximumWidth, 26 * 100);
 
 	m_textEdit->resize(m_textEdit->maximumSize());
 }
-

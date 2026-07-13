@@ -49,7 +49,7 @@ void History::historyChanged(const Quackle::History &history)
 
 	for (int i = 1; i <= history.maximumTurnNumber(); ++i)
 		rowLabels.push_back(QString::number(i));
-	
+
 	Quackle::GamePosition lastPosition(history.lastPosition());
 	lastPosition.setCurrentPlayer(lastPosition.playerOnTurn().id());
 	const bool gameOver = lastPosition.gameOver();
@@ -117,15 +117,16 @@ QTableWidgetItem *History::createItem(const Quackle::GamePosition &position, con
 		contentString = tr("*TO PLAY*");
 	else
 	{
-		const QString moveString = (position.currentPlayer() == currentPlayer?  QuackleIO::Util::moveToDetailedString(committedMove) : QuackleIO::Util::moveToSensitiveString(committedMove));
+		const QString moveString = (position.currentPlayer() == currentPlayer ? QuackleIO::Util::moveToDetailedString(committedMove)
+																			  : QuackleIO::Util::moveToSensitiveString(committedMove));
 
 		const int score = position.currentPlayer().score() + committedMove.effectiveScore();
 
 		const QString scoreString = QString("+%2/%3").arg(committedMove.effectiveScore()).arg(score);
 
-    // Pad scoreString to 8 chars, because '+117/381' is 8 chars, and this
-    // helps the words kinda line up with each other.
-    contentString = QString("%1 %2").arg(moveString).arg(scoreString, 8);
+		// Pad scoreString to 8 chars, because '+117/381' is 8 chars, and this
+		// helps the words kinda line up with each other.
+		contentString = QString("%1 %2").arg(moveString).arg(scoreString, 8);
 	}
 
 	return createPlainItem(contentString);
@@ -153,4 +154,3 @@ void History::itemActivated(QTableWidgetItem *item)
 		}
 	}
 }
-

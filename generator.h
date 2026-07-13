@@ -35,7 +35,10 @@ class GaddagNode;
 class ExtensionWithInfo
 {
 public:
-	ExtensionWithInfo() : playability(0), probability(0), british(false) {}
+	ExtensionWithInfo()
+		: playability(0), probability(0), british(false)
+	{
+	}
 
 	LetterString extensionLetterString;
 
@@ -47,10 +50,13 @@ public:
 class WordWithInfo
 {
 public:
-	WordWithInfo() : playability(0), probability(0), british(false) {}
+	WordWithInfo()
+		: playability(0), probability(0), british(false)
+	{
+	}
 
 	LetterString wordLetterString;
-	
+
 	int playability;
 	double probability;
 	bool british;
@@ -86,14 +92,15 @@ public:
 	// on the board
 	void makeMove(const Move &move, bool regenerateCrosses);
 
-	enum AnagramFlags { AnagramRearrange	= 0x0000, 
-			    NoRequireAllLetters	= 0x0001, 
-			    AddAnyLetters	= 0x0002, 
-			    ClearBlanknesses	= 0x0004,
-			    SingleMatch		= 0x0008 };
+	enum AnagramFlags {
+		AnagramRearrange = 0x0000,
+		NoRequireAllLetters = 0x0001,
+		AddAnyLetters = 0x0002,
+		ClearBlanknesses = 0x0004,
+		SingleMatch = 0x0008
+	};
 	bool isAcceptableWord(const LetterString &word);
-        WordList anagramLetters(const LetterString &letters, 
-				int flags = AnagramRearrange);
+	WordList anagramLetters(const LetterString &letters, int flags = AnagramRearrange);
 	void storeWordInfo(WordWithInfo *wordWithInfo);
 	void storeExtensions(WordWithInfo *wordWithInfo);
 	void allCrosses();
@@ -124,13 +131,10 @@ private:
 	// returned letter is a fancy letter
 	void readFromDawg(int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const;
 
-	bool checksuffix(int i, const LetterString &suffix); 
+	bool checksuffix(int i, const LetterString &suffix);
 	LetterBitset fitbetween(const LetterString &pre, const LetterString &suf);
-	void extendright(const LetterString &partial, int i,  
-			int row, int col, int edge, int righttiles, 
-			bool horizontal);
-	void leftpart(const LetterString &partial, int i, int limit, 
-			int row, int col, int edge, bool horizontal);
+	void extendright(const LetterString &partial, int i, int row, int col, int edge, int righttiles, bool horizontal);
+	void leftpart(const LetterString &partial, int i, int limit, int row, int col, int edge, bool horizontal);
 	void spit(int i, const LetterString &prefix, int flags);
 	void wordspit(int i, const LetterString &prefix, int flags);
 
@@ -166,7 +170,6 @@ private:
 	bool m_gordonhoriz;
 	int m_anchorrow, m_anchorcol;
 };
-
 
 inline void Generator::setPosition(const GamePosition &position)
 {

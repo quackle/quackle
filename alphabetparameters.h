@@ -50,7 +50,7 @@ namespace Quackle
 {
 
 // Letter & LetterString are internally encoded strings mapped
-// from UVString (UV == user visible) to 1-n indices.  The are intended 
+// from UVString (UV == user visible) to 1-n indices.  The are intended
 // to be language independent whereas UVStrings are language dependent.
 #define LETTER_STRING_MAXIMUM_LENGTH FIXED_STRING_MAXIMUM_LENGTH
 typedef unsigned char Letter;
@@ -233,7 +233,7 @@ public:
 
 	void setAlphabet(const Alphabet &alphabet);
 
-	const LetterParameter& letterParameter(Letter letter) const;
+	const LetterParameter &letterParameter(Letter letter) const;
 	void setLetterParameter(Letter letter, const LetterParameter &letterParameter);
 
 	// get an alphabet with blank and null values set; note
@@ -274,7 +274,7 @@ public:
 	UVString userVisible(const LetterString &letterString) const;
 	UVString userVisible(Letter letter) const;
 
-	// UVString -> LetterString. Letters that could not be encoded are 
+	// UVString -> LetterString. Letters that could not be encoded are
 	// stored in leftover if it is non-null.
 	LetterString encode(const UVString &word, UVString *leftover = 0) const;
 
@@ -311,9 +311,9 @@ inline Letter AlphabetParameters::lastLetter() const
 	return QUACKLE_FIRST_LETTER + m_length - 1;
 }
 
-inline const LetterParameter& AlphabetParameters::letterParameter(Letter letter) const
+inline const LetterParameter &AlphabetParameters::letterParameter(Letter letter) const
 {
-        assert(letter < m_alphabet.size());
+	assert(letter < m_alphabet.size());
 	return m_alphabet[letter];
 }
 
@@ -404,7 +404,7 @@ inline Quackle::LetterString operator+(Quackle::Letter letter, const Quackle::Le
 
 #endif // QUACKLE_USE_OWN_LETTERSTRING
 
-UVOStream &operator<<(UVOStream& o, const Quackle::LetterParameter &letterParameter);
-UVOStream &operator<<(UVOStream& o, const Quackle::Alphabet &alphabet);
+UVOStream &operator<<(UVOStream &o, const Quackle::LetterParameter &letterParameter);
+UVOStream &operator<<(UVOStream &o, const Quackle::Alphabet &alphabet);
 
 #endif

@@ -34,7 +34,15 @@ Letterbox *Letterbox::self()
 }
 
 Letterbox::Letterbox(QWidget *parent, QAction *preferencesAction, ListerDialog *listerDialog)
-	: QMainWindow(parent), m_initializationChuu(false), m_modified(false), m_mistakeMade(false), m_listerDialog(listerDialog), m_pauseMs(0), m_keystrokes(0), m_numberIterator(0), m_preferencesAction(preferencesAction)
+	: QMainWindow(parent)
+	, m_initializationChuu(false)
+	, m_modified(false)
+	, m_mistakeMade(false)
+	, m_listerDialog(listerDialog)
+	, m_pauseMs(0)
+	, m_keystrokes(0)
+	, m_numberIterator(0)
+	, m_preferencesAction(preferencesAction)
 {
 	m_self = this;
 
@@ -88,7 +96,7 @@ void Letterbox::finishInitialization()
 	// ensure no dangling iterators
 	m_clueResultsIterator = m_clueResults.begin();
 	m_answersIterator = m_answers.begin();
-	m_queryIterator = m_list.begin();	
+	m_queryIterator = m_list.begin();
 
 	m_timer = new QTimer(this);
 	connect(m_timer, SIGNAL(timeout()), this, SLOT(timeout()));
@@ -104,7 +112,8 @@ void Letterbox::finishInitialization()
 	}
 	else
 	{
-		statusBar()->showMessage(tr("[Paused]") + QString(" ") + tr("Enjoy your letterboxings on %1.").arg(m_filename.right(m_filename.length() - m_filename.lastIndexOf("/") - 1)));
+		statusBar()->showMessage(tr("[Paused]") + QString(" ")
+			+ tr("Enjoy your letterboxings on %1.").arg(m_filename.right(m_filename.length() - m_filename.lastIndexOf("/") - 1)));
 	}
 }
 
@@ -127,9 +136,10 @@ void Letterbox::open()
 			return;
 		}
 	}
-	
+
 	QString defaultFilter = defaultStudyListFileFilter();
-	QString filename = QFileDialog::getOpenFileName(this, tr("Choose Letterbox file to open"), getInitialDirectory(), studyListFileFilters(), &defaultFilter);
+	QString filename = QFileDialog::getOpenFileName(
+		this, tr("Choose Letterbox file to open"), getInitialDirectory(), studyListFileFilters(), &defaultFilter);
 	if (!filename.isEmpty())
 	{
 		setInitialDirectory(filename);
@@ -147,15 +157,15 @@ void Letterbox::openParticularFile(const QString &filename)
 		{
 			switch (askToSave())
 			{
-				case QMessageBox::Save:
-					writeFile();
+			case QMessageBox::Save:
+				writeFile();
 
-				case QMessageBox::Discard:
-					break;
+			case QMessageBox::Discard:
+				break;
 
-				case QMessageBox::Cancel:
-				default:
-					return;
+			case QMessageBox::Cancel:
+			default:
+				return;
 			}
 		}
 
@@ -182,7 +192,8 @@ bool Letterbox::dictCheck()
 {
 	if (!QuackleIO::DictFactory::querier()->isLoaded())
 	{
-		QMessageBox::critical(this, tr("No Dictionary Loaded - Quackle Letterbox"), tr("Please open a dictionary with Settings->Set Dictionary."));
+		QMessageBox::critical(
+			this, tr("No Dictionary Loaded - Quackle Letterbox"), tr("Please open a dictionary with Settings->Set Dictionary."));
 		return false;
 	}
 
@@ -191,7 +202,9 @@ bool Letterbox::dictCheck()
 
 QMessageBox::StandardButton Letterbox::askToSave()
 {
-	return QMessageBox::warning(this, tr("Unsaved Results - Quackle Letterbox"), tr("There are unsaved results in the current Letterbox list. Save them?"), QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
+	return QMessageBox::warning(this, tr("Unsaved Results - Quackle Letterbox"),
+		tr("There are unsaved results in the current Letterbox list. Save them?"),
+		QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 }
 
 void Letterbox::generateList()
@@ -213,7 +226,7 @@ void Letterbox::loadFile()
 	QString filename(m_filename.right(m_filename.length() - m_filename.lastIndexOf("/") - 1));
 	statusBar()->showMessage(tr("Loading %1...").arg(filename));
 	qApp->processEvents();
-	
+
 	m_list.clear();
 	m_answers.clear();
 	m_clueResults.clear();
@@ -221,7 +234,8 @@ void Letterbox::loadFile()
 	QFile file(m_filename);
 	if (!file.exists())
 	{
-		QMessageBox::critical(this, tr("Error Loading Letterbox List - Quackle Letterbox"), tr("Filename %1 does not exist").arg(m_filename));
+		QMessageBox::critical(
+			this, tr("Error Loading Letterbox List - Quackle Letterbox"), tr("Filename %1 does not exist").arg(m_filename));
 		return;
 	}
 
@@ -309,7 +323,8 @@ void Letterbox::jumpTo()
 	pause(true);
 
 	bool ok;
-	int index = QInputDialog::getInt(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1, int(m_clueResults.count()), 1, &ok);
+	int index = QInputDialog::getInt(this, tr("Jump to word - Quackle Letterbox"), tr("Index to which to jump:"), m_numberIterator + 1, 1,
+		int(m_clueResults.count()), 1, &ok);
 	if (ok)
 	{
 		jumpTo(index);
@@ -368,7 +383,7 @@ ClueResult Letterbox::parseComment(const QString &comment)
 #endif
 
 	ClueResult ret;
-		
+
 	for (QStringList::iterator it = items.begin(); it != items.end(); ++it)
 	{
 		WordResult word;
@@ -391,16 +406,16 @@ void Letterbox::increment()
 {
 	jumpTo(m_numberIterator + 1);
 
-    if (m_numberIterator >= m_clueResults.size())
-    { 
+	if (m_numberIterator >= m_clueResults.size())
+	{
 		updateViews();
-        listFinished();
+		listFinished();
 		m_timer->stop();
-        return;
-    }
+		return;
+	}
 
-    prepareQuiz();
-}   
+	prepareQuiz();
+}
 
 void Letterbox::pause(bool paused)
 {
@@ -454,7 +469,7 @@ void Letterbox::markLastAsMissed()
 
 void Letterbox::skip()
 {
-	for (auto& it : m_clueResultsIterator->words)
+	for (auto &it : m_clueResultsIterator->words)
 	{
 		it.missed = false;
 		it.keystrokes = int(it.word.length());
@@ -468,7 +483,7 @@ void Letterbox::skip()
 void Letterbox::prepareQuiz()
 {
 	updateViews();
-	
+
 	m_submittedAnswers.clear();
 
 	m_lineEdit->clear();
@@ -511,18 +526,18 @@ void Letterbox::listFinished()
 
 bool Letterbox::isInQuiz() const
 {
-    return m_clueResults.size() > 0 && m_numberIterator < m_clueResults.size();
+	return m_clueResults.size() > 0 && m_numberIterator < m_clueResults.size();
 }
 
 void Letterbox::outputResults()
 {
 	QFile file(m_filename);
-	 
+
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(m_filename));        
-		return;    
-	}    
+	{
+		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(m_filename));
+		return;
+	}
 
 	QTextStream stream(&file);
 	SET_QTEXTSTREAM_TO_UTF8(stream);
@@ -531,14 +546,14 @@ void Letterbox::outputResults()
 		stream << "\" Resume: " << m_numberIterator << "\n";
 
 	QStringList::iterator listIt = m_list.begin();
-    for (const auto& it : m_clueResults)
+	for (const auto &it : m_clueResults)
 	{
 		stream << *listIt;
 
 		if (it.words.count() > 0)
 		{
 			stream << " \"";
-			for (const auto& word : it.words)
+			for (const auto &word : it.words)
 				stream << " " << word.word << " " << word.time << " " << word.keystrokes;
 		}
 
@@ -553,19 +568,19 @@ void Letterbox::outputResults()
 	{
 		QString missesFilename = m_filename + QString("-misses");
 		QFile missesFile(missesFilename);
-		 
+
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-		{        
-			QMessageBox::critical(this, tr("Error writing misses file"), tr("Could not open %1 for writing.").arg(missesFilename));        
-			return;    
-		}    
+		{
+			QMessageBox::critical(this, tr("Error writing misses file"), tr("Could not open %1 for writing.").arg(missesFilename));
+			return;
+		}
 
 		QTextStream stream(&missesFile);
 		SET_QTEXTSTREAM_TO_UTF8(stream);
 
-    	for (const auto& it : m_clueResults)
+		for (const auto &it : m_clueResults)
 		{
-			for (const auto& word : it.words)
+			for (const auto &word : it.words)
 			{
 				if (word.time == 0)
 				{
@@ -605,7 +620,7 @@ int Letterbox::chewScore(const QString & /*word*/, const QString & /*steal*/)
 		int a = steal.at(i).latin1() - 'A';
 		int b = steal.at(i + 1).latin1() - 'A';
 		if ((a >= 0) && (a < 26) && (b >= 0) && (b < 26))
-		{	
+		{
 			if (wordpairs[a][b] == 0)
 				ret++;
 			else
@@ -634,7 +649,7 @@ Clue Letterbox::mathClue(const QString &clue)
 	{
 		QString query = word.left(i) + word.right(word.length() - i - 1);
 		Dict::WordList words = QuackleIO::DictFactory::querier()->query(query);
-		for (const auto& it : words)
+		for (const auto &it : words)
 		{
 			int chew = chewScore(it.word, word);
 			if (chew > bestChew)
@@ -651,12 +666,12 @@ Clue Letterbox::mathClue(const QString &clue)
 	return Clue(arrangeLettersForUser(word));
 }
 
-QString Letterbox::alphagram(const QString &word) 
+QString Letterbox::alphagram(const QString &word)
 {
 	return QuackleIO::Util::alphagram(word);
 }
 
-QString Letterbox::arrangeLettersForUser(const QString &word) 
+QString Letterbox::arrangeLettersForUser(const QString &word)
 {
 	return QuackleIO::Util::arrangeLettersForUser(word);
 }
@@ -680,7 +695,8 @@ Dict::WordList Letterbox::answersFor(const QString &word)
 		return results;
 
 	// no updates during initialization of lists, but with extensions
-	results = QuackleIO::DictFactory::querier()->query(word, (m_initializationChuu? Dict::Querier::None : Dict::Querier::CallUpdate) | Dict::Querier::WithExtensions);
+	results = QuackleIO::DictFactory::querier()->query(
+		word, (m_initializationChuu ? Dict::Querier::None : Dict::Querier::CallUpdate) | Dict::Querier::WithExtensions);
 
 	return results;
 }
@@ -694,7 +710,7 @@ void Letterbox::mistakeDetector(const QString &text)
 	if (upperText.length() == 0)
 		return;
 
-	for (const auto& it : *m_answersIterator)
+	for (const auto &it : *m_answersIterator)
 	{
 		if (LetterboxSettings::self()->spaceComplete)
 		{
@@ -714,7 +730,7 @@ void Letterbox::mistakeDetector(const QString &text)
 				if (m_mistakeMade)
 					statusBar()->clearMessage();
 
-				if (LetterboxSettings::self()->autoCompleteLength > 0)  
+				if (LetterboxSettings::self()->autoCompleteLength > 0)
 					if (upperText.length() == LetterboxSettings::self()->autoCompleteLength)
 						processAnswer(it.word);
 
@@ -723,8 +739,8 @@ void Letterbox::mistakeDetector(const QString &text)
 		}
 	}
 
-	m_mistakeMade = true;	
-	
+	m_mistakeMade = true;
+
 	statusBar()->showMessage(tr("MISTAKE DETECTED!"), /* show for 2 seconds */ 2000);
 }
 
@@ -747,7 +763,7 @@ void Letterbox::processAnswer(const QString &answer)
 		return;
 	}
 
-	for (auto& it : m_clueResultsIterator->words)
+	for (auto &it : m_clueResultsIterator->words)
 	{
 		if (it.word == upperAnswer)
 		{
@@ -757,7 +773,7 @@ void Letterbox::processAnswer(const QString &answer)
 		}
 	}
 
-	for (const auto& it : *m_answersIterator)
+	for (const auto &it : *m_answersIterator)
 	{
 		if (it.word == upperAnswer)
 		{
@@ -901,17 +917,18 @@ void Letterbox::print()
 {
 	pause(true);
 
-	QString filename = QFileDialog::getSaveFileName(this, tr("Choose HTML file to which to save pretty word list"), m_filename + ".html", "*.html");
+	QString filename
+		= QFileDialog::getSaveFileName(this, tr("Choose HTML file to which to save pretty word list"), m_filename + ".html", "*.html");
 
 	if (filename.isEmpty())
 		return;
 
 	QFile file(filename);
-	 
+
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(filename));        
-		return;    
+	{
+		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(filename));
+		return;
 	}
 
 	HTMLRepresentation printer;
@@ -945,11 +962,11 @@ void Letterbox::printStudy()
 		return;
 
 	QFile file(filename);
-	 
+
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(filename));        
-		return;    
+	{
+		QMessageBox::critical(this, tr("Error Writing File - Quackle Letterbox"), tr("Could not open %1 for writing.").arg(filename));
+		return;
 	}
 
 	bool wasModified = m_modified;
@@ -976,7 +993,7 @@ QString Letterbox::generateStudySheet(Dict::WordListList::ConstIterator start, D
 	int prevLengthOfExtensions = LetterboxSettings::self()->lengthOfExtensions;
 	LetterboxSettings::self()->lengthOfExtensions = 1;
 
-	for (Dict::WordListList::ConstIterator it = start; it != end; ++it) 
+	for (Dict::WordListList::ConstIterator it = start; it != end; ++it)
 	{
 		int length = int((*it).front().word.length());
 		QString pad = "  ";
@@ -1006,13 +1023,15 @@ QString Letterbox::generateStudySheet(Dict::WordListList::ConstIterator start, D
 	}
 
 	LetterboxSettings::self()->lengthOfExtensions = prevLengthOfExtensions;
-	
+
 	return ret;
 }
 
 void Letterbox::about()
 {
-	QMessageBox::about(this, tr("About Quackle Letterbox"), "<p><b>Letterbox</b> is a lexical study tool, that is now part of Quackle.</p><p>Copyright 2005-2007 by<ul><li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li><li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li></ul>");
+	QMessageBox::about(this, tr("About Quackle Letterbox"),
+		"<p><b>Letterbox</b> is a lexical study tool, that is now part of Quackle.</p><p>Copyright 2005-2007 by<ul><li>John O'Laughlin "
+		"&lt;olaughlin@gmail.com&gt;</li><li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li></ul>");
 }
 
 void Letterbox::saveSettings()
@@ -1056,9 +1075,7 @@ void WordResult::resetStats()
 
 //////////
 
-ClueResult::ClueResult()
-{
-}
+ClueResult::ClueResult() {}
 
 ClueResult::ClueResult(const QString &newClue)
 	: clue(newClue)
@@ -1067,26 +1084,24 @@ ClueResult::ClueResult(const QString &newClue)
 
 void ClueResult::setWordList(Dict::WordList answers)
 {
-	for (const auto& it : answers)
+	for (const auto &it : answers)
 	{
 		bool isAnswerInOurWords = false;
-		for (const auto& wrIt : words)
+		for (const auto &wrIt : words)
 			isAnswerInOurWords = isAnswerInOurWords || (it.word == wrIt.word);
 
 		if (!isAnswerInOurWords)
-			words.append(WordResult(it.word));	
+			words.append(WordResult(it.word));
 	}
 }
 
 void ClueResult::resetStats()
 {
-	for (auto& wrIt : words)
+	for (auto &wrIt : words)
 		wrIt.resetStats();
 }
 
-Clue::Clue()
-{
-}
+Clue::Clue() {}
 
 Clue::Clue(const QString &newClueString)
 	: clueString(newClueString)
@@ -1095,13 +1110,12 @@ Clue::Clue(const QString &newClueString)
 
 //////////
 
-InputValidator::InputValidator(QObject *parent) : QValidator(parent)
+InputValidator::InputValidator(QObject *parent)
+	: QValidator(parent)
 {
 }
 
-InputValidator::~InputValidator()
-{
-}
+InputValidator::~InputValidator() {}
 
 QValidator::State InputValidator::validate(QString & /* input */, int &) const
 {
@@ -1124,13 +1138,11 @@ WordView::WordView(QWidget *parent)
 	setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 	// TODO(jasonkb) background/foreground colors
-	//setPaper(QBrush(QColor(LetterboxSettings::self()->backgroundColor)));
-	//setColor(LetterboxSettings::self()->foregroundColor);
+	// setPaper(QBrush(QColor(LetterboxSettings::self()->backgroundColor)));
+	// setColor(LetterboxSettings::self()->foregroundColor);
 }
 
-WordView::~WordView()
-{
-}
+WordView::~WordView() {}
 
 void WordView::htmlUpdated(ContentType type)
 {
@@ -1158,13 +1170,9 @@ HTMLRepresentation::HTMLRepresentation()
 {
 }
 
-HTMLRepresentation::~HTMLRepresentation()
-{
-}
+HTMLRepresentation::~HTMLRepresentation() {}
 
-void HTMLRepresentation::htmlUpdated(ContentType /* type */ )
-{
-}
+void HTMLRepresentation::htmlUpdated(ContentType /* type */) {}
 
 void HTMLRepresentation::setHTML(const QString &text, ContentType type)
 {
@@ -1174,15 +1182,14 @@ void HTMLRepresentation::setHTML(const QString &text, ContentType type)
 
 QString HTMLRepresentation::html()
 {
-	return QString("<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body>") +
-			m_html +
-			QString("</body></html>");
+	return QString("<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n</head>\n<body>") + m_html
+		+ QString("</body></html>");
 }
 
 void HTMLRepresentation::setWords(ClueResultList::ConstIterator start, ClueResultList::ConstIterator end, bool revers)
 {
 	QString html("<a name=top>");
-	
+
 	int shown = 0;
 
 	html += "<center>";
@@ -1211,7 +1218,7 @@ void HTMLRepresentation::setWords(ClueResultList::ConstIterator start, ClueResul
 	}
 	else
 	{
-		for (ClueResultList::ConstIterator it = start; (it != end) && (shown < 30); ++it) 
+		for (ClueResultList::ConstIterator it = start; (it != end) && (shown < 30); ++it)
 		{
 			if (shown == 0)
 				html += "<font size=6>";
@@ -1234,7 +1241,7 @@ void HTMLRepresentation::setWords(ClueResultList::ConstIterator start, ClueResul
 
 void HTMLRepresentation::setWords(Dict::WordListList::ConstIterator start, Dict::WordListList::ConstIterator end, bool revers)
 {
-    Dict::WordListList::ConstIterator newStart = end;
+	Dict::WordListList::ConstIterator newStart = end;
 	for (int i = 0; i < m_shownSolutions; i++)
 		if (newStart != start)
 			newStart--;
@@ -1273,15 +1280,15 @@ QString HTMLRepresentation::htmlForWordList(const Dict::WordList &wordList)
 	bool hasFrontExtensionColumn = false;
 	bool hasBackExtensionColumn = false;
 
-	for (const auto& it : wordList)
+	for (const auto &it : wordList)
 	{
-		if (!(tableOfExtensions(it.getFrontExtensionList()).isEmpty()))		
+		if (!(tableOfExtensions(it.getFrontExtensionList()).isEmpty()))
 			hasFrontExtensionColumn = true;
-		if (!(tableOfExtensions(it.getBackExtensionList()).isEmpty()))		
+		if (!(tableOfExtensions(it.getBackExtensionList()).isEmpty()))
 			hasBackExtensionColumn = true;
 	}
 
-	for (const auto& it : wordList)
+	for (const auto &it : wordList)
 	{
 		html += "<tr>";
 
@@ -1296,7 +1303,7 @@ QString HTMLRepresentation::htmlForWordList(const Dict::WordList &wordList)
 		html += "</tr>";
 	}
 	html += "</table></center><font size=\"-7\"><br></font>\n";
-     	
+
 	return html;
 }
 
@@ -1313,9 +1320,11 @@ QString HTMLRepresentation::htmlForSolution(const Dict::Word &word)
 {
 	QString fontArgs("size=\"+5\" color=\"%1\"");
 
-	QString html("<b><font " + fontArgs.arg(word.british? LetterboxSettings::self()->sowpodsColor : LetterboxSettings::self()->foregroundColor) + ">%1</font></b>");
-	
-	return html.arg(word.word + (word.british? "#" : ""));
+	QString html("<b><font "
+		+ fontArgs.arg(word.british ? LetterboxSettings::self()->sowpodsColor : LetterboxSettings::self()->foregroundColor)
+		+ ">%1</font></b>");
+
+	return html.arg(word.word + (word.british ? "#" : ""));
 }
 
 QString HTMLRepresentation::tableOfExtensions(const Dict::ExtensionList &list)
@@ -1330,14 +1339,14 @@ QString HTMLRepresentation::tableOfExtensions(const Dict::ExtensionList &list)
 		if (extensions.count() > 0)
 		{
 			QString extensionHtml = HTMLRepresentation::prettyExtensionList(extensions);
-			
+
 			if (!extensionHtml.isEmpty())
 			{
 				if (!first)
 					html += "<br>";
 				else
 					first = false;
-			
+
 				if (i == 1)
 				{
 					html += "<font size=5>";
@@ -1375,16 +1384,16 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 	QString ret;
 
 	int extensionChars = 0;
-	QString space = make_html? "&nbsp;" : " ";
+	QString space = make_html ? "&nbsp;" : " ";
 
 	for (Dict::ExtensionList::ConstIterator it = list.begin(); it != list.end(); ++it)
 	{
 		QString fontArgs("color=\"%1\"");
 
-		QString color = (*it).british? LetterboxSettings::self()->sowpodsColor : LetterboxSettings::self()->foregroundColor;
-  
+		QString color = (*it).british ? LetterboxSettings::self()->sowpodsColor : LetterboxSettings::self()->foregroundColor;
+
 		QString html;
-		
+
 		if (make_html)
 			html += "<font " + fontArgs.arg(color) + ">%1</font>";
 		else
@@ -1397,7 +1406,7 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 			if (extensionChars >= LetterboxSettings::self()->numExtensionChars)
 			{
 				int numExtensions = int(list.size());
-				
+
 				ret += QString("...%1(%2)").arg(space).arg(numExtensions);
 				return ret;
 			}
@@ -1408,7 +1417,7 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 
 		// this is super clumsy, working around the fact that it doesn't show leading nbsps
 		bool displayableTokensRemain = false;
-	
+
 		for (Dict::ExtensionList::ConstIterator lookAhead = it; lookAhead != list.end(); ++lookAhead)
 		{
 			if (lookAhead == it)
@@ -1419,9 +1428,9 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 
 		if (displayableTokensRemain)
 			wordHtml += space;
-		
+
 		ret += html.arg(wordHtml);
-		
+
 		if (!displayableTokensRemain)
 			return ret;
 	}
@@ -1431,7 +1440,7 @@ QString HTMLRepresentation::prettyExtensionList(const Dict::ExtensionList &list,
 
 QString Letterbox::getInitialDirectory() const
 {
-	return m_initialDirectory.isEmpty()? QDir::homePath() : m_initialDirectory;
+	return m_initialDirectory.isEmpty() ? QDir::homePath() : m_initialDirectory;
 }
 
 void Letterbox::setInitialDirectory(const QString &filename)
@@ -1449,4 +1458,3 @@ QString Letterbox::defaultStudyListFileFilter() const
 {
 	return "*.letterbox";
 }
-

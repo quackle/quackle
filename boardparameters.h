@@ -32,7 +32,7 @@ public:
 	// Does not serialize name...caller still has to get/set name manually
 	void Serialize(std::ostream &stream);
 	static BoardParameters *Deserialize(std::istream &stream);
-	
+
 	int width() const;
 	void setWidth(int width);
 
@@ -46,11 +46,11 @@ public:
 	int startColumn() const;
 	void setStartColumn(int startRow);
 
-	enum LetterMultiplier { sls=1, dls=2, tls=3, qls=4, lsCount = qls };
+	enum LetterMultiplier { sls = 1, dls = 2, tls = 3, qls = 4, lsCount = qls };
 	int letterMultiplier(int row, int column) const;
 	void setLetterMultiplier(int row, int column, LetterMultiplier multiplier);
 
-	enum WordMultiplier { sws=1, dws=2, tws=3, qws=4, wsCount = qws };
+	enum WordMultiplier { sws = 1, dws = 2, tws = 3, qws = 4, wsCount = qws };
 	int wordMultiplier(int row, int column) const;
 	void setWordMultiplier(int row, int column, WordMultiplier multiplier);
 
@@ -118,7 +118,7 @@ inline int BoardParameters::letterMultiplier(int row, int column) const
 
 inline void BoardParameters::setLetterMultiplier(int row, int column, BoardParameters::LetterMultiplier multiplier)
 {
-	m_letterMultipliers[row][column] = (int) multiplier;
+	m_letterMultipliers[row][column] = (int)multiplier;
 }
 
 inline int BoardParameters::wordMultiplier(int row, int column) const
@@ -128,7 +128,7 @@ inline int BoardParameters::wordMultiplier(int row, int column) const
 
 inline void BoardParameters::setWordMultiplier(int row, int column, BoardParameters::WordMultiplier multiplier)
 {
-	m_wordMultipliers[row][column] = (int) multiplier;
+	m_wordMultipliers[row][column] = (int)multiplier;
 }
 
 inline UVString BoardParameters::name() const

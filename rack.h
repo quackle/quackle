@@ -72,13 +72,11 @@ private:
 	LetterString m_tiles;
 };
 
-inline Rack::Rack()
-{
-}
+inline Rack::Rack() {}
 
 inline Rack::Rack(const LetterString &tiles)
 {
-    setTiles(tiles);
+	setTiles(tiles);
 }
 
 inline void Rack::setTiles(const LetterString &tiles)

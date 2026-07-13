@@ -38,10 +38,15 @@ class Filter;
 
 class ListerDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
-	enum ListerFlags { FullLister = 0x0000, IgnoreBritishness = 0x0001, ProbabilityInsteadOfPlayability = 0x0002, NothingToReturn = 0x0004 };
+	enum ListerFlags {
+		FullLister = 0x0000,
+		IgnoreBritishness = 0x0001,
+		ProbabilityInsteadOfPlayability = 0x0002,
+		NothingToReturn = 0x0004
+	};
 
 	ListerDialog(QWidget *parent, const QString &settingsGroup, const QString &appName = QString(), int flags = FullLister);
 	~ListerDialog();
@@ -98,7 +103,6 @@ protected:
 	void populateListBox();
 
 private:
-
 	// left side
 	QLineEdit *m_queryEdit;
 	QPushButton *m_queryButton;
@@ -125,7 +129,7 @@ private:
 
 class Filter : public QFrame
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	Filter(ListerDialog *dialog);
@@ -142,7 +146,7 @@ protected:
 
 class RegexFilter : public Filter
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	RegexFilter(ListerDialog *dialog);
@@ -156,7 +160,7 @@ private:
 
 class PlayabilityFilter : public Filter
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	PlayabilityFilter(ListerDialog *dialog);
@@ -173,7 +177,7 @@ private:
 
 class NumAnagramsFilter : public Filter
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	NumAnagramsFilter(ListerDialog *dialog);
@@ -190,7 +194,7 @@ private:
 
 class KeepBritishFilter : public Filter
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	KeepBritishFilter(ListerDialog *dialog);

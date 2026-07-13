@@ -25,9 +25,7 @@
 
 using namespace Quackle;
 
-ComputerPlayerCollection::ComputerPlayerCollection()
-{
-}
+ComputerPlayerCollection::ComputerPlayerCollection() {}
 
 Player ComputerPlayerCollection::createPlayer(ComputerPlayer *computerPlayer)
 {
@@ -49,6 +47,6 @@ ComputerPlayerCollection ComputerPlayerCollection::fullCollection()
 	ret.addPlayer(new FiveMinutePlayer());
 	ret.addPlayer(new TwentySecondPlayer());
 	ret.addPlayer(new TorontoPlayer());
-        //ret.addPlayer(new InferringPlayer());
+	// ret.addPlayer(new InferringPlayer());
 	return ret;
 }

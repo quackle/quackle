@@ -42,12 +42,12 @@ PlayerBrief::PlayerBrief()
 
 void PlayerBrief::setPlayer(const Quackle::Player &player)
 {
-	QString nameText = (m_isCurrent? "<b>%1</b>" : "%1");
+	QString nameText = (m_isCurrent ? "<b>%1</b>" : "%1");
 	nameText = nameText.arg(QuackleIO::Util::uvStringToQString(player.name()));
 
 	if (m_winnerStatus == Winner || m_winnerStatus == Cowinner)
 	{
-		nameText += QString("<h3>%1</h3>").arg(m_winnerStatus == Winner? tr("Winner!") : tr("Cowinner"));
+		nameText += QString("<h3>%1</h3>").arg(m_winnerStatus == Winner ? tr("Winner!") : tr("Cowinner"));
 	}
 
 	m_name->setText(nameText);
@@ -62,7 +62,6 @@ void PlayerBrief::setPlayer(const Quackle::Player &player)
 	{
 		setFrameStyle(QFrame::NoFrame);
 	}
-
 }
 
 ////////////
@@ -74,9 +73,7 @@ Dashboard::Dashboard(QWidget *parent)
 	Geometry::setupInnerLayout(m_hlayout);
 }
 
-Dashboard::~Dashboard()
-{
-}
+Dashboard::~Dashboard() {}
 
 void Dashboard::historyChanged(const Quackle::History &history)
 {
@@ -103,7 +100,8 @@ void Dashboard::historyChanged(const Quackle::History &history)
 
 	int playerCountFromZero = 0;
 	QList<PlayerBrief *>::iterator briefIt = m_briefs.begin();
-	for (Quackle::PlayerList::const_iterator playerIt = players.begin(); playerIt != players.end(); ++playerIt, ++briefIt, ++playerCountFromZero)
+	for (Quackle::PlayerList::const_iterator playerIt = players.begin(); playerIt != players.end();
+		++playerIt, ++briefIt, ++playerCountFromZero)
 	{
 		const bool isCurrentPlayer = !gameOver && *playerIt == history.currentPosition().playerOnTurn();
 
@@ -117,7 +115,7 @@ void Dashboard::historyChanged(const Quackle::History &history)
 			{
 				if (*playerIt == *winnersIt)
 				{
-					(*briefIt)->setWinnerStatus(winners.size() > 1? Cowinner : Winner);
+					(*briefIt)->setWinnerStatus(winners.size() > 1 ? Cowinner : Winner);
 					break;
 				}
 			}
@@ -126,4 +124,3 @@ void Dashboard::historyChanged(const Quackle::History &history)
 		(*briefIt)->setPlayer(*playerIt);
 	}
 }
-

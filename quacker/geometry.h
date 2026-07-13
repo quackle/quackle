@@ -23,7 +23,7 @@ class QBoxLayout;
 
 class Geometry
 {
- public:
+public:
 	// set up layout that has a frame around it
 	static void setupFramedLayout(QBoxLayout *layout);
 

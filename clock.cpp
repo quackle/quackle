@@ -36,11 +36,10 @@ void Stopwatch::start()
 int Stopwatch::elapsed() const
 {
 	time_t now = time(NULL);
-	return (int) (now - m_startTime);
+	return (int)(now - m_startTime);
 }
 
 bool Stopwatch::exceeded(int seconds) const
 {
 	return elapsed() > seconds;
 }
-

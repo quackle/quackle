@@ -27,7 +27,7 @@
 
 using namespace Quackle;
 
-//#define DEBUG_BOARD
+// #define DEBUG_BOARD
 
 inline int letterMultiplier(int row, int column)
 {
@@ -40,14 +40,12 @@ inline int wordMultiplier(int row, int column)
 }
 
 Board::Board()
-    : m_width(QUACKLE_BOARD_PARAMETERS->width()), 
-      m_height(QUACKLE_BOARD_PARAMETERS->height()), 
-      m_empty(true)
+	: m_width(QUACKLE_BOARD_PARAMETERS->width()), m_height(QUACKLE_BOARD_PARAMETERS->height()), m_empty(true)
 {
 }
 
 Board::Board(int width, int height)
-    : m_width(width), m_height(height), m_empty(true)
+	: m_width(width), m_height(height), m_empty(true)
 {
 }
 
@@ -63,7 +61,7 @@ Bag Board::tilesOnBoard() const
 			if (m_letters[row][col] != QUACKLE_NULL_MARK)
 			{
 				LetterString letters;
-				letters += m_isBlank[row][col]? QUACKLE_BLANK_MARK : m_letters[row][col];
+				letters += m_isBlank[row][col] ? QUACKLE_BLANK_MARK : m_letters[row][col];
 				ret.toss(letters);
 			}
 		}
@@ -79,7 +77,7 @@ Bag Board::tilesNotOnBoard() const
 	for (int row = 0; row < m_height; row++)
 		for (int col = 0; col < m_width; col++)
 			if (m_letters[row][col] != QUACKLE_NULL_MARK)
-				ret.removeLetter(m_isBlank[row][col]? QUACKLE_BLANK_MARK : m_letters[row][col]);
+				ret.removeLetter(m_isBlank[row][col] ? QUACKLE_BLANK_MARK : m_letters[row][col]);
 
 	return ret;
 }
@@ -94,12 +92,13 @@ bool Board::isConnected(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
-		for (const auto& it : move.tiles())
+		for (const auto &it : move.tiles())
 		{
-			const int row = move.horizontal? move.startrow : i + move.startrow;
-			const int column = move.horizontal? i + move.startcol : move.startcol;
+			const int row = move.horizontal ? move.startrow : i + move.startrow;
+			const int column = move.horizontal ? i + move.startcol : move.startcol;
 
-			if (isNonempty(row, column) || (row > 0 && isNonempty(row - 1, column)) || (column > 0 && isNonempty(row, column - 1)) || (row < m_height - 1 && isNonempty(row + 1, column)) || (column < m_width - 1 && isNonempty(row, column + 1)))
+			if (isNonempty(row, column) || (row > 0 && isNonempty(row - 1, column)) || (column > 0 && isNonempty(row, column - 1))
+				|| (row < m_height - 1 && isNonempty(row + 1, column)) || (column < m_width - 1 && isNonempty(row, column + 1)))
 				return true;
 			i++;
 		}
@@ -116,10 +115,10 @@ bool Board::isUnacceptableOpeningMove(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
-		for (const auto& it : move.tiles())
+		for (const auto &it : move.tiles())
 		{
-			const int row = move.horizontal? move.startrow : i + move.startrow;
-			const int column = move.horizontal? i + move.startcol : move.startcol;
+			const int row = move.horizontal ? move.startrow : i + move.startrow;
+			const int column = move.horizontal ? i + move.startcol : move.startcol;
 
 			if (row == QUACKLE_BOARD_PARAMETERS->startRow() && column == QUACKLE_BOARD_PARAMETERS->startColumn())
 				return false;
@@ -227,7 +226,7 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 			if (move.horizontal)
 			{
 				int i = 0;
-				for (const auto& it : move.tiles())
+				for (const auto &it : move.tiles())
 				{
 					if (m_letters[move.startrow][i + move.startcol] == QUACKLE_NULL_MARK)
 					{
@@ -267,7 +266,7 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 			else
 			{
 				int i = 0;
-				for (const auto& it : move.tiles())
+				for (const auto &it : move.tiles())
 				{
 					if (m_letters[i + move.startrow][move.startcol] == QUACKLE_NULL_MARK)
 					{
@@ -307,7 +306,7 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 		}
 	}
 
-	for (auto& it : ret)
+	for (auto &it : ret)
 	{
 		it.setTiles(sanitizedTilesOfMove(it));
 		it.setPrettyTiles(prettyTilesOfMove(it));
@@ -381,7 +380,7 @@ int Board::score(const Move &move, bool *isBingo) const
 
 						thishook *= wordMultiplier(move.startrow, i + move.startcol);
 						hookscore += thishook;
-					} 
+					}
 				}
 				else if (!m_isBlank[move.startrow][i + move.startcol])
 					mainscore += QUACKLE_ALPHABET_PARAMETERS->score(m_letters[move.startrow][i + move.startcol]);
@@ -458,7 +457,8 @@ int Board::score(const Move &move, bool *isBingo) const
 		}
 
 #ifdef DEBUG_BOARD
-		UVcout << "scoring " << move << " as " << total << "; mainscore: " << mainscore << " wordmult: " << wordmult << " hookscore: " << hookscore << " laid: " << laid << endl;
+		UVcout << "scoring " << move << " as " << total << "; mainscore: " << mainscore << " wordmult: " << wordmult
+			   << " hookscore: " << hookscore << " laid: " << laid << endl;
 #endif
 
 		return total;
@@ -489,27 +489,30 @@ LetterString Board::prettyTilesOfMove(const Move &move, bool markPlayThruTiles) 
 			else
 				currentTileRow += i;
 
-			if (markPlayThruTiles && !insidePlayThru) {
+			if (markPlayThruTiles && !insidePlayThru)
+			{
 				ret += QUACKLE_PLAYTHRU_START_MARK;
 				insidePlayThru = true;
 			}
 
 			ret += m_letters[currentTileRow][currentTileCol];
 		}
-		else 
+		else
 		{
-		        if (insidePlayThru) {
-			    assert(markPlayThruTiles);
-			    ret += QUACKLE_PLAYTHRU_END_MARK;
-			    insidePlayThru = false;
+			if (insidePlayThru)
+			{
+				assert(markPlayThruTiles);
+				ret += QUACKLE_PLAYTHRU_END_MARK;
+				insidePlayThru = false;
 			}
 			ret += *it;
 		}
 	}
 
-	if (insidePlayThru) {
-	    assert(markPlayThruTiles);
-	    ret += QUACKLE_PLAYTHRU_END_MARK;
+	if (insidePlayThru)
+	{
+		assert(markPlayThruTiles);
+		ret += QUACKLE_PLAYTHRU_END_MARK;
 	}
 
 	return ret;
@@ -528,18 +531,18 @@ LetterString Board::sanitizedTilesOfMove(const Move &move) const
 	int i = 0;
 	for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
 	{
-			int currentTileCol = startTileCol;
-			int currentTileRow = startTileRow;
+		int currentTileCol = startTileCol;
+		int currentTileRow = startTileRow;
 
-			if (move.horizontal)
-				currentTileCol += i;
-			else
-				currentTileRow += i;
+		if (move.horizontal)
+			currentTileCol += i;
+		else
+			currentTileRow += i;
 
-			if (m_letters[currentTileRow][currentTileCol] == QUACKLE_NULL_MARK)
-				ret += *it;
-			else
-				ret += QUACKLE_PLAYED_THRU_MARK;
+		if (m_letters[currentTileRow][currentTileCol] == QUACKLE_NULL_MARK)
+			ret += *it;
+		else
+			ret += QUACKLE_PLAYED_THRU_MARK;
 	}
 
 	return ret;
@@ -619,7 +622,6 @@ UVString Board::toString() const
 
 			if (col < width() - 1)
 				ss << ' ';
-
 		}
 
 		ss << '|' << MARK_UV('\n');
@@ -649,7 +651,8 @@ UVString Board::htmlBoard(const int tileSize) const
 	ss << "<tr>\n";
 	ss << "<td bgcolor=\"" << markBgcolor << "\" " << centerAlign << ">" << "&nbsp;" << "</td>";
 	for (int col = 0; col < m_width; ++col)
-		ss << "<td width=" << tdWidth << " bgcolor=\"" << markBgcolor << "\" " << centerAlign << ">" << (UVChar)(MARK_UV('A') + col) << "</td>";
+		ss << "<td width=" << tdWidth << " bgcolor=\"" << markBgcolor << "\" " << centerAlign << ">" << (UVChar)(MARK_UV('A') + col)
+		   << "</td>";
 	ss << "</tr>\n";
 
 	for (int row = 0; row < m_height; row++)
@@ -676,11 +679,12 @@ UVString Board::htmlBoard(const int tileSize) const
 			ss << "<td height=" << tdHeight << " width=" << tdWidth << " bgcolor=\"" << bgcolor << "\" " << centerAlign << ">";
 			if (m_letters[row][col] != QUACKLE_NULL_MARK)
 			{
-				const int fontSize = static_cast<int>(tileSize * 5/9);
+				const int fontSize = static_cast<int>(tileSize * 5 / 9);
 				if (QUACKLE_ALPHABET_PARAMETERS->isBlankLetter(m_letters[row][col]))
 				{
 					const int blankFontSize = static_cast<int>(fontSize * 0.8);
-					ss << "<table style=\"border: 1pt; border-style: dashed\"><tr><td width=" << tdWidth * 0.8 << " height=" << tdHeight * 0.8 << " bgcolor=\"" << bgcolor << "\" " << centerAlign << ">";
+					ss << "<table style=\"border: 1pt; border-style: dashed\"><tr><td width=" << tdWidth * 0.8
+					   << " height=" << tdHeight * 0.8 << " bgcolor=\"" << bgcolor << "\" " << centerAlign << ">";
 					ss << "<span style=\"font-size: " << blankFontSize << "px\">";
 					ss << QUACKLE_ALPHABET_PARAMETERS->userVisible(QUACKLE_ALPHABET_PARAMETERS->clearBlankness(m_letters[row][col]));
 					ss << "</span>";
@@ -688,9 +692,9 @@ UVString Board::htmlBoard(const int tileSize) const
 				}
 				else
 				{
-					const int idealValueFontSize = static_cast<int>(tileSize * 2/9);
+					const int idealValueFontSize = static_cast<int>(tileSize * 2 / 9);
 					const int minimumValueFontSize = 7;
-					const int valueFontSize = minimumValueFontSize > idealValueFontSize? minimumValueFontSize : idealValueFontSize;
+					const int valueFontSize = minimumValueFontSize > idealValueFontSize ? minimumValueFontSize : idealValueFontSize;
 					ss << "<span style=\"font-size: " << fontSize << "px\">";
 					ss << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_letters[row][col]);
 					ss << "</span>";
@@ -718,14 +722,13 @@ UVString Board::htmlBoard(const int tileSize) const
 // show quad bonuses if there are any on the board.
 UVString Board::htmlKey() const
 {
-	return
-	"<table border=1>\n"
-	"<tr><td width=30 height=30>Color</td><td>Bonus</td></tr>\n"
-	"<tr><td width=30 height=30 bgcolor=\"cornflowerblue\">&nbsp;</td><td>Double Letter Score</td></tr>\n"
-	"<tr><td width=30 height=30 bgcolor=\"slateblue\">&nbsp;</td><td>Triple Letter Score</td></tr>\n"
-	"<tr><td width=30 height=30 bgcolor=\"palevioletred\">&nbsp;</td><td>Double Word Score</td></tr>\n"
-	"<tr><td width=30 height=30 bgcolor=\"firebrick\">&nbsp;</td><td>Triple Word Score</td></tr>\n"
-	"</table>\n";
+	return "<table border=1>\n"
+		   "<tr><td width=30 height=30>Color</td><td>Bonus</td></tr>\n"
+		   "<tr><td width=30 height=30 bgcolor=\"cornflowerblue\">&nbsp;</td><td>Double Letter Score</td></tr>\n"
+		   "<tr><td width=30 height=30 bgcolor=\"slateblue\">&nbsp;</td><td>Triple Letter Score</td></tr>\n"
+		   "<tr><td width=30 height=30 bgcolor=\"palevioletred\">&nbsp;</td><td>Double Word Score</td></tr>\n"
+		   "<tr><td width=30 height=30 bgcolor=\"firebrick\">&nbsp;</td><td>Triple Word Score</td></tr>\n"
+		   "</table>\n";
 }
 
 UVOStream &operator<<(UVOStream &o, const Board &board)
@@ -780,7 +783,7 @@ Board::TileInformation Board::tileInformation(int row, int col) const
 	if (row == QUACKLE_BOARD_PARAMETERS->startRow() && col == QUACKLE_BOARD_PARAMETERS->startColumn())
 		ret.isStartLocation = true;
 
-    ret.isOnRack = false;
+	ret.isOnRack = false;
 
 	return ret;
 }

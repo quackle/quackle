@@ -33,68 +33,68 @@ struct ComputerParameters
 	// upper bound on time to contemplate current moves
 	int secondsPerTurn;
 
-    // when simming, use likely rack leaves for opponent based on their previous play
-    bool inferring;
+	// when simming, use likely rack leaves for opponent based on their previous play
+	bool inferring;
 };
 
 class ComputerDispatch
 {
 public:
-    ComputerDispatch() {}
-    virtual ~ComputerDispatch() {}
+	ComputerDispatch() {}
+	virtual ~ComputerDispatch() {}
 
-    // To be called by the computer player.
-    // Returns true if the computation should be aborted.
-    virtual bool shouldAbort() = 0;
+	// To be called by the computer player.
+	// Returns true if the computation should be aborted.
+	virtual bool shouldAbort() = 0;
 
-    // To be called by the computer player.
-    // Returns true if the computation should be aborted.
-    // Default implementation does nothing.
-    virtual void signalFractionDone(double fractionDone) = 0;
+	// To be called by the computer player.
+	// Returns true if the computation should be aborted.
+	// Default implementation does nothing.
+	virtual void signalFractionDone(double fractionDone) = 0;
 };
 
 // Shadows another ComputerDispatch but scales its fractions
 class ScalingDispatch : public ComputerDispatch
 {
 public:
-    ScalingDispatch(ComputerDispatch *shadow, double scale, double addition);
-    virtual ~ScalingDispatch() {}
+	ScalingDispatch(ComputerDispatch *shadow, double scale, double addition);
+	virtual ~ScalingDispatch() {}
 
-    virtual bool shouldAbort();
-    virtual void signalFractionDone(double fractionDone);
+	virtual bool shouldAbort();
+	virtual void signalFractionDone(double fractionDone);
 
 private:
-    ComputerDispatch *m_shadow;
-    double m_scale;
-    double m_addition;
+	ComputerDispatch *m_shadow;
+	double m_scale;
+	double m_addition;
 };
 
 class ComputerPlayer
 {
 public:
-    // constructs a new computer player
-    ComputerPlayer();
-    virtual ~ComputerPlayer();
+	// constructs a new computer player
+	ComputerPlayer();
+	virtual ~ComputerPlayer();
 
-    void setParameters(const ComputerParameters &parameters);
-    const ComputerParameters &parameters() const;
+	void setParameters(const ComputerParameters &parameters);
+	const ComputerParameters &parameters() const;
 
-    // prepare to generate move for current player
-    // on this position
-    virtual void setPosition(const GamePosition &position);
+	// prepare to generate move for current player
+	// on this position
+	virtual void setPosition(const GamePosition &position);
 
-    // get access to the position that we're playing from
-    GamePosition &currentPosition();
-    const GamePosition &currentPosition() const;
+	// get access to the position that we're playing from
+	GamePosition &currentPosition();
+	const GamePosition &currentPosition() const;
 
-    // returns true if we have a dispatch and it says to abort
-    bool shouldAbort();
+	// returns true if we have a dispatch and it says to abort
+	bool shouldAbort();
 
-    // if we have a dispatch, signals fractionDone on the dispatch
-    void signalFractionDone(double fractionDone);
+	// if we have a dispatch, signals fractionDone on the dispatch
+	void signalFractionDone(double fractionDone);
 
-    // Ensures this move will be in the moves() output.
-	// Implementations of computer player must themselves make sure 
+	// Ensures this move will be in the moves() output.
+	// Implementations of computer player must themselves make sure
 	// that this move is in the moves() results; this function by default
 	// adds the move to the simulator's considered moves list so it
 	// won't be pruned away.
@@ -188,12 +188,12 @@ inline ComputerDispatch *ComputerPlayer::dispatch() const
 
 inline double ComputerPlayer::max(double v1, double v2)
 {
-	return v1 > v2? v1 : v2;
+	return v1 > v2 ? v1 : v2;
 }
 
 inline int ComputerPlayer::max(int v1, int v2)
 {
-	return v1 > v2? v1 : v2;
+	return v1 > v2 ? v1 : v2;
 }
 
 // Static player has ID 1!

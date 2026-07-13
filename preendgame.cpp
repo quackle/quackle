@@ -38,9 +38,7 @@ Preendgame::Preendgame()
 	m_debugPreendgame = false;
 }
 
-Preendgame::~Preendgame()
-{
-}
+Preendgame::~Preendgame() {}
 
 int Preendgame::maximumTilesInBagToEngage()
 {
@@ -52,7 +50,7 @@ int Preendgame::calculateInitialCandidates() const
 {
 	int ret = m_initialCandidates;
 	if (currentPosition().nestedness() > 0)
-		ret = static_cast<int>(ceil(ret / pow((double)m_nestednessDenominatorBase, (int) currentPosition().nestedness())));
+		ret = static_cast<int>(ceil(ret / pow((double)m_nestednessDenominatorBase, (int)currentPosition().nestedness())));
 	return ret;
 }
 
@@ -128,7 +126,6 @@ MoveList Preendgame::moves(int nmoves)
 	else
 		enumerator.enumerate(&racks);
 
-	
 	signalFractionDone(0);
 
 	MoveList moves;
@@ -160,8 +157,12 @@ MoveList Preendgame::moves(int nmoves)
 		{
 			if (m_debugPreendgame)
 			{
-				UVcout << "\n" << currentPosition().nestednessIndentation() << "Turn " << currentPosition().turnNumber() << ", Rack " << i + 1 << " of " << racks.size() << ", Move " << j + 1 << " of " << moves.size() << ": " << *moveIt << "." << endl;
-				UVcout << currentPosition().nestednessIndentation() << currentPosition().currentPlayer().name() << " on turn with " << currentPosition().currentPlayer().rack() << " vs. oppo " << currentPosition().nextPlayer()->name() << " with " << (*it).rack << " prob " << (*it).probability << " poss " << (*it).possibility << endl;
+				UVcout << "\n"
+					   << currentPosition().nestednessIndentation() << "Turn " << currentPosition().turnNumber() << ", Rack " << i + 1
+					   << " of " << racks.size() << ", Move " << j + 1 << " of " << moves.size() << ": " << *moveIt << "." << endl;
+				UVcout << currentPosition().nestednessIndentation() << currentPosition().currentPlayer().name() << " on turn with "
+					   << currentPosition().currentPlayer().rack() << " vs. oppo " << currentPosition().nextPlayer()->name() << " with "
+					   << (*it).rack << " prob " << (*it).probability << " poss " << (*it).possibility << endl;
 			}
 
 			tempPosition = currentPosition();
@@ -170,8 +171,8 @@ MoveList Preendgame::moves(int nmoves)
 			tempPosition.setMoveMade(*moveIt);
 			tempPosition.incrementTurn(NULL);
 			tempPosition.makeMove(*moveIt);
-			//tempPosition.incrementNestedness();
-			
+			// tempPosition.incrementNestedness();
+
 			resolvent.setPosition(tempPosition);
 			Move resolventMove = resolvent.move();
 
@@ -191,10 +192,13 @@ MoveList Preendgame::moves(int nmoves)
 				(*moveIt).possibleWin = 0;
 
 			// This optimization leads to incorrect results.
-			//if (currentPosition().nestedness() > 0 && resolventMove.win == 0)
+			// if (currentPosition().nestedness() > 0 && resolventMove.win == 0)
 			//	break;
-			
-			signalFractionDone(fractionAllottedToInitialBogo + (1 - fractionAllottedToInitialBogo) * (max(static_cast<double>(j * racks.size() + i) / static_cast<double>(racks.size() * moves.size()), static_cast<double>(stopwatch.elapsed()) / static_cast<double>(timeLimit))));
+
+			signalFractionDone(fractionAllottedToInitialBogo
+				+ (1 - fractionAllottedToInitialBogo)
+					* (max(static_cast<double>(j * racks.size() + i) / static_cast<double>(racks.size() * moves.size()),
+						static_cast<double>(stopwatch.elapsed()) / static_cast<double>(timeLimit))));
 		}
 
 		if (stopwatch.exceeded(timeLimit))
@@ -206,10 +210,12 @@ MoveList Preendgame::moves(int nmoves)
 
 	if (m_debugPreendgame)
 	{
-		UVcout << currentPosition().nestednessIndentation() << "Turn " << currentPosition().turnNumber() << ": " << currentPosition().currentPlayer().name() << " on turn with " << currentPosition().currentPlayer().rack() << " has top 10 plays: " << endl;
+		UVcout << currentPosition().nestednessIndentation() << "Turn " << currentPosition().turnNumber() << ": "
+			   << currentPosition().currentPlayer().name() << " on turn with " << currentPosition().currentPlayer().rack()
+			   << " has top 10 plays: " << endl;
 	}
 
-	sort_and_return:
+sort_and_return:
 
 	MoveList::sort(moves, MoveList::Win);
 

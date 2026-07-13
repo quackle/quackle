@@ -30,7 +30,7 @@ public:
 	// Evaluator that returns score+leave equity for non-bag-empty positions,
 	// otherwise returns approximate endgame equity
 	virtual double equity(const GamePosition &position, const Move &move) const;
-	
+
 	double endgameResult(const GamePosition &position, const Move &move) const;
 };
 

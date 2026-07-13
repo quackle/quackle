@@ -75,9 +75,7 @@ void NewGameDialog::saveSettings()
 	m_playerTab->saveSettings();
 }
 
-void NewGameDialog::loadSettings()
-{
-}
+void NewGameDialog::loadSettings() {}
 
 /////////////
 
@@ -98,8 +96,8 @@ PlayerTab::PlayerTab(QWidget *parent)
 
 	// probably too confusing to be able to select multiple players at oncet?
 	// all functionality for it is implemented wrt removing multiple players at oncet
-	//m_playersTreeWidget->setSelectionMode(QTreeWidget::ExtendedSelection);
-	
+	// m_playersTreeWidget->setSelectionMode(QTreeWidget::ExtendedSelection);
+
 	connect(m_playersTreeWidget, SIGNAL(itemSelectionChanged()), this, SLOT(selectionChanged()));
 	QStringList headers;
 	headers << tr("Name") << tr("Controller");
@@ -148,7 +146,8 @@ void PlayerTab::saveSettings()
 	for (QList<Quackle::Player>::iterator it = playerList.begin(); it != playerList.end(); ++it)
 	{
 		playerIds.push_back((*it).id());
-		settings.setValue(QString("quackle/newgame/players/%1").arg((*it).id()), QuackleIO::Util::uvStringToQString((*it).storeInformationToString()));
+		settings.setValue(
+			QString("quackle/newgame/players/%1").arg((*it).id()), QuackleIO::Util::uvStringToQString((*it).storeInformationToString()));
 	}
 
 	settings.setValue("quackle/newgame/playerIds", playerIds);
@@ -166,21 +165,21 @@ void PlayerTab::populatePlayers()
 
 	// this is a workaround for one item lists getting saved oddly
 	int playerId = settings.value("quackle/newgame/playerId", -1).toInt();
-	
+
 	QList<QVariant> playerIds;
 	if (playerId >= 0)
 		playerIds.push_back(QVariant(playerId));
 	else
-		playerIds  = settings.value("quackle/newgame/playerIds", QList<QVariant>()).toList();
+		playerIds = settings.value("quackle/newgame/playerIds", QList<QVariant>()).toList();
 
-	for (const auto& it : playerIds)
+	for (const auto &it : playerIds)
 	{
 		int id = it.toInt();
 
 		QString infoString = settings.value(QString("quackle/newgame/players/%1").arg(id)).toString();
 		if (infoString.isNull())
 			continue;
-			
+
 		Quackle::Player player(Quackle::Player::makePlayerFromString(QuackleIO::Util::qstringToString(infoString)));
 		if (!player.computerPlayer())
 		{
@@ -240,7 +239,7 @@ Quackle::ComputerPlayer *PlayerTab::defaultComputerPlayer() const
 	for (Quackle::PlayerList::const_reverse_iterator it = QUACKLE_COMPUTER_PLAYERS.rbegin(); it != QUACKLE_COMPUTER_PLAYERS.rend(); ++it)
 		if ((*it).computerPlayer()->isUserVisible() && !(*it).computerPlayer()->isSlow())
 			return (*it).computerPlayer();
-	
+
 	return QUACKLE_COMPUTER_PLAYERS.back().computerPlayer();
 }
 
@@ -256,7 +255,7 @@ void PlayerTab::addPlayer()
 	QString unusedName;
 	int unusedId;
 
-	for (int i = 1; ; ++i)
+	for (int i = 1;; ++i)
 	{
 		unusedName = name.arg(i);
 		UVString nameString = QuackleIO::Util::qstringToString(unusedName);
@@ -275,7 +274,7 @@ void PlayerTab::addPlayer()
 			break;
 	}
 
-	for (unusedId = 0; ; ++unusedId)
+	for (unusedId = 0;; ++unusedId)
 	{
 		bool found = false;
 		for (QMap<Quackle::Player, QTreeWidgetItem *>::iterator it = m_playerMap.begin(); it != m_playerMap.end(); ++it)
@@ -298,7 +297,7 @@ void PlayerTab::addPlayer()
 void PlayerTab::removePlayer()
 {
 	QList<QTreeWidgetItem *> items = m_playersTreeWidget->selectedItems();
-	for (auto& it : items)
+	for (auto &it : items)
 	{
 		delete it;
 
@@ -388,7 +387,7 @@ QString PlayerTab::stringForPlayer(const Quackle::Player &player)
 	case Quackle::Player::ComputerPlayerType:
 		if (player.computerPlayer())
 			return QuackleIO::Util::uvStringToQString(player.computerPlayer()->name());
-	
+
 	default:
 		return tr("Unknown Player");
 	}
@@ -422,4 +421,3 @@ void PlayerTab::updatePlayerFromString(const QString &typeString, Quackle::Playe
 	else
 		player.setComputerPlayer(0);
 }
-

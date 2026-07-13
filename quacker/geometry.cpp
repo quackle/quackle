@@ -20,9 +20,7 @@
 
 #include "geometry.h"
 
-void Geometry::setupFramedLayout(QBoxLayout *layout)
-{
-}
+void Geometry::setupFramedLayout(QBoxLayout *layout) {}
 
 void Geometry::setupInnerLayout(QBoxLayout *layout)
 {

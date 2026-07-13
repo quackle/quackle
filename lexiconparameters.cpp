@@ -20,7 +20,6 @@
 #include <iostream>
 #include <fstream>
 
-
 #include "datamanager.h"
 #include "lexiconparameters.h"
 #include "uv.h"
@@ -36,7 +35,7 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 		int i = 0;
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_dawg) + i, 7);
+			file.read((char *)(lexparams.m_dawg) + i, 7);
 			i += 7;
 		}
 	}
@@ -46,17 +45,18 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 		int i = 0;
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
+			file.read((char *)(lexparams.m_gaddag) + i, 4);
 			i += 4;
 		}
 	}
 
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
+		int &playability) const
 	{
 		index *= 7;
 		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
 		letter = dawg[index + 3];
-		
+
 		t = (letter & 32) != 0;
 		lastchild = (letter & 64) != 0;
 		british = !(letter & 128);
@@ -76,7 +76,7 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		unsigned char bytes[3];
 		file.get(); // skip past version byte
 		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
-		file.read((char*)bytes, 3);
+		file.read((char *)bytes, 3);
 
 		lexparams.m_utf8Alphabet.resize(file.get());
 		for (size_t i = 0; i < lexparams.m_utf8Alphabet.size(); i++)
@@ -86,7 +86,7 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		}
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_dawg) + i, 7);
+			file.read((char *)(lexparams.m_dawg) + i, 7);
 			i += 7;
 		}
 	}
@@ -112,17 +112,18 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 		size_t i = 0;
 		while (!file.eof())
 		{
-			file.read((char*)(lexparams.m_gaddag) + i, 4);
+			file.read((char *)(lexparams.m_gaddag) + i, 4);
 			i += 4;
 		}
 	}
 
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
+		int &playability) const
 	{
 		index *= 7;
 		p = (dawg[index] << 16) + (dawg[index + 1] << 8) + (dawg[index + 2]);
 		letter = dawg[index + 3];
-		
+
 		lastchild = ((letter & 64) != 0);
 		british = !(letter & 128);
 		letter = (letter & 63) + QUACKLE_FIRST_LETTER;
@@ -210,7 +211,7 @@ void LexiconParameters::loadGaddag(const string &filename)
 	file.seekg(0, ios_base::beg);
 
 	// must create a local interpreter because dawg/gaddag versions might not match
-	LexiconInterpreter* interpreter = createInterpreter(versionByte);
+	LexiconInterpreter *interpreter = createInterpreter(versionByte);
 	if (interpreter != NULL)
 	{
 		interpreter->loadGaddag(file, *this);
@@ -232,7 +233,7 @@ bool LexiconParameters::hasUserDictionaryFile(const string &lexicon)
 
 string LexiconParameters::hashString(bool shortened) const
 {
-	const char hex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+	const char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 	string hashStr;
 	for (size_t i = 0; i < sizeof(m_hash); i++)
 	{
@@ -254,7 +255,7 @@ string LexiconParameters::getLexiconCopyrightLine() const
 		getline(copyrightsFile, line);
 		if (line.size() < 9 || line.find_first_of(':') != 8)
 			continue;
-		if (hashString(true).compare(line.substr(0,8)) != 0)
+		if (hashString(true).compare(line.substr(0, 8)) != 0)
 			continue;
 		return line.substr(9);
 	}
@@ -276,15 +277,15 @@ string LexiconParameters::logoFileName() const
 	return QUACKLE_DATAMANAGER->makeDataFilename("lexica", copyrightLine.substr(colonPos + 1), false);
 }
 
-LexiconInterpreter* LexiconParameters::createInterpreter(char version) const
+LexiconInterpreter *LexiconParameters::createInterpreter(char version) const
 {
-	switch(version)
+	switch (version)
 	{
-		case 0:
-			return new V0LexiconInterpreter();
-		case 1:
-			return new V1LexiconInterpreter();
-		default:
-			return NULL;
+	case 0:
+		return new V0LexiconInterpreter();
+	case 1:
+		return new V1LexiconInterpreter();
+	default:
+		return NULL;
 	}
 }

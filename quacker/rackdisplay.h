@@ -31,7 +31,7 @@ class RackTileWidget;
 
 class QuickEntryRack : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	QuickEntryRack(QWidget *parent = 0);
@@ -60,15 +60,15 @@ class GraphicalRack : public QFrame
 	Q_OBJECT
 
 public:
-    GraphicalRack(QWidget * parent = 0);
+	GraphicalRack(QWidget *parent = 0);
 
 public slots:
-    virtual void setText(const Quackle::LetterString &text);
+	virtual void setText(const Quackle::LetterString &text);
 
 protected:
-    void dragEnterEvent (QDragEnterEvent* event);
-    void dropEvent (QDropEvent* event);
-    void mousePressEvent (QMouseEvent* event);
+	void dragEnterEvent(QDragEnterEvent *event);
+	void dropEvent(QDropEvent *event);
+	void mousePressEvent(QMouseEvent *event);
 
 private:
 	QHBoxLayout *m_layout;

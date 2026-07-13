@@ -143,7 +143,15 @@ public:
 	//                       of empty board
 	// UnacceptableWord - word is not in our lexicon
 	// InvalidAction - type of move is not Place, Pass, or Exchange
-	enum MoveValidity { ValidMove = 0x0000, InvalidTiles = 0x0001, TooLateExchange = 0x0002, InvalidPlace = 0x0004, InvalidOpeningPlace = 0x0008, UnacceptableWord = 0x0010, InvalidAction = 0x0020 };
+	enum MoveValidity {
+		ValidMove = 0x0000,
+		InvalidTiles = 0x0001,
+		TooLateExchange = 0x0002,
+		InvalidPlace = 0x0004,
+		InvalidOpeningPlace = 0x0008,
+		UnacceptableWord = 0x0010,
+		InvalidAction = 0x0020
+	};
 
 	// Returns validity of this move for current player.
 	// MoveValidity flags are OR'ed together into the return int.
@@ -152,7 +160,7 @@ public:
 	// returns whether the words formed by this move are all acceptable
 	bool formsAcceptableWords(const Move &move) const;
 
-        MoveList allWordsFormedBy(const Move &move) const;
+	MoveList allWordsFormedBy(const Move &move) const;
 
 	// returns whether the board is empty or tiles of move touch
 	// at least one other square of the board
@@ -164,7 +172,7 @@ public:
 	// returns true if any exchange is allowed right now
 	bool exchangeAllowed() const;
 
-	enum OverdrawValidity { ValidOverdraw = 0x0000, InvalidOverdrawNumber = 0x0001, OverdrawnTilesNotUnseen = 0x0002};
+	enum OverdrawValidity { ValidOverdraw = 0x0000, InvalidOverdrawNumber = 0x0001, OverdrawnTilesNotUnseen = 0x0002 };
 
 	// computers letters that should be thrown back if specified letters
 	// are the faceup tiles and returns if these faceup tiles are valid
@@ -381,7 +389,7 @@ public:
 	// at start of game.)
 	// If applicable, this player's score is also incremented by score of move
 	// made.
-	bool incrementTurn(const History* history = NULL);
+	bool incrementTurn(const History *history = NULL);
 
 	// Turn numbers in games start from 1.
 	// A turn number of zero indicates a position that is pregame.
@@ -918,8 +926,8 @@ inline void Game::setTitle(const UVString &title)
 
 bool operator==(const Quackle::HistoryLocation &hl1, const Quackle::HistoryLocation &hl2);
 
-UVOStream& operator<<(UVOStream& o, const Quackle::GamePosition &position);
-UVOStream& operator<<(UVOStream& o, const Quackle::PositionList &positions);
-UVOStream& operator<<(UVOStream& o, const Quackle::HistoryLocation &historyLocation);
+UVOStream &operator<<(UVOStream &o, const Quackle::GamePosition &position);
+UVOStream &operator<<(UVOStream &o, const Quackle::PositionList &positions);
+UVOStream &operator<<(UVOStream &o, const Quackle::HistoryLocation &historyLocation);
 
 #endif

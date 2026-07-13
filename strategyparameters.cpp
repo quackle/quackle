@@ -28,11 +28,7 @@ using namespace Quackle;
 using namespace std;
 
 StrategyParameters::StrategyParameters()
-	: m_hasSyn2(false)
-	, m_hasWorths(false)
-	, m_hasVcPlace(false)
-	, m_hasBogowin(false)
-	, m_hasSuperleaves(false)
+	: m_hasSyn2(false), m_hasWorths(false), m_hasVcPlace(false), m_hasBogowin(false), m_hasSuperleaves(false)
 {
 }
 
@@ -42,7 +38,7 @@ void StrategyParameters::initialize(const string &lexicon)
 	m_hasWorths = loadWorths(DataManager::self()->findDataFile("strategy", lexicon, "worths"));
 	m_hasVcPlace = loadVcPlace(DataManager::self()->findDataFile("strategy", lexicon, "vcplace"));
 	m_hasBogowin = loadBogowin(DataManager::self()->findDataFile("strategy", lexicon, "bogowin"));
-	m_hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves")); 	
+	m_hasSuperleaves = loadSuperleaves(DataManager::self()->findDataFile("strategy", lexicon, "superleaves"));
 }
 
 bool StrategyParameters::loadSyn2(const string &filename)
@@ -110,10 +106,10 @@ bool StrategyParameters::loadBogowin(const string &filename)
 		file >> lead;
 		file >> unseen;
 		file >> wins;
-		
+
 		m_bogowin[lead + 300][unseen] = wins;
 	}
-	
+
 	file.close();
 	return true;
 }
@@ -181,31 +177,29 @@ bool StrategyParameters::loadVcPlace(const string &filename)
 
 		if (file.eof())
 			break;
-	
+
 		unsigned int length;
 		file >> length;
-		
+
 		if (file.eof())
 			break;
 
 		unsigned int consbits;
 		file >> consbits;
-	
+
 		if (file.eof())
 			break;
 
 		double value;
 		file >> value;
 
-		if ((start < QUACKLE_MAXIMUM_BOARD_SIZE) && 
-			(length < QUACKLE_MAXIMUM_BOARD_SIZE) &&
-			(consbits < 128))
+		if ((start < QUACKLE_MAXIMUM_BOARD_SIZE) && (length < QUACKLE_MAXIMUM_BOARD_SIZE) && (consbits < 128))
 
-		m_vcPlace[start][length][consbits] = value;
+			m_vcPlace[start][length][consbits] = value;
 	}
 
 	file.close();
-	return true;	
+	return true;
 }
 
 bool StrategyParameters::loadSuperleaves(const string &filename)
@@ -228,21 +222,20 @@ bool StrategyParameters::loadSuperleaves(const string &filename)
 
 	while (!file.eof())
 	{
-		file.read((char*)(&leavesize), 1);
+		file.read((char *)(&leavesize), 1);
 		file.read(leavebytes, leavesize);
-		file.read((char*)(&intvaluefrac), 1);
-		file.read((char*)(&intvalueint), 1);
+		file.read((char *)(&intvaluefrac), 1);
+		file.read((char *)(&intvalueint), 1);
 		if (file.eof())
 			break;
 
 		intvalue = (unsigned int)(intvalueint) * 256 + (unsigned int)(intvaluefrac);
 		LetterString leave = LetterString(leavebytes, leavesize);
-	
+
 		double value = (double(intvalue) / 256.0) - 128.0;
-		m_superleaves.insert(m_superleaves.end(),
-				     SuperLeavesMap::value_type(leave, value));
+		m_superleaves.insert(m_superleaves.end(), SuperLeavesMap::value_type(leave, value));
 	}
-	
+
 	file.close();
-	return true;	
+	return true;
 }

@@ -81,7 +81,7 @@ void Endgame::setLogfile(const string &logfile, bool append)
 		return;
 	}
 
-	const ios::openmode flags = append? (ios::out | ios::app) : ios::out;
+	const ios::openmode flags = append ? (ios::out | ios::app) : ios::out;
 	m_logfileStream.open(m_logfile.c_str(), flags);
 
 	m_logfileIsOpen = m_logfileStream.is_open();
@@ -176,15 +176,15 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 #endif
 
 	double newOptimistic = hope.optimistic;
-	
+
 	const int realStartPlayerId = m_originalGame.currentPosition().currentPlayer().id();
-	
+
 	double beforeSpread = m_originalGame.currentPosition().spread(realStartPlayerId);
-	
+
 	m_endgameGame = m_originalGame;
 	m_endgameGame.setCandidate(hope.move);
 	m_endgameGame.commitCandidate(true);
-	
+
 	const int startPlayerId = m_endgameGame.currentPosition().currentPlayer().id();
 	const size_t numberOfPlayers = m_originalGame.currentPosition().players().size();
 
@@ -196,19 +196,20 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 		initialPlayNumber = m_nestedDisappointPlayNumber;
 	else
 		initialPlayNumber = m_unnestedDisappointPlayNumber;
-		
-	//int initialPlayNumber = m_originalGame.currentPosition().nestedness() > 0 ? m_nestedDisappointPlayNumber : m_unnestedDisappointPlayNumber;
+
+	// int initialPlayNumber = m_originalGame.currentPosition().nestedness() > 0 ? m_nestedDisappointPlayNumber :
+	// m_unnestedDisappointPlayNumber;
 
 	m_endgameGame.currentPosition().kibitz(initialPlayNumber);
-	
+
 	MoveList moves = m_endgameGame.currentPosition().moves();
-	
+
 	MoveList::const_iterator moveIt = moves.begin();
 
-#ifdef DEBUG_ENDGAME		
+#ifdef DEBUG_ENDGAME
 	UVcout << "    disappoint's moves has " << moves.size() << " moves." << endl;
-#endif	
-	while((newOptimistic > bestPessimistic) && moveIt != moves.end())
+#endif
+	while ((newOptimistic > bestPessimistic) && moveIt != moves.end())
 	{
 #ifdef DEBUG_ENDGAME
 		UVcout << "    seeing if " << *moveIt << " wrecks us." << endl;
@@ -222,10 +223,7 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 
 		while (!m_endgameGame.currentPosition().gameOver())
 		{
-			for (playerNumber = 1; 
-				 (playerNumber <= numberOfPlayers) && 
-				 !m_endgameGame.currentPosition().gameOver();
-				 playerNumber++)
+			for (playerNumber = 1; (playerNumber <= numberOfPlayers) && !m_endgameGame.currentPosition().gameOver(); playerNumber++)
 			{
 				const int playerId = m_endgameGame.currentPosition().currentPlayer().id();
 
@@ -235,9 +233,10 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 					move = (*moveIt);
 				else
 					move = m_endgameGame.currentPosition().staticBestMove();
-				
+
 #ifdef DEBUG_ENDGAME
-				UVcout << "      level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score << ", equity: " << move.equity << endl;
+				UVcout << "      level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score
+					   << ", equity: " << move.equity << endl;
 #endif
 				m_endgameGame.setCandidate(move);
 				m_endgameGame.commitCandidate(true);
@@ -249,7 +248,7 @@ double Endgame::disappoint(EndgameMove &hope, double bestPessimistic)
 		m_endgameGame.currentPosition().adjustScoresToFinishGame();
 
 		double afterSpread = m_endgameGame.currentPosition().spread(realStartPlayerId);
-		
+
 		double spread = afterSpread - beforeSpread;
 
 		if (spread < newOptimistic)
@@ -266,7 +265,7 @@ Move Endgame::solve(int /* nestedness */)
 #ifdef DEBUG_ENDGAME
 	UVcout << "Endgame::solve() called with position:" << endl;
 #endif
-	
+
 #ifdef DEBUG_ENDGAME
 	UVcout << m_originalGame.currentPosition() << endl;
 #endif
@@ -279,7 +278,7 @@ Move Endgame::solve(int /* nestedness */)
 		initialPlayNumber = m_nestedInitialPlayNumber;
 	else
 		initialPlayNumber = m_unnestedInitialPlayNumber;
-	
+
 	currentPosition().kibitz(initialPlayNumber);
 	setIncludedMoves(currentPosition().moves());
 
@@ -288,7 +287,7 @@ Move Endgame::solve(int /* nestedness */)
 
 	double bestPessimistic = -1000;
 	EndgameMove bestPessMove(Move::createNonmove());
-	
+
 	EndgameMoveList::iterator moveEnd = m_endgameMoves.end();
 	for (EndgameMoveList::iterator moveIt = m_endgameMoves.begin(); moveIt != moveEnd; ++moveIt)
 	{
@@ -302,18 +301,15 @@ Move Endgame::solve(int /* nestedness */)
 #endif
 
 		m_endgameGame = m_originalGame;
-		
+
 		double beforeSpread = m_endgameGame.currentPosition().spread(startPlayerId);
-		
+
 		size_t levelNumber = 1;
 		size_t playerNumber = 1;
 
 		while (!m_endgameGame.currentPosition().gameOver())
 		{
-			for (playerNumber = 1; 
-				 (playerNumber <= numberOfPlayers) && 
-				 !m_endgameGame.currentPosition().gameOver();
-				 playerNumber++)
+			for (playerNumber = 1; (playerNumber <= numberOfPlayers) && !m_endgameGame.currentPosition().gameOver(); playerNumber++)
 			{
 				const int playerId = m_endgameGame.currentPosition().currentPlayer().id();
 
@@ -323,9 +319,10 @@ Move Endgame::solve(int /* nestedness */)
 					move = (*moveIt).move;
 				else
 					move = m_endgameGame.currentPosition().staticBestMove();
-				
+
 #ifdef DEBUG_ENDGAME
-				UVcout << "    level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score << ", equity: " << move.equity << endl;
+				UVcout << "    level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score
+					   << ", equity: " << move.equity << endl;
 #endif
 				m_endgameGame.setCandidate(move);
 				m_endgameGame.commitCandidate(true);
@@ -338,17 +335,17 @@ Move Endgame::solve(int /* nestedness */)
 			(*moveIt).outplay = true;
 		else
 			(*moveIt).outplay = false;
-			
+
 		m_endgameGame.currentPosition().adjustScoresToFinishGame();
 
 		double afterSpread = m_endgameGame.currentPosition().spread(startPlayerId);
-		
+
 		double spread = afterSpread - beforeSpread;
-		
+
 #ifdef DEBUG_ENDGAME
 		UVcout << "    spread: " << spread << endl;
 #endif
-	
+
 		(*moveIt).optimistic = spread;
 		(*moveIt).estimated = spread;
 
@@ -356,14 +353,14 @@ Move Endgame::solve(int /* nestedness */)
 			(*moveIt).pessimistic = spread;
 		else
 			(*moveIt).pessimistic = -1000;
-	
+
 		if ((*moveIt).pessimistic >= bestPessimistic)
 		{
 			bestPessimistic = (*moveIt).pessimistic;
 			bestPessMove = (*moveIt);
 		}
 	}
-	
+
 	stable_sort(m_endgameMoves.begin(), m_endgameMoves.end(), EndgameMoveList::optimisticComparator);
 
 	for (EndgameMoveList::iterator it = m_endgameMoves.begin(); it != m_endgameMoves.end(); ++it)
@@ -375,14 +372,14 @@ Move Endgame::solve(int /* nestedness */)
 		{
 			goto found_best_pessimistic_move;
 		}
-		
+
 		if (!((*it).outplay))
 		{
 #ifdef DEBUG_ENDGAME
 			UVcout << (*it) << "  original optimism: " << (*it).optimistic << endl;
 #endif
 			(*it).optimistic = disappoint((*it), bestPessimistic);
-	
+
 			if ((*it).optimistic > bestPessimistic)
 				(*it).pessimistic = (*it).optimistic;
 
@@ -397,7 +394,7 @@ Move Endgame::solve(int /* nestedness */)
 		}
 	}
 
-	found_best_pessimistic_move:
+found_best_pessimistic_move:
 	reallyPlayOut(bestPessMove.move, 0);
 	return bestPessMove.move;
 }
@@ -408,7 +405,7 @@ void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 	const size_t numberOfPlayers = m_originalGame.currentPosition().players().size();
 
 	Game playoutGame = m_originalGame;
-		
+
 	size_t levelNumber = 1;
 	size_t playerNumber = 1;
 
@@ -416,10 +413,7 @@ void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 
 	while (!playoutGame.currentPosition().gameOver())
 	{
-		for (playerNumber = 1; 
-			 (playerNumber <= numberOfPlayers) && 
-			 !playoutGame.currentPosition().gameOver();
-			 playerNumber++)
+		for (playerNumber = 1; (playerNumber <= numberOfPlayers) && !playoutGame.currentPosition().gameOver(); playerNumber++)
 		{
 			const int playerId = playoutGame.currentPosition().currentPlayer().id();
 
@@ -435,11 +429,12 @@ void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 				quickieEndgame.setPosition(playoutGame.currentPosition());
 				move = quickieEndgame.solve(nestedness);
 			}
-			
+
 #ifdef DEBUG_ENDGAME
-			UVcout << "    level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score << ", equity: " << move.equity << endl;
+			UVcout << "    level:" << levelNumber << ", player: " << playerId << ", move: " << move << ", score: " << move.score
+				   << ", equity: " << move.equity << endl;
 #endif
-			
+
 			playoutGame.setCandidate(move);
 			playoutGame.commitCandidate(true);
 		}
@@ -450,16 +445,19 @@ void Endgame::reallyPlayOut(Move &chosenMove, int nestedness)
 	playoutGame.currentPosition().adjustScoresToFinishGame();
 
 	double afterSpread = playoutGame.currentPosition().spread(startPlayerId);
-    double spread = afterSpread - beforeSpread;
+	double spread = afterSpread - beforeSpread;
 
 #ifdef DEBUG_ENDGAME
 	UVcout << "afterSpread: " << afterSpread << endl;
 	UVcout << "spread: " << spread << endl;
 #endif
-	
-	if (afterSpread > 0) chosenMove.win = 1.0;
-	if (afterSpread < 0) chosenMove.win = 0.0;
-	if (afterSpread == 0) chosenMove.win = 0.5;
+
+	if (afterSpread > 0)
+		chosenMove.win = 1.0;
+	if (afterSpread < 0)
+		chosenMove.win = 0.0;
+	if (afterSpread == 0)
+		chosenMove.win = 0.5;
 
 	chosenMove.equity = spread;
 }
@@ -499,7 +497,7 @@ MoveList Endgame::moves(unsigned int nmoves)
 		}
 
 		Move move((*it).move);
-		if (!(move == best)) 
+		if (!(move == best))
 		{
 			reallyPlayOut(move, 1);
 			if (move.equity > bestEquity)
@@ -514,7 +512,8 @@ MoveList Endgame::moves(unsigned int nmoves)
 
 		if (m_dispatch)
 		{
-			m_dispatch->signalFractionDone(static_cast<float>(i) / static_cast<float>(m_endgameMoves.size() < maxPlayedOut? m_endgameMoves.size() : maxPlayedOut));
+			m_dispatch->signalFractionDone(
+				static_cast<float>(i) / static_cast<float>(m_endgameMoves.size() < maxPlayedOut ? m_endgameMoves.size() : maxPlayedOut));
 		}
 	}
 
@@ -532,18 +531,17 @@ MoveList Endgame::moves(unsigned int nmoves)
 
 ////////////
 
-UVOStream& operator<<(UVOStream &o, const Quackle::EndgameMove &move)
+UVOStream &operator<<(UVOStream &o, const Quackle::EndgameMove &move)
 {
 	o << "Endgame move " << move.move << ":";
 	o << endl;
-    return o;
+	return o;
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::EndgameMoveList& moves)
+UVOStream &operator<<(UVOStream &o, const Quackle::EndgameMoveList &moves)
 {
 	const Quackle::EndgameMoveList::const_iterator end(moves.end());
 	for (Quackle::EndgameMoveList::const_iterator it = moves.begin(); it != end; ++it)
 		o << (*it) << endl;
-    return o;
+	return o;
 }
-

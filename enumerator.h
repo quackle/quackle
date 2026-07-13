@@ -51,13 +51,12 @@ public:
 	// makes all of the probabilities sum to 1
 	static void normalizeProbabilities(ProbableRackList *racks);
 
-private:	
+private:
 	void recurse(LetterString prefix, int i, Letter start, ProbableRackList *racks, unsigned int rackSize);
 	char m_bagcounts[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
 	Bag m_bag;
 	Bag m_possibleBag;
 };
-
 
 }
 

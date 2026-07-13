@@ -34,4 +34,3 @@ EnglishParameters::EnglishParameters()
 	m_bingoBonus = 50;
 	m_rackSize = 7;
 }
-

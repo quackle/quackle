@@ -117,17 +117,17 @@ void AlphabetParameters::setAlphabet(const Alphabet &alphabet)
 
 	const Alphabet::const_iterator alphabetEnd(m_alphabet.end());
 	Alphabet::const_iterator alphabetIt;
-	for (alphabetIt = m_alphabet.begin(); alphabetIt != alphabetEnd; ++alphabetIt) {
+	for (alphabetIt = m_alphabet.begin(); alphabetIt != alphabetEnd; ++alphabetIt)
+	{
 		assert(m_letterLookup.find(alphabetIt->text()) == m_letterLookup.end());
 		m_letterLookup[alphabetIt->text()] = int(alphabetIt - m_alphabet.begin());
 	}
-	
 }
 
 void AlphabetParameters::setLetterParameter(Letter letter, const LetterParameter &letterParameter)
 {
 	assert(m_letterLookup.find(letterParameter.text()) == m_letterLookup.end());
-	if (letter >= (int) m_alphabet.size())
+	if (letter >= (int)m_alphabet.size())
 	{
 		m_alphabet.resize(letter + 1);
 		updateLength();
@@ -200,7 +200,7 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 	UVString leftoverQuery;
 	const Alphabet::const_iterator alphabetEnd(m_alphabet.end());
 	LetterLookupMap::const_iterator lookupEnd = m_letterLookup.end();
-	
+
 	const UVString::const_iterator end(word.end());
 	for (UVString::const_iterator it = word.begin(); it != end; ++it)
 	{
@@ -225,14 +225,16 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 			}
 
 			blank = true;
-			ret += blank? setBlankness(alphabetIt->letter()) : alphabetIt->letter();
-		} else {
-			ret += blank? setBlankness(m_alphabet[lookupIt->second].letter()) : m_alphabet[lookupIt->second].letter();
+			ret += blank ? setBlankness(alphabetIt->letter()) : alphabetIt->letter();
+		}
+		else
+		{
+			ret += blank ? setBlankness(m_alphabet[lookupIt->second].letter()) : m_alphabet[lookupIt->second].letter();
 		}
 		leftoverQuery.clear();
 	}
 
-	//UVcout << "encoded " << word << " to " << ret << endl; 
+	// UVcout << "encoded " << word << " to " << ret << endl;
 
 	if (leftover)
 		*leftover = leftoverQuery;
@@ -251,8 +253,7 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 {
 	m_alphabetName = "default";
 
-	const int englishTileScores[26] =
-	{
+	const int englishTileScores[26] = {
 		1, // A
 		3, // B
 		3, // C
@@ -269,7 +270,7 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 		1, // N
 		1, // O
 		3, // P
-		10,// Q
+		10, // Q
 		1, // R
 		1, // S
 		1, // T
@@ -278,11 +279,10 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 		4, // W
 		8, // X
 		4, // Y
-		10,// Z
+		10, // Z
 	};
 
-	const int englishTileCounts[27] =
-	{
+	const int englishTileCounts[27] = {
 		9, // A
 		2, // B
 		2, // C
@@ -320,24 +320,25 @@ EnglishAlphabetParameters::EnglishAlphabetParameters()
 		letterString += charIndex;
 		lowerLetterString += (UVChar)towlower(charIndex);
 
-		const bool isVowel = (charIndex == MARK_UV('A')) || (charIndex == MARK_UV('E')) || (charIndex == MARK_UV('I')) || (charIndex == MARK_UV('O')) || (charIndex == MARK_UV('U'));
+		const bool isVowel = (charIndex == MARK_UV('A')) || (charIndex == MARK_UV('E')) || (charIndex == MARK_UV('I'))
+			|| (charIndex == MARK_UV('O')) || (charIndex == MARK_UV('U'));
 
 		const int score = englishTileScores[letter - QUACKLE_FIRST_LETTER];
 		const int count = englishTileCounts[letter - QUACKLE_FIRST_LETTER];
-		
+
 		setLetterParameter(letter, LetterParameter(letter, letterString, lowerLetterString, score, count, isVowel));
 	}
 
 	setCount(QUACKLE_BLANK_MARK, englishTileCounts[26]);
 }
 
-UVOStream &operator<<(UVOStream& o, const Quackle::LetterParameter &letterParameter)
+UVOStream &operator<<(UVOStream &o, const Quackle::LetterParameter &letterParameter)
 {
 	o << letterParameter.letter() << " [" << letterParameter.text() << ", " << letterParameter.blankText() << "]";
 	return o;
 }
 
-UVOStream &operator<<(UVOStream& o, const Quackle::Alphabet &alphabet)
+UVOStream &operator<<(UVOStream &o, const Quackle::Alphabet &alphabet)
 {
 	o << "Alphabet (size " << alphabet.size() << "): ";
 	Alphabet::const_iterator end(alphabet.end());
@@ -345,4 +346,3 @@ UVOStream &operator<<(UVOStream& o, const Quackle::Alphabet &alphabet)
 		o << (*it) << " ";
 	return o;
 }
-

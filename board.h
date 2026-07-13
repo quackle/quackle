@@ -38,16 +38,16 @@ namespace Quackle
 class Board
 {
 public:
-    // create uninitialized board of size specified
-    // by global BoardParameters
-    Board();
+	// create uninitialized board of size specified
+	// by global BoardParameters
+	Board();
 
-    // create uninitialized width x height board.
-    // Width and height must each be between 
-    // QUACKLE_MINIMUM_BOARD_SIZE and QUACKLE_MAXIMUM_BOARD_SIZE.
-    Board(int width, int height);
+	// create uninitialized width x height board.
+	// Width and height must each be between
+	// QUACKLE_MINIMUM_BOARD_SIZE and QUACKLE_MAXIMUM_BOARD_SIZE.
+	Board(int width, int height);
 
-    // use this to start out your board for use
+	// use this to start out your board for use
 	void prepareEmptyBoard();
 
 	int width() const { return m_width; }
@@ -61,7 +61,7 @@ public:
 	void makeMove(const Move &move);
 
 	// Returns all words formed when play is made.
-	// If move.tiles() is only of length 1, specified move is not in the 
+	// If move.tiles() is only of length 1, specified move is not in the
 	// returned list; otherwise it is.
 	MoveList allWordsFormedBy(const Move &move) const;
 
@@ -97,7 +97,14 @@ public:
 	struct TileInformation
 	{
 		TileInformation()
-			: letter(QUACKLE_NULL_MARK), tileType(NothingTile), isBlank(false), isBritish(false), isStartLocation(false), bonusSquareType(NoBonus), bonusMultiplier(0), isOnRack(false)
+			: letter(QUACKLE_NULL_MARK)
+			, tileType(NothingTile)
+			, isBlank(false)
+			, isBritish(false)
+			, isStartLocation(false)
+			, bonusSquareType(NoBonus)
+			, bonusMultiplier(0)
+			, isOnRack(false)
 		{
 		}
 
@@ -114,7 +121,7 @@ public:
 		BonusSquareType bonusSquareType;
 		int bonusMultiplier;
 
-        bool isOnRack;
+		bool isOnRack;
 	};
 
 	TileInformation tileInformation(int row, int col) const;

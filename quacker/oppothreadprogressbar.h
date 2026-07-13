@@ -28,7 +28,7 @@ class QPushButton;
 
 class OppoThreadProgressBar : public QWidget
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	OppoThreadProgressBar(OppoThread *thread);

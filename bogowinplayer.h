@@ -51,7 +51,7 @@ protected:
 	int m_nestedMinIterationsPerSecond;
 	int m_nestedMaxIterationsPerSecond;
 
-    bool m_inferring;
+	bool m_inferring;
 };
 
 inline bool SmartBogowin::isSlow() const
@@ -68,7 +68,7 @@ inline int SmartBogowin::minIterations() const
 {
 	if (currentPosition().nestedness() > 0)
 		return m_nestedMinIterationsPerSecond * m_parameters.secondsPerTurn;
-		
+
 	return m_minIterationsPerSecond * m_parameters.secondsPerTurn;
 }
 
@@ -76,7 +76,7 @@ inline int SmartBogowin::maxIterations() const
 {
 	if (currentPosition().nestedness() > 0)
 		return m_nestedMaxIterationsPerSecond * m_parameters.secondsPerTurn;
-	
+
 	return m_maxIterationsPerSecond * m_parameters.secondsPerTurn;
 }
 

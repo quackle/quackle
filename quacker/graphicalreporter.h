@@ -24,9 +24,9 @@
 
 namespace Quackle
 {
-	class ComputerPlayer;
-	class GamePosition;
-	class Game;
+class ComputerPlayer;
+class GamePosition;
+class Game;
 }
 
 class GraphicalReporter
@@ -42,7 +42,7 @@ public:
 	// makes header and puts into the index file
 	void reportHeader(const Quackle::Game &game);
 
-	// makes graphical displays of top n plays of position, dumps to images 
+	// makes graphical displays of top n plays of position, dumps to images
 	// and puts links to them in the index file.
 	void reportPosition(const Quackle::GamePosition &position, Quackle::ComputerPlayer *computerPlayer);
 
@@ -65,6 +65,5 @@ protected:
 #elif !defined(m_endl)
 #	define m_endl endl
 #endif
-
 
 #endif

@@ -25,7 +25,7 @@ class QTextStream;
 
 namespace Quackle
 {
-	class Game;
+class Game;
 }
 
 namespace QuackleIO

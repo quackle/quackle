@@ -37,12 +37,12 @@ class PlayerTab;
 
 namespace Quackle
 {
-	class ComputerPlayer;
+class ComputerPlayer;
 }
 
 class NewGameDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	NewGameDialog(QWidget *parent = 0);
@@ -61,9 +61,9 @@ private:
 	PlayerTab *m_playerTab;
 };
 
-class PlayerTab : public QWidget 
+class PlayerTab : public QWidget
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	PlayerTab(QWidget *parent = 0);

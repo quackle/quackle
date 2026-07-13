@@ -31,20 +31,18 @@ class QVBoxLayout;
 
 namespace Quackle
 {
-	class Game;
-	class GamePosition;
-	class History;
+class Game;
+class GamePosition;
+class History;
 }
 
 class History : public HistoryView
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	History(QWidget *parent = 0);
-	virtual ~History()
-	{
-	}
+	virtual ~History() {}
 
 public slots:
 	virtual void historyChanged(const Quackle::History &history);

@@ -20,9 +20,7 @@
 
 using namespace Quackle;
 
-PlayerList::PlayerList()
-{
-}
+PlayerList::PlayerList() {}
 
 const Player &PlayerList::playerForId(int id, bool &found) const
 {
@@ -35,7 +33,7 @@ const Player &PlayerList::playerForId(int id, bool &found) const
 			return (*it);
 		}
 	}
-	
+
 	found = false;
 	return back();
 }
@@ -49,8 +47,7 @@ const Player &PlayerList::playerForName(const UVString &name, bool &found) const
 			found = true;
 			return (*it);
 		}
-	
+
 	found = false;
 	return back();
 }
-

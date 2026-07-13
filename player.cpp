@@ -26,7 +26,13 @@
 using namespace Quackle;
 
 Player::Player()
-	: m_name(MARK_UV("No Name")), m_abbreviatedName(MARK_UV("NoName")), m_id(-1), m_playerType(ComputerPlayerType), m_computerPlayer(0), m_score(0), m_racksAreKnown(true)
+	: m_name(MARK_UV("No Name"))
+	, m_abbreviatedName(MARK_UV("NoName"))
+	, m_id(-1)
+	, m_playerType(ComputerPlayerType)
+	, m_computerPlayer(0)
+	, m_score(0)
+	, m_racksAreKnown(true)
 {
 }
 
@@ -48,7 +54,8 @@ bool Player::positionallyEqual(const Player &otherPlayer) const
 UVString Player::storeInformationToString() const
 {
 	UVOStringStream ss;
-	ss << m_id << ';' << m_playerType << ';' << (m_playerType == ComputerPlayerType? m_computerPlayer->id() : (m_racksAreKnown? 0 : 1)) << ';' << m_name;
+	ss << m_id << ';' << m_playerType << ';' << (m_playerType == ComputerPlayerType ? m_computerPlayer->id() : (m_racksAreKnown ? 0 : 1))
+	   << ';' << m_name;
 	return ss.str();
 }
 
@@ -119,7 +126,8 @@ Player Player::makePlayerFromString(const UVString &info)
 
 UVOStream &operator<<(UVOStream &o, const Quackle::Player &player)
 {
-	o << (player.type() == Quackle::Player::ComputerPlayerType? MARK_UV("Computer") : MARK_UV("Human")) << " Player " << player.name() << " (id " << player.id() << ")" << " with score " << player.score() << " holding " << player.rack() << " after drawing [" << player.drawnLetters() << "]";
+	o << (player.type() == Quackle::Player::ComputerPlayerType ? MARK_UV("Computer") : MARK_UV("Human")) << " Player " << player.name()
+	  << " (id " << player.id() << ")" << " with score " << player.score() << " holding " << player.rack() << " after drawing ["
+	  << player.drawnLetters() << "]";
 	return o;
 }
-

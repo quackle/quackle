@@ -71,7 +71,7 @@ bool Rack::unload(const LetterString &used)
 	LetterString::const_iterator newEnd(newtiles.end());
 	for (LetterString::const_iterator newIt = newtiles.begin(); newIt != newEnd; ++newIt)
 		if (*newIt != QUACKLE_NULL_MARK)
-			m_tiles += *newIt; 
+			m_tiles += *newIt;
 
 	return ret;
 }
@@ -114,15 +114,15 @@ unsigned int Rack::size() const
 const Rack operator-(const Rack &rack, const Move &move)
 {
 	Rack ret(rack);
-    ret.unload(move.usedTiles());
-    return ret;
+	ret.unload(move.usedTiles());
+	return ret;
 }
 
 const Rack operator-(const Rack &rack1, const Rack &rack2)
 {
 	Rack ret(rack1);
-    ret.unload(rack2.tiles());
-    return ret;
+	ret.unload(rack2.tiles());
+	return ret;
 }
 
 UVString Rack::xml() const
@@ -137,7 +137,6 @@ UVString Rack::toString() const
 
 UVOStream &operator<<(UVOStream &o, const Rack &rack)
 {
-    o << rack.toString();
-    return o;
+	o << rack.toString();
+	return o;
 }
-

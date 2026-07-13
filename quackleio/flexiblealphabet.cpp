@@ -24,9 +24,7 @@
 using namespace QuackleIO;
 using namespace std;
 
-FlexibleAlphabetParameters::FlexibleAlphabetParameters()
-{
-}
+FlexibleAlphabetParameters::FlexibleAlphabetParameters() {}
 
 bool FlexibleAlphabetParameters::load(const QString &filename)
 {
@@ -90,7 +88,6 @@ bool FlexibleAlphabetParameters::load(const QString &filename)
 			strings.pop_front();
 		}
 
-		
 		bool ok = false;
 		int score = strings.takeFirst().toInt(&ok);
 		if (!ok)
@@ -120,11 +117,10 @@ bool FlexibleAlphabetParameters::load(const QString &filename)
 			setLetterParameter(letter, Quackle::LetterParameter(letter, textUV, blankTextUV, score, count, isVowel));
 			++letter;
 
-			//UVcout << "New letter " << textUV << " [" << (int)letter << "]" << endl;
+			// UVcout << "New letter " << textUV << " [" << (int)letter << "]" << endl;
 		}
 	}
 
 	file.close();
 	return true;
 }
-

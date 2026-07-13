@@ -27,13 +27,9 @@ using namespace Dict;
 
 WordList::SortType WordList::sortType = Playability;
 
-WordList::WordList()
-{
-}
+WordList::WordList() {}
 
-WordList::~WordList()
-{
-}
+WordList::~WordList() {}
 
 void WordList::setSortBy(SortType _sortType)
 {
@@ -108,7 +104,7 @@ ExtensionList Word::getExtensionList(bool front) const
 {
 	ExtensionList ret;
 
-	const vector<Quackle::ExtensionWithInfo> *list = front? &frontExtensions : &backExtensions;
+	const vector<Quackle::ExtensionWithInfo> *list = front ? &frontExtensions : &backExtensions;
 
 	for (vector<Quackle::ExtensionWithInfo>::const_iterator it = list->begin(); it != list->end(); ++it)
 	{

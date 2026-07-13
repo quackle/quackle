@@ -28,14 +28,22 @@ LetterboxSettings *LetterboxSettings::self()
 }
 
 LetterboxSettings::LetterboxSettings()
-	: msecWaitBase(1500), msecWaitExtraPerSolution(1500), backgroundColor("#eeeeee"), foregroundColor("#000000"), sowpodsColor("#ff0000"), lengthOfExtensions(3), autoCompleteLength(0), mathMode(false), numExtensionChars(32), spaceComplete(false), newMissesFile(false)
+	: msecWaitBase(1500)
+	, msecWaitExtraPerSolution(1500)
+	, backgroundColor("#eeeeee")
+	, foregroundColor("#000000")
+	, sowpodsColor("#ff0000")
+	, lengthOfExtensions(3)
+	, autoCompleteLength(0)
+	, mathMode(false)
+	, numExtensionChars(32)
+	, spaceComplete(false)
+	, newMissesFile(false)
 {
 	m_self = this;
 }
 
-LetterboxSettings::~LetterboxSettings()
-{
-}
+LetterboxSettings::~LetterboxSettings() {}
 
 void LetterboxSettings::readSettings()
 {
@@ -49,16 +57,16 @@ void LetterboxSettings::readSettings()
 	sowpodsColor = settings.value("quackle/letterbox/sowpodsColor", sowpodsColor).toString();
 
 	dictFilename = settings.value("quackle/letterbox/dict/filename", dictFilename).toString();
-    dictGaddagFilename = settings.value("quackle/letterbox/dict/gaddagfilename", dictGaddagFilename).toString();
+	dictGaddagFilename = settings.value("quackle/letterbox/dict/gaddagfilename", dictGaddagFilename).toString();
 
 	lengthOfExtensions = settings.value("quackle/letterbox/lengthOfExtensions", lengthOfExtensions).toInt();
 
 	mathMode = settings.value("quackle/letterbox/mathMode", mathMode).toBool();
 
 	autoCompleteLength = settings.value("quackle/letterbox/autoCompleteLength", autoCompleteLength).toInt();
-	
+
 	numExtensionChars = settings.value("quackle/letterbox/numExtensionChars", numExtensionChars).toInt();
-	
+
 	spaceComplete = settings.value("quackle/letterbox/spaceComplete", spaceComplete).toBool();
 	newMissesFile = settings.value("quackle/letterbox/newMissesFile", newMissesFile).toBool();
 }
@@ -87,4 +95,3 @@ void LetterboxSettings::writeSettings()
 	settings.setValue("quackle/letterbox/spaceComplete", spaceComplete);
 	settings.setValue("quackle/letterbox/newMissesFile", newMissesFile);
 }
-

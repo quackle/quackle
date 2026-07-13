@@ -28,7 +28,7 @@
 // This singleton class keeps all Quacker settings in one place.
 // It also maintains one instance of a LetterboxSettings and QuackleIO::UtilSettings.
 
-enum BritishColoring { NoBritishColoring = 0, TextBritishColoring = 1, TileBritishColoring = 2};
+enum BritishColoring { NoBritishColoring = 0, TextBritishColoring = 1, TileBritishColoring = 2 };
 
 class QuackerSettings
 {

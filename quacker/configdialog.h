@@ -27,7 +27,7 @@ class QStackedWidget;
 
 class ConfigPage : public QWidget
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	ConfigPage(QWidget *parent = 0);
@@ -43,7 +43,7 @@ protected:
 
 class ConfigDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	ConfigDialog();
@@ -63,4 +63,3 @@ private:
 };
 
 #endif
-

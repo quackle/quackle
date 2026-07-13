@@ -34,29 +34,30 @@ public:
 	const GaddagNode *firstChild() const;
 	const GaddagNode *nextSibling() const;
 	const GaddagNode *child(Letter l) const;
+
 private:
 	unsigned char data[4];
 };
 
-inline Letter
-GaddagNode::letter() const
+inline Letter GaddagNode::letter() const
 {
 	return (data[3] & 0x3F /*0b00111111*/);
 }
 
-inline bool
-GaddagNode::isTerminal() const
+inline bool GaddagNode::isTerminal() const
 {
 	return (data[3] & 0x40) != 0 /*0b01000000*/;
 }
 
-inline const GaddagNode *
-GaddagNode::firstChild() const
+inline const GaddagNode *GaddagNode::firstChild() const
 {
 	unsigned int p = (data[0] << 16) + (data[1] << 8) + (data[2]);
-	if (p == 0) {
+	if (p == 0)
+	{
 		return 0;
-	} else {
+	}
+	else
+	{
 		return this + p;
 	}
 }
@@ -66,11 +67,11 @@ inline const GaddagNode *
 GaddagNode::firstChild() const
 {
 	int p = (data[0] << 16) + (data[1] << 8) + (data[2]);
-	if (p == 0) 
+	if (p == 0)
 	{
 		return 0;
-	} 
-	else 
+	}
+	else
 	{
 		if(p & 0x00800000)
 			p |= 0xff000000;
@@ -79,23 +80,28 @@ GaddagNode::firstChild() const
 }
 */
 
-inline const GaddagNode *
-GaddagNode::nextSibling() const
+inline const GaddagNode *GaddagNode::nextSibling() const
 {
-	if (data[3] & 0x80 /*0b10000000*/) {
+	if (data[3] & 0x80 /*0b10000000*/)
+	{
 		return 0;
-	} else {
+	}
+	else
+	{
 		return this + 1; // assumes packed array of siblings
 	}
 }
- 
-inline const GaddagNode *
-GaddagNode::child(Letter l) const
+
+inline const GaddagNode *GaddagNode::child(Letter l) const
 {
-	for (const GaddagNode *child = firstChild(); child; child = child->nextSibling()) {
-		if (child->letter() == l) {
+	for (const GaddagNode *child = firstChild(); child; child = child->nextSibling())
+	{
+		if (child->letter() == l)
+		{
 			return child;
-		} else if (l != QUACKLE_GADDAG_SEPARATOR && child->letter() > l) {
+		}
+		else if (l != QUACKLE_GADDAG_SEPARATOR && child->letter() > l)
+		{
 			return 0;
 		}
 	}

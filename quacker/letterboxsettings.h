@@ -45,7 +45,7 @@ public:
 	int lengthOfExtensions;
 
 	// 0 == off
-	int autoCompleteLength; 
+	int autoCompleteLength;
 
 	bool mathMode;
 

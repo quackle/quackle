@@ -45,7 +45,7 @@ DataManager::DataManager()
 	setAppDataDirectory(".");
 	setUserDataDirectory(".");
 
-	seed_seq session_seed = {(unsigned) random_device{}(), (unsigned) time(nullptr)};
+	seed_seq session_seed = { (unsigned)random_device {}(), (unsigned)time(nullptr) };
 	seedRandomNumbers(session_seed);
 
 	m_alphabetParameters = new EnglishAlphabetParameters;
@@ -120,7 +120,7 @@ void DataManager::cleanupComputerPlayers()
 	const PlayerList::iterator end(m_computerPlayers.end());
 	for (PlayerList::iterator it = m_computerPlayers.begin(); it != end; ++it)
 		delete (*it).computerPlayer();
-	
+
 	m_computerPlayers.clear();
 }
 
@@ -140,7 +140,7 @@ string DataManager::findDataFile(const string &subDirectory, const string &lexic
 	string fname = makeDataFilename(subDirectory, lexicon, file, true);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, lexicon, file, false);
-	if (!fileExists(fname) && lexicon.substr(0,3) == "csw")
+	if (!fileExists(fname) && lexicon.substr(0, 3) == "csw")
 		fname = makeDataFilename(subDirectory, "csw", file, false);
 	if (!fileExists(fname))
 		fname = makeDataFilename(subDirectory, m_backupLexicon, file, false);
@@ -148,7 +148,7 @@ string DataManager::findDataFile(const string &subDirectory, const string &lexic
 		fname = makeDataFilename(subDirectory, "default", file, false);
 	if (!fileExists(fname))
 		fname = string();
-	
+
 	return fname;
 }
 
@@ -165,7 +165,7 @@ string DataManager::findDataFile(const string &subDirectory, const string &file)
 
 bool DataManager::hasUserDataFile(const string &subDirectory, const string &file)
 {
-	string fname = makeDataFilename(subDirectory, file,	true);
+	string fname = makeDataFilename(subDirectory, file, true);
 	return fileExists(fname);
 }
 
@@ -185,7 +185,7 @@ void DataManager::seedRandomNumbers(unsigned int seed)
 	m_mersenneTwisterRng.seed(seed);
 }
 
-void DataManager::seedRandomNumbers(seed_seq& seed)
+void DataManager::seedRandomNumbers(seed_seq &seed)
 {
 	lock_guard<mutex> lock(m_RngMutex);
 	m_mersenneTwisterRng.seed(seed);

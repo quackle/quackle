@@ -82,7 +82,8 @@ Letter Bag::erase(int pos)
 {
 	LongLetterString::iterator it = m_tiles.begin();
 
-	for (int i = 0; i < pos; ++it, ++i) ;
+	for (int i = 0; i < pos; ++it, ++i)
+		;
 
 	Letter ret = *it;
 	m_tiles.erase(it);
@@ -96,7 +97,7 @@ void Bag::exch(const Move &move, Rack &rack)
 	rack.unload(usedTiles);
 
 	refill(rack);
-	toss(usedTiles);                                                                                                                        
+	toss(usedTiles);
 }
 
 Letter Bag::pluck()
@@ -223,7 +224,7 @@ int factorial(int n)
 		return 39916800;
 	case 12:
 		return 479001600;
-	
+
 	default:
 		return factorial(n - 1) * n;
 	}
@@ -274,7 +275,6 @@ double Bag::probabilityOfDrawing(const LetterString &letters)
 	return probabilityOfDrawingFromBag(letters, *this);
 }
 
-
 UVString Bag::toString() const
 {
 	UVString ret;
@@ -300,4 +300,3 @@ UVOStream &operator<<(UVOStream &o, const Bag &bag)
 
 	return o;
 }
-

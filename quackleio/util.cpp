@@ -50,30 +50,30 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 	case Quackle::Move::Pass:
 		ret = QObject::tr("Pass");
 		break;
-	
+
 	case Quackle::Move::Exchange:
 		ret = QObject::tr("Exch. %1").arg(prettyTiles);
 		break;
-	
+
 	case Quackle::Move::BlindExchange:
 		ret = QObject::tr("Exch. %1").arg(move.tiles().length());
 		break;
-	
+
 	case Quackle::Move::UnusedTilesBonusError:
 	case Quackle::Move::UnusedTilesBonus:
 		ret = QObject::tr("2*(%1)").arg(letterStringToQString(Util::alphagram(move.usedTiles())));
 		if (move.action == Quackle::Move::UnusedTilesBonusError)
 			ret += " [Endgame Error]";
 		break;
-	
+
 	case Quackle::Move::TimePenalty:
 		ret = QObject::tr("%1 point time penalty").arg(move.effectiveScore());
 		break;
-	
+
 	case Quackle::Move::Nonmove:
 		ret = QObject::tr("None");
 		break;
-	
+
 	case Quackle::Move::Place:
 	case Quackle::Move::PlaceError:
 		ret = uvStringToQString(move.positionString()) + " ";
@@ -92,7 +92,7 @@ QString Util::moveToDetailedString(const Quackle::Move &move)
 	}
 
 	if (move.scoreAddition() != 0)
-		ret = QString("%1 [and %2%3]").arg(ret).arg(move.scoreAddition() > 0? QObject::tr("+") : QString()).arg(move.scoreAddition());
+		ret = QString("%1 [and %2%3]").arg(ret).arg(move.scoreAddition() > 0 ? QObject::tr("+") : QString()).arg(move.scoreAddition());
 
 	return ret;
 }
@@ -157,7 +157,7 @@ QString Util::stdStringToQString(const string &stdString)
 	return QString::fromLatin1(stdString.c_str());
 }
 
-Quackle::LetterString Util::alphagram(const Quackle::LetterString &word) 
+Quackle::LetterString Util::alphagram(const Quackle::LetterString &word)
 {
 	return Quackle::String::alphabetize(word);
 }
@@ -218,4 +218,3 @@ QString Util::symbolsFor(const Quackle::LetterString &word)
 
 	return "";
 }
-

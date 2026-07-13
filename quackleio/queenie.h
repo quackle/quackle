@@ -45,8 +45,8 @@ public:
 
 protected:
 	Queenie();
-	Queenie(const Queenie&);
-	Queenie& operator=(const Queenie &);
+	Queenie(const Queenie &);
+	Queenie &operator=(const Queenie &);
 
 	QList<Logania *> m_loganias;
 	QStringList m_filters;

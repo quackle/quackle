@@ -64,7 +64,7 @@ TopLevel::TopLevel(QWidget *parent)
 	QCoreApplication::setOrganizationDomain("quackle.org");
 	QCoreApplication::setApplicationName("Quackle");
 
-	qRegisterMetaType<OppoThread*>("OppoThread*");
+	qRegisterMetaType<OppoThread *>("OppoThread*");
 
 	m_quackerSettings = new QuackerSettings;
 
@@ -72,7 +72,7 @@ TopLevel::TopLevel(QWidget *parent)
 	m_settings->preInitialize();
 	m_settings->createGUI();
 	connect(m_settings, SIGNAL(refreshViews()), this, SLOT(updateAllViews()));
-	
+
 	m_game = new Quackle::Game;
 	m_simulator = new Quackle::Simulator;
 
@@ -82,17 +82,17 @@ TopLevel::TopLevel(QWidget *parent)
 	loadSettings();
 
 	setCaption(tr("Welcome"));
-        statusMessage(tr("Please wait for Quackle to load its data structures..."));
-        
+	statusMessage(tr("Please wait for Quackle to load its data structures..."));
+
 	QTimer::singleShot(0, this, SLOT(finishInitialization()));
 }
 
 TopLevel::~TopLevel()
 {
 	stopEverything();
-	for (const auto& it : m_otherOppoThreads)
+	for (const auto &it : m_otherOppoThreads)
 		it->wait();
-	for (const auto& it : m_oppoThreads)
+	for (const auto &it : m_oppoThreads)
 		it->wait();
 	kibitzThreadFinished();
 	computerPlayerDone();
@@ -199,10 +199,11 @@ void TopLevel::commit()
 {
 	if (!m_game->hasPositions())
 		return;
-	
+
 	if (!isCommitAllowed())
 	{
-		statusMessage(tr("%1 is currently on turn so you cannot commit. Please wait.").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())));
+		statusMessage(tr("%1 is currently on turn so you cannot commit. Please wait.")
+				.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())));
 		return;
 	}
 
@@ -230,7 +231,8 @@ void TopLevel::pass()
 void TopLevel::overdraw()
 {
 	bool ok = false;
-	QString letters = QInputDialog::getText(this, tr("Handle overdraw - Quackle"), tr("Please input the letters that sit on the table faceup."), QLineEdit::Normal, QString(), &ok);
+	QString letters = QInputDialog::getText(this, tr("Handle overdraw - Quackle"),
+		tr("Please input the letters that sit on the table faceup."), QLineEdit::Normal, QString(), &ok);
 
 	if (!ok)
 		return;
@@ -243,21 +245,32 @@ void TopLevel::overdraw()
 
 	if (validityFlags & Quackle::GamePosition::InvalidOverdrawNumber)
 	{
-		bool tryAgain = QMessageBox::question(this, tr("Verify Overdraw - Quackle"), dialogText(tr("Overdraw %1 does not contain at least %2 tiles, the minimum number of tiles you should turn over. Try again?").arg(letters).arg(QUACKLE_PARAMETERS->overdrawPenalty() + 1)), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
+		bool tryAgain
+			= QMessageBox::question(this, tr("Verify Overdraw - Quackle"),
+				  dialogText(
+					  tr("Overdraw %1 does not contain at least %2 tiles, the minimum number of tiles you should turn over. Try again?")
+						  .arg(letters)
+						  .arg(QUACKLE_PARAMETERS->overdrawPenalty() + 1)),
+				  QMessageBox::Yes, QMessageBox::No)
+			== QMessageBox::Yes;
 		if (tryAgain)
-			overdraw();  // try again
+			overdraw(); // try again
 		return;
 	}
 
 	if (validityFlags & Quackle::GamePosition::OverdrawnTilesNotUnseen)
 	{
-		bool tryAgain = QMessageBox::question(this, tr("Verify Overdraw - Quackle"), dialogText(tr("Tiles in overdraw %1 are not in the unseen pool. Try again?").arg(letters)), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
+		bool tryAgain = QMessageBox::question(this, tr("Verify Overdraw - Quackle"),
+							dialogText(tr("Tiles in overdraw %1 are not in the unseen pool. Try again?").arg(letters)), QMessageBox::Yes,
+							QMessageBox::No)
+			== QMessageBox::Yes;
 		if (tryAgain)
 			overdraw();
 		return;
 	}
 
-	QMessageBox::information(this, tr("Overdraw answer - Quackle"), dialogText(tr("Please put %1 back in the bag.")).arg(QuackleIO::Util::letterStringToQString(throwbackLetterString)));
+	QMessageBox::information(this, tr("Overdraw answer - Quackle"),
+		dialogText(tr("Please put %1 back in the bag.")).arg(QuackleIO::Util::letterStringToQString(throwbackLetterString)));
 }
 
 void TopLevel::statusMessage(const QString &message)
@@ -267,7 +280,8 @@ void TopLevel::statusMessage(const QString &message)
 
 bool TopLevel::askToCarryOn(const QString &text)
 {
-	return QMessageBox::question(this, tr("Verify Play - Quackle"), dialogText(text), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes;
+	return QMessageBox::question(this, tr("Verify Play - Quackle"), dialogText(text), QMessageBox::Yes, QMessageBox::No)
+		== QMessageBox::Yes;
 }
 
 void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
@@ -296,7 +310,8 @@ void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 		{
 			if (validityFlags & Quackle::GamePosition::TooLateExchange)
 			{
-				carryOn = askToCarryOn(tr("Bag must contain at least %1 tiles for an exchange.").arg(Quackle::DataManager::self()->parameters()->minimumTilesForExchange()));
+				carryOn = askToCarryOn(tr("Bag must contain at least %1 tiles for an exchange.")
+						.arg(Quackle::DataManager::self()->parameters()->minimumTilesForExchange()));
 				validityFlags ^= Quackle::GamePosition::TooLateExchange;
 				continue;
 			}
@@ -308,7 +323,9 @@ void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 					bool validifiable = validifyMove(prettiedMove);
 					if (!validifiable)
 					{
-						carryOn = askToCarryOn(tr("%1 would need an impossible rack to make play %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+						carryOn = askToCarryOn(tr("%1 would need an impossible rack to make play %2; make play anyway?")
+								.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name()))
+								.arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
 					}
 					else
 					{
@@ -318,10 +335,12 @@ void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 				else
 				{
 					QMessageBox mb(QMessageBox::Question, tr("Verify Play"),
-									tr("%1's rack does not include all tiles in %2; make play anyway?").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
-					QPushButton* mb_yes = mb.addButton(QMessageBox::Yes);
+						tr("%1's rack does not include all tiles in %2; make play anyway?")
+							.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name()))
+							.arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+					QPushButton *mb_yes = mb.addButton(QMessageBox::Yes);
 					mb.addButton(QMessageBox::No);
-					QPushButton* mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
+					QPushButton *mb_unknownRacks = mb.addButton(tr("Assume unknown racks for this game"), QMessageBox::ApplyRole);
 					mb.exec();
 					carryOn = (mb.clickedButton() == mb_yes || mb.clickedButton() == mb_unknownRacks);
 					if (mb.clickedButton() == mb_unknownRacks)
@@ -334,25 +353,32 @@ void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 
 			if (validityFlags & Quackle::GamePosition::InvalidPlace)
 			{
-				carryOn = askToCarryOn(tr("%1 does not connect to other plays on board; make play anyway?").arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+				carryOn = askToCarryOn(tr("%1 does not connect to other plays on board; make play anyway?")
+						.arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
 				validityFlags ^= Quackle::GamePosition::InvalidPlace;
 				continue;
 			}
 
 			if (validityFlags & Quackle::GamePosition::InvalidOpeningPlace)
 			{
-				carryOn = askToCarryOn(tr("Opening play %1 does not cover the star; make play anyway?").arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+				carryOn = askToCarryOn(tr("Opening play %1 does not cover the star; make play anyway?")
+						.arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
 				validityFlags ^= Quackle::GamePosition::InvalidOpeningPlace;
 				continue;
 			}
 
 			if (validityFlags & Quackle::GamePosition::UnacceptableWord)
 			{
-				carryOn = askToCarryOn(tr("%1 forms an unacceptable word; make play anyway?").arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
+				carryOn = askToCarryOn(
+					tr("%1 forms an unacceptable word; make play anyway?").arg(QuackleIO::Util::moveToDetailedString(prettiedMove)));
 
 				if (carryOn)
 				{
-					if (QMessageBox::question(this, tr("Challenge Decision - Quackle"), dialogText(tr("If committed, should %1 be challenged off the board?")).arg(QuackleIO::Util::moveToDetailedString(prettiedMove)), QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes)
+					if (QMessageBox::question(this, tr("Challenge Decision - Quackle"),
+							dialogText(tr("If committed, should %1 be challenged off the board?"))
+								.arg(QuackleIO::Util::moveToDetailedString(prettiedMove)),
+							QMessageBox::Yes, QMessageBox::No)
+						== QMessageBox::Yes)
 					{
 						prettiedMove.setIsChallengedPhoney(true);
 					}
@@ -388,9 +414,9 @@ void TopLevel::setCandidateMove(const Quackle::Move *move, bool *carryOnPtr)
 		ensureUpToDateSimulatorMoveList();
 	}
 
-	if (!m_game->currentPosition().currentPlayer().racksAreKnown() &&
-		!m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles()) &&
-		prettiedMove.action != Quackle::Move::BlindExchange)
+	if (!m_game->currentPosition().currentPlayer().racksAreKnown()
+		&& !m_game->currentPosition().currentPlayer().rack().contains(prettiedMove.usedTiles())
+		&& prettiedMove.action != Quackle::Move::BlindExchange)
 	{
 		m_game->currentPosition().setCurrentPlayerRack(Quackle::Rack(prettiedMove.usedTiles()));
 	}
@@ -431,7 +457,7 @@ bool TopLevel::validifyMove(Quackle::Move &move)
 				theLetter.clear();
 				theLetter.push_back(theLetterLetter);
 			}
-			
+
 			newTiles.push_back(theLetterLetter);
 			rack.unload(theLetter);
 		}
@@ -468,12 +494,14 @@ void TopLevel::setRack(const Quackle::Rack &rack)
 
 	if (rack.empty())
 		return;
-	
+
 	Quackle::Rack rackToSet = rack;
 
 	if (!m_game->currentPosition().canSetPlayerRackWithoutBagExpansion(m_game->currentPosition().currentPlayer().id(), rack))
 	{
-		if (!askToCarryOn(tr("The rack %1 contains letters that are not available without modifying the tile distribution; do you wish to expand the bag to allow this?").arg(QuackleIO::Util::letterStringToQString(rack.tiles()))))
+		if (!askToCarryOn(tr("The rack %1 contains letters that are not available without modifying the tile distribution; do you wish to "
+							 "expand the bag to allow this?")
+					.arg(QuackleIO::Util::letterStringToQString(rack.tiles()))))
 		{
 			rackToSet = m_game->currentPosition().currentPlayer().rack();
 		}
@@ -483,7 +511,9 @@ void TopLevel::setRack(const Quackle::Rack &rack)
 	m_simulator->currentPosition().setCurrentPlayerRack(rackToSet);
 	updatePositionViews();
 
-	statusMessage(tr("%1's rack set to %2.").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name())).arg(QuackleIO::Util::letterStringToQString(rackToSet.tiles())));
+	statusMessage(tr("%1's rack set to %2.")
+			.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().currentPlayer().name()))
+			.arg(QuackleIO::Util::letterStringToQString(rackToSet.tiles())));
 	setModified(true);
 }
 
@@ -501,7 +531,8 @@ void TopLevel::goToHistoryLocation(const Quackle::HistoryLocation *location)
 	// FIXME this shouldn't be necessary once OppoThread::abort() works.
 	if (shouldOutcraftyCurrentPlayer() && isPlayerOnTurnComputer())
 	{
-		statusMessage(tr("Please wait for %1 to play before looking at the history.").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())));
+		statusMessage(tr("Please wait for %1 to play before looking at the history.")
+				.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())));
 		return;
 	}
 
@@ -517,9 +548,9 @@ void TopLevel::stopEverything()
 	// stop simulation if it's going
 	simulate(false);
 
-	for (const auto& it : m_otherOppoThreads)
+	for (const auto &it : m_otherOppoThreads)
 		it->abort();
-	for (const auto& it : m_oppoThreads)
+	for (const auto &it : m_oppoThreads)
 		it->abort();
 }
 
@@ -534,7 +565,8 @@ OppoThreadProgressBar *TopLevel::createProgressBarForThread(OppoThread *thread)
 void TopLevel::removeProgressIndicators()
 {
 	QMap<OppoThread *, OppoThreadProgressBar *>::const_iterator it = m_progressIndicators.constBegin();
-	while (it != m_progressIndicators.constEnd()) {
+	while (it != m_progressIndicators.constEnd())
+	{
 		statusBar()->removeWidget(it.value());
 		delete it.value();
 		++it;
@@ -608,13 +640,19 @@ void TopLevel::updatePositionViews()
 	const QString assistiveText = tr("Click once or twice on the board, type, then press the Enter key.");
 
 	if (commitAllowed && hasAMove)
-		statusMessage(tr("Press a Commit button to play %1.").arg(QuackleIO::Util::moveToDetailedString(m_game->currentPosition().moveMade())));
+		statusMessage(
+			tr("Press a Commit button to play %1.").arg(QuackleIO::Util::moveToDetailedString(m_game->currentPosition().moveMade())));
 	else if (isPlayerOnTurnComputer())
 		statusMessage(tr("%1 to play.").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())));
 	else if (m_game->currentPosition().currentPlayer().drawnLetters().empty())
-		statusMessage(tr("%1 to play. %2").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())).arg(assistiveText));
+		statusMessage(tr("%1 to play. %2")
+				.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name()))
+				.arg(assistiveText));
 	else
-		statusMessage(tr("%1 to play after drawing %2. %3").arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name())).arg(QuackleIO::Util::letterStringToQString(m_game->currentPosition().playerOnTurn().drawnLetters().tiles())).arg(assistiveText));
+		statusMessage(tr("%1 to play after drawing %2. %3")
+				.arg(QuackleIO::Util::uvStringToQString(m_game->currentPosition().playerOnTurn().name()))
+				.arg(QuackleIO::Util::letterStringToQString(m_game->currentPosition().playerOnTurn().drawnLetters().tiles()))
+				.arg(assistiveText));
 
 	updateListerDialogWithRack();
 }
@@ -623,7 +661,7 @@ void TopLevel::updateMoveViews()
 {
 	if (m_simulator->hasSimulationResults())
 	{
-		const Quackle::MoveList& moveList = m_simulator->moves(/* prune */ true, /* sort by win */ true);
+		const Quackle::MoveList &moveList = m_simulator->moves(/* prune */ true, /* sort by win */ true);
 		emit movesChanged(&moveList);
 	}
 	else
@@ -665,10 +703,7 @@ void TopLevel::initializeGame(const Quackle::PlayerList *players)
 		{
 			QUACKLE_DATAMANAGER->shuffle(newPlayers);
 			m_firstPlayerName = newPlayers.front().name();
-			if (all_of(newPlayers.begin(),
-					   newPlayers.end(),
-					   [&](const Quackle::Player& p) { return p.name() == prevFirst; }
-					   ))
+			if (all_of(newPlayers.begin(), newPlayers.end(), [&](const Quackle::Player &p) { return p.name() == prevFirst; }))
 				break; // all player names are identical...break an infinite loop
 		}
 	}
@@ -677,7 +712,7 @@ void TopLevel::initializeGame(const Quackle::PlayerList *players)
 	m_game->associateKnownComputerPlayers();
 
 	m_game->addPosition();
-	
+
 	advanceGame();
 
 	setCaption(gameTitle());
@@ -710,10 +745,12 @@ void TopLevel::open()
 			return;
 		}
 	}
-	
-	// QString getOpenFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString & filter = QString(), QString * selectedFilter = 0, Options options = 0 )
+
+	// QString getOpenFileName ( QWidget * parent = 0, const QString & caption = QString(), const QString & dir = QString(), const QString &
+	// filter = QString(), QString * selectedFilter = 0, Options options = 0 )
 	QString defaultFilter = defaultGameFileFilter();
-	QString filename = QFileDialog::getOpenFileName(this, tr("Choose game file to open"), getInitialDirectory(), gameFileFilters(), &defaultFilter);
+	QString filename
+		= QFileDialog::getOpenFileName(this, tr("Choose game file to open"), getInitialDirectory(), gameFileFilters(), &defaultFilter);
 
 	if (!filename.isEmpty())
 		openFile(filename);
@@ -731,7 +768,7 @@ void TopLevel::openFile(const QString &filename)
 
 QString TopLevel::getInitialDirectory() const
 {
-	return m_initialDirectory.isEmpty()? QDir::homePath() : m_initialDirectory;
+	return m_initialDirectory.isEmpty() ? QDir::homePath() : m_initialDirectory;
 }
 
 void TopLevel::setInitialDirectory(const QString &filename)
@@ -754,7 +791,7 @@ void TopLevel::newGame()
 {
 	if (!setupCheck())
 		return;
-	
+
 	pause(true);
 
 	if (m_modified)
@@ -772,7 +809,7 @@ void TopLevel::newGame()
 			return;
 		}
 	}
-	
+
 	NewGameDialog newGameDialog(this);
 	switch (newGameDialog.exec())
 	{
@@ -856,21 +893,24 @@ void TopLevel::plugIntoHistoryMatrix(HistoryView *view)
 {
 	plugIntoBaseMatrix(view);
 
-	connect(view, SIGNAL(goToHistoryLocation(const Quackle::HistoryLocation *)), this, SLOT(goToHistoryLocation(const Quackle::HistoryLocation *)));
+	connect(view, SIGNAL(goToHistoryLocation(const Quackle::HistoryLocation *)), this,
+		SLOT(goToHistoryLocation(const Quackle::HistoryLocation *)));
 
 	connect(this, SIGNAL(historyChanged(const Quackle::History &)), view, SLOT(historyChanged(const Quackle::History &)));
 }
 
 QMessageBox::StandardButton TopLevel::askToSave()
 {
-	return QMessageBox::warning(this, tr("Unsaved Moves - Quackle"), dialogText(tr("There are unsaved moves in the current game. Save them?")), QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
+	return QMessageBox::warning(this, tr("Unsaved Moves - Quackle"),
+		dialogText(tr("There are unsaved moves in the current game. Save them?")),
+		QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 }
 
 void TopLevel::generateList()
 {
 	if (!setupCheck())
 		return;
-	
+
 	pause(true);
 
 	if (m_listerDialog)
@@ -909,7 +949,7 @@ void TopLevel::kibitz()
 	if (confuseUser)
 	{
 		const size_t currentlyKibitzed = m_game->currentPosition().moves().size();
-		kibitz(currentlyKibitzed < kExtraPlaysToKibitz? kExtraPlaysToKibitz : (int)currentlyKibitzed + kExtraPlaysToKibitz);
+		kibitz(currentlyKibitzed < kExtraPlaysToKibitz ? kExtraPlaysToKibitz : (int)currentlyKibitzed + kExtraPlaysToKibitz);
 	}
 	else
 	{
@@ -932,7 +972,8 @@ void TopLevel::kibitz(int numberOfPlays, Quackle::ComputerPlayer *computerPlayer
 
 		thread->setPlayer(computerPlayer->clone());
 		thread->findBestMoves(numberOfPlays);
-		statusMessage(tr("Asked %1 for her choices. Please allow her time to think.").arg(QuackleIO::Util::uvStringToQString(computerPlayer->name())));
+		statusMessage(tr("Asked %1 for her choices. Please allow her time to think.")
+				.arg(QuackleIO::Util::uvStringToQString(computerPlayer->name())));
 	}
 	else
 	{
@@ -947,7 +988,7 @@ void TopLevel::kibitzThreadFinished()
 		return;
 	QString name;
 	QString rack;
-	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end(); )
+	for (QList<OppoThread *>::iterator it = m_otherOppoThreads.begin(); it != m_otherOppoThreads.end();)
 	{
 		if ((*it)->isFinished())
 		{
@@ -1051,7 +1092,7 @@ void TopLevel::simulate(bool startSimulation)
 
 	// it's not so useful to have sim control show/hide
 	// like this
-	//m_simulatorWidget->setVisible(startSimulation);
+	// m_simulatorWidget->setVisible(startSimulation);
 
 	if (startSimulation)
 	{
@@ -1129,8 +1170,8 @@ void TopLevel::logfileEnabled(bool on)
 void TopLevel::setLogfileEnabled(bool /* enabled */)
 {
 	// not needed with QGroupBox
-	//m_logfileChooser->setEnabled(enabled);
-	//m_logfileEdit->setEnabled(enabled);
+	// m_logfileChooser->setEnabled(enabled);
+	// m_logfileEdit->setEnabled(enabled);
 
 	logfileChanged();
 }
@@ -1147,7 +1188,7 @@ QString TopLevel::userSpecifiedLogfile() const
 
 QString TopLevel::logfile() const
 {
-	return isLogfileEnabled()? userSpecifiedLogfile() : QString("");
+	return isLogfileEnabled() ? userSpecifiedLogfile() : QString("");
 }
 
 void TopLevel::logfileChanged()
@@ -1161,7 +1202,7 @@ void TopLevel::chooseLogfile()
 
 	QFileDialog *fileDialog = new QFileDialog(this, tr("Choose log file"));
 
-	fileDialog->setDirectory(userSpecifiedLogfile().isEmpty()? QDir::currentPath() : QFileInfo(userSpecifiedLogfile()).absolutePath());
+	fileDialog->setDirectory(userSpecifiedLogfile().isEmpty() ? QDir::currentPath() : QFileInfo(userSpecifiedLogfile()).absolutePath());
 	fileDialog->setFileMode(QFileDialog::AnyFile);
 	fileDialog->setOption(QFileDialog::DontConfirmOverwrite);
 
@@ -1201,7 +1242,7 @@ QString TopLevel::userSpecifiedPartialOppoRack() const
 
 QString TopLevel::partialOppoRack() const
 {
-	return isPartialOppoRackEnabled()? userSpecifiedPartialOppoRack() : QString("");
+	return isPartialOppoRackEnabled() ? userSpecifiedPartialOppoRack() : QString("");
 }
 
 void TopLevel::partialOppoRackChanged()
@@ -1220,7 +1261,9 @@ void TopLevel::partialOppoRackChanged()
 
 	if (!m_game->currentPosition().canSetPlayerRackWithoutBagExpansion(m_game->currentPosition().currentPlayer().id(), doubleRack))
 	{
-		QMessageBox::warning(this, tr("Wrackful Rack - Quackle"), dialogText(tr("The rack %1 contains letters that are not possible for opponent to hold.").arg(QuackleIO::Util::letterStringToQString(rack.tiles()))));
+		QMessageBox::warning(this, tr("Wrackful Rack - Quackle"),
+			dialogText(tr("The rack %1 contains letters that are not possible for opponent to hold.")
+					.arg(QuackleIO::Util::letterStringToQString(rack.tiles()))));
 		m_partialOppoRackEdit->selectAll();
 		m_partialOppoRackEdit->setFocus();
 		return;
@@ -1256,7 +1299,8 @@ void TopLevel::incrementSimulation()
 
 void TopLevel::updateSimViews()
 {
-	m_simulatorWidget->setTitle(m_simulator->hasSimulationResults()? tr("Simulation: %2 iterations").arg(m_simulator->iterations()) : tr("Simulation"));
+	m_simulatorWidget->setTitle(
+		m_simulator->hasSimulationResults() ? tr("Simulation: %2 iterations").arg(m_simulator->iterations()) : tr("Simulation"));
 
 	if (m_simViewer && m_simViewer->isVisible())
 		m_simViewer->setSimulator(*m_simulator);
@@ -1287,7 +1331,8 @@ void TopLevel::loadFile(const QString &filename)
 	QuackleIO::Logania *logania = QuackleIO::Queenie::self()->loganiaForFile(filename);
 	if (logania == 0)
 	{
-		QMessageBox::critical(this, tr("Error Loading Game File - Quackle"), dialogText(tr("Sorry, %1 is in a format Quackle cannot read.")).arg(filename));
+		QMessageBox::critical(
+			this, tr("Error Loading Game File - Quackle"), dialogText(tr("Sorry, %1 is in a format Quackle cannot read.")).arg(filename));
 		file.close();
 		return;
 	}
@@ -1321,7 +1366,8 @@ void TopLevel::save()
 void TopLevel::saveAs()
 {
 	QString defaultFilter = defaultGameFileFilter();
-	QString filename = QFileDialog::getSaveFileName(this, tr("Choose file to which to save game"), getInitialDirectory(), gameFileFilters(), &defaultFilter);
+	QString filename = QFileDialog::getSaveFileName(
+		this, tr("Choose file to which to save game"), getInitialDirectory(), gameFileFilters(), &defaultFilter);
 
 	if (!filename.isEmpty())
 	{
@@ -1340,12 +1386,12 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 	{
 		setInitialDirectory(filename);
 		QFile file(filename);
-	
+
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 		{
-			QMessageBox::critical(this, tr("Error Writing File - Quacker"), dialogText(tr("Could not open %1 for writing.")).arg(filename));        
-			return;    
-		}    
+			QMessageBox::critical(this, tr("Error Writing File - Quacker"), dialogText(tr("Could not open %1 for writing.")).arg(filename));
+			return;
+		}
 
 		Quackle::ComputerPlayer *clone = player->clone();
 
@@ -1359,7 +1405,8 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 void TopLevel::htmlReport()
 {
 	Quackle::ComputerPlayer *player = new Quackle::StaticPlayer();
-	QString filename = QFileDialog::getSaveFileName(this, tr("Choose HTML file to which to write report - Quackle"), getInitialDirectory(), "HTML Files (*.html)");
+	QString filename = QFileDialog::getSaveFileName(
+		this, tr("Choose HTML file to which to write report - Quackle"), getInitialDirectory(), "HTML Files (*.html)");
 
 	if (!filename.isEmpty())
 	{
@@ -1375,7 +1422,8 @@ void TopLevel::htmlReport()
 void TopLevel::graphicalReport()
 {
 	Quackle::ComputerPlayer *player = new Quackle::StaticPlayer();
-	QString directory = QFileDialog::getExistingDirectory(this, tr("Choose directory to which to write report and graphics"), getInitialDirectory());
+	QString directory
+		= QFileDialog::getExistingDirectory(this, tr("Choose directory to which to write report and graphics"), getInitialDirectory());
 
 	if (!directory.isEmpty())
 	{
@@ -1392,18 +1440,18 @@ void TopLevel::writeFile(const QString &filename)
 {
 	if (!m_game->hasPositions())
 		return;
-	
+
 	QFile file(filename);
-	 
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))    
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quacker"), dialogText(tr("Could not open %1 for writing.")).arg(filename));        
-		return;    
-	}    
+
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		QMessageBox::critical(this, tr("Error Writing File - Quacker"), dialogText(tr("Could not open %1 for writing.")).arg(filename));
+		return;
+	}
 
 	QTextStream stream(&file);
 
-	QuackleIO::Logania *logania = m_logania? m_logania : QuackleIO::Queenie::self()->defaultLogania();
+	QuackleIO::Logania *logania = m_logania ? m_logania : QuackleIO::Queenie::self()->defaultLogania();
 
 	if (logania == 0)
 	{
@@ -1432,12 +1480,12 @@ void TopLevel::pause(bool paused)
 		m_brb->grabFocus();
 	}
 
-/*
-	if (paused)
-		statusMessage(tr("Paused."));
-	else
-		statusMessage(tr("Resuming..."));
-*/
+	/*
+		if (paused)
+			statusMessage(tr("Paused."));
+		else
+			statusMessage(tr("Resuming..."));
+	*/
 }
 
 void TopLevel::advanceGame()
@@ -1470,7 +1518,8 @@ void TopLevel::startOutcraftyingCurrentPlayer()
 
 bool TopLevel::shouldOutcraftyCurrentPlayer() const
 {
-	return !m_game->currentPosition().gameOver() && m_game->hasPositions() && m_game->currentPosition().location() == m_game->history().lastLocation();
+	return !m_game->currentPosition().gameOver() && m_game->hasPositions()
+		&& m_game->currentPosition().location() == m_game->history().lastLocation();
 }
 
 void TopLevel::stopOutcraftyingCurrentPlayer()
@@ -1486,7 +1535,7 @@ void TopLevel::computerPlayerDone()
 
 	Quackle::MoveList moves;
 
-	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end(); )
+	for (QList<OppoThread *>::iterator it = m_oppoThreads.begin(); it != m_oppoThreads.end();)
 	{
 		if ((*it)->isFinished())
 		{
@@ -1612,7 +1661,9 @@ QString TopLevel::gameTitle()
 	else if (players.size() == 1)
 		ret = tr("%1's solo game").arg(QuackleIO::Util::uvStringToQString(players.front().name()));
 	else if (players.size() == 2)
-		ret = tr("%1 versus %2").arg(QuackleIO::Util::uvStringToQString(players.front().name())).arg(QuackleIO::Util::uvStringToQString(players.at(1).name()));
+		ret = tr("%1 versus %2")
+				  .arg(QuackleIO::Util::uvStringToQString(players.front().name()))
+				  .arg(QuackleIO::Util::uvStringToQString(players.at(1).name()));
 	else if (players.size() > 2)
 		ret = tr("Game between %1 and friends").arg(QuackleIO::Util::uvStringToQString(players.front().name()));
 
@@ -1626,7 +1677,7 @@ void TopLevel::createMenu()
 	const bool enableLetterbox = false;
 
 	//// Game menu
-	
+
 	m_newAction = new QAction(tr("&New game..."), this);
 	m_newAction->setShortcut(tr("Ctrl+N"));
 	connect(m_newAction, SIGNAL(triggered()), this, SLOT(newGame()));
@@ -1706,7 +1757,8 @@ void TopLevel::createMenu()
 		kibitzAction->setIconText(tr("Ask %1").arg(QuackleIO::Util::uvStringToQString((*it).name())));
 		connect(kibitzAction, SIGNAL(triggered()), listener, SLOT(kibitzTriggered()));
 
-		QAction *reportAction = new QAction(tr("Ask %1 for a full-game report").arg(QuackleIO::Util::uvStringToQString((*it).name())), this);
+		QAction *reportAction
+			= new QAction(tr("Ask %1 for a full-game report").arg(QuackleIO::Util::uvStringToQString((*it).name())), this);
 		connect(reportAction, SIGNAL(triggered()), listener, SLOT(reportTriggered()));
 
 		connect(listener, SIGNAL(kibitzAs(Quackle::ComputerPlayer *)), this, SLOT(kibitzAs(Quackle::ComputerPlayer *)));
@@ -1806,7 +1858,7 @@ void TopLevel::createMenu()
 
 	move->addSeparator();
 
-	for (const auto& it : m_kibitzAsActions->actions())
+	for (const auto &it : m_kibitzAsActions->actions())
 		move->addAction(it);
 
 	move->addSeparator();
@@ -1826,7 +1878,7 @@ void TopLevel::createMenu()
 
 	QMenu *reports = menuBar()->addMenu(tr("Re&ports"));
 
-	for (const auto& it : m_reportAsActions->actions())
+	for (const auto &it : m_reportAsActions->actions())
 		reports->addAction(it);
 
 	reports->addSeparator();
@@ -1962,7 +2014,7 @@ void TopLevel::createWidgets()
 
 	m_partialOppoRackEdit = new QLineEdit;
 	connect(m_partialOppoRackEdit, SIGNAL(textEdited(const QString &)), this, SLOT(partialOppoRackChanged()));
-	
+
 	partialOppoRackLayout->addWidget(m_partialOppoRackEdit);
 	simulatorLayout->addWidget(m_partialOppoRackEnable);
 
@@ -2019,7 +2071,7 @@ void TopLevel::createWidgets()
 
 	m_splitter->setStretchFactor(1, 4);
 
-	m_listerDialog = new ListerDialog(this, "quackle", tr("Quackle"),  ListerDialog::NothingToReturn);
+	m_listerDialog = new ListerDialog(this, "quackle", tr("Quackle"), ListerDialog::NothingToReturn);
 }
 
 void TopLevel::switchToTab(TabIndex index)
@@ -2065,7 +2117,7 @@ void TopLevel::showAscii()
 	QString text;
 
 	// This is now usurped into Reporter's output.
-	//text += tr("Players: %1").arg(playerString()) + "\n\n";
+	// text += tr("Players: %1").arg(playerString()) + "\n\n";
 
 	UVString report;
 	Quackle::Reporter::reportPosition(m_game->currentPosition(), 0, &report);
@@ -2082,7 +2134,8 @@ void TopLevel::showAscii()
 
 	if (msgBox.clickedButton() == writeButton)
 	{
-		QString filename = QFileDialog::getSaveFileName(this, tr("Choose file to print plaintext board to - Quackle"), getInitialDirectory());
+		QString filename
+			= QFileDialog::getSaveFileName(this, tr("Choose file to print plaintext board to - Quackle"), getInitialDirectory());
 
 		if (!filename.isEmpty())
 		{
@@ -2107,11 +2160,12 @@ void TopLevel::copyToClipboard(const QString &text)
 void TopLevel::writeAsciiToFile(const QString &text, const QString &filename)
 {
 	QFile file(filename);
-	 
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))    
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quackle"), dialogText(tr("Could not open %1 for writing.")).arg(file.fileName()));        
-		return;    
+
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		QMessageBox::critical(
+			this, tr("Error Writing File - Quackle"), dialogText(tr("Could not open %1 for writing.")).arg(file.fileName()));
+		return;
 	}
 
 	QTextStream stream(&file);
@@ -2133,16 +2187,17 @@ void TopLevel::print()
 		return;
 
 	QFile file(filename);
-	 
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))    
-	{        
-		QMessageBox::critical(this, tr("Error Writing File - Quackle"), dialogText(tr("Could not open %1 for writing.")).arg(file.fileName()));
-		return;    
+
+	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+	{
+		QMessageBox::critical(
+			this, tr("Error Writing File - Quackle"), dialogText(tr("Could not open %1 for writing.")).arg(file.fileName()));
+		return;
 	}
 
 	QTextStream stream(&file);
 	SET_QTEXTSTREAM_TO_UTF8(stream);
-	//stream << printer.html() << "\n";
+	// stream << printer.html() << "\n";
 
 	file.close();
 
@@ -2152,30 +2207,34 @@ void TopLevel::print()
 void TopLevel::firstTimeRun()
 {
 	switchToTab(SettingsTabIndex);
-	QMessageBox::information(this, tr("Welcome - Quackle"), dialogText(tr("Welcome to Quackle! To get started, configure a board by clicking Add Board in the Settings tab, add some bonus squares, and then start a new game. Also check out the Helpful Hints from the Help menu, and keep your eye out for the aidant messages in the status bar at the bottom of the window.")));
+	QMessageBox::information(this, tr("Welcome - Quackle"),
+		dialogText(tr("Welcome to Quackle! To get started, configure a board by clicking Add Board in the Settings tab, add some bonus "
+					  "squares, and then start a new game. Also check out the Helpful Hints from the Help menu, and keep your eye out for "
+					  "the aidant messages in the status bar at the bottom of the window.")));
 }
 
 void TopLevel::about()
 {
-	QString aboutText = tr(
-"<p><b>Quackle</b> 1.0.4.1 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
-"<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the anonymous donor who made this software free.</p>"
-"<p>Copyright 2005-2026 by</p>"
-"<ul>"
-"<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
-"<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
-"<li>John Fultz &lt;jfultz@wolfram.com&gt;</li>"
-"</ul>"
-"<p>Quackle is free, open-source software licensed under the terms of the GNU General Public License Version 3. See</p>"
-"<p><tt><a href=\"http://quackle.org/LICENSE\">http://quackle.org/LICENSE</a></tt></p>"
-"<p>Dictionary copyrights</p><ul>"
-);
+	QString aboutText
+		= tr("<p><b>Quackle</b> 1.0.4.1 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a "
+			 "href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+			 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the "
+			 "anonymous donor who made this software free.</p>"
+			 "<p>Copyright 2005-2026 by</p>"
+			 "<ul>"
+			 "<li>Jason Katz-Brown &lt;jasonkatzbrown@gmail.com&gt;</li>"
+			 "<li>John O'Laughlin &lt;olaughlin@gmail.com&gt;</li>"
+			 "<li>John Fultz &lt;jfultz@wolfram.com&gt;</li>"
+			 "</ul>"
+			 "<p>Quackle is free, open-source software licensed under the terms of the GNU General Public License Version 3. See</p>"
+			 "<p><tt><a href=\"http://quackle.org/LICENSE\">http://quackle.org/LICENSE</a></tt></p>"
+			 "<p>Dictionary copyrights</p><ul>");
 
 #ifdef _MSC_VER
-	FILE* file = nullptr;
+	FILE *file = nullptr;
 	fopen_s(&file, QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false).c_str(), "r");
 #else
-	FILE* file = fopen(QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false).c_str(), "r");
+	FILE *file = fopen(QUACKLE_DATAMANAGER->makeDataFilename("lexica", "copyrights.txt", false).c_str(), "r");
 #endif
 	if (file)
 	{
@@ -2204,16 +2263,21 @@ void TopLevel::about()
 
 void TopLevel::hints()
 {
-	QMessageBox::information(this, tr("Helpful Hints - Quackle"), dialogText(tr(
-"<ul>"
-"<li>Press Shift-Enter after typing your word on the board to enter and commit your move quickly.</li>"
-"<li>Double-click at any time during a game on any item in the History table to analyze that position. If you then commit a play, you will restart the game from that point and future plays will be lost.</li>"
-"<li>To analyze a real-life game, start a two-player game with two \"Human With Unknown Rack\" players. For one player, for each turn set the rack to the rack you had in the game and then analyze the position and commit the play that you made in real life. For the other player, commit your oppo's real-life plays.</li>"
-"<li>Stop simulations by unchecking \"Simulate\" in the Move menu. Sims can be stopped and restarted without losing their state, and sims of different plies can be combined. Check out the sim details during a simulation by choosing \"Show simulation details\" from the Move menu!</li>"
-"</ul>"
-"<p>Have fun using Quackle. We'd love your help developing it, especially if you can code, but we like suggestions too! Please join the Quackle Yahoo! group at</p>"
-"<p><tt>http://games.groups.yahoo.com/group/quackle/</tt></p>"
-)));
+	QMessageBox::information(this, tr("Helpful Hints - Quackle"),
+		dialogText(tr("<ul>"
+					  "<li>Press Shift-Enter after typing your word on the board to enter and commit your move quickly.</li>"
+					  "<li>Double-click at any time during a game on any item in the History table to analyze that position. If you then "
+					  "commit a play, you will restart the game from that point and future plays will be lost.</li>"
+					  "<li>To analyze a real-life game, start a two-player game with two \"Human With Unknown Rack\" players. For one "
+					  "player, for each turn set the rack to the rack you had in the game and then analyze the position and commit the "
+					  "play that you made in real life. For the other player, commit your oppo's real-life plays.</li>"
+					  "<li>Stop simulations by unchecking \"Simulate\" in the Move menu. Sims can be stopped and restarted without losing "
+					  "their state, and sims of different plies can be combined. Check out the sim details during a simulation by choosing "
+					  "\"Show simulation details\" from the Move menu!</li>"
+					  "</ul>"
+					  "<p>Have fun using Quackle. We'd love your help developing it, especially if you can code, but we like suggestions "
+					  "too! Please join the Quackle Yahoo! group at</p>"
+					  "<p><tt>http://games.groups.yahoo.com/group/quackle/</tt></p>")));
 }
 
 void TopLevel::showConfigDialog()
@@ -2304,7 +2368,7 @@ void TopLevel::startBirthday()
 		m_birthdayTimer->stop();
 		return;
 	}
-	
+
 	m_birthdayIndex = 0;
 	m_birthdayTimer->start(800);
 }
@@ -2326,34 +2390,34 @@ void TopLevel::birthdayGram(int index, bool on)
 		setCaption(tr("HURRRRRRRRRRRRRRRRRRRRRRRRR"));
 		break;
 	case 1:
-		m_newAction->setIconText(on? tr("HAPPY") : tr("New game"));
+		m_newAction->setIconText(on ? tr("HAPPY") : tr("New game"));
 		break;
 	case 2:
-		m_generateAction->setIconText(on? tr("BIRTHDAY") : tr("Generate word list"));
+		m_generateAction->setIconText(on ? tr("BIRTHDAY") : tr("Generate word list"));
 		break;
 	case 3:
-		m_kibitzAction->setIconText(on? tr("ONG") : tr("Generate choices"));
+		m_kibitzAction->setIconText(on ? tr("ONG") : tr("Generate choices"));
 		break;
 	case 4:
-		m_nextPositionAction->setIconText(on? tr("! ! ! ! ! ! ! ! !") : tr("Forward"));
+		m_nextPositionAction->setIconText(on ? tr("! ! ! ! ! ! ! ! !") : tr("Forward"));
 		break;
 	case 5:
-		m_kibitzAsActions->actions().front()->setIconText(on? tr("SUANNE") : tr("Ask Championship Player"));
+		m_kibitzAsActions->actions().front()->setIconText(on ? tr("SUANNE") : tr("Ask Championship Player"));
 		break;
 	case 6:
-		m_simulateAction->setIconText(on? tr("! ! ! ! ! ! ! ! !") : tr("Simulate"));
+		m_simulateAction->setIconText(on ? tr("! ! ! ! ! ! ! ! !") : tr("Simulate"));
 		break;
 	case 7:
-		m_tabWidget->setTabText(0, on? tr("HAVE A") : tr("Histor&y"));
+		m_tabWidget->setTabText(0, on ? tr("HAVE A") : tr("Histor&y"));
 		break;
 	case 8:
-		m_tabWidget->setTabText(1, on? tr("SUPERPIMP") : tr("&Choices"));
+		m_tabWidget->setTabText(1, on ? tr("SUPERPIMP") : tr("&Choices"));
 		break;
 	case 9:
-		m_tabWidget->setTabText(2, on? tr("YEAR") : tr("Se&ttings"));
+		m_tabWidget->setTabText(2, on ? tr("YEAR") : tr("Se&ttings"));
 		break;
 	case 10:
-		statusMessage(on? tr("you're awesome don't ever change") : tr(""));
+		statusMessage(on ? tr("you're awesome don't ever change") : tr(""));
 		break;
 	default:
 		break;
@@ -2383,4 +2447,3 @@ bool KibitzerListener::slownessCheck()
 {
 	return true;
 }
-

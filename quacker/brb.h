@@ -25,19 +25,19 @@
 
 namespace Quackle
 {
-	class GamePosition;
+class GamePosition;
 }
 
 class WidgetFactory;
 
 class BRB : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BRB(WidgetFactory *widgetFactory, QWidget *parent = 0);
 	virtual ~BRB();
-	View * getBoardView() const;
+	View *getBoardView() const;
 
 public slots:
 	virtual void positionChanged(const Quackle::GamePosition *position);

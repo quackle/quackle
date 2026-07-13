@@ -23,9 +23,7 @@ BaseView::BaseView(QWidget *parent)
 {
 }
 
-BaseView::~BaseView()
-{
-}
+BaseView::~BaseView() {}
 
 /////////
 
@@ -34,13 +32,9 @@ View::View(QWidget *parent)
 {
 }
 
-View::~View()
-{
-}
+View::~View() {}
 
-void View::grabFocus()
-{
-}
+void View::grabFocus() {}
 
 void View::positionChanged(const Quackle::GamePosition *position)
 {
@@ -50,13 +44,13 @@ void View::positionChanged(const Quackle::GamePosition *position)
 
 void View::movesChanged(const Quackle::MoveList *moves)
 {
-	for (auto& it : m_subviews)
+	for (auto &it : m_subviews)
 		it->movesChanged(moves);
 }
 
 void View::connectSubviewSignals()
 {
-	for (auto& it : m_subviews)
+	for (auto &it : m_subviews)
 	{
 		connect(it, SIGNAL(statusMessage(const QString &)), this, SIGNAL(statusMessage(const QString &)));
 		connect(it, SIGNAL(setCandidateMove(const Quackle::Move *, bool *)), this, SIGNAL(setCandidateMove(const Quackle::Move *, bool *)));
@@ -73,11 +67,6 @@ HistoryView::HistoryView(QWidget *parent)
 {
 }
 
-HistoryView::~HistoryView()
-{
-}
+HistoryView::~HistoryView() {}
 
-void HistoryView::historyChanged(const Quackle::History & /* history */)
-{
-}
-
+void HistoryView::historyChanged(const Quackle::History & /* history */) {}

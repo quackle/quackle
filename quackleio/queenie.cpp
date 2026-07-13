@@ -60,7 +60,7 @@ Logania *Queenie::loganiaForFile(const QString &filename)
 	for (QList<Logania *>::const_iterator it = m_loganias.begin(); it != m_loganias.end(); ++it)
 	{
 		QFile file(filename);
-	
+
 		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 			return 0;
 
@@ -82,4 +82,3 @@ Logania *Queenie::defaultLogania()
 {
 	return m_loganias.front();
 }
-

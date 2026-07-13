@@ -28,68 +28,64 @@ using namespace Quackle;
 
 Resolvent::Resolvent()
 {
-    m_name = MARK_UV("Resolvent");
-    m_id = 201;
+	m_name = MARK_UV("Resolvent");
+	m_id = 201;
 }
 
-Resolvent::~Resolvent()
-{
-}
+Resolvent::~Resolvent() {}
 
 Move Resolvent::move()
 {
-    return moves(1).back();
+	return moves(1).back();
 }
 
 MoveList Resolvent::moves(int nmoves)
 {
-    // UVcout << "Resolvent generating move from position:" << endl;
-    // UVcout << m_simulator.currentPosition() << endl;
+	// UVcout << "Resolvent generating move from position:" << endl;
+	// UVcout << m_simulator.currentPosition() << endl;
 
-    ComputerPlayer *delegatee;
+	ComputerPlayer *delegatee;
 
-    if (m_simulator.currentPosition().bag().empty())
-    {
-        // Case 1: Straight endgame.
-        delegatee = new EndgamePlayer;
-    }
-    else if (currentPosition().bag().size() <= Preendgame::maximumTilesInBagToEngage())
-    {
-        // Case 2: Preendgame.
-        delegatee = new Preendgame;
-    }
-    else
-    {
-        // Case 3: Beginning and middle of the game.
-        delegatee = new SmartBogowin;
-    }
+	if (m_simulator.currentPosition().bag().empty())
+	{
+		// Case 1: Straight endgame.
+		delegatee = new EndgamePlayer;
+	}
+	else if (currentPosition().bag().size() <= Preendgame::maximumTilesInBagToEngage())
+	{
+		// Case 2: Preendgame.
+		delegatee = new Preendgame;
+	}
+	else
+	{
+		// Case 3: Beginning and middle of the game.
+		delegatee = new SmartBogowin;
+	}
 
-    delegatee->setParameters(parameters());
-    delegatee->setDispatch(currentPosition().nestedness() > 0? 0 : m_dispatch);
-    delegatee->setPosition(m_simulator.currentPosition());
-    delegatee->setConsideredMoves(m_simulator.consideredMoves());
-    MoveList moves = delegatee->moves(nmoves);
-    delete delegatee;
+	delegatee->setParameters(parameters());
+	delegatee->setDispatch(currentPosition().nestedness() > 0 ? 0 : m_dispatch);
+	delegatee->setPosition(m_simulator.currentPosition());
+	delegatee->setConsideredMoves(m_simulator.consideredMoves());
+	MoveList moves = delegatee->moves(nmoves);
+	delete delegatee;
 
-    return moves;
+	return moves;
 }
 
 bool Resolvent::isSlow() const
 {
-    return true;
+	return true;
 }
 
 InferringPlayer::InferringPlayer()
 {
-    m_name = MARK_UV("Inferring Player");
-    m_id = 2012;
-    m_parameters.secondsPerTurn = 20;
-    m_parameters.inferring = true;
+	m_name = MARK_UV("Inferring Player");
+	m_id = 2012;
+	m_parameters.secondsPerTurn = 20;
+	m_parameters.inferring = true;
 }
 
-InferringPlayer::~InferringPlayer()
-{
-}
+InferringPlayer::~InferringPlayer() {}
 
 TorontoPlayer::TorontoPlayer()
 {
@@ -98,9 +94,7 @@ TorontoPlayer::TorontoPlayer()
 	m_parameters.secondsPerTurn = 66;
 }
 
-TorontoPlayer::~TorontoPlayer()
-{
-}
+TorontoPlayer::~TorontoPlayer() {}
 
 FiveMinutePlayer::FiveMinutePlayer()
 {
@@ -109,9 +103,7 @@ FiveMinutePlayer::FiveMinutePlayer()
 	m_parameters.secondsPerTurn = 60 * 5;
 }
 
-FiveMinutePlayer::~FiveMinutePlayer()
-{
-}
+FiveMinutePlayer::~FiveMinutePlayer() {}
 
 TwentySecondPlayer::TwentySecondPlayer()
 {
@@ -120,6 +112,4 @@ TwentySecondPlayer::TwentySecondPlayer()
 	m_parameters.secondsPerTurn = 20;
 }
 
-TwentySecondPlayer::~TwentySecondPlayer()
-{
-}
+TwentySecondPlayer::~TwentySecondPlayer() {}

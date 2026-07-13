@@ -26,9 +26,9 @@
 
 using std::vector;
 
-class DawgFactory {
+class DawgFactory
+{
 public:
-
 	DawgFactory(const QString &alphabetFile);
 	~DawgFactory();
 
@@ -45,13 +45,14 @@ public:
 	void generate();
 	void writeIndex(const string &filename);
 
-	const char* hashBytes() { return m_hash.charptr; };
+	const char *hashBytes() { return m_hash.charptr; };
 
 private:
-	class Node {
+	class Node
+	{
 	public:
-		bool pushWord(const Quackle::LetterString& word, bool inSmaller, int pb);
-		void print(vector< Node* > &m_nodelist);
+		bool pushWord(const Quackle::LetterString &word, bool inSmaller, int pb);
+		void print(vector<Node *> &m_nodelist);
 
 		int letterSum() const;
 		bool equals(const Node &n) const;
@@ -69,20 +70,21 @@ private:
 		mutable bool sumexplored;
 		mutable unsigned int sum;
 		mutable vector<int> counts;
-			
+
 		bool deleted;
-		Node* cloneof;
+		Node *cloneof;
 		bool written;
 	};
 
 	int m_encodableWords;
 	int m_unencodableWords;
 	int m_duplicateWords;
-	vector< Node* > m_nodelist;
+	vector<Node *> m_nodelist;
 	vector<unsigned int> m_countsByLength;
 	Quackle::AlphabetParameters *m_alphas;
 	Node m_root;
-	union {
+	union
+	{
 		char charptr[16];
 		std::int32_t int32ptr[4];
 	} m_hash;
@@ -91,5 +93,3 @@ private:
 };
 
 #endif
-
-

@@ -26,17 +26,17 @@
 
 namespace Quackle
 {
-	class GamePosition;
-	class History;
-	class HistoryLocation;
-	class Move;
-	class MoveList;
-	class Rack;
+class GamePosition;
+class History;
+class HistoryLocation;
+class Move;
+class MoveList;
+class Rack;
 }
 
 class BaseView : public QFrame
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BaseView(QWidget *parent = 0);
@@ -49,7 +49,7 @@ signals:
 
 class View : public BaseView
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	View(QWidget *parent = 0);
@@ -77,7 +77,7 @@ public slots:
 	// move is made, but the candidate move (accessible from position.moveMade(),
 	// and the resulting board from position.boardAfterMoveMade()) change alone too.
 	// This is called in both cases.
-	// 
+	//
 	// The default implementation calls positionChanged(position) for all subviews
 	// in m_subviews.
 	virtual void positionChanged(const Quackle::GamePosition *position);
@@ -97,7 +97,7 @@ protected:
 
 class HistoryView : public BaseView
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	HistoryView(QWidget *parent = 0);

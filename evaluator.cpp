@@ -27,27 +27,27 @@ using namespace Quackle;
 
 double Evaluator::equity(const GamePosition &position, const Move &move) const
 {
-	(void) position;
+	(void)position;
 	return move.effectiveScore();
 }
 
 double Evaluator::playerConsideration(const GamePosition &position, const Move &move) const
 {
-	(void) position;
-	(void) move;
+	(void)position;
+	(void)move;
 	return 0;
 }
 
 double Evaluator::sharedConsideration(const GamePosition &position, const Move &move) const
 {
-	(void) position;
-	(void) move;
+	(void)position;
+	(void)move;
 	return 0;
 }
 
 double Evaluator::leaveValue(const LetterString &leave) const
 {
-	(void) leave;
+	(void)leave;
 	return 0;
 }
 
@@ -65,15 +65,15 @@ double ScorePlusLeaveEvaluator::playerConsideration(const GamePosition &position
 
 double ScorePlusLeaveEvaluator::sharedConsideration(const GamePosition &position, const Move &move) const
 {
-	(void) position;
-	(void) move;
+	(void)position;
+	(void)move;
 	return 0;
 }
 
 double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 {
 	LetterString alphabetized = String::alphabetize(leave);
-	
+
 	if (QUACKLE_STRATEGY_PARAMETERS->hasSuperleaves() && QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized))
 		return QUACKLE_STRATEGY_PARAMETERS->superleave(alphabetized);
 
@@ -85,7 +85,7 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 		LetterString uniqleave;
 
 		if (QUACKLE_STRATEGY_PARAMETERS->hasWorths())
-			for (const auto& leaveIt : leave)
+			for (const auto &leaveIt : leave)
 				value += QUACKLE_STRATEGY_PARAMETERS->tileWorth(leaveIt);
 
 		if (QUACKLE_STRATEGY_PARAMETERS->hasSyn2())
@@ -105,26 +105,29 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 					synergy += QUACKLE_STRATEGY_PARAMETERS->syn2(uniqleave[i], uniqleave[j]);
 
 			// TODO handle the Q
-			
+
 			bool holding_bad_tile = false;
-			for (unsigned int i = 0; i < uniqleave.length(); ++i) {
-				if (QUACKLE_STRATEGY_PARAMETERS->tileWorth(uniqleave[i]) < -5.5) {
+			for (unsigned int i = 0; i < uniqleave.length(); ++i)
+			{
+				if (QUACKLE_STRATEGY_PARAMETERS->tileWorth(uniqleave[i]) < -5.5)
+				{
 					holding_bad_tile = true;
 				}
 			}
-			
-			if ((synergy > 3.0) && !holding_bad_tile) {
-			    synergy += 1.5 * (synergy - 3.0);
+
+			if ((synergy > 3.0) && !holding_bad_tile)
+			{
+				synergy += 1.5 * (synergy - 3.0);
 			}
 
 			value += synergy;
-		}    
+		}
 	}
 
 	int vowels = 0;
 	int cons = 0;
 
-	for (const auto& leaveIt : leave)
+	for (const auto &leaveIt : leave)
 	{
 		if (leaveIt != QUACKLE_BLANK_MARK)
 		{
@@ -133,22 +136,22 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 			else
 				cons++;
 		}
-	} 
+	}
 
-	const float vcvalues[8][8] =
-	{
-		{  0.0,   0.0,  -1.0,  -2.5,  -5.0,  -8.5, -13.5, -18.5},
-		{ -1.0,   0.0,   0.5,   0.0,  -1.5,  -5.0, -10.0,   0.0},
-		{ -3.5,  -1.0,   0.5,   1.5,  -1.5,  -3.0,   0.0,   0.0},
-		{ -7.0,  -3.5,  -0.5,   2.5,   0.0,   0.0,   0.0,   0.0},
-		{-10.0,  -6.5,  -3.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-13.5, -11.5,  -8.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-18.5, -16.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
-		{-23.5,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0,   0.0},
+	const float vcvalues[8][8] = {
+		{ 0.0, 0.0, -1.0, -2.5, -5.0, -8.5, -13.5, -18.5 },
+		{ -1.0, 0.0, 0.5, 0.0, -1.5, -5.0, -10.0, 0.0 },
+		{ -3.5, -1.0, 0.5, 1.5, -1.5, -3.0, 0.0, 0.0 },
+		{ -7.0, -3.5, -0.5, 2.5, 0.0, 0.0, 0.0, 0.0 },
+		{ -10.0, -6.5, -3.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+		{ -13.5, -11.5, -8.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+		{ -18.5, -16.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
+		{ -23.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 },
 	};
 
 #ifdef DEBUG_BOARD
-	UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " has " << vowels << " vowels, " << cons << " cons.  value of " << vcvalues[vowels][cons] << endl;
+	UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " has " << vowels << " vowels, " << cons << " cons.  value of "
+		   << vcvalues[vowels][cons] << endl;
 #endif
 
 	value += vcvalues[vowels][cons];
@@ -157,9 +160,9 @@ double ScorePlusLeaveEvaluator::leaveValue(const LetterString &leave) const
 		value = -40;
 
 #ifdef DEBUG_BOARD
-	UVcout << "leave " << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " worth " << value << " uniq " << QUACKLE_ALPHABET_PARAMETERS->userVisible(uniqleave) << " synergy " << synergy << endl;
+	UVcout << "leave " << QUACKLE_ALPHABET_PARAMETERS->userVisible(leave) << " worth " << value << " uniq "
+		   << QUACKLE_ALPHABET_PARAMETERS->userVisible(uniqleave) << " synergy " << synergy << endl;
 #endif
 
 	return value;
 }
-

@@ -27,7 +27,7 @@
 
 class QuackerDispatch : public QObject, public Quackle::ComputerDispatch
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	QuackerDispatch(QObject *parent = 0);
@@ -47,7 +47,7 @@ private:
 
 class OppoThread : public QThread
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	OppoThread(QObject *parent = 0);

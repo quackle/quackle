@@ -34,9 +34,9 @@ ConfigDialog::ConfigDialog()
 	m_pagesWidget = new QStackedWidget;
 
 	m_configPages.push_back(new InterfacePage);
-	//m_configPages.push_back(new LetterboxPage);
+	// m_configPages.push_back(new LetterboxPage);
 
-	for (auto& it : m_configPages)
+	for (auto &it : m_configPages)
 	{
 		m_pagesWidget->addWidget(it);
 		it->readConfig();
@@ -45,7 +45,8 @@ ConfigDialog::ConfigDialog()
 		button->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 	}
 
-	connect(m_contentsWidget, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)), this, SLOT(changePage(QListWidgetItem *, QListWidgetItem*)));
+	connect(m_contentsWidget, SIGNAL(currentItemChanged(QListWidgetItem *, QListWidgetItem *)), this,
+		SLOT(changePage(QListWidgetItem *, QListWidgetItem *)));
 
 	QPushButton *applyButton = new QPushButton(tr("&Apply"));
 	QPushButton *okButton = new QPushButton(tr("&OK"));
@@ -87,7 +88,7 @@ void ConfigDialog::changePage(QListWidgetItem *current, QListWidgetItem *previou
 
 void ConfigDialog::apply()
 {
-	for (auto& it : m_configPages)
+	for (auto &it : m_configPages)
 	{
 		it->writeConfig();
 	}
@@ -100,4 +101,3 @@ void ConfigDialog::submit()
 	apply();
 	close();
 }
-

@@ -25,12 +25,10 @@ ComputerPlayer::ComputerPlayer()
 	: m_name(MARK_UV("Computer Player")), m_id(0), m_dispatch(0)
 {
 	m_parameters.secondsPerTurn = 10;
-    m_parameters.inferring = false;
+	m_parameters.inferring = false;
 }
 
-ComputerPlayer::~ComputerPlayer()
-{
-}
+ComputerPlayer::~ComputerPlayer() {}
 
 void ComputerPlayer::setDispatch(ComputerDispatch *dispatch)
 {
@@ -79,9 +77,7 @@ StaticPlayer::StaticPlayer()
 	m_id = 1;
 }
 
-StaticPlayer::~StaticPlayer()
-{
-}
+StaticPlayer::~StaticPlayer() {}
 
 Move StaticPlayer::move()
 {

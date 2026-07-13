@@ -25,7 +25,7 @@ class BoardSetupFrame;
 
 class BoardSetup : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BoardSetup(QWidget *parent = 0);
@@ -45,7 +45,7 @@ private:
 
 class BoardSetupFrame : public GraphicalBoardFrame
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BoardSetupFrame(QWidget *parent = 0);

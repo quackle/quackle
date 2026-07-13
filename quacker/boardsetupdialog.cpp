@@ -34,14 +34,15 @@
 
 using namespace std;
 
-BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
+BoardSetupDialog::BoardSetupDialog(QWidget *parent)
+	: QDialog(parent)
 {
-	resize(700,550);
+	resize(700, 550);
 	setSizeGripEnabled(true);
-	
+
 	// construct the board
 	BoardSetupFactory factory;
-	BRB * brb = new BRB(&factory);
+	BRB *brb = new BRB(&factory);
 	m_boardFrame = static_cast<BoardSetup *>(brb->getBoardView())->boardFrame();
 	initializeBoardName();
 
@@ -63,22 +64,22 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	m_undoAll = new QPushButton(tr("&Undo All Changes"));
 	m_deleteBoard = new QPushButton(tr("&Delete Board"));
 
-	QVBoxLayout * superLayout = new QVBoxLayout;
+	QVBoxLayout *superLayout = new QVBoxLayout;
 	Geometry::setupFramedLayout(superLayout);
-	QHBoxLayout * mainLayout = new QHBoxLayout;
+	QHBoxLayout *mainLayout = new QHBoxLayout;
 	Geometry::setupInnerLayout(mainLayout);
-	QVBoxLayout * leftSideLayout = new QVBoxLayout;
+	QVBoxLayout *leftSideLayout = new QVBoxLayout;
 	Geometry::setupInnerLayout(leftSideLayout);
-	QLabel * boardNameLabel = new QLabel(tr("&Board name:"));
+	QLabel *boardNameLabel = new QLabel(tr("&Board name:"));
 	boardNameLabel->setBuddy(m_boardName);
-	QGroupBox * dimensionGroup = new QGroupBox(tr("Board dimensions"));
-	QHBoxLayout * dimensionRow = new QHBoxLayout(dimensionGroup);
+	QGroupBox *dimensionGroup = new QGroupBox(tr("Board dimensions"));
+	QHBoxLayout *dimensionRow = new QHBoxLayout(dimensionGroup);
 	Geometry::setupFramedLayout(dimensionRow);
-	QLabel * dimensionLabel = new QLabel(tr(" by "));
-	QGroupBox * symmetryGroup = new QGroupBox(tr("Board symmetry"));
-	QVBoxLayout * symmetryCol = new QVBoxLayout(symmetryGroup);
+	QLabel *dimensionLabel = new QLabel(tr(" by "));
+	QGroupBox *symmetryGroup = new QGroupBox(tr("Board symmetry"));
+	QVBoxLayout *symmetryCol = new QVBoxLayout(symmetryGroup);
 	Geometry::setupFramedLayout(symmetryCol);
-	QHBoxLayout * buttonRow = new QHBoxLayout;
+	QHBoxLayout *buttonRow = new QHBoxLayout;
 	Geometry::setupInnerLayout(buttonRow);
 
 	// build the layout
@@ -128,25 +129,23 @@ BoardSetupDialog::BoardSetupDialog(QWidget *parent) : QDialog(parent)
 	connect(m_horizontalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	connect(m_verticalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
 	connect(m_diagonalSymmetry, SIGNAL(stateChanged(int)), this, SLOT(symmetryChanged()));
-	
+
 	setWindowTitle(tr("Configure Board - Quackle"));
 
 	// sync game board with control states and draw board
 	ostringstream boardStream;
 	QUACKLE_BOARD_PARAMETERS->Serialize(boardStream);
 	m_serializedOriginalBoard = boardStream.str();
-	
+
 	parametersChanged(0);
 	symmetryChanged();
 }
 
-BoardSetupDialog::~BoardSetupDialog()
-{
-}
+BoardSetupDialog::~BoardSetupDialog() {}
 
-QComboBox * BoardSetupDialog::constructDimensionComboBox(int defaultDimension)
+QComboBox *BoardSetupDialog::constructDimensionComboBox(int defaultDimension)
 {
-	QComboBox * returnValue = new QComboBox;
+	QComboBox *returnValue = new QComboBox;
 
 	for (int i = QUACKLE_MINIMUM_BOARD_SIZE; i <= QUACKLE_MAXIMUM_BOARD_SIZE; i++)
 	{
@@ -177,7 +176,7 @@ void BoardSetupDialog::initializeBoardName()
 	}
 }
 
-void BoardSetupDialog::parametersChanged(const QString& unused)
+void BoardSetupDialog::parametersChanged(const QString &unused)
 {
 	parametersChanged(0);
 }
@@ -202,23 +201,19 @@ void BoardSetupDialog::parametersChanged(int unused)
 
 void BoardSetupDialog::symmetryChanged()
 {
-	bool allowDiagonalSymmetry =
-		m_horizontalSymmetry->isChecked() && m_verticalSymmetry->isChecked() &&
-		(m_horizontalDimension->currentIndex() == m_verticalDimension->currentIndex());
+	bool allowDiagonalSymmetry = m_horizontalSymmetry->isChecked() && m_verticalSymmetry->isChecked()
+		&& (m_horizontalDimension->currentIndex() == m_verticalDimension->currentIndex());
 	m_diagonalSymmetry->setEnabled(allowDiagonalSymmetry);
-	m_boardFrame->setSymmetry(
-				m_horizontalSymmetry->isChecked(),
-				m_verticalSymmetry->isChecked(),
-				m_diagonalSymmetry->isChecked() && m_diagonalSymmetry->isEnabled());
+	m_boardFrame->setSymmetry(m_horizontalSymmetry->isChecked(), m_verticalSymmetry->isChecked(),
+		m_diagonalSymmetry->isChecked() && m_diagonalSymmetry->isEnabled());
 }
 
 void BoardSetupDialog::accept()
 {
 	if (m_boardName->text().isEmpty())
 	{
-		QMessageBox::critical(this, tr("Missing board name"),
-			"You must type in a board name before saving this change.",
-			QMessageBox::Ok, QMessageBox::NoButton);
+		QMessageBox::critical(this, tr("Missing board name"), "You must type in a board name before saving this change.", QMessageBox::Ok,
+			QMessageBox::NoButton);
 		return;
 	}
 	else if (m_boardName->text() != m_originalName)
@@ -229,7 +224,8 @@ void BoardSetupDialog::accept()
 		{
 			if (QMessageBox::warning(this, tr("Overwrite existing board?"),
 					tr("You've specified a board name which already exists. Do you want to overwrite the existing board?"),
-					QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+					QMessageBox::Yes, QMessageBox::No)
+				== QMessageBox::No)
 				return;
 		}
 	}
@@ -243,11 +239,11 @@ void BoardSetupDialog::reject()
 	undoAllChanges();
 	QDialog::reject();
 }
-	
+
 void BoardSetupDialog::undoAllChanges()
 {
 	istringstream boardStream(m_serializedOriginalBoard);
-	
+
 	QUACKLE_DATAMANAGER->setBoardParameters(Quackle::BoardParameters::Deserialize(boardStream));
 	parametersChanged(0);
 }
@@ -257,9 +253,8 @@ void BoardSetupDialog::deleteBoard()
 	QString message = "Do you really want to delete the game board \"";
 	message += m_originalName;
 	message += "\"?";
-	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message,
-			QMessageBox::Yes | QMessageBox::No,
-			QMessageBox::No) == QMessageBox::Yes)
+	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+		== QMessageBox::Yes)
 	{
 		CustomQSettings settings;
 		settings.beginGroup("quackle/boardparameters");
@@ -267,4 +262,3 @@ void BoardSetupDialog::deleteBoard()
 		QDialog::reject();
 	}
 }
-

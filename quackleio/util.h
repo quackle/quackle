@@ -23,9 +23,9 @@
 #include <QRegularExpression>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#define SET_QTEXTSTREAM_TO_UTF8(stream) stream.setCodec(QTextCodec::codecForName("UTF-8"))
+#	define SET_QTEXTSTREAM_TO_UTF8(stream) stream.setCodec(QTextCodec::codecForName("UTF-8"))
 #else // QTextStream::setEncoding is gone in Qt6, but streams are UTF8 by default
-#define SET_QTEXTSTREAM_TO_UTF8(stream) 0
+#	define SET_QTEXTSTREAM_TO_UTF8(stream) 0
 #endif
 
 #include <alphabetparameters.h>
@@ -34,8 +34,8 @@
 
 namespace Quackle
 {
-	class Move;
-	class Rack;
+class Move;
+class Rack;
 }
 
 namespace QuackleIO
@@ -76,8 +76,8 @@ public:
 	static QString moveToSensitiveString(const Quackle::Move &move);
 
 	// make alphagram
-    static Quackle::LetterString alphagram(const Quackle::LetterString &word);
-    static QString alphagram(const QString &word);
+	static Quackle::LetterString alphagram(const Quackle::LetterString &word);
+	static QString alphagram(const QString &word);
 
 	// make pattern of letters user wants based on settings
 	static Quackle::LetterString arrangeLettersForUser(const Quackle::LetterString &word);

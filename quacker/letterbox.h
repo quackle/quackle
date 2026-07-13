@@ -64,8 +64,8 @@ public:
 	ClueResult(const QString &newClue);
 	Clue clue;
 
-	void setWordList(Dict::WordList answers);	
-	WordResultList words;		
+	void setWordList(Dict::WordList answers);
+	WordResultList words;
 
 	void resetStats();
 };
@@ -74,18 +74,18 @@ typedef QList<ClueResult> ClueResultList;
 
 class InputValidator : public QValidator
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
-    InputValidator(QObject *parent = 0);
-    ~InputValidator();
+	InputValidator(QObject *parent = 0);
+	~InputValidator();
 
-	QValidator::State validate(QString&, int&) const;
+	QValidator::State validate(QString &, int &) const;
 };
 
 class Letterbox : public QMainWindow
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	Letterbox(QWidget *parent, QAction *preferencesAction, ListerDialog *listerDialog);
@@ -97,7 +97,7 @@ public:
 	void closeEvent(QCloseEvent *closeEvent);
 
 	// make alphagram
-    QString alphagram(const QString &word);
+	QString alphagram(const QString &word);
 
 	// make pattern of letters user wants
 	QString arrangeLettersForUser(const QString &word);
@@ -283,7 +283,7 @@ protected:
 
 class WordView : public QTextEdit, public HTMLRepresentation
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	WordView(QWidget *parent = 0);

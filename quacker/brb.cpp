@@ -58,11 +58,9 @@ BRB::BRB(WidgetFactory *widgetFactory, QWidget *parent)
 	connectSubviewSignals();
 }
 
-BRB::~BRB()
-{
-}
+BRB::~BRB() {}
 
-View * BRB::getBoardView() const
+View *BRB::getBoardView() const
 {
 	return m_boardDisplay;
 }
@@ -76,4 +74,3 @@ void BRB::positionChanged(const Quackle::GamePosition *position)
 {
 	View::positionChanged(position);
 }
-

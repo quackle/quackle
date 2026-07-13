@@ -47,7 +47,7 @@ BoardWithQuickEntry::BoardWithQuickEntry(QWidget *parent)
 
 	QPushButton *placeButton = new QPushButton(tr("Enter move"));
 	connect(placeButton, SIGNAL(clicked()), this, SLOT(quickEditReturnPressed()));
-	//placeEditLayout->addWidget(placeButton);
+	// placeEditLayout->addWidget(placeButton);
 
 	QPushButton *scoreAdditionButton = new QPushButton(tr("+5"));
 	connect(scoreAdditionButton, SIGNAL(clicked()), this, SLOT(plusFive()));
@@ -59,12 +59,10 @@ BoardWithQuickEntry::BoardWithQuickEntry(QWidget *parent)
 
 	QPushButton *resetButton = new QPushButton(tr("Rese&t"));
 	connect(resetButton, SIGNAL(clicked()), this, SLOT(reset()));
-	//placeEditLayout->addWidget(resetButton);
+	// placeEditLayout->addWidget(resetButton);
 }
 
-BoardWithQuickEntry::~BoardWithQuickEntry()
-{
-}
+BoardWithQuickEntry::~BoardWithQuickEntry() {}
 
 void BoardWithQuickEntry::positionChanged(const Quackle::GamePosition *position)
 {
@@ -124,7 +122,12 @@ void BoardWithQuickEntry::reset()
 
 void BoardWithQuickEntry::provideHelp()
 {
-	QMessageBox::information(this, tr("Entering Moves - Quackle"), QString("<html>") + tr("To enter a move, click on the board once or twice and start typing. Hold down the Shift key for blanks. To exchange, type something like \"exchange QWUV\" or \"pass\" into the move editor, then press the Enter key or click \"Enter move\".") + "</html>");
+	QMessageBox::information(this, tr("Entering Moves - Quackle"),
+		QString("<html>")
+			+ tr(
+				"To enter a move, click on the board once or twice and start typing. Hold down the Shift key for blanks. To exchange, type "
+				"something like \"exchange QWUV\" or \"pass\" into the move editor, then press the Enter key or click \"Enter move\".")
+			+ "</html>");
 }
 
 void BoardWithQuickEntry::processCommand(const QString &command)
@@ -227,13 +230,14 @@ TextBoard::TextBoard(QWidget *parent)
 void TextBoard::positionChanged(const Quackle::GamePosition *position)
 {
 	BoardWithQuickEntry::positionChanged(position);
-	//m_textEdit->setHtml(QString("<html><font size=\"+4\"><pre>%1</pre></font></html>").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
+	// m_textEdit->setHtml(QString("<html><font
+	// size=\"+4\"><pre>%1</pre></font></html>").arg(QuackleIO::Util::uvStringToQString(position.boardAfterMoveMade().toString())));
 	m_textEdit->setPlainText(QString("%1").arg(QuackleIO::Util::uvStringToQString(position->boardAfterMoveMade().toString())));
 }
 
 ///////////
 
-void QLineEditWithShiftReturn::keyPressEvent(QKeyEvent * e)
+void QLineEditWithShiftReturn::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter)
 	{
@@ -245,4 +249,3 @@ void QLineEditWithShiftReturn::keyPressEvent(QKeyEvent * e)
 	}
 	QLineEdit::keyPressEvent(e);
 }
-

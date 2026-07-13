@@ -35,7 +35,8 @@ class LexiconInterpreter
 public:
 	virtual void loadDawg(std::ifstream &file, LexiconParameters &lexparams) = 0;
 	virtual void loadGaddag(std::ifstream &file, LexiconParameters &lexparams) = 0;
-	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british, int &playability) const = 0;
+	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
+		int &playability) const = 0;
 	virtual int versionNumber() const = 0;
 	virtual ~LexiconInterpreter() {};
 };
@@ -80,7 +81,7 @@ public:
 	{
 		m_interpreter->dawgAt(m_dawg, index, p, letter, t, lastchild, british, playability);
 	}
-	const GaddagNode *gaddagRoot() const { return (GaddagNode *) &m_gaddag[0]; };
+	const GaddagNode *gaddagRoot() const { return (GaddagNode *)&m_gaddag[0]; };
 
 	string hashString(bool shortened) const;
 	string copyrightString() const;
@@ -95,7 +96,7 @@ protected:
 	char m_hash[16];
 	vector<string> m_utf8Alphabet;
 
-	LexiconInterpreter* createInterpreter(char version) const;
+	LexiconInterpreter *createInterpreter(char version) const;
 
 private:
 	string getLexiconCopyrightLine() const;

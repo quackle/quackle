@@ -43,14 +43,14 @@ public:
 	double vcPlace(int start, int length, int consbits);
 	double bogowin(int lead, int unseen, int blanks);
 	double superleave(LetterString leave);
-	
+
 protected:
 	bool loadSyn2(const string &filename);
 	bool loadWorths(const string &filename);
 	bool loadVcPlace(const string &filename);
 	bool loadBogowin(const string &filename);
 	bool loadSuperleaves(const string &filename);
-	
+
 	int mapLetter(Letter letter) const;
 
 	double m_syn2[QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE][QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE];
@@ -112,9 +112,8 @@ inline double StrategyParameters::tileWorth(Letter letter) const
 
 inline double StrategyParameters::vcPlace(int start, int length, int consbits)
 {
-	if ((consbits < 0) || (consbits >= 128) || 
-		(start < 0) || (start >= QUACKLE_MAXIMUM_BOARD_SIZE) ||
-		(length < 0) || (length >= QUACKLE_MAXIMUM_BOARD_SIZE))
+	if ((consbits < 0) || (consbits >= 128) || (start < 0) || (start >= QUACKLE_MAXIMUM_BOARD_SIZE) || (length < 0)
+		|| (length >= QUACKLE_MAXIMUM_BOARD_SIZE))
 		return 0;
 
 	return m_vcPlace[start][length][consbits];
@@ -122,18 +121,24 @@ inline double StrategyParameters::vcPlace(int start, int length, int consbits)
 
 inline double StrategyParameters::bogowin(int lead, int unseen, int /* blanks */)
 {
-	if (lead < -300) return 0;
-	if (lead > 300) return 1;
+	if (lead < -300)
+		return 0;
+	if (lead > 300)
+		return 1;
 
-	if (unseen > 93) unseen = 93;
+	if (unseen > 93)
+		unseen = 93;
 
 	if (unseen == 0)
 	{
-		if (lead < 0) return 0;
-		else if (lead == 0) return 0.5;
-		else return 1;
+		if (lead < 0)
+			return 0;
+		else if (lead == 0)
+			return 0.5;
+		else
+			return 1;
 	}
-	
+
 	return m_bogowin[lead + 300][unseen];
 }
 

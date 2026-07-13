@@ -56,11 +56,12 @@ int main()
 		dataManager.seedRandomNumbers('E' + 'm' + 'i' + 'l' + 'y' + 'Y' + 'K' + 'o');
 
 	const int gameCnt = 1000;
-	//const int gameCnt = 1;
-	for (int game = 0; game < gameCnt; ++game) {
+	// const int gameCnt = 1;
+	for (int game = 0; game < gameCnt; ++game)
+	{
 		testGame();
 	}
-	
+
 	return 0;
 }
 
@@ -73,7 +74,7 @@ void testGame()
 	Quackle::Player bogowinA(MARK_UV("BogowinA"), Quackle::Player::ComputerPlayerType, 110);
 	bogowinA.setComputerPlayer(new Quackle::SmartBogowin());
 	players.push_back(bogowinA);
-	
+
 	Quackle::Player bogowinB(MARK_UV("BogowinB"), Quackle::Player::ComputerPlayerType, 110);
 	bogowinB.setComputerPlayer(new Quackle::SmartBogowin());
 	players.push_back(bogowinB);
@@ -83,7 +84,7 @@ void testGame()
 
 	game.addPosition();
 
-	//testValidator(game);
+	// testValidator(game);
 
 	const bool setupRetroPosition = false;
 
@@ -117,8 +118,8 @@ void testGame()
 
 	// insert test...() calls here
 	// testSimulation(game);
-	
-	//UVcout << "History:" << endl << game.history() << endl;
+
+	// UVcout << "History:" << endl << game.history() << endl;
 }
 
 void testGameReport(const Quackle::Game &game)
@@ -129,9 +130,7 @@ void testGameReport(const Quackle::Game &game)
 	UVcout << report;
 }
 
-void testBasic(Quackle::Game &game)
-{
-}
+void testBasic(Quackle::Game &game) {}
 
 void spitOutWords(const vector<Quackle::LetterString> &words)
 {
@@ -150,7 +149,8 @@ void testAnagrammer()
 	UVcout << "anagrams of EFIILNT?: " << endl;
 	spitOutWords(generator.anagramLetters(QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("EFIILNT?"))));
 	UVcout << "build of EFIILNT: " << endl;
-	spitOutWords(generator.anagramLetters(QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("EFIILNT")), Quackle::Generator::NoRequireAllLetters));
+	spitOutWords(
+		generator.anagramLetters(QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("EFIILNT")), Quackle::Generator::NoRequireAllLetters));
 	UVcout << "free search of NUTPICK: " << endl;
 	spitOutWords(generator.anagramLetters(QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("NUTPICK")), Quackle::Generator::AddAnyLetters));
 }
@@ -197,7 +197,7 @@ void testSimulation(Quackle::Game &game)
 	const int kibitzLength = 3;
 	game.currentPosition().kibitz(kibitzLength);
 
-	//UVcout << game.currentPosition() << endl;
+	// UVcout << game.currentPosition() << endl;
 	UVcout << game.currentPosition().moves() << endl;
 
 	Quackle::Simulator simulator;
@@ -248,6 +248,6 @@ void testValidator(Quackle::Game &game)
 	game.commitMove(Quackle::Move::createPlaceMove(MARK_UV("10b"), QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("STAT.R"))));
 	game.currentPosition().setCurrentPlayerRack(Quackle::Rack(QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("AIAIAIAI"))));
 
-	UVcout << game.currentPosition().board().allWordsFormedBy(Quackle::Move::createPlaceMove(MARK_UV("9c"), QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("AI"))));
+	UVcout << game.currentPosition().board().allWordsFormedBy(
+		Quackle::Move::createPlaceMove(MARK_UV("9c"), QUACKLE_ALPHABET_PARAMETERS->encode(MARK_UV("AI"))));
 }
-

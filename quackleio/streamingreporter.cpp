@@ -24,9 +24,7 @@
 
 using namespace QuackleIO;
 
-StreamingReporter::StreamingReporter()
-{
-}
+StreamingReporter::StreamingReporter() {}
 
 void StreamingReporter::reportGame(const Quackle::Game &game, Quackle::ComputerPlayer *computerPlayer, QTextStream &stream)
 {
@@ -48,4 +46,3 @@ void StreamingReporter::reportGame(const Quackle::Game &game, Quackle::ComputerP
 	Quackle::Reporter::reportGameStatistics(game, &stats);
 	stream << Util::uvStringToQString(stats);
 }
-

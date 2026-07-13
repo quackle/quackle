@@ -24,7 +24,7 @@
 class WidgetFactory
 {
 public:
-	virtual ~WidgetFactory() { };
+	virtual ~WidgetFactory() {};
 	virtual View *createBoardDisplay() = 0;
 	virtual View *createRackDisplay() = 0;
 	virtual View *createBagDisplay() = 0;
@@ -33,7 +33,7 @@ public:
 class TextFactory : public WidgetFactory
 {
 public:
-	virtual ~TextFactory() { };
+	virtual ~TextFactory() {};
 	virtual View *createBoardDisplay();
 	virtual View *createRackDisplay();
 	virtual View *createBagDisplay();
@@ -42,7 +42,7 @@ public:
 class GraphicalFactory : public WidgetFactory
 {
 public:
-	virtual ~GraphicalFactory() { };
+	virtual ~GraphicalFactory() {};
 	virtual View *createBoardDisplay();
 	virtual View *createRackDisplay();
 	virtual View *createBagDisplay();
@@ -51,7 +51,7 @@ public:
 class BoardSetupFactory : public WidgetFactory
 {
 public:
-	virtual ~BoardSetupFactory() { };
+	virtual ~BoardSetupFactory() {};
 	virtual View *createBoardDisplay();
 	virtual View *createRackDisplay();
 	virtual View *createBagDisplay();

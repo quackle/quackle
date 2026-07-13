@@ -38,7 +38,8 @@ BoardSetup::BoardSetup(QWidget *parent)
 	m_boardFrame = new BoardSetupFrame;
 	m_boardWrapper = new QWidget;
 
-	QLabel *helperLabel = new QLabel(tr("Click or right-click on a board square to cycle through bonuses. Shift-click on a square to designate it as the square that starts the game."));
+	QLabel *helperLabel = new QLabel(tr("Click or right-click on a board square to cycle through bonuses. Shift-click on a square to "
+										"designate it as the square that starts the game."));
 	helperLabel->setWordWrap(true);
 
 	QVBoxLayout *helperLayout = new QVBoxLayout(m_boardWrapper);
@@ -71,10 +72,7 @@ BoardSetupFrame::BoardSetupFrame(QWidget *parent)
 	m_alwaysShowVerboseLabels = true;
 }
 
-BoardSetupFrame::~BoardSetupFrame()
-{
-}
-
+BoardSetupFrame::~BoardSetupFrame() {}
 
 void BoardSetupFrame::setBoard(const Quackle::Board &board)
 {
@@ -97,7 +95,7 @@ void BoardSetupFrame::tileClicked(const QSize &tileLocation, const QMouseEvent *
 {
 	const int row = tileLocation.height();
 	const int col = tileLocation.width();
-	
+
 	// set starting point...
 	if (event->button() == Qt::LeftButton && (event->modifiers() & Qt::SHIFT) != 0)
 	{
@@ -106,10 +104,10 @@ void BoardSetupFrame::tileClicked(const QSize &tileLocation, const QMouseEvent *
 		prepare();
 		return;
 	}
-	
+
 	// or change the value of a square
-	const int maxLetterMultiplier = (int) Quackle::BoardParameters::lsCount;
-	const int maxWordMultiplier = (int) Quackle::BoardParameters::wsCount;
+	const int maxLetterMultiplier = (int)Quackle::BoardParameters::lsCount;
+	const int maxWordMultiplier = (int)Quackle::BoardParameters::wsCount;
 	const int maxMultiplier = maxLetterMultiplier + maxWordMultiplier - 1;
 	int wordMultiplier = QUACKLE_BOARD_PARAMETERS->wordMultiplier(row, col);
 	int letterMultiplier = QUACKLE_BOARD_PARAMETERS->letterMultiplier(row, col);
@@ -154,7 +152,7 @@ void BoardSetupFrame::tileClicked(const QSize &tileLocation, const QMouseEvent *
 		setMultipliers(height - 1 - col, row, wordMultiplier, letterMultiplier);
 		setMultipliers(height - 1 - col, width - 1 - row, wordMultiplier, letterMultiplier);
 	}
-		
+
 	prepare();
 }
 
@@ -165,6 +163,6 @@ bool BoardSetupFrame::wantMousePressEvent(const QMouseEvent *event) const
 
 void BoardSetupFrame::setMultipliers(int row, int col, int word, int letter)
 {
-	QUACKLE_BOARD_PARAMETERS->setWordMultiplier(row, col, (Quackle::BoardParameters::WordMultiplier) word);
-	QUACKLE_BOARD_PARAMETERS->setLetterMultiplier(row, col, (Quackle::BoardParameters::LetterMultiplier) letter);
+	QUACKLE_BOARD_PARAMETERS->setWordMultiplier(row, col, (Quackle::BoardParameters::WordMultiplier)word);
+	QUACKLE_BOARD_PARAMETERS->setLetterMultiplier(row, col, (Quackle::BoardParameters::LetterMultiplier)letter);
 }

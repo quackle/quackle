@@ -33,7 +33,7 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 {
 	setWindowTitle(windowTitleWithAppName(tr("Lister")));
 
-    QVBoxLayout *vbox = new QVBoxLayout(this);
+	QVBoxLayout *vbox = new QVBoxLayout(this);
 
 	QHBoxLayout *mainHorizontalLayout = new QHBoxLayout;
 	vbox->addLayout(mainHorizontalLayout);
@@ -77,10 +77,10 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 	m_numResultsLabel->setBuddy(m_listBox);
 
 	// right side
-	
+
 	QLabel *filtersLabel = new QLabel(tr("&Filters:"));
 	rightSideLayout->addWidget(filtersLabel);
-	
+
 	m_filtersBox = new QListWidget;
 	rightSideLayout->addWidget(m_filtersBox);
 	connect(m_filtersBox, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(showFilter(QListWidgetItem *)));
@@ -125,10 +125,10 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 
 	m_writeButton = new QPushButton(tr("&Write alphagram file"));
 	m_writeNormalButton = new QPushButton(tr("&Write normal file"));
-    m_studyThisButton = new QPushButton(tr("Write and &Study"));
+	m_studyThisButton = new QPushButton(tr("Write and &Study"));
 	QPushButton *openButton = new QPushButton(tr("&Open File..."));
 	QPushButton *clearButton = new QPushButton(tr("C&lear"));
-    m_closeButton = new QPushButton(tr("&Close"));
+	m_closeButton = new QPushButton(tr("&Close"));
 
 	buttonBox->addWidget(m_writeButton);
 	buttonBox->addWidget(m_writeNormalButton);
@@ -152,7 +152,7 @@ ListerDialog::ListerDialog(QWidget *parent, const QString &settingsGroup, const 
 	connect(openButton, SIGNAL(clicked()), this, SLOT(openFile()));
 
 	showFilter(filters.first());
-	//m_filtersBox->setCurrentItem(0);
+	// m_filtersBox->setCurrentItem(0);
 
 	clear();
 }
@@ -181,11 +181,13 @@ void ListerDialog::queryGo()
 {
 	if (m_queryEdit->text().length() >= 40)
 	{
-		QMessageBox::warning(this, tr("Overlong Query - Quackle"), QString("<html>%1</html>").arg(tr("Queries, arbitrarily, cannot exceed 40 letters.")));
+		QMessageBox::warning(
+			this, tr("Overlong Query - Quackle"), QString("<html>%1</html>").arg(tr("Queries, arbitrarily, cannot exceed 40 letters.")));
 		return;
 	}
 
-	m_wordList = QuackleIO::DictFactory::querier()->query(m_queryEdit->text(), m_buildChecker->isChecked()? Dict::Querier::NoRequireAllLetters : Dict::Querier::None);
+	m_wordList = QuackleIO::DictFactory::querier()->query(
+		m_queryEdit->text(), m_buildChecker->isChecked() ? Dict::Querier::NoRequireAllLetters : Dict::Querier::None);
 
 	setRemoveSowpods(m_sowpodsChecker->isChecked());
 	populateListBox();
@@ -246,11 +248,11 @@ void ListerDialog::openFile()
 				line = line.left(quoteMarkIndex).trimmed();
 
 			QStringList words(line.split(" "));
-			for (const auto& it : words)
+			for (const auto &it : words)
 			{
 				bool found = false;
 				Dict::WordList results(QuackleIO::DictFactory::querier()->query(it));
-				for (const auto& resultsIt : results)
+				for (const auto &resultsIt : results)
 				{
 					if (resultsIt.word == it)
 					{
@@ -396,8 +398,8 @@ void ListerDialog::populateListBox()
 {
 	QStringList words;
 
-	for (const auto& it : m_wordList)
-		words.append(it.word + (it.british? "#" : ""));
+	for (const auto &it : m_wordList)
+		words.append(it.word + (it.british ? "#" : ""));
 
 	m_listBox->clear();
 	m_listBox->addItems(words);
@@ -409,7 +411,7 @@ QMap<QString, Dict::WordList> ListerDialog::anagramMap()
 {
 	QMap<QString, Dict::WordList> anagramSets;
 
-	for (const auto& it : m_wordList)
+	for (const auto &it : m_wordList)
 	{
 		QString alpha = QuackleIO::DictFactory::querier()->alphagram(it.word);
 		anagramSets[alpha].append(it);
@@ -435,7 +437,7 @@ QString ListerDialog::writeList(bool alphagrams)
 
 	QMap<QString, Dict::WordList> map(anagramMap());
 
-	for (const auto& it : m_wordList)
+	for (const auto &it : m_wordList)
 	{
 		if (alphagrams)
 		{
@@ -449,7 +451,7 @@ QString ListerDialog::writeList(bool alphagrams)
 		else
 			stream << it.word << "\n";
 	}
-	
+
 	file.close();
 
 	return m_filename;
@@ -496,17 +498,11 @@ Filter::Filter(ListerDialog *dialog)
 	setLineWidth(2);
 }
 
-void Filter::apply()
-{
-}
+void Filter::apply() {}
 
-void Filter::saveSettings(QSettings *)
-{
-}
+void Filter::saveSettings(QSettings *) {}
 
-void Filter::loadSettings(QSettings *)
-{
-}
+void Filter::loadSettings(QSettings *) {}
 
 ///////////////
 
@@ -540,7 +536,7 @@ void PlayabilityFilter::apply()
 	int maximumRank = m_maxRankSpinner->value();
 	if (maximumRank == 0)
 		maximumRank = INT_MAX;
-	
+
 	const bool useProb = m_dialog->flags() & ListerDialog::ProbabilityInsteadOfPlayability;
 
 	QMap<QString, Dict::WordList> map(m_dialog->anagramMap());
@@ -553,7 +549,7 @@ void PlayabilityFilter::apply()
 		Dict::Word newEntry;
 		newEntry.word = it.key();
 
-		for (const auto& extIt : it.value())
+		for (const auto &extIt : it.value())
 		{
 			if (useProb)
 				newEntry.probability += extIt.probability;
@@ -574,7 +570,7 @@ void PlayabilityFilter::apply()
 
 	Dict::WordList filteredList;
 
-	for (const auto& it : intermediateList)
+	for (const auto &it : intermediateList)
 	{
 		++index;
 
@@ -615,11 +611,12 @@ RegexFilter::RegexFilter(ListerDialog *dialog)
 void RegexFilter::apply()
 {
 	QRegularExpression regexp(m_lineEdit->text(), QRegularExpression::PatternOption::CaseInsensitiveOption);
-	
-	Dict::WordList filteredList;
-	const Dict::WordList &list = m_dialog->wordList();;
 
-	for (const auto& it : list)
+	Dict::WordList filteredList;
+	const Dict::WordList &list = m_dialog->wordList();
+	;
+
+	for (const auto &it : list)
 		if (regexp.match(it.word).hasMatch())
 			filteredList.append(it);
 
@@ -660,13 +657,13 @@ void NumAnagramsFilter::apply()
 
 	QMap<QString, Dict::WordList> map(m_dialog->anagramMap());
 
-	for (const auto& it : m_dialog->wordList())
+	for (const auto &it : m_dialog->wordList())
 	{
 		int twl = 0;
 		int british = 0;
 		QString alphagram(QuackleIO::DictFactory::querier()->alphagram(it.word));
 
-		for (const auto& word : map[alphagram])
+		for (const auto &word : map[alphagram])
 		{
 			if (word.british)
 				british++;
@@ -703,12 +700,12 @@ KeepBritishFilter::KeepBritishFilter(ListerDialog *dialog)
 void KeepBritishFilter::apply()
 {
 	Dict::WordList filteredList;
-	const Dict::WordList &list = m_dialog->wordList();;
+	const Dict::WordList &list = m_dialog->wordList();
+	;
 
-	for (const auto& it : list)
+	for (const auto &it : list)
 		if (it.british)
 			filteredList.append(it);
 
 	m_dialog->setWordList(filteredList);
 }
-

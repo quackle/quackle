@@ -52,7 +52,9 @@ SimViewer::SimViewer(QWidget *parent)
 void SimViewer::setSimulator(const Quackle::Simulator &simulator)
 {
 	m_averagesTab->setSimulator(simulator);
-	setWindowTitle(tr("%1 iterations of %2 - Quackle").arg(simulator.iterations()).arg(QuackleIO::Util::letterStringToQString(simulator.currentPosition().currentPlayer().rack().tiles())));
+	setWindowTitle(tr("%1 iterations of %2 - Quackle")
+			.arg(simulator.iterations())
+			.arg(QuackleIO::Util::letterStringToQString(simulator.currentPosition().currentPlayer().rack().tiles())));
 }
 
 /////////////
@@ -69,7 +71,7 @@ AveragesTab::AveragesTab(QWidget *parent)
 	connect(explainButton, SIGNAL(clicked()), this, SLOT(explain()));
 
 	topLayout->addWidget(m_textEdit);
-	//topLayout->addWidget(explainButton);
+	// topLayout->addWidget(explainButton);
 }
 
 void AveragesTab::setSimulator(const Quackle::Simulator &simulator)
@@ -80,19 +82,19 @@ void AveragesTab::setSimulator(const Quackle::Simulator &simulator)
 
 	html += "<hr />";
 
-	for (const auto& it : simulator.simmedMoves())
+	for (const auto &it : simulator.simmedMoves())
 	{
 		if (!it.includeInSimulation())
 			continue;
 
 		QString levels;
-		for (const auto& levelIt : it.levels)
+		for (const auto &levelIt : it.levels)
 		{
 			QString plays;
-			for (const auto& valueIt : levelIt.statistics)
+			for (const auto &valueIt : levelIt.statistics)
 			{
-				//plays += QString("(%1) ").arg((*valueIt).score.averagedValue());
-				//plays += tr("(bingos %1) ").arg((*valueIt).bingos.averagedValue());
+				// plays += QString("(%1) ").arg((*valueIt).score.averagedValue());
+				// plays += tr("(bingos %1) ").arg((*valueIt).bingos.averagedValue());
 			}
 
 			if (!plays.isEmpty())
@@ -126,11 +128,11 @@ QString AveragesTab::statisticTable(const Quackle::Simulator &simulator)
 				continue;
 
 			const Quackle::SimmedMoveList::const_iterator end(simulator.simmedMoves().end());
-			
+
 			// Little bit of fudgery so that the turn after our next turn is #2,
 			// and turn after oppo's next turn is also #2.
-			const int turnNumber = levelIndex + (playerIndex == 0? 0 : 1);
-			QString name = tr("%1 turn #%2").arg(playerIndex == 0? "Our" : "Oppo").arg(turnNumber);
+			const int turnNumber = levelIndex + (playerIndex == 0 ? 0 : 1);
+			QString name = tr("%1 turn #%2").arg(playerIndex == 0 ? "Our" : "Oppo").arg(turnNumber);
 			if (playerIndex == 1 && levelIndex == 0)
 			{
 				name = tr("Oppo next turn");
@@ -140,7 +142,7 @@ QString AveragesTab::statisticTable(const Quackle::Simulator &simulator)
 				name = tr("Our next turn");
 			}
 			ret += QString("<h2>%1</h2>").arg(name);
-			
+
 			ret += "<table border=0 cellspacing=4>";
 			ret += tr("<tr><th>Candidate</th><th>Score</th><th>Std. Dev.</th><th>Bingo %</th></tr>");
 			for (Quackle::SimmedMoveList::const_iterator it = simulator.simmedMoves().begin(); it != end; ++it)
@@ -151,8 +153,10 @@ QString AveragesTab::statisticTable(const Quackle::Simulator &simulator)
 				ret += "<tr>";
 				ret += tr("<td>%1</td>").arg(QuackleIO::Util::moveToDetailedString((*it).move));
 
-				Quackle::AveragedValue value = (*it).getPositionStatistics(levelIndex, playerIndex).getStatistic(Quackle::PositionStatistics::StatisticScore);
-				Quackle::AveragedValue bingos = (*it).getPositionStatistics(levelIndex, playerIndex).getStatistic(Quackle::PositionStatistics::StatisticBingos);
+				Quackle::AveragedValue value
+					= (*it).getPositionStatistics(levelIndex, playerIndex).getStatistic(Quackle::PositionStatistics::StatisticScore);
+				Quackle::AveragedValue bingos
+					= (*it).getPositionStatistics(levelIndex, playerIndex).getStatistic(Quackle::PositionStatistics::StatisticBingos);
 
 				ret += QString("<td>%1</td><td>%2</td>").arg(value.averagedValue()).arg(value.standardDeviation());
 				ret += QString("<td>%1</td>").arg(bingos.averagedValue() * 100.0);
@@ -167,11 +171,20 @@ QString AveragesTab::statisticTable(const Quackle::Simulator &simulator)
 
 void AveragesTab::explain()
 {
-	QMessageBox::information(this, tr("Simulation Details Explanation - Quackle"), tr("<p>A Quackle 2-ply simulation first puts our candidate play on the board, then has opponents make their best plays based on static evaluation, and has us make our best response based on static evaluation. So</p><ol><li>(28 [sd 0]) (39.1503 [sd 17.8229])</li><li>(45.1284 [sd 21.0234])</li></ol><p>means we're looking at a candidate play scoring 28. The average oppo response scored 39.2 with standard deviation 17.8. Our average riposte scored 45.1 with standard deviation 21.0.</p><ul><li>The residual value is the average leave value of our rack at the end of simulation minus the summed average leave value of oppo's racks.</li><li>The spread is the average differential between our score and the leading player's score at the end of an iteration.</li><li>The fake win percentage is how often we had a positive spread at the end of the iteration.</li></ul><p>Note that odd-plied simulations are fun to try occasionally. For example, a 3-ply simulation has two of our plays (including the candidate) and two of each oppo's plays. Also try the <i>Oppos pass</i> option, which has oppos pass for all of their turns in the simulation.</p>"));
+	QMessageBox::information(this, tr("Simulation Details Explanation - Quackle"),
+		tr("<p>A Quackle 2-ply simulation first puts our candidate play on the board, then has opponents make their best plays based on "
+		   "static evaluation, and has us make our best response based on static evaluation. So</p><ol><li>(28 [sd 0]) (39.1503 [sd "
+		   "17.8229])</li><li>(45.1284 [sd 21.0234])</li></ol><p>means we're looking at a candidate play scoring 28. The average oppo "
+		   "response scored 39.2 with standard deviation 17.8. Our average riposte scored 45.1 with standard deviation "
+		   "21.0.</p><ul><li>The residual value is the average leave value of our rack at the end of simulation minus the summed average "
+		   "leave value of oppo's racks.</li><li>The spread is the average differential between our score and the leading player's score "
+		   "at the end of an iteration.</li><li>The fake win percentage is how often we had a positive spread at the end of the "
+		   "iteration.</li></ul><p>Note that odd-plied simulations are fun to try occasionally. For example, a 3-ply simulation has two of "
+		   "our plays (including the candidate) and two of each oppo's plays. Also try the <i>Oppos pass</i> option, which has oppos pass "
+		   "for all of their turns in the simulation.</p>"));
 }
 
 QSize SimViewer::sizeHint() const
 {
 	return QSize(400, 400);
 }
-

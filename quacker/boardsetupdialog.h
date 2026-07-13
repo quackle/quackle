@@ -34,7 +34,7 @@ class BoardSetupFrame;
 
 class BoardSetupDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BoardSetupDialog(QWidget *parent = 0);
@@ -53,25 +53,25 @@ private:
 	QCheckBox *m_horizontalSymmetry;
 	QCheckBox *m_verticalSymmetry;
 	QCheckBox *m_diagonalSymmetry;
-	
+
 	QComboBox *m_horizontalDimension;
 	QComboBox *m_verticalDimension;
-	
+
 	QLineEdit *m_boardName;
-	
+
 	QPushButton *m_saveChanges;
 	QPushButton *m_cancel;
 	QPushButton *m_undoAll;
 	QPushButton *m_deleteBoard;
-	
+
 	Quackle::Game m_game;
-	BoardSetupFrame * m_boardFrame;
+	BoardSetupFrame *m_boardFrame;
 
 	QString m_originalName;
-	
+
 	string m_serializedOriginalBoard;
 
-	QComboBox * constructDimensionComboBox(int defaultDimension);
+	QComboBox *constructDimensionComboBox(int defaultDimension);
 	void initializeBoardName();
 };
 

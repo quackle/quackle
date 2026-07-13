@@ -29,11 +29,10 @@
 // Whether to use wchar for Quackle's user-visible strings.
 // Not recommended.
 #ifndef QUACKLE_USE_WCHAR_FOR_USER_VISIBLE
-#define QUACKLE_USE_WCHAR_FOR_USER_VISIBLE 0
+#	define QUACKLE_USE_WCHAR_FOR_USER_VISIBLE 0
 #endif // !QUACKLE_USE_WCHAR_FOR_USER_VISIBLE
 
 /** End of define options */
-
 
 #if QUACKLE_USE_WCHAR_FOR_USER_VISIBLE
 typedef std::wstring UVString;
@@ -45,9 +44,9 @@ typedef std::wostringstream UVOStringStream;
 typedef std::wistringstream UVIStringStream;
 typedef std::wifstream UVIFStream;
 typedef std::wofstream UVOFStream;
-#define UVcout std::wcout
-#define UVcerr std::wcerr
-#define MARK_UV(theString)  L ## theString
+#	define UVcout std::wcout
+#	define UVcerr std::wcerr
+#	define MARK_UV(theString) L##theString
 #else
 typedef std::string UVString;
 typedef char UVChar;
@@ -58,9 +57,9 @@ typedef std::istringstream UVIStringStream;
 typedef std::ostringstream UVOStringStream;
 typedef std::ifstream UVIFStream;
 typedef std::ofstream UVOFStream;
-#define UVcout std::cout
-#define UVcerr std::cerr
-#define MARK_UV(theString)  theString
+#	define UVcout std::cout
+#	define UVcerr std::cerr
+#	define MARK_UV(theString) theString
 #endif
 
 #endif

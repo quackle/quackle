@@ -80,7 +80,7 @@ public:
 	int size() const;
 
 	const LongLetterString &tiles() const;
-	
+
 	// returns our tiles in a random order
 	LongLetterString shuffledTiles() const;
 
@@ -108,12 +108,12 @@ inline void Bag::toss(const Rack &rack)
 
 inline bool Bag::empty() const
 {
-    return m_tiles.empty();
+	return m_tiles.empty();
 }
 
 inline int Bag::size() const
 {
-    return (int)m_tiles.size();
+	return (int)m_tiles.size();
 }
 
 inline const LongLetterString &Bag::tiles() const

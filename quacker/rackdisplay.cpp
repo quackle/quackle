@@ -59,9 +59,7 @@ QuickEntryRack::QuickEntryRack(QWidget *parent)
 	setLayout(layout);
 }
 
-QuickEntryRack::~QuickEntryRack()
-{
-}
+QuickEntryRack::~QuickEntryRack() {}
 
 void QuickEntryRack::positionChanged(const Quackle::GamePosition *position)
 {
@@ -94,7 +92,7 @@ void QuickEntryRack::processRack(const QString &rack)
 		emit statusMessage(tr("Useless rack."));
 		return;
 	}
-	
+
 	emit setRack(QuackleIO::Util::makeRack(rack));
 }
 
@@ -106,7 +104,7 @@ void QuickEntryRack::shuffle()
 	emit setRack(rack);
 }
 
-GraphicalRack::GraphicalRack(QWidget * parent)
+GraphicalRack::GraphicalRack(QWidget *parent)
 	: QFrame(parent)
 {
 	m_layout = new QHBoxLayout(this);
@@ -117,13 +115,14 @@ GraphicalRack::GraphicalRack(QWidget * parent)
 	setMinimumSize(50, 50);
 }
 
-void
-GraphicalRack::setText(const Quackle::LetterString &text)
+void GraphicalRack::setText(const Quackle::LetterString &text)
 {
 	// clear old labels
-	while(m_layout->count()) {
-		QLabel *label = qobject_cast<QLabel*>(m_layout->itemAt(0)->widget());
-		if (!label) {
+	while (m_layout->count())
+	{
+		QLabel *label = qobject_cast<QLabel *>(m_layout->itemAt(0)->widget());
+		if (!label)
+		{
 			break;
 		}
 		m_layout->removeWidget(label);
@@ -131,20 +130,21 @@ GraphicalRack::setText(const Quackle::LetterString &text)
 	}
 
 	PixmapCacher::self()->invalidate();
-	for (int i = text.size() - 1; i >= 0 ; --i) {
+	for (int i = text.size() - 1; i >= 0; --i)
+	{
 		QLabel *label = new QLabel;
-        label->setAttribute (Qt::WA_DeleteOnClose);
+		label->setAttribute(Qt::WA_DeleteOnClose);
 
 		TileWidget tile;
 		Quackle::Board::TileInformation info;
-        info.isOnRack = true;
+		info.isOnRack = true;
 		info.letter = text[i];
 		info.tileType = Quackle::Board::LetterTile;
 		tile.setDevicePixelRatio(devicePixelRatio());
 		tile.setInformation(info);
 		tile.setSideLength(50);
 		tile.prepare();
-	
+
 		label->setPixmap(tile.tilePixmap());
 
 		m_layout->insertWidget(0, label);
@@ -153,20 +153,24 @@ GraphicalRack::setText(const Quackle::LetterString &text)
 
 const QString GraphicalRack::mime_type = "application/x-quackle-tile";
 
-void
-GraphicalRack::dragEnterEvent (QDragEnterEvent* event)
+void GraphicalRack::dragEnterEvent(QDragEnterEvent *event)
 {
-    if (event->mimeData()->hasFormat(mime_type))
-    {
-        if (event->source() == this) {
-            event->setDropAction (Qt::MoveAction);
-            event->accept();
-        } else {
-            event->acceptProposedAction();
-        }
-    } else {
-        event->ignore();
-    }
+	if (event->mimeData()->hasFormat(mime_type))
+	{
+		if (event->source() == this)
+		{
+			event->setDropAction(Qt::MoveAction);
+			event->accept();
+		}
+		else
+		{
+			event->acceptProposedAction();
+		}
+	}
+	else
+	{
+		event->ignore();
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -176,60 +180,66 @@ GraphicalRack::dragEnterEvent (QDragEnterEvent* event)
 //
 //! @param event the drop event
 //---------------------------------------------------------------------------
-void
-GraphicalRack::dropEvent (QDropEvent* event)
+void GraphicalRack::dropEvent(QDropEvent *event)
 {
-    if (event->mimeData()->hasFormat (mime_type)) {
-        QByteArray itemData = event->mimeData()->data (mime_type);
-        QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+	if (event->mimeData()->hasFormat(mime_type))
+	{
+		QByteArray itemData = event->mimeData()->data(mime_type);
+		QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-        QPixmap pixmap;
-        QPoint sourcePos;
-        QPoint offset;
-        dataStream >> pixmap >> sourcePos >> offset;
-        pixmap.setDevicePixelRatio(devicePixelRatio());
+		QPixmap pixmap;
+		QPoint sourcePos;
+		QPoint offset;
+		dataStream >> pixmap >> sourcePos >> offset;
+		pixmap.setDevicePixelRatio(devicePixelRatio());
 
-        QLabel* droppedTile = new QLabel;
-        droppedTile->setPixmap(pixmap);
-        droppedTile->setAttribute (Qt::WA_DeleteOnClose);
+		QLabel *droppedTile = new QLabel;
+		droppedTile->setPixmap(pixmap);
+		droppedTile->setAttribute(Qt::WA_DeleteOnClose);
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-        QPoint dropPos = event->position().toPoint() - offset;
+		QPoint dropPos = event->position().toPoint() - offset;
 #else
-        QPoint dropPos = event->pos() - offset;
+		QPoint dropPos = event->pos() - offset;
 #endif
 
-        // Move the tile an extra half tile width in the direction of the
-        // move.  This allows the tile to assume a new spot if it is dragged
-        // more than halfway onto the spot.
-        int extraMove = (sourcePos.x() < dropPos.x() ? 50 / 2
-                                                     : -50 / 2);
+		// Move the tile an extra half tile width in the direction of the
+		// move.  This allows the tile to assume a new spot if it is dragged
+		// more than halfway onto the spot.
+		int extraMove = (sourcePos.x() < dropPos.x() ? 50 / 2 : -50 / 2);
 
-        dropPos.setX(dropPos.x() + extraMove);
+		dropPos.setX(dropPos.x() + extraMove);
 
-		for(int i = 0; i < m_layout->count(); ++i) {
-			QLabel *label = qobject_cast<QLabel*>(m_layout->itemAt(i)->widget());
-			if (!label) { // hit the stretcher
+		for (int i = 0; i < m_layout->count(); ++i)
+		{
+			QLabel *label = qobject_cast<QLabel *>(m_layout->itemAt(i)->widget());
+			if (!label)
+			{ // hit the stretcher
 				m_layout->insertWidget(i, droppedTile);
 				break;
 			}
-			if (dropPos.x() > label->pos().x()) {
+			if (dropPos.x() > label->pos().x())
+			{
 				continue;
 			}
 			m_layout->insertWidget(i, droppedTile);
 			break;
 		}
 
-        if (event->source() == this) {
-            event->setDropAction (Qt::MoveAction);
-            event->accept();
-        } else {
-            event->acceptProposedAction();
-        }
-    }
-    else {
-        event->ignore();
-    }
+		if (event->source() == this)
+		{
+			event->setDropAction(Qt::MoveAction);
+			event->accept();
+		}
+		else
+		{
+			event->acceptProposedAction();
+		}
+	}
+	else
+	{
+		event->ignore();
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -239,48 +249,47 @@ GraphicalRack::dropEvent (QDropEvent* event)
 //
 //! @param event the mouse press event
 //---------------------------------------------------------------------------
-void
-GraphicalRack::mousePressEvent (QMouseEvent* event)
+void GraphicalRack::mousePressEvent(QMouseEvent *event)
 {
-    QLabel* child = qobject_cast<QLabel*>(childAt (event->pos()));
-    if (!child)
-        return;
+	QLabel *child = qobject_cast<QLabel *>(childAt(event->pos()));
+	if (!child)
+		return;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	QPixmap pixmap = child->pixmap(Qt::ReturnByValue);
 #else
-    QPixmap pixmap = *(child->pixmap());
+	QPixmap pixmap = *(child->pixmap());
 #endif
 
-    QByteArray itemData;
-    QDataStream dataStream (&itemData, QIODevice::WriteOnly);
-    dataStream << pixmap << QPoint (event->pos())
-               << QPoint (event->pos() - child->pos());
+	QByteArray itemData;
+	QDataStream dataStream(&itemData, QIODevice::WriteOnly);
+	dataStream << pixmap << QPoint(event->pos()) << QPoint(event->pos() - child->pos());
 
-    QMimeData *mimeData = new QMimeData;
-    mimeData->setData (mime_type, itemData);
+	QMimeData *mimeData = new QMimeData;
+	mimeData->setData(mime_type, itemData);
 
-    QDrag *drag = new QDrag (this);
-    drag->setMimeData (mimeData);
-    drag->setPixmap (pixmap);
-    drag->setHotSpot (event->pos() - child->pos());
+	QDrag *drag = new QDrag(this);
+	drag->setMimeData(mimeData);
+	drag->setPixmap(pixmap);
+	drag->setHotSpot(event->pos() - child->pos());
 
-    QColor bgColor = palette().color(QPalette::Window);
+	QColor bgColor = palette().color(QPalette::Window);
 
-    QPixmap tempPixmap = pixmap;
-    QPainter painter;
-    painter.begin (&tempPixmap);
-    painter.fillRect(pixmap.rect(), QColor(bgColor.red(), bgColor.green(),
-                                            bgColor.blue(), 127));
-    painter.end();
+	QPixmap tempPixmap = pixmap;
+	QPainter painter;
+	painter.begin(&tempPixmap);
+	painter.fillRect(pixmap.rect(), QColor(bgColor.red(), bgColor.green(), bgColor.blue(), 127));
+	painter.end();
 
-    child->setPixmap (tempPixmap);
+	child->setPixmap(tempPixmap);
 
-    if (drag->exec(Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction) {
-        child->close();
-    }
-    else {
-        child->show();
-        child->setPixmap (pixmap);
-    }
+	if (drag->exec(Qt::CopyAction | Qt::MoveAction) == Qt::MoveAction)
+	{
+		child->close();
+	}
+	else
+	{
+		child->show();
+		child->setPixmap(pixmap);
+	}
 }

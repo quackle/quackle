@@ -30,9 +30,9 @@ using std::vector;
 // such overflows.
 const int QUACKLE_MAX_GADDAG_WORDCOUNT = 500000;
 
-class GaddagFactory {
+class GaddagFactory
+{
 public:
-
 	static const Quackle::Letter internalSeparatorRepresentation = QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE;
 
 	GaddagFactory(const UVString &alphabetFile);
@@ -50,32 +50,32 @@ public:
 	void generate();
 	void writeIndex(const string &fname);
 
-	const char* hashBytes() { return m_hash.charptr; };
-
+	const char *hashBytes() { return m_hash.charptr; };
 
 private:
-	class Node {
-		public:
-			Quackle::Letter c;
-			bool t;
-			vector<Node> children;
-			int pointer;
-			bool lastchild;
-			void pushWord(const Quackle::LetterString& word);
-			void print(vector< Node* >& m_nodelist);
+	class Node
+	{
+	public:
+		Quackle::Letter c;
+		bool t;
+		vector<Node> children;
+		int pointer;
+		bool lastchild;
+		void pushWord(const Quackle::LetterString &word);
+		void print(vector<Node *> &m_nodelist);
 	};
 
 	int m_encodableWords;
 	int m_unencodableWords;
 	Quackle::WordList m_gaddagizedWords;
-	vector< Node* > m_nodelist;
+	vector<Node *> m_nodelist;
 	Quackle::AlphabetParameters *m_alphas;
 	Node m_root;
-	union {
+	union
+	{
 		char charptr[16];
 		std::int32_t int32ptr[4];
 	} m_hash;
 };
 
 #endif
-

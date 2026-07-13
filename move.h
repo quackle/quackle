@@ -50,7 +50,7 @@ public:
 	int effectiveScore() const;
 
 	double equity = 0.;
-	double win = 0.;  // between 0 and 1 inclusive
+	double win = 0.; // between 0 and 1 inclusive
 	double possibleWin = 0.;
 
 	Action action = Move::Pass;
@@ -109,7 +109,7 @@ public:
 
 	// for a place move, a position like 8H
 	UVString positionString() const;
-	
+
 	// eg place("8h", ".EaTY"); word is like setTiles(), and no
 	// pretty tiles are set.
 	static Move createPlaceMove(UVString placeString, LetterString word);
@@ -137,7 +137,7 @@ bool operator<(const Quackle::Move &move1, const Quackle::Move &move2);
 class MoveList : public std::vector<Move>
 {
 public:
-	enum SortType { Equity, Score, Alphabetical, Win};
+	enum SortType { Equity, Score, Alphabetical, Win };
 
 	// perform stable sort
 	static void sort(MoveList &list, SortType type = Equity);
@@ -152,10 +152,9 @@ public:
 	static bool wordPosComparator(const Move &move1, const Move &move2);
 
 	bool contains(const Move &move) const;
-	
+
 private:
 	static SortType m_sortType;
-
 };
 
 inline bool Move::isAMove() const
@@ -165,7 +164,7 @@ inline bool Move::isAMove() const
 
 inline int Move::effectiveScore() const
 {
-	return m_isChallengedPhoney? 0 : (score + m_scoreAddition);
+	return m_isChallengedPhoney ? 0 : (score + m_scoreAddition);
 }
 
 inline void Move::setTiles(const LetterString &tiles)
@@ -215,11 +214,11 @@ inline bool Move::isAlreadyOnBoard(Letter letter)
 
 }
 
-// we gotta overload so plays with diff equity 
+// we gotta overload so plays with diff equity
 // are equal
 bool operator==(const Quackle::Move &move1, const Quackle::Move &move2);
 
-UVOStream& operator<<(UVOStream& o, const Quackle::Move& m);
-UVOStream& operator<<(UVOStream& o, const Quackle::MoveList& moves);
+UVOStream &operator<<(UVOStream &o, const Quackle::Move &m);
+UVOStream &operator<<(UVOStream &o, const Quackle::MoveList &moves);
 
 #endif

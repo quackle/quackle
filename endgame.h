@@ -31,7 +31,10 @@ namespace Quackle
 
 struct EndgameMove
 {
-	EndgameMove(const Move &_move) : move(_move), optimistic(0), pessimistic(0), estimated(0), outplay(false) { }
+	EndgameMove(const Move &_move)
+		: move(_move), optimistic(0), pessimistic(0), estimated(0), outplay(false)
+	{
+	}
 	Move move;
 	double optimistic;
 	double pessimistic;
@@ -87,7 +90,7 @@ public:
 
 	// return a list of moves, sorted by estimated equity
 	MoveList moves(unsigned int nmoves);
-	
+
 	// return the move list
 	const EndgameMoveList &endgameMoves() const;
 
@@ -96,7 +99,7 @@ public:
 	void reallyPlayOut(Move &move, int nestedness);
 
 	double disappoint(EndgameMove &hope, double bestPessimistic);
-	
+
 protected:
 	void writeLogHeader();
 	void writeLogFooter();
@@ -147,7 +150,7 @@ inline const EndgameMoveList &Endgame::endgameMoves() const
 
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::EndgameMove &move);
-UVOStream& operator<<(UVOStream& o, const Quackle::EndgameMoveList &move);
+UVOStream &operator<<(UVOStream &o, const Quackle::EndgameMove &move);
+UVOStream &operator<<(UVOStream &o, const Quackle::EndgameMoveList &move);
 
 #endif

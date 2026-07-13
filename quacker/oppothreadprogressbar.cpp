@@ -46,4 +46,3 @@ void OppoThreadProgressBar::cancel()
 {
 	m_thread->abort();
 }
-

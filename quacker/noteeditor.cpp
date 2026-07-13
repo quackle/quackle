@@ -39,13 +39,11 @@ NoteEditor::NoteEditor(QWidget *parent)
 	connect(m_textEdit, SIGNAL(textChanged()), this, SLOT(noteEdited()));
 }
 
-NoteEditor::~NoteEditor()
-{
-}
+NoteEditor::~NoteEditor() {}
 
 QSize NoteEditor::sizeHint() const
 {
-	//return QSize(20, 20);
+	// return QSize(20, 20);
 	QSize hint = QFrame::sizeHint();
 	return QSize(hint.width(), hint.height() / 2);
 }

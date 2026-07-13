@@ -33,26 +33,27 @@ bool operator==(const Move &move1, const Move &move2)
 	{
 		switch (move1.action)
 		{
-			case Quackle::Move::Place:
-			case Quackle::Move::PlaceError:
-				ret = (move1.horizontal == move2.horizontal && move1.startrow == move2.startrow && move1.startcol == move2.startcol && move1.tiles() == move2.tiles() && move1.isChallengedPhoney() == move2.isChallengedPhoney());
-				break;
+		case Quackle::Move::Place:
+		case Quackle::Move::PlaceError:
+			ret = (move1.horizontal == move2.horizontal && move1.startrow == move2.startrow && move1.startcol == move2.startcol
+				&& move1.tiles() == move2.tiles() && move1.isChallengedPhoney() == move2.isChallengedPhoney());
+			break;
 
-			case Quackle::Move::UnusedTilesBonus:
-			case Quackle::Move::UnusedTilesBonusError:
-			case Quackle::Move::Exchange:
-				ret = (Quackle::String::alphabetize(move1.tiles()) == Quackle::String::alphabetize(move2.tiles()));
-				break;
+		case Quackle::Move::UnusedTilesBonus:
+		case Quackle::Move::UnusedTilesBonusError:
+		case Quackle::Move::Exchange:
+			ret = (Quackle::String::alphabetize(move1.tiles()) == Quackle::String::alphabetize(move2.tiles()));
+			break;
 
-			case Quackle::Move::BlindExchange:
-				ret = (move1.tiles().length() == move2.tiles().length());
-				break;
+		case Quackle::Move::BlindExchange:
+			ret = (move1.tiles().length() == move2.tiles().length());
+			break;
 
-			case Quackle::Move::Pass:
-			case Quackle::Move::Nonmove:
-			case Quackle::Move::TimePenalty:
-				ret = true;
-				break;
+		case Quackle::Move::Pass:
+		case Quackle::Move::Nonmove:
+		case Quackle::Move::TimePenalty:
+			ret = true;
+			break;
 		}
 	}
 
@@ -81,30 +82,30 @@ bool Quackle::operator<(const Move &move1, const Move &move2)
 
 LetterString Move::usedTiles() const
 {
-    return (m_isChallengedPhoney || action == BlindExchange) ? LetterString() : String::usedTiles(m_tiles);
+	return (m_isChallengedPhoney || action == BlindExchange) ? LetterString() : String::usedTiles(m_tiles);
 }
 
 LetterString Move::wordTiles() const
 {
-    LetterString word;
+	LetterString word;
 
 	const LetterString::const_iterator end(m_prettyTiles.end());
 	for (LetterString::const_iterator it = m_prettyTiles.begin(); it != end; ++it)
-        if (*it != QUACKLE_PLAYTHRU_START_MARK && *it != QUACKLE_PLAYTHRU_END_MARK)
-            word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
+		if (*it != QUACKLE_PLAYTHRU_START_MARK && *it != QUACKLE_PLAYTHRU_END_MARK)
+			word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
 
 	return word;
 }
 
 LetterString Move::wordTilesWithNoPlayThru() const
 {
-    LetterString word;
+	LetterString word;
 	LetterString used = usedTiles();
 
 	const LetterString::const_iterator end(used.end());
 	for (LetterString::const_iterator it = used.begin(); it != end; ++it)
-        if (*it != QUACKLE_PLAYED_THRU_MARK)
-            word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
+		if (*it != QUACKLE_PLAYED_THRU_MARK)
+			word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
 
 	return word;
 }
@@ -153,7 +154,7 @@ UVString Move::xml() const
 		UVOStringStream restStream;
 
 		// adding row and column numbers I suppose is bloat
-		//restStream << "position=\"" << positionString() << "\" startrow=\"" << startrow << "\" startcolumn=\"" << startcol << "\"";
+		// restStream << "position=\"" << positionString() << "\" startrow=\"" << startrow << "\" startcolumn=\"" << startcol << "\"";
 		restStream << "position=\"" << positionString() << "\"";
 
 		rest = restStream.str();
@@ -195,11 +196,11 @@ UVString Move::toString() const
 		ss << "timepenalty " << score;
 	else if (action == Quackle::Move::UnusedTilesBonus || action == Quackle::Move::UnusedTilesBonusError)
 		ss << "(" << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles) << ")";
-    else if (action == Quackle::Move::Place || action == Quackle::Move::PlaceError)
+	else if (action == Quackle::Move::Place || action == Quackle::Move::PlaceError)
 	{
 		ss << positionString();
 		ss << " " << QUACKLE_ALPHABET_PARAMETERS->userVisible(m_tiles);
-    }
+	}
 
 	return ss.str();
 }
@@ -208,7 +209,7 @@ UVString Move::debugString() const
 {
 	UVOStringStream ss;
 
-    ss << toString() << " (score = " << score << ", equity = " << equity << ", win% = " << win;
+	ss << toString() << " (score = " << score << ", equity = " << equity << ", win% = " << win;
 
 	if (m_scoreAddition != 0)
 		ss << ", scoreAddition = " << m_scoreAddition;
@@ -244,8 +245,8 @@ Move Move::createPlaceMove(UVString placeString, LetterString word)
 	UVString rowString, colString;
 	if (iswdigit(placeString[0]))
 	{
-		rowString = placeString.substr(0, iswdigit(placeString[1])? 2 : 1);
-		colString = placeString.substr(iswdigit(placeString[1])? 2 : 1);
+		rowString = placeString.substr(0, iswdigit(placeString[1]) ? 2 : 1);
+		colString = placeString.substr(iswdigit(placeString[1]) ? 2 : 1);
 	}
 	else
 	{
@@ -349,10 +350,10 @@ Move Move::createNonmove()
 	return move;
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::Move& m)
+UVOStream &operator<<(UVOStream &o, const Quackle::Move &m)
 {
 	o << m.debugString();
-    return o;
+	return o;
 }
 
 //////////
@@ -394,8 +395,10 @@ void MoveList::sortNonReverse(MoveList &list, SortType type)
 
 bool MoveList::winComparator(const Move &move1, const Move &move2)
 {
-	if (move1.win == move2.win) {
-		if (move1.equity == move2.equity) {
+	if (move1.win == move2.win)
+	{
+		if (move1.equity == move2.equity)
+		{
 			return wordPosComparator(move1, move2);
 		}
 		return move1.equity < move2.equity;
@@ -405,7 +408,8 @@ bool MoveList::winComparator(const Move &move1, const Move &move2)
 
 bool MoveList::equityComparator(const Move &move1, const Move &move2)
 {
-	if (move1.equity == move2.equity) {
+	if (move1.equity == move2.equity)
+	{
 		return wordPosComparator(move1, move2);
 	}
 	return move1.equity < move2.equity;
@@ -415,19 +419,23 @@ bool MoveList::equityComparator(const Move &move1, const Move &move2)
 // is == and we want determinism.
 bool MoveList::wordPosComparator(const Move &move1, const Move &move2)
 {
-	if (move1.startrow != move2.startrow) {
+	if (move1.startrow != move2.startrow)
+	{
 		return move1.startrow < move2.startrow;
 	}
 
-	if (move1.startcol != move2.startcol) {
+	if (move1.startcol != move2.startcol)
+	{
 		return move1.startcol < move2.startcol;
 	}
 
-	if (move1.horizontal != move2.horizontal) {
+	if (move1.horizontal != move2.horizontal)
+	{
 		return move1.horizontal < move2.horizontal;
 	}
 
-	if (move1.effectiveScore() != move2.effectiveScore()) {
+	if (move1.effectiveScore() != move2.effectiveScore())
+	{
 		return move1.effectiveScore() < move2.effectiveScore();
 	}
 
@@ -437,7 +445,8 @@ bool MoveList::wordPosComparator(const Move &move1, const Move &move2)
 
 bool MoveList::scoreComparator(const Move &move1, const Move &move2)
 {
-	if (move1.effectiveScore() == move2.effectiveScore()) {
+	if (move1.effectiveScore() == move2.effectiveScore())
+	{
 		return wordPosComparator(move1, move2);
 	}
 	return move1.effectiveScore() < move2.effectiveScore();
@@ -445,17 +454,17 @@ bool MoveList::scoreComparator(const Move &move1, const Move &move2)
 
 bool MoveList::alphabeticalComparator(const Move &move1, const Move &move2)
 {
-	if (move1.tiles() == move2.tiles()) {
+	if (move1.tiles() == move2.tiles())
+	{
 		return wordPosComparator(move1, move2);
 	}
 	return move1.tiles() < move2.tiles();
 }
 
-UVOStream& operator<<(UVOStream& o, const Quackle::MoveList& moves)
+UVOStream &operator<<(UVOStream &o, const Quackle::MoveList &moves)
 {
 	Quackle::MoveList::const_iterator end(moves.end());
 	for (Quackle::MoveList::const_iterator it = moves.begin(); it != end; ++it)
 		o << (*it) << endl;
-    return o;
+	return o;
 }
-

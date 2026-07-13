@@ -30,7 +30,7 @@ class AveragesTab;
 
 class SimViewer : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	SimViewer(QWidget *parent = 0);
@@ -45,9 +45,9 @@ private:
 	AveragesTab *m_averagesTab;
 };
 
-class AveragesTab : public QWidget 
+class AveragesTab : public QWidget
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	AveragesTab(QWidget *parent = 0);

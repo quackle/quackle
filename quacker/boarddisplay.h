@@ -32,12 +32,12 @@ class QVBoxLayout;
 
 namespace Quackle
 {
-	class GamePosition;
+class GamePosition;
 }
 
 class BoardWithQuickEntry : public View
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	BoardWithQuickEntry(QWidget *parent = 0);
@@ -70,7 +70,7 @@ private:
 
 class TextBoard : public BoardWithQuickEntry
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	TextBoard(QWidget *parent = 0);
@@ -84,14 +84,13 @@ private:
 
 class QLineEditWithShiftReturn : public QLineEdit
 {
-Q_OBJECT
+	Q_OBJECT
 
 signals:
 	void shiftReturnPressed();
 
 public:
-	virtual void keyPressEvent(QKeyEvent * e);
+	virtual void keyPressEvent(QKeyEvent *e);
 };
-
 
 #endif

@@ -30,9 +30,7 @@ QuackerDispatch::QuackerDispatch(QObject *parent)
 {
 }
 
-QuackerDispatch::~QuackerDispatch()
-{
-}
+QuackerDispatch::~QuackerDispatch() {}
 
 void QuackerDispatch::signalFractionDone(double fraction)
 {
@@ -83,7 +81,7 @@ void OppoThread::setPlayer(Quackle::ComputerPlayer *player)
 {
 	if (isRunning())
 		return;
-	
+
 	m_player = player;
 }
 
@@ -109,4 +107,3 @@ void OppoThread::abort()
 {
 	m_dispatch->setShouldAbort(true);
 }
-

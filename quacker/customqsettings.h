@@ -22,13 +22,15 @@
 class CustomQSettings : public QSettings
 {
 public:
-	CustomQSettings() :
+	CustomQSettings()
+		:
 #if defined(Q_OS_WIN)
 		QSettings(NativeFormat, UserScope, tr("Quackle"))
 #else
 		QSettings()
 #endif
-	{}
+	{
+	}
 };
 
 #endif

@@ -34,7 +34,7 @@ enum WinnerStatus { Winner = 0, Cowinner, Nonwinner };
 
 class PlayerBrief : public QFrame
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	PlayerBrief();
@@ -65,7 +65,7 @@ inline void PlayerBrief::setWinnerStatus(WinnerStatus isWinner)
 
 class Dashboard : public HistoryView
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	Dashboard(QWidget *parent = 0);
