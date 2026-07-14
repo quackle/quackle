@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.16)
 
-project (Quackle VERSION 1.0.4)
+project (Quackle VERSION 1.1.0)
 
 message("-- Configuring Quackle")
 
