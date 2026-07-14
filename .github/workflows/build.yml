@@ -90,3 +90,63 @@ jobs:
         cd build
         cmake -G Ninja -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
         ninja -v
+
+  # Linux ARM64 (Raspberry Pi) builds. Unlike the matrix above, these do NOT use
+  # aqtinstall: Qt has no ARM64 Linux desktop binaries before 6.7, and real Pi
+  # users build against the system Qt from apt anyway. So we install Qt (and the
+  # rest of the toolchain) via the distro package manager inside a container that
+  # matches an actual Pi userland, running on GitHub's native aarch64 runners.
+  # The distro decides the Qt version; we deliberately don't pin one.
+  #
+  # aarch64 only: hosted ARM64 runners cover 64-bit Raspberry Pi OS / Ubuntu
+  # (Pi 3/4/5, Zero 2 W). 32-bit armhf has no hosted runner and is not tested.
+  raspi:
+    name: ${{ matrix.label }}-build
+    runs-on: ubuntu-24.04-arm
+    container: ${{ matrix.container }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: raspios-bookworm-qt5
+            container: debian:bookworm
+            qt_version: 5
+            qt_pkgs: qtbase5-dev
+          - label: raspios-bookworm-qt6
+            container: debian:bookworm
+            qt_version: 6
+            qt_pkgs: qt6-base-dev qt6-base-dev-tools
+          - label: ubuntu-22.04-arm-qt5
+            container: ubuntu:22.04
+            qt_version: 5
+            qt_pkgs: qtbase5-dev
+          - label: ubuntu-22.04-arm-qt6
+            container: ubuntu:22.04
+            qt_version: 6
+            qt_pkgs: qt6-base-dev qt6-base-dev-tools
+          - label: ubuntu-24.04-arm-qt6
+            container: ubuntu:24.04
+            qt_version: 6
+            qt_pkgs: qt6-base-dev qt6-base-dev-tools
+
+    steps:
+    # Install everything from apt, exactly as a Raspberry Pi user would (no
+    # aqtinstall). git/ca-certificates let actions/checkout clone inside the
+    # otherwise-minimal container.
+    - name: Install build dependencies
+      run: |
+        apt-get update
+        apt-get install -y --no-install-recommends \
+          build-essential cmake ninja-build git ca-certificates \
+          ${{ matrix.qt_pkgs }}
+
+    - name: Check out sources
+      uses: actions/checkout@v4
+
+    - name: Generate and build
+      run: |
+        mkdir build
+        cd build
+        cmake -G Ninja -DQT_VERSION=${{ matrix.qt_version }} ../quacker
+        ninja -v
