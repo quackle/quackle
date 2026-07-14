@@ -133,12 +133,14 @@ jobs:
     steps:
     # Install everything from apt, exactly as a Raspberry Pi user would (no
     # aqtinstall). git/ca-certificates let actions/checkout clone inside the
-    # otherwise-minimal container.
+    # otherwise-minimal container. libgl1-mesa-dev supplies the GL headers that
+    # Qt6's WrapOpenGL dependency needs at configure time -- Ubuntu 22.04's
+    # qt6-base-dev (Qt 6.2) doesn't pull them in, unlike the Qt5 and Qt 6.4 pkgs.
     - name: Install build dependencies
       run: |
         apt-get update
         apt-get install -y --no-install-recommends \
-          build-essential cmake ninja-build git ca-certificates \
+          build-essential cmake ninja-build git ca-certificates libgl1-mesa-dev \
           ${{ matrix.qt_pkgs }}
 
     - name: Check out sources
