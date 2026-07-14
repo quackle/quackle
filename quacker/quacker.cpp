@@ -2243,8 +2243,8 @@ void TopLevel::firstTimeRun()
 void TopLevel::about()
 {
 	QString aboutText
-		= tr("<p><b>Quackle</b> 1.1.0.0 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <tt><a "
-			 "href=\"http://quackle.org\">http://quackle.org</a></tt> for more information.</p>"
+		= tr("<p><b>Quackle</b> 1.1.0.0 is a crossword game playing, analysis, and study tool. Visit the Quackle homepage at <a "
+			 "href=\"https://quackle.org\">https://quackle.org</a> for more information.</p>"
 			 "<p>Quackle was written by Jason Katz-Brown, John O'Laughlin, John Fultz, Matt Liberty, and Anand Buddhdev. We thank the "
 			 "anonymous donor who made this software free.</p>"
 			 "<p>Copyright 2005-2026 by</p>"
@@ -2254,8 +2254,9 @@ void TopLevel::about()
 			 "<li>John Fultz &lt;jfultz@wolfram.com&gt;</li>"
 			 "</ul>"
 			 "<p>Quackle is free, open-source software licensed under the terms of the GNU General Public License Version 3. See</p>"
-			 "<p><tt><a href=\"http://quackle.org/LICENSE\">http://quackle.org/LICENSE</a></tt></p>"
-			 "<p>Dictionary copyrights</p><ul>");
+			 "<p><a href=\"https://github.com/quackle/quackle/blob/master/LICENSE\">https://github.com/quackle/quackle/blob/master/LICENSE</a></p>");
+
+	QString creditsText;
 
 #ifdef _MSC_VER
 	FILE *file = nullptr;
@@ -2278,33 +2279,83 @@ void TopLevel::about()
 				line = line.mid(0, endPos);
 				// Only include lines with a copyright (the word or the symbol) in them
 				if (line.indexOf("copyright", 0, Qt::CaseInsensitive) != -1 || line.indexOf(QChar(0xA9)) != -1)
-					aboutText += "<li>" + line + "</li>";
+					creditsText += "<li>" + line + "</li>";
 			}
 			line = strm.readLine();
 		}
 		fclose(file);
-		aboutText += "</ul>";
 	}
-	QMessageBox::about(this, tr("About Quackle 1.1.0"), dialogText(aboutText));
+
+	QDialog dialog(this);
+	dialog.setWindowTitle(tr("About Quackle 1.1.0"));
+
+	QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+	QLabel *textLabel = new QLabel(dialogText(aboutText), &dialog);
+	textLabel->setWordWrap(true);
+	textLabel->setTextFormat(Qt::RichText);
+	textLabel->setOpenExternalLinks(true);
+	textLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	layout->addWidget(textLabel);
+
+	if (!creditsText.isEmpty())
+	{
+		QLabel *creditsHeading = new QLabel(tr("Dictionary copyrights:"), &dialog);
+		layout->addWidget(creditsHeading);
+
+		QTextBrowser *credits = new QTextBrowser(&dialog);
+		credits->setOpenExternalLinks(true);
+		credits->setHtml(dialogText("<ul>" + creditsText + "</ul>"));
+		credits->setMinimumHeight(100);
+		credits->setMaximumHeight(180);
+		layout->addWidget(credits);
+	}
+
+	QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, &dialog);
+	connect(buttons, SIGNAL(accepted()), &dialog, SLOT(accept()));
+	layout->addWidget(buttons);
+
+	dialog.setMinimumWidth(600);
+	dialog.exec();
 }
 
 void TopLevel::hints()
 {
-	QMessageBox::information(this, tr("Helpful Hints - Quackle"),
-		dialogText(tr("<ul>"
-					  "<li>Press Shift-Enter after typing your word on the board to enter and commit your move quickly.</li>"
-					  "<li>Double-click at any time during a game on any item in the History table to analyze that position. If you then "
-					  "commit a play, you will restart the game from that point and future plays will be lost.</li>"
-					  "<li>To analyze a real-life game, start a two-player game with two \"Human With Unknown Rack\" players. For one "
-					  "player, for each turn set the rack to the rack you had in the game and then analyze the position and commit the "
-					  "play that you made in real life. For the other player, commit your oppo's real-life plays.</li>"
-					  "<li>Stop simulations by unchecking \"Simulate\" in the Move menu. Sims can be stopped and restarted without losing "
-					  "their state, and sims of different plies can be combined. Check out the sim details during a simulation by choosing "
-					  "\"Show simulation details\" from the Move menu!</li>"
-					  "</ul>"
-					  "<p>Have fun using Quackle. We'd love your help developing it, especially if you can code, but we like suggestions "
-					  "too! Please join the Quackle Yahoo! group at</p>"
-					  "<p><tt>http://games.groups.yahoo.com/group/quackle/</tt></p>")));
+	QString hintsText = tr("<ul>"
+						   "<li>Press Shift-Enter after typing your word on the board to enter and commit your move quickly.</li>"
+						   "<li>Double-click at any time during a game on any item in the History table to analyze that position. If you then "
+						   "commit a play, you will restart the game from that point and future plays will be lost.</li>"
+						   "<li>To analyze a real-life game, start a two-player game with two \"Human With Unknown Rack\" players. For one "
+						   "player, for each turn set the rack to the rack you had in the game and then analyze the position and commit the "
+						   "play that you made in real life. For the other player, commit your oppo's real-life plays.</li>"
+						   "<li>Stop simulations by unchecking \"Simulate\" in the Move menu. Sims can be stopped and restarted without losing "
+						   "their state, and sims of different plies can be combined. Check out the sim details during a simulation by choosing "
+						   "\"Show simulation details\" from the Move menu!</li>"
+						   "</ul>"
+						   "<p>Have fun using Quackle. We'd love your help developing it, especially if you can code, but we like suggestions "
+						   "too! You can contribute to Quackle development at:</p>"
+						   "<p><a href=\"https://github.com/quackle/quackle\">https://github.com/quackle/quackle</a></p>"
+						   "<p>You can report bugs and feature requests at:</p>"
+						   "<p><a href=\"https://github.com/quackle/quackle/issues/new\">https://github.com/quackle/quackle/issues/new</a></p>");
+
+	QDialog dialog(this);
+	dialog.setWindowTitle(tr("Helpful Hints - Quackle"));
+
+	QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+	QLabel *textLabel = new QLabel(dialogText(hintsText), &dialog);
+	textLabel->setWordWrap(true);
+	textLabel->setTextFormat(Qt::RichText);
+	textLabel->setOpenExternalLinks(true);
+	textLabel->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	layout->addWidget(textLabel);
+
+	QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, &dialog);
+	connect(buttons, SIGNAL(accepted()), &dialog, SLOT(accept()));
+	layout->addWidget(buttons);
+
+	dialog.setMinimumWidth(600);
+	dialog.exec();
 }
 
 void TopLevel::showConfigDialog()
