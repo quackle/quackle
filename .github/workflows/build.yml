@@ -65,14 +65,12 @@ jobs:
               CXX: cl
               C: cl
           - name: windows-arm64-vs22
-            # Native Windows-on-ARM build on GitHub's arm64 runner. Two
-            # constraints bracket the Qt version and, conveniently, meet at the
-            # same 6.10.* the x64 job pins: Qt only ships Windows ARM64 binaries
-            # from 6.8 up, while the aqtinstall path bug noted above still caps
-            # us at 6.10.x. Qt distributes ARM64 as a cross-compiled package
-            # only (no native-arm64 host tools even at 6.10), so unlike the x64
-            # job this one also installs an x64 host Qt and points QT_HOST_PATH
-            # at it -- see the arm64-only steps below.
+            # Native Windows-on-ARM build on GitHub's arm64 runner. On this host
+            # aqtinstall's target is windows_arm64, which serves a native arm64
+            # Qt (win64_msvc2022_arm64, native host tools) -- so this is a plain
+            # native build like the x64 job, not a cross-compile. Qt has offered
+            # these arm64 binaries only since 6.8; pinning 6.10.* keeps us in
+            # step with the x64 job (whose ceiling is the aqtinstall bug above).
             qt_ver: 6.10.*
             os: windows-11-arm
             msvc_arch: arm64
@@ -87,24 +85,6 @@ jobs:
 
     - name: Get latest CMake and ninja
       uses: lukka/get-cmake@latest
-
-    # The Windows ARM64 Qt package is cross-compiled: its host tools (moc, rcc,
-    # qmake) are x64, so Qt6's CMake treats it as a cross build and demands
-    # QT_HOST_PATH. install-qt-action only auto-sets that for wasm, so for the
-    # arm64 job we install an x64 host Qt first and capture its QT_ROOT_DIR
-    # before the target install below overwrites that variable.
-    - name: Install host Qt (x64) for ARM64 cross-build
-      if: matrix.msvc_arch == 'arm64'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: ${{ matrix.qt_ver }}
-        arch: win64_msvc2022_64
-        cache: true
-
-    - name: Pin QT_HOST_PATH for ARM64 cross-build
-      if: matrix.msvc_arch == 'arm64'
-      shell: pwsh
-      run: echo "QT_HOST_PATH=$env:QT_ROOT_DIR" >> $env:GITHUB_ENV
 
     - name: Install Qt
       uses: jurplel/install-qt-action@v4
