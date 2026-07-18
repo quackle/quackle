@@ -2,7 +2,7 @@ require_relative 'quackle'
 require_relative 'quackle_runner'
 
 runner = Quackle::AIRunner.new(
-  lexicon: 'twl06', alphabet: 'english', datadir: '../../data', random_seed: 42)
+  lexicon: 'nwl23', alphabet: 'english', datadir: '../../data', random_seed: 42)
 
 # Create a computer player
 player1 = runner.computer_player(:speedy)

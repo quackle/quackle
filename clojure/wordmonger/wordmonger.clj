@@ -66,7 +66,7 @@
     (.pack)
     (.open)))
 
-(twl06-sevens-gridquiz)
+(nwl23-sevens-gridquiz)
 ;(csw07-single-eights-gridquiz)
 ;(csw07-single-eights-pagequiz)
 

@@ -43,6 +43,7 @@
 #include "trademarkedboards.h"
 #include "testharness.h"
 
+using namespace std;
 using namespace Quackle;
 
 static ComputerPlayer*
@@ -88,7 +89,7 @@ const char *usage =
 "       'anagram' anagrams letters supplied in --letters.\n"
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
-"--lexicon=; sets the lexicon (default 'twl06').\n"
+"--lexicon=; sets the lexicon (default 'nwl23').\n"
 "--alphabet=; sets the alphabet (default 'english').\n"
 "--seed=integer; set the random seed for reproducability.\n"
 "--report; generate reports for selfplay games (default false).\n"
@@ -144,7 +145,7 @@ void TestHarness::executeFromArguments()
 	if (computer2.isNull())
 		computer2 = computer;
 	if (m_lexicon.isNull())
-		m_lexicon = "twl06";
+		m_lexicon = "nwl23";
 	if (m_alphabet.isNull())
 		m_alphabet = "english";
 	if (!seedString.isNull())
@@ -188,7 +189,7 @@ void TestHarness::startUp()
 {
 	UVcout << "Starting up.";
 
-	m_dataManager.setBackupLexicon("twl06");
+	m_dataManager.setBackupLexicon("nwl23");
 	m_dataManager.setAppDataDirectory("../data");
 
 	QString alphabetFile = QuackleIO::Util::stdStringToQString(Quackle::AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(m_alphabet)));
@@ -684,7 +685,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 
 	UVcout << "NEW GAME (#" << gameNumber << ")" << endl;
 
-	QTime time;
+	QElapsedTimer time;
 	time.start();
 
 	const int playahead = 50;
@@ -781,7 +782,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
 	}
 	QTextStream outReport(&outFileReport);
 	outReport << QuackleIO::Util::uvStringToQString(report);
-	outReport << "Game played in " << secondsElapsed << " seconds." << endl;
+	outReport << "Game played in " << secondsElapsed << " seconds." << Qt::endl;
 
 	outFile.close();
 	outFileReport.close();

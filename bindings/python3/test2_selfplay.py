@@ -4,7 +4,7 @@ import time
 
 import quackle
 
-def startUp(lexicon='twl06',
+def startUp(lexicon='nwl23',
             alphabet='english',
             datadir='../../data'):
 

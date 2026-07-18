@@ -23,6 +23,8 @@
 #include "gcgio.h"
 #include "trademarkedboards.h"
 
+using namespace std;
+
 void testGCGIO();
 
 int main()

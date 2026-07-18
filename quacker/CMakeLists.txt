@@ -13,6 +13,7 @@ set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is
 add_subdirectory(.. libquackle)
 add_subdirectory(../quackleio quackleio)
 add_subdirectory(../data data)
+add_subdirectory(../test test)
 
 if("${QT_VERSION}" MATCHES "^6")
 	# See quackleio/CMakeLists.txt for why this is set.

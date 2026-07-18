@@ -2,7 +2,7 @@ require 'quackle'
 
 function startUp(lexicon, alphabet, datadir)
 
-    local lexicon = lexicon or 'twl06'
+    local lexicon = lexicon or 'nwl23'
     local alphabet = alphabet or 'english'
     local datadir = datadir or '../../data'
 

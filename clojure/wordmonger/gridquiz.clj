@@ -184,8 +184,8 @@
                               (game-over)
                               (recur)))))))
 
-(defn twl06-sevens-gridquiz []
-  (set-board-to-random-board 7 "twl06")
+(defn nwl23-sevens-gridquiz []
+  (set-board-to-random-board 7 "nwl23")
   (.setText *answer-text* "")
   (.setText *question-browser* (board-html #'gridquiz-ana-set-html))
   (start-timer))

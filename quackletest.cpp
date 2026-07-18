@@ -31,6 +31,8 @@
 #include "game.h"
 #include "sim.h"
 
+using namespace std;
+
 void testAdvanceToEnd(Quackle::Game &game);
 void testAnagrammer();
 void testBag(Quackle::Game &game);
@@ -46,9 +48,9 @@ int main()
 	Quackle::DataManager dataManager;
 
 	dataManager.setAppDataDirectory("data");
-	dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile("twl06.dawg"));
-	dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile("twl06.gaddag"));
-	dataManager.strategyParameters()->initialize("twl06");
+	dataManager.lexiconParameters()->loadDawg(Quackle::LexiconParameters::findDictionaryFile("nwl23.dawg"));
+	dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile("nwl23.gaddag"));
+	dataManager.strategyParameters()->initialize("nwl23");
 	dataManager.setBoardParameters(new Quackle::EnglishBoard());
 
 	const bool seedRandoms = false;
