@@ -270,9 +270,6 @@ void Simulator::simulate(int plies)
 
 	++m_iterations;
 
-	randomizeOppoRacks();
-	randomizeDrawingOrder();
-
 	if (plies < 0)
 		plies = 1000;
 
@@ -281,6 +278,7 @@ void Simulator::simulate(int plies)
 
 	SimmedMoveConstants constants;
 	constants.game = m_originalGame;
+	constants.partialOppoRack = m_partialOppoRack;
 	constants.startPlayerId = m_originalGame.currentPosition().currentPlayer().id();
 	constants.playerCount = int(m_originalGame.currentPosition().players().size());
 	// level one's first move is the zeroth ply (the candidate)
@@ -341,6 +339,12 @@ void Simulator::simulate(int plies)
 void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants)
 {
 	Game game = constants.game;
+
+	// Randomize here rather than once per iteration so that each
+	// playahead sees an independent draw of oppo racks and tiles.
+	randomizeOppoRacks(game.currentPosition(), constants.partialOppoRack);
+	randomizeDrawingOrder(game.currentPosition());
+
 	double residual = 0;
 
 	int levelNumber = 1;
@@ -503,35 +507,40 @@ void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 
 void Simulator::randomizeOppoRacks()
 {
+	randomizeOppoRacks(m_originalGame.currentPosition(), m_partialOppoRack);
+}
+
+void Simulator::randomizeOppoRacks(GamePosition &position, const Rack &partialOppoRack)
+{
 #ifdef DEBUG_SIM
 	UVcout << "RANDOMIZE OPPO RACKS " << endl;
 #endif
 
-	m_originalGame.currentPosition().ensureProperBag();
+	position.ensureProperBag();
 
-	Bag bag(m_originalGame.currentPosition().unseenBag());
+	Bag bag(position.unseenBag());
 
-	for (const auto &it : m_originalGame.currentPosition().players())
+	for (const auto &it : position.players())
 	{
-		if ((it == m_originalGame.currentPosition().currentPlayer()))
+		if (it == position.currentPlayer())
 			continue;
 
 		// TODO -- some kind of inference engine can be inserted here
-		Rack rack = m_partialOppoRack;
+		Rack rack = partialOppoRack;
 
 		// We must refill the partial rack from a bag that does not
 		// contain the partial rack.
 		bag.removeLetters(rack.tiles());
 		bag.refill(rack);
 
-		m_originalGame.currentPosition().setPlayerRack(it.id(), rack, /* adjust bag */ true);
+		position.setPlayerRack(it.id(), rack, /* adjust bag */ true);
 	}
 
 #ifdef DEBUG_SIM
 	UVcout << "RANDOMIZE OPPO RACKS DONE" << endl;
 #endif
 
-	m_originalGame.currentPosition().ensureProperBag();
+	position.ensureProperBag();
 }
 
 void Simulator::setPartialOppoRack(const Rack &rack)
@@ -541,7 +550,12 @@ void Simulator::setPartialOppoRack(const Rack &rack)
 
 void Simulator::randomizeDrawingOrder()
 {
-	m_originalGame.currentPosition().setDrawingOrder(m_originalGame.currentPosition().bag().someShuffledTiles());
+	randomizeDrawingOrder(m_originalGame.currentPosition());
+}
+
+void Simulator::randomizeDrawingOrder(GamePosition &position)
+{
+	position.setDrawingOrder(position.bag().someShuffledTiles());
 }
 
 MoveList Simulator::moves(bool prune, bool byWin) const

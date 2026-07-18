@@ -199,6 +199,7 @@ class SimmedMoveConstants
 {
 public:
 	Game game;
+	Rack partialOppoRack;
 	int startPlayerId;
 	int playerCount;
 	int decimalTurns;
@@ -326,10 +327,15 @@ public:
 	// Set oppo's racks to something random, including
 	// tiles specified by setPartialOppoRack above.
 	// Possibly inference-aided randomness.
+	// During simulation, each playahead randomizes its own copy of the
+	// position (via the static overloads) so draws are independent
+	// across candidate moves.
 	void randomizeOppoRacks();
+	static void randomizeOppoRacks(GamePosition &position, const Rack &partialOppoRack);
 
 	// set drawing order for the first refill
 	void randomizeDrawingOrder();
+	static void randomizeDrawingOrder(GamePosition &position);
 
 	// returns maximal number of iterations over all moves since
 	// resetting numbers
