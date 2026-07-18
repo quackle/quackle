@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 		alphabet = "english";
 
 	QString alphabetFile = QString("../data/alphabets/%1.quackle_alphabet").arg(alphabet);
-	UVcout << "Using alphabet file: " << QuackleIO::Util::qstringToString(alphabetFile) << endl;
+	UVcout << "Using alphabet file: " << QuackleIO::Util::qstringToString(alphabetFile) << std::endl;
 
 	DawgFactory factory(alphabetFile);
 
@@ -49,13 +49,13 @@ int main(int argc, char **argv)
 	QFile smallerDict(smallerDictFilename);
 	if (!smallerDict.exists())
 	{
-		UVcout << "smaller dictionary does not exist: " << QuackleIO::Util::qstringToString(smallerDictFilename) << endl;
+		UVcout << "smaller dictionary does not exist: " << QuackleIO::Util::qstringToString(smallerDictFilename) << std::endl;
 		return false;
 	}
 
 	if (!smallerDict.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		UVcout << "Could not open " << QuackleIO::Util::qstringToString(smallerDictFilename) << endl;
+		UVcout << "Could not open " << QuackleIO::Util::qstringToString(smallerDictFilename) << std::endl;
 		return false;
 	}
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 	{
 		QString originalQString;
 		smallerStream >> originalQString;
-		//UVcout << "this word is in the smaller dictionary: " << QuackleIO::Util::qstringToString(originalQString) << endl;
+		//UVcout << "this word is in the smaller dictionary: " << QuackleIO::Util::qstringToString(originalQString) << std::endl;
 		smallerMap[originalQString] = true;
 	}
 
@@ -74,13 +74,13 @@ int main(int argc, char **argv)
 	QFile playability(playabilityFilename);
 	if (!playability.exists())
 	{
-		UVcout << "playability does not exist: " << QuackleIO::Util::qstringToString(playabilityFilename) << endl;
+		UVcout << "playability does not exist: " << QuackleIO::Util::qstringToString(playabilityFilename) << std::endl;
 		return false;
 	}
 
 	if (!playability.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		UVcout << "Could not open " << QuackleIO::Util::qstringToString(playabilityFilename) << endl;
+		UVcout << "Could not open " << QuackleIO::Util::qstringToString(playabilityFilename) << std::endl;
 		return false;
 	}
 
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 		playabilityStream >> pb;
 		QString originalQString;
 		playabilityStream >> originalQString;
-		//UVcout << "playability: " << QuackleIO::Util::qstringToString(originalQString) << " " << pb << endl;
+		//UVcout << "playability: " << QuackleIO::Util::qstringToString(originalQString) << " " << pb << std::endl;
 		playabilityMap[originalQString] = pb;
 	}
 
@@ -101,13 +101,13 @@ int main(int argc, char **argv)
 	QFile file(dawgFilename);
 	if (!file.exists())
 	{
-		UVcout << "dawg does not exist: " << QuackleIO::Util::qstringToString(dawgFilename) << endl;
+		UVcout << "dawg does not exist: " << QuackleIO::Util::qstringToString(dawgFilename) << std::endl;
 		return false;
 	}
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		UVcout << "Could not open " << QuackleIO::Util::qstringToString(dawgFilename) << endl;
+		UVcout << "Could not open " << QuackleIO::Util::qstringToString(dawgFilename) << std::endl;
 		return false;
 	}
 
@@ -126,19 +126,19 @@ int main(int argc, char **argv)
 			break;
 
 		if (!factory.pushWord(QuackleIO::Util::qstringToString(word), inSmaller, pb))
-			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(word) << endl;
+			UVcout << "not encodable without leftover: " << QuackleIO::Util::qstringToString(word) << std::endl;
 	}
 
 	file.close();
 
-	UVcout << "encodable words: " << factory.encodableWords() << ", unencodable words: " << factory.unencodableWords() << endl;
+	UVcout << "encodable words: " << factory.encodableWords() << ", unencodable words: " << factory.unencodableWords() << std::endl;
 
-	UVcout << "nodelist.size(): " << factory.nodeCount() << endl;
+	UVcout << "nodelist.size(): " << factory.nodeCount() << std::endl;
 
 	factory.generate();
-	UVcout << "Compressed nodelist.size(): " << factory.nodeCount() << endl;
+	UVcout << "Compressed nodelist.size(): " << factory.nodeCount() << std::endl;
 
-	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << endl;
+	UVcout << "Hash: " << QString(QByteArray(factory.hashBytes(), 16).toHex()).toStdString() << std::endl;
 
 	factory.writeIndex("output.dawg");
 

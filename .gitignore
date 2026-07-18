@@ -2,7 +2,6 @@
 .cache
 .gitattributes
 .tags*
-.qmake.stash
 .vs
 build*
 obj

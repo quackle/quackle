@@ -14,6 +14,10 @@ add_subdirectory(.. libquackle)
 add_subdirectory(../quackleio quackleio)
 add_subdirectory(../data data)
 add_subdirectory(../test test)
+add_subdirectory(../encodeleaves encodeleaves)
+add_subdirectory(../makegaddag makegaddag)
+add_subdirectory(../makeminidawg makeminidawg)
+add_subdirectory(../gaddagize gaddagize)
 
 if("${QT_VERSION}" MATCHES "^6")
 	# See quackleio/CMakeLists.txt for why this is set.

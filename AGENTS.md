@@ -6,9 +6,9 @@ Quackle is a cross-platform (macOS, Windows, Linux) crossword game AI/analysis t
 
 - `CMakeLists.txt` (root) - builds `libquackle`, the engine. No Qt dependency.
 - `quackleio/CMakeLists.txt` - builds `libquackleio`. Depends on Qt.
-- `quacker/CMakeLists.txt` - builds the `Quackle` application. Depends on libquackle and libquackleio; is the top-level build (it `add_subdirectory`s the other two).
+- `quacker/CMakeLists.txt` - builds the `Quackle` application. Depends on libquackle and libquackleio; is the top-level build (it `add_subdirectory`s the other two, plus `test/` and the standalone utilities below).
 
-Other top-level directories (`makeminidawg/`, `makegaddag/`, etc.) build standalone one-off utilities and aren't a build concern right now.
+Other top-level directories (`encodeleaves/`, `makegaddag/`, `makeminidawg/`, `gaddagize/`) build standalone one-off utilities, each with its own `CMakeLists.txt` pulled in by `quacker/CMakeLists.txt`.
 
 ## Build status
 

@@ -38,7 +38,6 @@ File organization:
 * quackle/makeminidawg/ - standalone console program for building Quackle dictionaries.
 * quackle/makegaddag/ - standalone console program for building gaddag files.
 * quackle/data/ - lexicons, strategy files, and alphabet resources for Quackle.
-In this directory is libquackle. Run qmake and then run make in this directory. Then cd to quackle/quackleio/, run qmake, and then run make.
 
 
 olaughlin@gmail.com
