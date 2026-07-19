@@ -19,7 +19,7 @@ add_executable(makeminidawg
 	makeminidawgmain.cpp
 )
 if("${QT_VERSION}" MATCHES "^6")
-	target_link_libraries(makeminidawg quackleio libquackle Qt6::Core)
+	target_link_libraries(makeminidawg quackleio quackle Qt6::Core)
 else()
-	target_link_libraries(makeminidawg quackleio libquackle Qt5::Core)
+	target_link_libraries(makeminidawg quackleio quackle Qt5::Core)
 endif()

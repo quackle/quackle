@@ -112,7 +112,7 @@ endif()
 
 target_precompile_headers(Quackle PRIVATE <QtWidgets>)
 
-target_link_libraries(Quackle quackleio libquackle)
+target_link_libraries(Quackle quackleio quackle)
 if("${QT_VERSION}" MATCHES "^6")
 	target_link_libraries(Quackle Qt6::Core Qt6::Widgets)
 	if(APPLE)

@@ -19,7 +19,7 @@ add_executable(encodeleaves
 	encodeleaves.cpp
 )
 if("${QT_VERSION}" MATCHES "^6")
-	target_link_libraries(encodeleaves quackleio libquackle Qt6::Core)
+	target_link_libraries(encodeleaves quackleio quackle Qt6::Core)
 else()
-	target_link_libraries(encodeleaves quackleio libquackle Qt5::Core)
+	target_link_libraries(encodeleaves quackleio quackle Qt5::Core)
 endif()

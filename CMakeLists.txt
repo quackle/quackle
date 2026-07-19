@@ -71,8 +71,8 @@ set(LIBQUACKLE_HEADERS
 	uv.h
 )
 
-add_library(libquackle
+add_library(quackle
 	${LIBQUACKLE_SOURCES} ${LIBQUACKLE_HEADERS}
 )
 
-target_link_libraries(libquackle Threads::Threads)
+target_link_libraries(quackle Threads::Threads)
