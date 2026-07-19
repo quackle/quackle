@@ -219,6 +219,8 @@ public:
 	SimmedMoveMessage pop();
 	std::pair<SimmedMoveMessage, bool> pop_or_terminate();
 	void send_terminate_all();
+	// call only after all threads have been joined
+	void reset_terminate_all();
 	void send_terminate_one(const std::thread::id &id);
 
 	const SimmedMoveConstants &constants() { return m_constants; };

@@ -237,6 +237,9 @@ void Simulator::setThreadCount(size_t count)
 		for (auto &t : m_threadPool)
 			t.join();
 		m_threadPool.clear();
+		// clear the flag so threads created by a later call don't
+		// immediately terminate themselves
+		m_sendQueue.reset_terminate_all();
 	}
 
 	while (count > m_threadPool.size())
@@ -681,6 +684,12 @@ void SimmedMoveMessageQueue::send_terminate_all()
 	std::lock_guard<std::mutex> lk(m_queueMutex);
 	m_terminateAll = true;
 	m_condition.notify_all();
+}
+
+void SimmedMoveMessageQueue::reset_terminate_all()
+{
+	std::lock_guard<std::mutex> lk(m_queueMutex);
+	m_terminateAll = false;
 }
 
 void SimmedMoveMessageQueue::send_terminate_one(const std::thread::id &id)
