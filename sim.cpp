@@ -317,16 +317,30 @@ void Simulator::simulate(int plies)
 		message.move = moveIt.move;
 		message.levels.setNumberLevels(constants.levelCount + 1);
 		message.levels = moveIt.levels;
-		message.xmlIndent = m_xmlIndent;
+		// plies nest inside the <playahead> element that
+		// incorporateMessage() writes around the returned log stream
+		message.xmlIndent = m_xmlIndent + MARK_UV("\t");
 
 		m_sendQueue.push(message);
 		messageCount++;
 	}
 
+	// Collect the whole iteration before incorporating so that results
+	// and the log don't depend on the order in which threads finish.
+	vector<SimmedMoveMessage> messages;
 	while (messageCount-- > 0)
+		messages.push_back(m_receiveQueue.pop());
+
+	for (const auto &moveIt : m_simmedMoves)
 	{
-		SimmedMoveMessage message(m_receiveQueue.pop());
-		incorporateMessage(message);
+		for (const auto &message : messages)
+		{
+			if (message.id == moveIt.id())
+			{
+				incorporateMessage(message);
+				break;
+			}
+		}
 	}
 
 	if (isLogging())
@@ -476,8 +490,6 @@ void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMove
 
 void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 {
-	if (isLogging())
-		m_logfileStream << message.logStream.str();
 	for (auto &moveIt : m_simmedMoves)
 	{
 		if (moveIt.id() == message.id)
@@ -486,6 +498,7 @@ void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 			{
 				m_logfileStream << m_xmlIndent << "<playahead>" << endl;
 				m_xmlIndent += MARK_UV('\t');
+				m_logfileStream << message.logStream.str();
 			}
 
 			moveIt.levels = message.levels;
