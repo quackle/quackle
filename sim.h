@@ -21,6 +21,7 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <exception>
 #include <mutex>
 #include <queue>
 #include <sstream>
@@ -191,6 +192,9 @@ public:
 	double wins;
 
 	bool bogowin;
+	// set if the worker's simulateOnePosition() threw; the message's
+	// results are invalid and simulate() rethrows this on the main thread
+	std::exception_ptr error;
 	std::ostringstream logStream;
 	UVString xmlIndent;
 };

@@ -224,7 +224,16 @@ void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessag
 		auto result = incoming.pop_or_terminate();
 		if (result.second)
 			break;
-		Simulator::simulateOnePosition(result.first, incoming.constants());
+		try
+		{
+			Simulator::simulateOnePosition(result.first, incoming.constants());
+		}
+		catch (...)
+		{
+			// reply even on failure so simulate() receives the reply
+			// count it expects; it rethrows this on the main thread
+			result.first.error = std::current_exception();
+		}
 		outgoing.push(result.first);
 	}
 }
@@ -334,13 +343,20 @@ void Simulator::simulate(int plies)
 	while (messageCount-- > 0)
 		messages.push_back(m_receiveQueue.pop());
 
+	std::exception_ptr firstError;
 	for (const auto &moveIt : m_simmedMoves)
 	{
 		for (const auto &message : messages)
 		{
 			if (message.id == moveIt.id())
 			{
-				incorporateMessage(message);
+				if (message.error)
+				{
+					if (!firstError)
+						firstError = message.error;
+				}
+				else
+					incorporateMessage(message);
 				break;
 			}
 		}
@@ -351,6 +367,11 @@ void Simulator::simulate(int plies)
 		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
 		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
 	}
+
+	// Rethrow a worker's exception only now, with the queues fully
+	// drained and the log consistent, so the simulator remains usable.
+	if (firstError)
+		std::rethrow_exception(firstError);
 }
 
 void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants)
