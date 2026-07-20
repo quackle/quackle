@@ -32,7 +32,7 @@ CLLNOTY 0.0277778
 JLLNOTY 0.0277778
 Testing Speedy Player on:
 ------------
-Position [turnNumber = 11, current player Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [?T]
+Position [turnNumber = 11, current player Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [LO]
    A B C D E F G H I J K L M N O 
    ------------------------------
  1|=     '       M O O   '     =|
@@ -53,9 +53,9 @@ Position [turnNumber = 11, current player Human Player jasonkb (id 0) with score
    ------------------------------
 Move made is nonmove (score = -9999, equity = -9999, win% = 0)
 All Players: 
-Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [?T]
-Human Player Marty Gabriel (id 1) with score 414 holding ACLNOTY after drawing [ACLNOTY]
-Bag (2): JL
+Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [LO]
+Human Player Marty Gabriel (id 1) with score 414 holding AJLNOTY after drawing [AJLNOTY]
+Bag (2): CL
 ------------
 
 Generating moves...
