@@ -212,6 +212,9 @@ void TestHarness::startUp()
    	m_dataManager.lexiconParameters()->loadGaddag(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".gaddag")));
 	UVcout << ".";
 
+	if (m_alphabet == "english")
+		m_dataManager.setBackupLexicon("default_english");
+
 	m_dataManager.strategyParameters()->initialize(QuackleIO::Util::qstringToStdString(m_lexicon));
 
 	UVcout << endl;
@@ -720,7 +723,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
                         tops.push_back(*it);
                     }
                 }
-                int numTops = tops.size();
+                size_t numTops = tops.size();
                 for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
                     MoveList words = game.currentPosition().allWordsFormedBy(*it);
                     for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
