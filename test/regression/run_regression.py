@@ -61,7 +61,9 @@ SUITES_DIR = SCRIPT_DIR / "suites"
 POSITIONS_DIR = REPO_ROOT / "test" / "positions"      # shared .gcg corpus
 DATA_DIR = REPO_ROOT / "data"
 
-BIN_NAME = "libquackle_test"
+# Windows names its executables with a suffix; everywhere else they're bare.
+EXE_SUFFIX = ".exe" if os.name == "nt" else ""
+BIN_NAME = "libquackle_test" + EXE_SUFFIX
 # Build-tree layouts we'll probe for the binary, relative to the repo root.
 # Covers in-source ./build plus common out-of-source / IDE conventions.
 BUILD_DIR_CANDIDATES = ["build", "Build", "out", "cmake-build-debug",
@@ -169,7 +171,7 @@ GADDAG_CACHE = Path(tempfile.gettempdir()) / "quackle_regression_gaddags"
 
 def makegaddag_path(binary):
     """makegaddag sits beside libquackle_test in the same build tree."""
-    cand = binary.parent.parent / "makegaddag" / "makegaddag"
+    cand = binary.parent.parent / "makegaddag" / ("makegaddag" + EXE_SUFFIX)
     return cand if cand.exists() else None
 
 
