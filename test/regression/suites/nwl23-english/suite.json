@@ -1,0 +1,21 @@
+{
+  "_comment": "Per-combo suite for the nwl23 dictionary + english alphabet (the harness defaults). Holds only LANGUAGE-AGNOSTIC levers -- ones meaningful to replicate across dictionaries/languages. Position-specific levers that load .gcg boards live in the 'common' suite (nwl23-english only). Each test is one invocation of libquackle_test --mode=<mode>. Fields: name (unique, names the golden file), mode, args (extra CLI flags), inputs (files staged into the run cwd under the given name), seed (per-test override of the suite seed), digest (compare a sha256 of the output instead of storing it verbatim -- for outputs too large to keep).",
+  "lexicon": "nwl23",
+  "alphabet": "english",
+  "seed": 1,
+
+  "tests": [
+    { "name": "anagram-satire",        "mode": "anagram", "args": ["--letters=SATIRE"] },
+    { "name": "anagram-build-retinas", "mode": "anagram", "args": ["--letters=RETINAS", "--build"] },
+
+    { "name": "enumerate",             "mode": "enumerate", "digest": true },
+
+    { "name": "staticleaves",          "mode": "staticleaves", "inputs": { "racks": "inputs/static.racks" } },
+    { "name": "leavecalc",             "mode": "leavecalc",    "inputs": { "leaves": "inputs/calc.leaves" }, "seed": 3 },
+
+    { "name": "selfplay-seed1",        "mode": "selfplay", "args": ["--repetitions=3"], "seed": 1 },
+    { "name": "selfplay-speedy-vs-speedy", "mode": "selfplay", "args": ["--computer=Speedy Player", "--computer2=Speedy Player", "--repetitions=2"], "seed": 7 },
+
+    { "name": "playability",           "mode": "playability", "args": ["--repetitions=2"], "seed": 5 }
+  ]
+}

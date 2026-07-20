@@ -1,0 +1,34 @@
+Testing 1 positions with Speedy Player.
+Testing game from positions/fivepoint.gcg
+0 enumerations: 
+Testing Speedy Player on:
+------------
+Position [turnNumber = 14, current player Human Player Ganesh Asirvatham (id 0) with score 905 holding  after drawing []
+   A B C D E F G H I J K L M N O 
+   ------------------------------
+ 1|P I U ' B E A N O     '     T|
+ 2|  - P L E W       G     R - A|
+ 3|    L     E C U ' A     E   R|
+ 4|'   I -       M Y R R H S   D|
+ 5|  A F R A I D     N -   I   I|
+ 6|  " T     "   B   E     D " E|
+ 7|    '       ' E ' T     U   S|
+ 8|=     '     J A W s   H E A T|
+ 9|    '   C O O N '       '    |
+10|  "   N O "   L A Z I E R "  |
+11|    O O F   Q I   O D A      |
+12|'   M E T     K O     -     '|
+13|    E L     V E X I N G S    |
+14|  - G     "     Y "   U   -  |
+15|=   a '       =       V I N S|
+   ------------------------------
+Move made is (T) (score = 2, equity = 0, win% = 0)
+All Players: 
+Human Player Ganesh Asirvatham (id 0) with score 905 holding  after drawing []
+Human Player Paul Cleary (id 1) with score 359 holding T after drawing []
+Bag (0): [empty]
+Game over.
+------------
+
+Generating moves...
+-  (score = 0, equity = 0, win% = 1)

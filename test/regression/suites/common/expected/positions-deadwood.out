@@ -1,0 +1,42 @@
+Testing 1 positions with Speedy Player.
+Testing game from positions/deadwoodendgame.gcg
+0 enumerations: 
+Testing Speedy Player on:
+------------
+Position [turnNumber = 12, current player Human Player Marty Gabriel (id 1) with score 446 holding CLOT after drawing []
+   A B C D E F G H I J K L M N O 
+   ------------------------------
+ 1|=     '       M O O   '     =|
+ 2|  - C A V I T I E S       -  |
+ 3|    O       '   '       -    |
+ 4|'   Z A N Y   '       -     '|
+ 5|W   I   -   B E V E L   R    |
+ 6|A B E T T O R     " A   I "  |
+ 7|G   R   H   E X '   U   A    |
+ 8|O     F U N D I     R ' L E G|
+ 9|N   H   N   '   J O E   T    |
+10|  W A U K "       F A D O "  |
+11|E   N   S           T I S    |
+12|Q A D I       '     E D     '|
+13|U   Y       '   '       -    |
+14|I -       "   E S P y I N G  |
+15|P A M p E R E R       '     =|
+   ------------------------------
+Move made is nonmove (score = -9999, equity = -9999, win% = 0)
+All Players: 
+Human Player jasonkb (id 0) with score 407 holding L after drawing []
+Human Player Marty Gabriel (id 1) with score 446 holding CLOT after drawing []
+Bag (0): [empty]
+------------
+
+Generating moves...
+3F COL (score = 22, equity = 12, win% = 1)
+H10 COLT.. (score = 9, equity = 11, win% = 1)
+12H COT.. (score = 11, equity = 1, win% = 1)
+12H COL.. (score = 11, equity = 1, win% = 1)
+J4 C.L (score = 11, equity = 1, win% = 1)
+I11 LOC. (score = 9, equity = -1, win% = 1)
+3A CO.L (score = 9, equity = -1, win% = 1)
+I11 COT. (score = 7, equity = -3, win% = 1)
+I11 COL. (score = 7, equity = -3, win% = 1)
+O5 CLO. (score = 7, equity = -3, win% = 1)

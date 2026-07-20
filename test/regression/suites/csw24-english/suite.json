@@ -1,0 +1,21 @@
+{
+  "_comment": "Per-combo suite for the csw24 dictionary + english alphabet. Language-agnostic levers only; mirrors nwl23-english (the template). Position-specific levers live in the 'common' suite (nwl23-english only). See nwl23-english/suite.json for the field schema.",
+  "lexicon": "csw24",
+  "alphabet": "english",
+  "seed": 1,
+
+  "tests": [
+    { "name": "anagram-satire",        "mode": "anagram", "args": ["--letters=SATIRE"] },
+    { "name": "anagram-build-retinas", "mode": "anagram", "args": ["--letters=RETINAS", "--build"] },
+
+    { "name": "enumerate",             "mode": "enumerate", "digest": true },
+
+    { "name": "staticleaves",          "mode": "staticleaves", "inputs": { "racks": "inputs/static.racks" } },
+    { "name": "leavecalc",             "mode": "leavecalc",    "inputs": { "leaves": "inputs/calc.leaves" }, "seed": 3 },
+
+    { "name": "selfplay-seed1",        "mode": "selfplay", "args": ["--repetitions=3"], "seed": 1 },
+    { "name": "selfplay-speedy-vs-speedy", "mode": "selfplay", "args": ["--computer=Speedy Player", "--computer2=Speedy Player", "--repetitions=2"], "seed": 7 },
+
+    { "name": "playability",           "mode": "playability", "args": ["--repetitions=2"], "seed": 5 }
+  ]
+}

@@ -1,0 +1,41 @@
+Testing 1 positions with Speedy Player.
+Testing game from positions/one_tile_play.gcg
+Testing Speedy Player on:
+------------
+Position [turnNumber = 2, current player Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EGOTVWW]
+   A B C D E F G H I J K L M N O 
+   ------------------------------
+ 1|=     '       =       '     =|
+ 2|  -       "       "       -  |
+ 3|    -       '   '       -    |
+ 4|'     -       '       -     '|
+ 5|        -           -        |
+ 6|  "       "       "       "  |
+ 7|    '       '   '       '    |
+ 8|=     '   H E Y       '     =|
+ 9|    '     A '   '       '    |
+10|  "       Z       "       "  |
+11|        - E         -        |
+12|'     -       '       -     '|
+13|    -       '   '       -    |
+14|  -       "       "       -  |
+15|=     '       =       '     =|
+   ------------------------------
+Move made is nonmove (score = -9999, equity = -9999, win% = 0)
+All Players: 
+Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EGOTVWW]
+Human Player bricap (id 1) with score 36 holding AEEELQT after drawing [AEEELQT]
+Bag (84): ??AAAAAAABBCCDDDDEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNOOOOOOOOPPRRRRRRSSSSTTTTTUUUUVVWWY
+------------
+
+Generating moves...
+G8 .X (score = 34, equity = 35.3594, win% = 0)
+G7 N.G (score = 12, equity = 15.3125, win% = 0)
+G7 G.N (score = 10, equity = 13.3125, win% = 0)
+11E N.G (score = 8, equity = 11.3125, win% = 0)
+11E G.N (score = 8, equity = 11.3125, win% = 0)
+9E G.N (score = 8, equity = 11.3125, win% = 0)
+11F .X (score = 9, equity = 10.3594, win% = 0)
+11F .NG (score = 4, equity = 7.3125, win% = 0)
+G8 .N (score = 6, equity = 3.69141, win% = 0)
+-GN (score = 0, equity = 3.3125, win% = 0)

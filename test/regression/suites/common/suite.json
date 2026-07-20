@@ -1,0 +1,17 @@
+{
+  "_comment": "Common suite: the position-specific levers that load .gcg files. These test boards laid out with English words scored against nwl23, so they are meaningful ONLY for the default dictionary/language and are NOT replicated per combo. Always fixed to nwl23-english. See ../nwl23-english/suite.json for the field schema; language-agnostic levers (anagram, enumerate, staticleaves, leavecalc, selfplay, playability) live in the per-combo suites.",
+  "lexicon": "nwl23",
+  "alphabet": "english",
+  "seed": 1,
+
+  "tests": [
+    { "name": "positions-one-tile",   "mode": "positions", "positions": ["one_tile_play.gcg"] },
+    { "name": "positions-preendgame", "mode": "positions", "positions": ["preendgame.gcg"] },
+    { "name": "positions-deadwood",   "mode": "positions", "positions": ["deadwoodendgame.gcg"] },
+    { "name": "positions-fivepoint",  "mode": "positions", "positions": ["fivepoint.gcg"] },
+    { "name": "positions-multi",      "mode": "positions", "positions": ["preendgame.gcg", "logan.gcg"] },
+
+    { "name": "report-logan",         "mode": "report",     "positions": ["logan.gcg"] },
+    { "name": "htmlreport-logan",     "mode": "htmlreport", "positions": ["logan.gcg"] }
+  ]
+}

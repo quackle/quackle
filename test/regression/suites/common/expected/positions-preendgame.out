@@ -1,0 +1,71 @@
+Testing 1 positions with Speedy Player.
+Testing game from positions/preendgame.gcg
+29 enumerations: 
+ACJLLNO 0.0277778
+ACJLLNT 0.0277778
+ACJLLNY 0.0277778
+ACJLLOT 0.0277778
+ACJLLOY 0.0277778
+ACJLLTY 0.0277778
+ACJLNOT 0.0555556
+ACJLNOY 0.0555556
+ACJLNTY 0.0555556
+ACJLOTY 0.0555556
+ACJNOTY 0.0277778
+ACLLNOT 0.0277778
+ACLLNOY 0.0277778
+ACLLNTY 0.0277778
+ACLLOTY 0.0277778
+ACLNOTY 0.0555556
+AJLLNOT 0.0277778
+AJLLNOY 0.0277778
+AJLLNTY 0.0277778
+AJLLOTY 0.0277778
+AJLNOTY 0.0555556
+ALLNOTY 0.0277778
+CJLLNOT 0.0277778
+CJLLNOY 0.0277778
+CJLLNTY 0.0277778
+CJLLOTY 0.0277778
+CJLNOTY 0.0555556
+CLLNOTY 0.0277778
+JLLNOTY 0.0277778
+Testing Speedy Player on:
+------------
+Position [turnNumber = 11, current player Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [?T]
+   A B C D E F G H I J K L M N O 
+   ------------------------------
+ 1|=     '       M O O   '     =|
+ 2|  - C A V I T I E S       -  |
+ 3|    O       '   '       -    |
+ 4|'   Z -       '       -     '|
+ 5|W   I   -   B E V E L   R    |
+ 6|A B E T T O R     " A   I "  |
+ 7|G   R   H   E X '   U   A    |
+ 8|O     F U N D I     R ' L E G|
+ 9|N   H   N   '   ' O E   T    |
+10|  W A U K "       F A D O "  |
+11|E   N   S           T I S    |
+12|Q A D I       '     E D     '|
+13|U   Y       '   '       -    |
+14|I -       "       "       -  |
+15|P A M p E R E R       '     =|
+   ------------------------------
+Move made is nonmove (score = -9999, equity = -9999, win% = 0)
+All Players: 
+Human Player jasonkb (id 0) with score 307 holding ?EGINPS after drawing [?T]
+Human Player Marty Gabriel (id 1) with score 414 holding ACLNOTY after drawing [ACLNOTY]
+Bag (2): JL
+------------
+
+Generating moves...
+14H EmPINGS (score = 82, equity = 82, win% = 0)
+14H ESPyING (score = 82, equity = 82, win% = 0)
+3I SEePING (score = 77, equity = 77, win% = 0)
+3I SeEPING (score = 76, equity = 76, win% = 0)
+14H EPIGoNS (score = 74, equity = 74, win% = 0)
+4C .EP (score = 28, equity = 72.3867, win% = 0)
+13E EmPINGS (score = 72, equity = 72, win% = 0)
+13E pIGPENS (score = 71, equity = 71, win% = 0)
+13E PIGpENS (score = 71, equity = 71, win% = 0)
+4C .IP (score = 28, equity = 70.457, win% = 0)
