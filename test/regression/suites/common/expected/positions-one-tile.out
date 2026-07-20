@@ -2,7 +2,7 @@ Testing 1 positions with Speedy Player.
 Testing game from positions/one_tile_play.gcg
 Testing Speedy Player on:
 ------------
-Position [turnNumber = 2, current player Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EGOTVWW]
+Position [turnNumber = 2, current player Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EORRSUU]
    A B C D E F G H I J K L M N O 
    ------------------------------
  1|=     '       =       '     =|
@@ -23,9 +23,9 @@ Position [turnNumber = 2, current player Human Player jasonkb (id 0) with score 
    ------------------------------
 Move made is nonmove (score = -9999, equity = -9999, win% = 0)
 All Players: 
-Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EGOTVWW]
-Human Player bricap (id 1) with score 36 holding AEEELQT after drawing [AEEELQT]
-Bag (84): ??AAAAAAABBCCDDDDEEEEEEEFFGGHIIIIIIIIIJKLLLMMNNNNNOOOOOOOOPPRRRRRRSSSSTTTTTUUUUVVWWY
+Human Player jasonkb (id 0) with score 18 holding GNX after drawing [EORRSUU]
+Human Player bricap (id 1) with score 36 holding ACEMOSV after drawing [ACEMOSV]
+Bag (84): ??AAAAAAABBCDDDDEEEEEEEEEFFGGHIIIIIIIIIJKLLLLMNNNNNOOOOOOOPPQRRRRRRSSSTTTTTTUUUUVWWY
 ------------
 
 Generating moves...
