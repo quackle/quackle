@@ -159,6 +159,16 @@ void TestHarness::executeFromArguments()
 
 	startUp();
 
+	// Apply the seed before dispatching to any mode so that every lever --
+	// not just selfplay -- produces reproducible results. Tile drawing (used
+	// when reading positions with unknown racks, when replaying games for
+	// reports, and during selfplay) all pulls from this RNG.
+	if (seed != numeric_limits<unsigned int>::max())
+	{
+		UVcout << "using seed " << seed << endl;
+		m_dataManager.seedRandomNumbers(seed);
+	}
+
 	if (mode == "positions")
 		testPositions();
 	else if (mode == "report")
@@ -656,10 +666,9 @@ void TestHarness::testReport(bool html)
 
 void TestHarness::selfPlayGames(unsigned int seed, unsigned int reps, bool reports, bool playability)
 {
-	if (seed != numeric_limits<unsigned int>::max()) {
-		UVcout << "using seed " << seed << endl;
-		m_dataManager.seedRandomNumbers(seed);
-	}
+	// Seeding is handled centrally in executeFromArguments() so that every
+	// mode is reproducible; seed is unused here.
+	(void)seed;
 
 	for (unsigned int i = 0; i < reps; i++)
 		selfPlayGame(i, reports, playability);
@@ -812,7 +821,16 @@ void TestHarness::wordDump()
     if (QUACKLE_LEXICON_PARAMETERS->hasGaddag()) {
 	dumpGaddag(QUACKLE_LEXICON_PARAMETERS->gaddagRoot(),
 		      LetterString());
+    } else if (QUACKLE_LEXICON_PARAMETERS->hasSomething()) {
+	// Enumerate straight from the dawg so the full word list is available
+	// even when no gaddag has been built yet -- e.g. to feed makegaddag.
+	Generator gen;
+	int flags = Generator::AnagramRearrange | Generator::AddAnyLetters
+	    | Generator::ClearBlanknesses;
+	WordList all = gen.anagramLetters("", flags);
+	for (WordList::const_iterator it = all.begin(); it != all.end(); ++it)
+	    UVcout << "wordDump: " << QUACKLE_ALPHABET_PARAMETERS->userVisible(*it) << endl;
     } else {
-	UVcout << "wordDump: no gaddag" << endl;
+	UVcout << "wordDump: no lexicon" << endl;
     }
 }
