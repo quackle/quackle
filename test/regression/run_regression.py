@@ -25,6 +25,7 @@ Usage:
     run_regression.py --record        (re)record golden files for every suite
     run_regression.py --record nwl23-english
     run_regression.py --list          list suites and their tests
+    run_regression.py -v              echo each exact libquackle_test invocation
     run_regression.py --no-gaddag     run degraded (skip gaddag generation)
 
 Exit status is non-zero if any test fails (or if a golden file is missing).
@@ -40,11 +41,15 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+# When True, echo each libquackle_test invocation before running it.
+VERBOSE = False
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -263,10 +268,14 @@ def build_argv(binary, suite, test, run_dir, gaddags):
 
     Positions and input files are staged into run_dir with stable relative
     names so that nothing machine-specific (absolute paths) leaks into output.
+    Returns (argv, staged), where `staged` describes the cwd files the harness
+    reads that don't appear in argv (input files, injected gaddag) -- surfaced
+    by --verbose so the printed invocation tells the whole story.
     """
     lexicon = suite["lexicon"]
     alphabet = suite["alphabet"]
     seed = test.get("seed", suite.get("seed", 1))
+    staged = []
 
     argv = [
         str(binary),
@@ -283,12 +292,14 @@ def build_argv(binary, suite, test, run_dir, gaddags):
         lexica = run_dir / "lexica"
         lexica.mkdir(exist_ok=True)
         (lexica / f"{lexicon}.gaddag").symlink_to(gaddag)
+        staged.append(f"lexica/{lexicon}.gaddag -> {gaddag}")
 
     # Stage input files (e.g. the 'racks' file for staticleaves, 'leaves' for
     # leavecalc) under the exact filename the harness opens in its cwd.
     for dest_name, src_rel in test.get("inputs", {}).items():
         src = (SUITES_DIR / suite["_name"] / src_rel).resolve()
         shutil.copy(src, run_dir / dest_name)
+        staged.append(f"{dest_name} (from suites/{suite['_name']}/{src_rel})")
 
     # Stage .gcg positions and reference them relatively.
     positions = test.get("positions", [])
@@ -301,17 +312,24 @@ def build_argv(binary, suite, test, run_dir, gaddags):
             argv.append(f"--position=positions/{gcg}")
 
     argv.extend(test.get("args", []))
-    return argv
+    return argv, staged
 
 
 def run_test(binary, suite, test, work_root, gaddags):
-    """Run one test and return (normalized_output, raw_output)."""
+    """Run one test and return (normalized_output, raw_output, argv)."""
     run_dir = work_root / "run"
     if run_dir.exists():
         shutil.rmtree(run_dir)
     run_dir.mkdir()
 
-    argv = build_argv(binary, suite, test, run_dir, gaddags)
+    argv, staged = build_argv(binary, suite, test, run_dir, gaddags)
+
+    if VERBOSE:
+        print(f"  {C_BLUE}> {test['name']}{C_RESET}")
+        print(f"    (cd {shlex.quote(str(run_dir))} && {shlex.join(argv)})")
+        for s in staged:
+            print(f"      staged: {s}")
+
     proc = subprocess.run(
         argv, cwd=run_dir, capture_output=True, text=True, timeout=600)
 
@@ -526,7 +544,13 @@ def main():
                         help="skip generating a gaddag; run Speedy Player in "
                              "degraded mode (slower, but produces identical "
                              "results).")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="echo the exact libquackle_test invocation (with "
+                             "cwd and staged files) before running each test.")
     args = parser.parse_args()
+
+    global VERBOSE
+    VERBOSE = args.verbose
 
     available = discover_suites()
     if args.list:

@@ -19,6 +19,11 @@ python3 test/regression/run_regression.py
 python3 test/regression/run_regression.py nwl23-english
 python3 test/regression/run_regression.py --list
 
+# -v/--verbose echoes the exact libquackle_test invocation before each test:
+# a copy-pasteable `(cd <cwd> && libquackle_test ...)`, plus any staged input
+# files (racks/leaves lists, injected gaddag) the harness reads from its cwd.
+python3 test/regression/run_regression.py -v common
+
 # (re)record golden files after an intended behavior change
 python3 test/regression/run_regression.py --record
 ```
