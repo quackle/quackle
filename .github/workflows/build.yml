@@ -105,6 +105,23 @@ jobs:
         cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
         ninja -v
 
+    # Drives libquackle_test (and makegaddag) out of the build tree above,
+    # comparing against the goldens in test/regression/suites. See
+    # test/regression/README.md.
+    - name: Run regression tests
+      shell: bash
+      run: |
+        # libquackle_test links Qt Core; ensure aqtinstall's Qt is on path
+        if [ -n "$QT_ROOT_DIR" ]; then
+          export LD_LIBRARY_PATH="$QT_ROOT_DIR/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          export DYLD_FRAMEWORK_PATH="$QT_ROOT_DIR/lib${DYLD_FRAMEWORK_PATH:+:$DYLD_FRAMEWORK_PATH}"
+        fi
+        # Git Bash on the Windows runners exposes the toolcache Python as
+        # `python`; everywhere else it's `python3`.
+        PY=python3
+        command -v "$PY" >/dev/null 2>&1 || PY=python
+        "$PY" test/regression/run_regression.py --bin build
+
   # Linux ARM64 (Raspberry Pi) builds. Unlike the matrix above, these do NOT use
   # aqtinstall: Qt has no ARM64 Linux desktop binaries before 6.7, and real Pi
   # users build against the system Qt from apt anyway. So we install Qt (and the
@@ -155,6 +172,7 @@ jobs:
         apt-get update
         apt-get install -y --no-install-recommends \
           build-essential cmake ninja-build git ca-certificates libgl1-mesa-dev \
+          python3 \
           ${{ matrix.qt_pkgs }}
 
     - name: Check out sources
@@ -166,3 +184,6 @@ jobs:
         cd build
         cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_version }} ../quacker
         ninja -v
+
+    - name: Run regression tests
+      run: python3 test/regression/run_regression.py --bin build
