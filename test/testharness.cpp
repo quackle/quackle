@@ -91,7 +91,7 @@ const char *usage =
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'nwl23').\n"
 "--alphabet=; sets the alphabet (default 'english').\n"
-"--seed=integer; set the random seed for reproducability.\n"
+"--seed=integer; seed the rng for reproducible sessions.\n"
 "--report; generate reports for selfplay games (default false).\n"
 "--letters; letters to anagram.\n"
 "--build; when mode is anagram, do not require that all letters be used.\n"
@@ -252,7 +252,7 @@ double TestHarness::leaveSim(const Rack &R, int iterations)
 	Bag B;
 	B.removeLetters(R.tiles());
 
-	int tilesToLeave = 14 + rand() % (93 - 14);
+	int tilesToLeave = QUACKLE_DATAMANAGER->randomInteger(14, 92);
 
 	for (int i = 0; i < iterations; i++)
 	{
@@ -740,7 +740,7 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
                         UVcout << word << " " << numTops << endl;
                     }
                 }
-                int toPlay = rand() % numTops;
+                int toPlay = QUACKLE_DATAMANAGER->randomInteger(0, (int)numTops - 1);
                 //UVcout << "playing move #" << toPlay << endl;
                 game.commitMove(tops[toPlay]);
             } else {

@@ -20,6 +20,7 @@
 #define QUACKLE_DATAMANAGER_H
 
 #include <algorithm>
+#include <iterator>
 #include <random>
 #include <string>
 
@@ -121,15 +122,19 @@ public:
 	void setUserDataDirectory(string directory) { m_userDataDirectory = directory; }
 	string userDataDirectory() { return m_userDataDirectory; }
 
-	// Each thread has its own independent generator (see m_mersenneTwisterRng
-	// below), so these only affect the calling thread's random sequence.
+	// RNG and shuffling functionality guarantee cross-platform equivalence if started
+	// from the same seed, which facilitates regression testing.
 	void seedRandomNumbers(unsigned int seed);
 	void seedRandomNumbers(std::seed_seq &seed);
 	int randomInteger(int low, int high);
 	template <typename T> void shuffle(T &collection)
 	{
 		ensureRngSeeded();
-		std::shuffle(collection.begin(), collection.end(), m_mersenneTwisterRng);
+		auto first = collection.begin();
+		auto remaining = std::distance(first, collection.end());
+		// Simple Fisher-Yates shuffle
+		for (auto i = remaining - 1; i > 0; --i)
+			std::iter_swap(first + i, first + randomInteger(0, (int)i));
 	}
 
 private:

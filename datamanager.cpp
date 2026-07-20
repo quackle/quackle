@@ -18,8 +18,10 @@
 
 #include <time.h>
 #include <sys/stat.h>
+#include <cstdint>
 #include <cstdlib>
 #include <functional>
+#include <limits>
 #include <thread>
 
 #include "catchall.h"
@@ -210,5 +212,27 @@ void DataManager::ensureRngSeeded()
 int DataManager::randomInteger(int low, int high)
 {
 	ensureRngSeeded();
-	return uniform_int_distribution<>(low, high)(m_mersenneTwisterRng);
+
+	// Deliberately not std::uniform_int_distribution. mt19937_64 and seed_seq
+	// are specified exactly by the standard, but a distribution's mapping from
+	// generator output to result is implementation-defined -- libc++ and
+	// libstdc++ turn the same seeded sequence into different integers. That
+	// would make a given --seed reproduce only on the standard library it was
+	// recorded against, which is no reproducibility at all. This does the
+	// mapping ourselves so a seed means the same thing everywhere.
+	//
+	// Unbiased by rejection: limit is the largest multiple of range that fits
+	// in a uint64_t, so every accepted draw maps to a bucket of exactly equal
+	// size. Draws at or above it (a vanishingly small tail for any range
+	// quackle uses) are discarded rather than folded in.
+	const uint64_t range = (uint64_t)high - (uint64_t)low + 1;
+	const uint64_t max = numeric_limits<uint64_t>::max();
+	const uint64_t limit = max - (max % range);
+
+	uint64_t draw;
+	do
+		draw = m_mersenneTwisterRng();
+	while (draw >= limit);
+
+	return low + (int)(draw % range);
 }
