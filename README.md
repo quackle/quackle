@@ -21,7 +21,13 @@ Clone the repo or download the tarball and untar.  Use cmake to build quacker, w
 
 The binary will build as 'Quackle'.
 
-If you're building with Qt provided by cmake, then invoke cmake as...
+You need Qt.  There are various ways to get it.  If you don't want to install it globally via package manager, [aqtinstall](https://github.com/miurahr/aqtinstall) is a particularly useful tool.
+
+If you're using aqtinstall, then invoke cmake as...
+
+	cmake -DCMAKE_PREFIX_PATH="<path_to_qt_dir>/<ver>/<platform>" ..
+
+If you're building with Qt provided by vcpkg, then invoke cmake as...
 
 	cmake -DCMAKE_PREFIX_PATH="<path_to_vcpkg>/installed/<arch>" ..
 
