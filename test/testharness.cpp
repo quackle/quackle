@@ -87,6 +87,7 @@ const char *usage =
 "       'randomracks' spit out random racks (forever?).\n"
 "       'leavecalc' spit out roughish values of leaves in 'leaves' file.\n"
 "       'anagram' anagrams letters supplied in --letters.\n"
+"       'cputopology' dumps detected CPU topology and thread pool sizing.\n"
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'nwl23').\n"
@@ -193,6 +194,8 @@ void TestHarness::executeFromArguments()
 		wordDump();
 	else if (mode == "bingos")
 		bingos();
+	else if (mode == "cputopology")
+		cpuTopology();
 }
 
 void TestHarness::startUp()
@@ -833,4 +836,17 @@ void TestHarness::wordDump()
     } else {
 	UVcout << "wordDump: no lexicon" << endl;
     }
+}
+
+void TestHarness::cpuTopology()
+{
+	const Quackle::CPUTopology &topology = m_dataManager.cpuTopology();
+
+	if (topology.usedGenericFallback())
+	{
+		UVcout << "WARNING: generic fallback used -- no platform-specific CPU probe was available, "
+			   << "or the one for this platform failed. Only the logical core count is known." << endl;
+	}
+
+	UVcout << topology.description();
 }

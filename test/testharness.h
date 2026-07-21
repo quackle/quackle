@@ -79,6 +79,9 @@ public:
 
 	void wordDump();
 
+	// Dumps the CPU topology the data manager detected.
+	void cpuTopology();
+
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
 

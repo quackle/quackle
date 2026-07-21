@@ -18,6 +18,7 @@ set(LIBQUACKLE_SOURCES
 	clock.cpp
 	computerplayer.cpp
 	computerplayercollection.cpp
+	cputopology.cpp
 	datamanager.cpp
 	endgame.cpp
 	endgameplayer.cpp
@@ -48,6 +49,7 @@ set(LIBQUACKLE_HEADERS
 	clock.h
 	computerplayer.h
 	computerplayercollection.h
+	cputopology.h
 	datamanager.h
 	endgame.h
 	endgameplayer.h

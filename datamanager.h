@@ -24,6 +24,7 @@
 #include <random>
 #include <string>
 
+#include "cputopology.h"
 #include "playerlist.h"
 
 #define QUACKLE_DATAMANAGER Quackle::DataManager::self()
@@ -35,6 +36,7 @@
 #define QUACKLE_LEXICON_PARAMETERS Quackle::DataManager::self()->lexiconParameters()
 #define QUACKLE_STRATEGY_PARAMETERS Quackle::DataManager::self()->strategyParameters()
 #define QUACKLE_COMPUTER_PLAYERS Quackle::DataManager::self()->computerPlayers()
+#define QUACKLE_CPU_TOPOLOGY Quackle::DataManager::self()->cpuTopology()
 
 namespace Quackle
 {
@@ -87,6 +89,10 @@ public:
 
 	StrategyParameters *strategyParameters();
 	void setStrategyParameters(StrategyParameters *strategyParameters);
+
+	// What the machine's CPUs look like, probed once when this data manager
+	// was constructed. Immutable, hence no setter.
+	const CPUTopology &cpuTopology() const;
 
 	// When the data manager dies or setComputerPlayers is called, it deletes
 	// all of the computer players pointed to by the players in this list. The
@@ -162,6 +168,8 @@ private:
 
 	PlayerList m_computerPlayers;
 
+	CPUTopology m_cpuTopology;
+
 	// Thread-local so that concurrent simulation threads can generate
 	// random numbers without contending on a shared lock. Each thread
 	// gets its own independently-seeded generator.
@@ -207,6 +215,11 @@ inline LexiconParameters *DataManager::lexiconParameters()
 inline StrategyParameters *DataManager::strategyParameters()
 {
 	return m_strategyParameters;
+}
+
+inline const CPUTopology &DataManager::cpuTopology() const
+{
+	return m_cpuTopology;
 }
 
 inline const PlayerList &DataManager::computerPlayers() const
