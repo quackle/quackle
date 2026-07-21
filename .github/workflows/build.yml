@@ -102,7 +102,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
         ninja -v
 
   # Linux ARM64 (Raspberry Pi) builds. Unlike the matrix above, these do NOT use
@@ -164,5 +164,5 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DQT_VERSION=${{ matrix.qt_version }} ../quacker
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_version }} ../quacker
         ninja -v
