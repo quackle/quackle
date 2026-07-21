@@ -50,13 +50,13 @@ int main(int argc, char **argv)
 	if (!smallerDict.exists())
 	{
 		UVcout << "smaller dictionary does not exist: " << QuackleIO::Util::qstringToString(smallerDictFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	if (!smallerDict.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		UVcout << "Could not open " << QuackleIO::Util::qstringToString(smallerDictFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	QTextStream smallerStream(&smallerDict);
@@ -75,13 +75,13 @@ int main(int argc, char **argv)
 	if (!playability.exists())
 	{
 		UVcout << "playability does not exist: " << QuackleIO::Util::qstringToString(playabilityFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	if (!playability.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		UVcout << "Could not open " << QuackleIO::Util::qstringToString(playabilityFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	QTextStream playabilityStream(&playability);
@@ -102,13 +102,13 @@ int main(int argc, char **argv)
 	if (!file.exists())
 	{
 		UVcout << "dawg does not exist: " << QuackleIO::Util::qstringToString(dawgFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		UVcout << "Could not open " << QuackleIO::Util::qstringToString(dawgFilename) << std::endl;
-		return false;
+		return 1;
 	}
 
 	QTextStream stream(&file);

@@ -54,13 +54,13 @@ int main(int argc, char **argv) {
 	if (!file.exists())
 	{
 		UVcout << "leaves file does not exist: " << QuackleIO::Util::qstringToString(leavesFilename) << endl;
-		return false;
+		return 1;
 	}
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 		UVcout << "Could not open " << QuackleIO::Util::qstringToString(leavesFilename) << endl;
-		return false;
+		return 1;
 	}
 
 	QTextStream stream(&file);
