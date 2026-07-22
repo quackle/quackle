@@ -114,6 +114,12 @@ jobs:
     # test/regression/README.md.
     - name: Run regression tests
       shell: bash
+      env:
+        # detect_leaks / detect_stack_use_after_return are pure overhead here...speed up CI jobs
+        ASAN_OPTIONS: detect_leaks=0:detect_stack_use_after_return=0
+        # Under a non-TTY CI shell Python block-buffers stdout, so the whole run's
+        # output flushes once at the end. Stream it live instead.
+        PYTHONUNBUFFERED: "1"
       run: |
         # libquackle_test links Qt Core; ensure aqtinstall's Qt is on path
         if [ -n "$QT_ROOT_DIR" ]; then
@@ -190,4 +196,7 @@ jobs:
         ninja -v
 
     - name: Run regression tests
+      env:
+        ASAN_OPTIONS: detect_leaks=0:detect_stack_use_after_return=0
+        PYTHONUNBUFFERED: "1"
       run: python3 test/regression/run_regression.py --bin build
