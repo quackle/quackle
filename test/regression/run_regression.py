@@ -102,6 +102,25 @@ def resolve_binary(cli_bin):
             return cand.resolve()
     return None
 
+
+def child_env(binary):
+    """Environment for spawning a Quackle binary, with DLLs discoverable.
+
+    On Windows the build stages Qt (and other) DLLs in the build root beside the
+    test/ and makegaddag/ subdirs, but the loader searches only the exe's own
+    directory and PATH -- never the parent -- so libquackle_test in test/ can't
+    see them. Prepend the build root so the harness works from any shell instead
+    of only a Developer prompt that happens to have Qt on PATH. Harmless on
+    POSIX, where shared libs are found via rpath/LD_LIBRARY_PATH, not PATH; we
+    return the inherited environment unchanged there.
+    """
+    if os.name != "nt":
+        return None
+    build_root = binary.parent.parent
+    env = os.environ.copy()
+    env["PATH"] = str(build_root) + os.pathsep + env.get("PATH", "")
+    return env
+
 # ANSI colors (disabled when stdout is not a tty)
 if sys.stdout.isatty():
     C_RED, C_GREEN, C_YELLOW, C_BLUE, C_RESET = (
@@ -205,7 +224,8 @@ def build_gaddag(binary, lexicon, alphabet, work_root):
     dump = subprocess.run(
         [str(binary), "--mode=worddump",
          f"--lexicon={lexicon}", f"--alphabet={alphabet}"],
-        cwd=run_dir, capture_output=True, text=True, timeout=600)
+        cwd=run_dir, capture_output=True, text=True, timeout=600,
+        env=child_env(binary))
     prefix = "wordDump: "
     words = [ln[len(prefix):] for ln in dump.stdout.splitlines()
              if ln.startswith(prefix)]
@@ -220,7 +240,8 @@ def build_gaddag(binary, lexicon, alphabet, work_root):
     gen = subprocess.run(
         [str(mg), "-f", str(words_file), "-o", str(partial),
          f"--alphabet={alphabet}"],
-        cwd=run_dir, capture_output=True, text=True, timeout=600)
+        cwd=run_dir, capture_output=True, text=True, timeout=600,
+        env=child_env(binary))
     if not partial.exists():
         sys.stderr.write(gen.stdout + gen.stderr)
         return None
@@ -293,7 +314,7 @@ def build_argv(binary, suite, test, run_dir, gaddags):
     if gaddag:
         lexica = run_dir / "lexica"
         lexica.mkdir(exist_ok=True)
-        (lexica / f"{lexicon}.gaddag").symlink_to(gaddag)
+        link_file(gaddag, lexica / f"{lexicon}.gaddag")
         staged.append(f"lexica/{lexicon}.gaddag -> {gaddag}")
 
     # Stage input files (e.g. the 'racks' file for staticleaves, 'leaves' for
@@ -333,7 +354,8 @@ def run_test(binary, suite, test, work_root, gaddags):
             print(f"      staged: {s}")
 
     proc = subprocess.run(
-        argv, cwd=run_dir, capture_output=True, text=True, timeout=600)
+        argv, cwd=run_dir, capture_output=True, text=True, timeout=600,
+        env=child_env(binary))
 
     raw = proc.stdout + proc.stderr
     return normalize(proc.stdout), raw, argv
@@ -382,9 +404,48 @@ def setup_work_root():
     area to avoid depending on where the script is run from.
     """
     work_root = Path(tempfile.mkdtemp(prefix="quackle_regress_"))
-    (work_root / "data").symlink_to(DATA_DIR)
+    link_data_dir(work_root / "data")
     (work_root / "run").mkdir()
     return work_root
+
+
+def link_data_dir(link):
+    """Point 'link' at the repo data dir so the binary's "../data" resolves.
+
+    A symlink works on POSIX and on Windows when the shell is elevated or
+    Developer Mode is on. On Windows without those, creating a symlink raises
+    OSError (WinError 1314); fall back to a directory junction, which needs no
+    special privilege and is equally transparent for "../data".
+    """
+    try:
+        link.symlink_to(DATA_DIR)
+        return
+    except OSError:
+        if os.name != "nt":
+            raise
+    subprocess.run(
+        ["cmd", "/c", "mklink", "/J", str(link), str(DATA_DIR)],
+        check=True, stdout=subprocess.DEVNULL)
+
+
+def link_file(src, link):
+    """Make 'link' refer to the file 'src' without copying when possible.
+
+    Like link_data_dir but for a file, where a junction doesn't apply. Prefer a
+    symlink; on plain Windows fall back to a hard link (no privilege needed for
+    files on the same volume, which the temp gaddag cache and temp run dir always
+    are), and to a plain copy only if even that fails.
+    """
+    try:
+        link.symlink_to(src)
+        return
+    except OSError:
+        if os.name != "nt":
+            raise
+    try:
+        os.link(src, link)
+    except OSError:
+        shutil.copy(src, link)
 
 
 def record_suite(binary, suite, work_root, gaddags):
