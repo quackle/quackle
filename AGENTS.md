@@ -95,3 +95,14 @@ failing test pass.
 ## Code formatting
 
 Run `clang-format` (config in `.clang-format`) on source files you add or modify.
+
+## Comments
+
+Comment the surprising, the non-obvious, and the *why* the code can't state itself (an external
+constraint, a workaround for someone else's bug, a subtle invariant). This applies everywhere —
+source, CMake, CI YAML.
+
+Do **not** narrate history: what broke, the symptoms observed, how it was diagnosed, or how a
+value was arrived at belongs in the commit message, not the source. A comment reciting a bug's
+backstory is noise that makes the code harder to read. Keep comments short — one line naming the
+constraint beats a paragraph retelling the investigation.
