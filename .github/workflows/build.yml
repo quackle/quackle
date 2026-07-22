@@ -75,6 +75,10 @@ jobs:
             os: windows-11-arm
             msvc_arch: arm64
             qt_arch: win64_msvc2022_arm64
+            # MSVC AddressSanitizer for ARM64 only exists as a VS2026 *preview*
+            # feature at this time, so windows-11-arm runner's toolchain
+            # can't be relied on to carry it.
+            asan: OFF
             env:
               CXX: cl
               C: cl
@@ -102,7 +106,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DQUACKLE_SANITIZE_ADDRESS=${{ matrix.asan || 'ON' }} -DQT_VERSION=${{ matrix.qt_ver }} -DCMAKE_OSX_ARCHITECTURES=${{ matrix.osx_arch }} ../quacker
         ninja -v
 
     # Drives libquackle_test (and makegaddag) out of the build tree above,
@@ -182,7 +186,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DQT_VERSION=${{ matrix.qt_version }} ../quacker
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DQUACKLE_SANITIZE_ADDRESS=ON -DQT_VERSION=${{ matrix.qt_version }} ../quacker
         ninja -v
 
     - name: Run regression tests
