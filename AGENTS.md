@@ -98,11 +98,37 @@ Run `clang-format` (config in `.clang-format`) on source files you add or modify
 
 ## Comments
 
-Comment the surprising, the non-obvious, and the *why* the code can't state itself (an external
-constraint, a workaround for someone else's bug, a subtle invariant). This applies everywhere —
-source, CMake, CI YAML.
+**The default is no comment.** Write one only to carry a fact the reader cannot get from the code
+in front of them: an external constraint, a platform quirk, a workaround for someone else's bug, a
+non-local invariant. This applies everywhere — source, CMake, CI YAML.
 
-Do **not** narrate history: what broke, the symptoms observed, how it was diagnosed, or how a
-value was arrived at belongs in the commit message, not the source. A comment reciting a bug's
-backstory is noise that makes the code harder to read. Keep comments short — one line naming the
-constraint beats a paragraph retelling the investigation.
+Assume an expert reader. They know C++, they know the platform APIs being called, and they can see
+the signature. Before writing a comment, find the specific fact in it that such a reader could not
+have deduced. If there isn't one, delete the comment; if there is one, that fact is the whole
+comment.
+
+One line. Two if the fact genuinely needs it. A comment longer than the code it introduces is
+almost always wrong.
+
+Never write these:
+
+- **Restating the name.** `// Applies qos to the calling thread` above `applyThreadQoS(ThreadQoS qos)`.
+- **Restating the signature.** `// Resize the pool to count threads at the given QoS` above
+  `setThreadCount(size_t count, ThreadQoS qos)`.
+- **Teaching a standard concept.** What thread QoS is, what a mutex does, what an enumerator named
+  `Performance` means. The reader knows, and if they don't, the vendor's docs are better than ours.
+- **Language tutorials.** How default arguments work, that a `switch` handles each case.
+- **Narrating history.** What broke, the symptoms, how it was diagnosed, how a constant was
+  arrived at. That belongs in the commit message.
+- **Restating the platform names.** `// EnergyEfficient maps to QOS_CLASS_BACKGROUND` above the
+  line that assigns `QOS_CLASS_BACKGROUND`.
+
+The model to imitate, from `sim.cpp`:
+
+```cpp
+// EcoQoS; needs Windows 10 1809 or later, and an SDK that knows about it.
+#ifdef THREAD_POWER_THROTTLING_CURRENT_VERSION
+```
+
+One line. It names the feature the opaque macro stands for and the reason the `#ifdef` exists —
+neither is anywhere in the code — and says nothing about what the code does.
