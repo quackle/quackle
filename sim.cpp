@@ -27,6 +27,14 @@
 #include "sim.h"
 #include "strategyparameters.h"
 
+#if defined(__APPLE__)
+#	include <pthread.h>
+#elif defined(_WIN32)
+#	include <windows.h>
+#elif defined(__linux__)
+#	include <sys/resource.h>
+#endif
+
 // define this to get lame debugging messages
 // #define DEBUG_SIM
 
@@ -36,7 +44,7 @@ using namespace std;
 std::atomic_long SimmedMove::objectIdCounter { 0 };
 
 Simulator::Simulator()
-	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false)
+	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false), m_threadQoS(ThreadQoS::Balanced)
 {
 	m_originalGame.addPosition();
 	setThreadCount(2);
@@ -217,8 +225,77 @@ void Simulator::resetNumbers()
 	m_iterations = 0;
 }
 
-void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessageQueue &outgoing)
+namespace
 {
+
+void applyThreadQoS(ThreadQoS qos)
+{
+#if defined(__APPLE__)
+
+	qos_class_t qosClass = QOS_CLASS_BACKGROUND;
+	switch (qos)
+	{
+	// BACKGROUND alone confines the thread to the efficiency cores on Apple silicon.
+	case ThreadQoS::EnergyEfficient:
+		qosClass = QOS_CLASS_BACKGROUND;
+		break;
+	case ThreadQoS::Balanced:
+		qosClass = QOS_CLASS_UTILITY;
+		break;
+	case ThreadQoS::Performance:
+		qosClass = QOS_CLASS_USER_INITIATED;
+		break;
+	}
+
+	pthread_set_qos_class_self_np(qosClass, 0);
+
+#elif defined(_WIN32)
+
+	int priority = THREAD_PRIORITY_NORMAL;
+	switch (qos)
+	{
+	case ThreadQoS::EnergyEfficient:
+		priority = THREAD_PRIORITY_LOWEST;
+		break;
+	case ThreadQoS::Balanced:
+		priority = THREAD_PRIORITY_NORMAL;
+		break;
+	case ThreadQoS::Performance:
+		priority = THREAD_PRIORITY_ABOVE_NORMAL;
+		break;
+	}
+
+	SetThreadPriority(GetCurrentThread(), priority);
+
+// EcoQoS; needs Windows 10 1809 or later, and an SDK that knows about it.
+#	ifdef THREAD_POWER_THROTTLING_CURRENT_VERSION
+	THREAD_POWER_THROTTLING_STATE throttling = {};
+	throttling.Version = THREAD_POWER_THROTTLING_CURRENT_VERSION;
+	throttling.ControlMask = qos == ThreadQoS::EnergyEfficient ? THREAD_POWER_THROTTLING_EXECUTION_SPEED : 0;
+	throttling.StateMask = throttling.ControlMask;
+	SetThreadInformation(GetCurrentThread(), ThreadPowerThrottling, &throttling, sizeof(throttling));
+#	endif
+
+#elif defined(__linux__)
+
+	// Linux nice is per-thread; PRIO_PROCESS with who == 0 is the calling thread.
+	// Unprivileged, we can only lower priority, so Performance asks for nothing.
+	if (qos == ThreadQoS::EnergyEfficient)
+		setpriority(PRIO_PROCESS, 0, 10);
+
+#else
+
+	(void)qos;
+
+#endif
+}
+
+}
+
+void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessageQueue &outgoing, ThreadQoS qos)
+{
+	applyThreadQoS(qos);
+
 	while (true)
 	{
 		auto result = incoming.pop_or_terminate();
@@ -238,9 +315,13 @@ void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessag
 	}
 }
 
-void Simulator::setThreadCount(size_t count)
+void Simulator::setThreadCount(size_t count, ThreadQoS qos)
 {
-	if (count == 0 && m_threadPool.size() != 0)
+	// A thread's QoS is applied at startup and never revisited.
+	const bool requalify = qos != m_threadQoS;
+	m_threadQoS = qos;
+
+	if ((count == 0 || requalify) && m_threadPool.size() != 0)
 	{
 		m_sendQueue.send_terminate_all();
 		for (auto &t : m_threadPool)
@@ -253,7 +334,7 @@ void Simulator::setThreadCount(size_t count)
 
 	while (count > m_threadPool.size())
 	{
-		m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue));
+		m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue), qos);
 	}
 
 	while (count < m_threadPool.size())

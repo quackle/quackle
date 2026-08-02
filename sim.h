@@ -38,6 +38,9 @@ namespace Quackle
 
 class ComputerDispatch;
 
+// A hint; platforms are free to ignore it.
+enum class ThreadQoS { EnergyEfficient, Balanced, Performance };
+
 struct AveragedValue
 {
 	// new zeroed value
@@ -303,8 +306,12 @@ public:
 	void setIgnoreOppos(bool ignore);
 	bool ignoreOppos() const;
 
-	static void simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessageQueue &outgoing);
-	void setThreadCount(size_t count);
+	static void simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessageQueue &outgoing, ThreadQoS qos);
+
+	// A change of QoS recycles the whole pool, not just the threads added.
+	void setThreadCount(size_t count, ThreadQoS qos = ThreadQoS::Balanced);
+	size_t threadCount() const;
+	ThreadQoS threadQoS() const;
 
 	// set values for all levels of all moves to zero
 	void resetNumbers();
@@ -386,8 +393,8 @@ protected:
 	int m_iterations;
 	bool m_ignoreOppos;
 
-	// Pair of thread and bool requesting to terminate
 	std::vector<std::thread> m_threadPool;
+	ThreadQoS m_threadQoS;
 	SimmedMoveMessageQueue m_sendQueue;
 	SimmedMoveMessageQueue m_receiveQueue;
 };
@@ -445,6 +452,16 @@ inline void Simulator::setIgnoreOppos(bool ignore)
 inline bool Simulator::ignoreOppos() const
 {
 	return m_ignoreOppos;
+}
+
+inline size_t Simulator::threadCount() const
+{
+	return m_threadPool.size();
+}
+
+inline ThreadQoS Simulator::threadQoS() const
+{
+	return m_threadQoS;
 }
 
 inline int Simulator::iterations() const
