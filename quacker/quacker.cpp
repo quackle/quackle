@@ -1975,6 +1975,14 @@ void TopLevel::createMenu()
 #endif
 }
 
+// QTipLabel word-wraps rich text, but its ideal width is the width of the
+// unwrapped text, so a long tip still comes out as one endless line. Laying the
+// text out in a fixed-width table gives QTextDocument a width to wrap against.
+static QString wrapToolTip(const QString &text)
+{
+	return QString("<table width=\"400\"><tr><td>%1</td></tr></table>").arg(text.toHtmlEscaped());
+}
+
 void TopLevel::createWidgets()
 {
 	m_splitter = new QSplitter(Qt::Horizontal, this);
@@ -2031,23 +2039,38 @@ void TopLevel::createWidgets()
 	plyLayout->addWidget(m_showDetailsButton);
 	simulatorLayout->addLayout(plyLayout);
 
-	m_partialOppoRackEnable = new QGroupBox(tr("Specify partial oppo rack"));
+	QHBoxLayout *simOptionsLayout = new QHBoxLayout;
+	Geometry::setupInnerLayout(simOptionsLayout);
+
+	m_partialOppoRackEnable = new QGroupBox(tr("Partial oppo rack"));
 	m_partialOppoRackEnable->setCheckable(true);
 	m_partialOppoRackEnable->setFlat(true);
+	m_partialOppoRackEnable->setToolTip(wrapToolTip(tr("Restrict the simulation to opponent racks that contain these tiles. "
+													   "Use it when you have inferred part of the opponent's rack -- from a fishing "
+													   "exchange, say, or from tiles they conspicuously did not play. Any remaining "
+													   "tiles are drawn at random from the unseen pool, as usual.")));
 	connect(m_partialOppoRackEnable, SIGNAL(toggled(bool)), this, SLOT(partialOppoRackEnabled(bool)));
 
 	QHBoxLayout *partialOppoRackLayout = new QHBoxLayout(m_partialOppoRackEnable);
 	Geometry::setupInnerLayout(partialOppoRackLayout);
 
 	m_partialOppoRackEdit = new QLineEdit;
+	m_partialOppoRackEdit->setMaxLength(QUACKLE_PARAMETERS->rackSize());
+	// A rack never exceeds rackSize() tiles, so don't let the field grow beyond that.
+	m_partialOppoRackEdit->setMaximumWidth(m_partialOppoRackEdit->fontMetrics().horizontalAdvance(QString(m_partialOppoRackEdit->maxLength() + 2, QLatin1Char('W'))));
 	connect(m_partialOppoRackEdit, SIGNAL(textEdited(const QString &)), this, SLOT(partialOppoRackChanged()));
 
 	partialOppoRackLayout->addWidget(m_partialOppoRackEdit);
-	simulatorLayout->addWidget(m_partialOppoRackEnable);
+	partialOppoRackLayout->addStretch();
+	simOptionsLayout->addWidget(m_partialOppoRackEnable);
 
 	m_logfileEnable = new QGroupBox(tr("Log sim to file"));
 	m_logfileEnable->setCheckable(true);
 	m_logfileEnable->setFlat(true);
+	m_logfileEnable->setToolTip(wrapToolTip(tr("Append a full record of the simulation -- the racks drawn for the opponent, the "
+											   "moves played on each ply, and the resulting valuations -- to the named file. "
+											   "Handy for studying why the sim prefers one play over another, but the file grows "
+											   "quickly, so keep an eye on it during long sims.")));
 	connect(m_logfileEnable, SIGNAL(toggled(bool)), this, SLOT(logfileEnabled(bool)));
 
 	QHBoxLayout *logfileLayout = new QHBoxLayout(m_logfileEnable);
@@ -2056,12 +2079,15 @@ void TopLevel::createWidgets()
 	m_logfileEdit = new QLineEdit;
 	connect(m_logfileEdit, SIGNAL(editingFinished()), this, SLOT(logfileChanged()));
 
-	m_logfileChooser = new QPushButton(tr("Browse..."));
+	m_logfileChooser = new QToolButton;
+	m_logfileChooser->setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
+	m_logfileChooser->setToolTip(tr("Choose the file to log to..."));
 	connect(m_logfileChooser, SIGNAL(clicked()), this, SLOT(chooseLogfile()));
 
 	logfileLayout->addWidget(m_logfileEdit);
 	logfileLayout->addWidget(m_logfileChooser);
-	simulatorLayout->addWidget(m_logfileEnable);
+	simOptionsLayout->addWidget(m_logfileEnable, 1);
+	simulatorLayout->addLayout(simOptionsLayout);
 
 	m_noteEditor = new NoteEditor;
 	plugIntoMatrix(m_noteEditor);

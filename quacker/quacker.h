@@ -42,6 +42,7 @@ class QPushButton;
 class QSplitter;
 class QTabWidget;
 class QTimer;
+class QToolButton;
 class QVBoxLayout;
 
 class OppoThreadProgressBar;
@@ -337,7 +338,7 @@ private:
 	QPushButton *m_showDetailsButton;
 	QLineEdit *m_logfileEdit;
 	QGroupBox *m_logfileEnable;
-	QPushButton *m_logfileChooser;
+	QToolButton *m_logfileChooser;
 	QLineEdit *m_partialOppoRackEdit;
 	QGroupBox *m_partialOppoRackEnable;
 	QCheckBox *m_ignoreOpposCheck;
