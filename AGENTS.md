@@ -67,6 +67,17 @@ cmake --fresh -DCMAKE_PREFIX_PATH=~/dev/qt/6.2.4/macos/ -GNinja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo -DQUACKLE_SANITIZE_ADDRESS=ON ../quacker/
 ```
 
+## Test harness
+
+`libquackle_test` (from `test/testharness.cpp`) is the harness. Everything is a `--mode` lever, e.g.
+`./test/libquackle_test -m cputopology`. Add new test entry points there.
+
+The `test/` build directory also produces `quackletest`, built from the root-level `quackletest.cpp`.
+That one is legacy, is not being maintained, and may not survive. Don't run it and don't add to it.
+It shares neither the modes nor the argument handling of the real harness, and an unrecognized
+`--mode` doesn't error — it quietly falls through to self-play, which looks like a hang for several
+minutes before you work out you ran the wrong binary.
+
 ## Regression testing
 
 `test/regression/README.md` is the reference; read it before touching the suites. In short:
