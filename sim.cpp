@@ -383,15 +383,28 @@ void Simulator::simulate(int plies)
 
 	m_sendQueue.setConstants(constants);
 
-	if (isLogging())
-	{
-		if (!m_hasHeader)
-			writeLogHeader();
+	if (isLogging() && !m_hasHeader)
+		writeLogHeader();
 
-		m_logfileStream << m_xmlIndent << "<iteration index=\"" << m_iterations << "\">" << endl;
-		m_xmlIndent += MARK_UV('\t');
-	}
+	const int messageCount = pushIteration(constants, playaheadIndent());
+	const std::exception_ptr firstError = collectIteration(messageCount, m_iterations);
 
+	// Rethrow a worker's exception only now, with the queues fully
+	// drained and the log consistent, so the simulator remains usable.
+	if (firstError)
+		std::rethrow_exception(firstError);
+}
+
+// <playahead> sits inside <iteration> inside the log root, and a worker's
+// plies inside that. The depth is the same for every iteration, so a pushed
+// message can carry it without waiting for its <iteration> to be opened.
+UVString Simulator::playaheadIndent() const
+{
+	return m_xmlIndent + MARK_UV("\t\t");
+}
+
+int Simulator::pushIteration(const SimmedMoveConstants &constants, const UVString &indent)
+{
 	int messageCount = 0;
 
 	for (size_t moveIndex = 0; moveIndex < m_simmedMoves.size(); ++moveIndex)
@@ -412,14 +425,17 @@ void Simulator::simulate(int plies)
 		message.move = moveIt.move;
 		// a message carries only its own playahead's samples; incorporateMessage() merges them
 		message.levels.setNumberLevels(constants.levelCount + 1);
-		// plies nest inside the <playahead> element that
-		// incorporateMessage() writes around the returned log stream
-		message.xmlIndent = m_xmlIndent + MARK_UV("\t");
+		message.xmlIndent = indent;
 
 		m_sendQueue.push(message);
 		messageCount++;
 	}
 
+	return messageCount;
+}
+
+std::exception_ptr Simulator::collectIteration(int messageCount, int iteration)
+{
 	// Collect the whole iteration before incorporating so that results
 	// and the log don't depend on the order in which threads finish.
 	vector<SimmedMoveMessage> messages;
@@ -429,6 +445,12 @@ void Simulator::simulate(int plies)
 		messages.push_back(m_receiveQueue.pop());
 	for (const auto &message : messages)
 		byMove[message.moveIndex] = &message;
+
+	if (isLogging())
+	{
+		m_logfileStream << m_xmlIndent << "<iteration index=\"" << iteration << "\">" << endl;
+		m_xmlIndent += MARK_UV('\t');
+	}
 
 	std::exception_ptr firstError;
 	for (const auto *message : byMove)
@@ -451,10 +473,7 @@ void Simulator::simulate(int plies)
 		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
 	}
 
-	// Rethrow a worker's exception only now, with the queues fully
-	// drained and the log consistent, so the simulator remains usable.
-	if (firstError)
-		std::rethrow_exception(firstError);
+	return firstError;
 }
 
 void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants)

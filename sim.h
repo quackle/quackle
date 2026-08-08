@@ -391,6 +391,14 @@ protected:
 	void writeLogHeader();
 	void writeLogFooter();
 
+	UVString playaheadIndent() const;
+
+	// returns the number of messages pushed
+	int pushIteration(const SimmedMoveConstants &constants, const UVString &indent);
+
+	// drains that many replies, merges them, and wraps the log in <iteration>
+	std::exception_ptr collectIteration(int messageCount, int iteration);
+
 	UVOFStream m_logfileStream;
 	string m_logfile;
 	bool m_logfileIsOpen;
