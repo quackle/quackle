@@ -345,23 +345,16 @@ void Simulator::setThreadCount(size_t count, ThreadQoS qos)
 	}
 }
 
-void Simulator::simulate(int plies, int iterations)
+void Simulator::simulate(int plies)
 {
-	for (int i = 0; i < iterations; ++i)
-	{
-		if (m_dispatch && m_dispatch->shouldAbort())
-			break;
-		simulate(plies);
-	}
+	simulate(plies, 1);
 }
 
-void Simulator::simulate(int plies)
+void Simulator::simulate(int plies, int iterations)
 {
 #ifdef DEBUG_SIM
 	UVcout << "let's simulate for " << plies << " plies" << endl;
 #endif
-
-	++m_iterations;
 
 	if (plies < 0)
 		plies = 1000;
@@ -369,6 +362,8 @@ void Simulator::simulate(int plies)
 	// specified plies doesn't include candidate play
 	++plies;
 
+	// A pure function of the position, plies and flags, none of which can
+	// change while we block, so the workers can read it for the whole batch.
 	SimmedMoveConstants constants;
 	constants.game = m_originalGame;
 	constants.partialOppoRack = m_partialOppoRack;
@@ -386,13 +381,23 @@ void Simulator::simulate(int plies)
 	if (isLogging() && !m_hasHeader)
 		writeLogHeader();
 
-	const int messageCount = pushIteration(constants, playaheadIndent());
-	const std::exception_ptr firstError = collectIteration(messageCount, m_iterations);
+	const UVString indent = playaheadIndent();
 
-	// Rethrow a worker's exception only now, with the queues fully
-	// drained and the log consistent, so the simulator remains usable.
-	if (firstError)
-		std::rethrow_exception(firstError);
+	for (int i = 0; i < iterations; ++i)
+	{
+		if (m_dispatch && m_dispatch->shouldAbort())
+			break;
+
+		++m_iterations;
+
+		const int messageCount = pushIteration(constants, indent);
+		const std::exception_ptr firstError = collectIteration(messageCount, m_iterations);
+
+		// Rethrow a worker's exception only now, with the queues fully
+		// drained and the log consistent, so the simulator remains usable.
+		if (firstError)
+			std::rethrow_exception(firstError);
+	}
 }
 
 // <playahead> sits inside <iteration> inside the log root, and a worker's
