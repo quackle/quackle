@@ -842,6 +842,9 @@ void LevelList::setNumberLevels(unsigned int number)
 void SimmedMove::clear()
 {
 	levels.clear();
+	residual.clear();
+	gameSpread.clear();
+	wins.clear();
 }
 
 PositionStatistics SimmedMove::getPositionStatistics(int level, int playerIndex) const
