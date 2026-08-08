@@ -24,6 +24,7 @@
 #include <game.h>
 #include <boardparameters.h>
 #include <computerplayer.h>
+#include <cputopology.h>
 #include <gameparameters.h>
 
 #include <quackleio/froggetopt.h>
@@ -1150,6 +1151,76 @@ void TopLevel::ignoreOpposChanged()
 	m_simulator->setIgnoreOppos(m_ignoreOpposCheck->isChecked());
 }
 
+// Probed once; the answer can't change while we run.
+static const Quackle::CPUTopology &cpuTopology()
+{
+	static const Quackle::CPUTopology topology;
+	return topology;
+}
+
+Quackle::ThreadQoS TopLevel::selectedThreadQoS() const
+{
+	return static_cast<Quackle::ThreadQoS>(m_threadQoSCombo->currentData().toInt());
+}
+
+int TopLevel::recommendedThreadCount() const
+{
+	switch (selectedThreadQoS())
+	{
+	case Quackle::ThreadQoS::EnergyEfficient:
+		return cpuTopology().efficiencyThreadPoolSize();
+	case Quackle::ThreadQoS::Balanced:
+		return cpuTopology().balancedThreadPoolSize();
+	case Quackle::ThreadQoS::Performance:
+		break;
+	}
+
+	return cpuTopology().performanceThreadPoolSize();
+}
+
+void TopLevel::setProcessorUsageOpen(bool open)
+{
+	m_processorUsageOpener->setText(QString(QChar(open ? 0x25BC : 0x25B6)) + QLatin1Char(' ')
+								   + tr("Simulation processor usage"));
+	m_processorUsageWidget->setVisible(open);
+}
+
+void TopLevel::toggleProcessorUsage()
+{
+	setProcessorUsageOpen(!m_processorUsageWidget->isVisible());
+}
+
+void TopLevel::setThreadCount(int count)
+{
+	m_threadCount = count;
+	m_threadCountEdit->setText(QString::number(m_threadCount));
+	applyThreadSettings();
+}
+
+void TopLevel::applyThreadSettings()
+{
+	m_simulator->setThreadCount(m_threadCount, selectedThreadQoS());
+}
+
+void TopLevel::threadQoSSet(int /* qosIndex */)
+{
+	setThreadCount(recommendedThreadCount());
+}
+
+void TopLevel::threadCountEdited()
+{
+	bool isNumber = false;
+	const int count = m_threadCountEdit->text().toInt(&isNumber);
+
+	// Anything unusable puts the last good value back.
+	setThreadCount(isNumber && count >= 1 ? count : m_threadCount);
+}
+
+void TopLevel::autoDetectThreadCount()
+{
+	setThreadCount(recommendedThreadCount());
+}
+
 void TopLevel::updatePliesCombo()
 {
 	int index;
@@ -1975,12 +2046,13 @@ void TopLevel::createMenu()
 #endif
 }
 
-// QTipLabel word-wraps rich text, but its ideal width is the width of the
-// unwrapped text, so a long tip still comes out as one endless line. Laying the
-// text out in a fixed-width table gives QTextDocument a width to wrap against.
-static QString wrapToolTip(const QString &text)
+// Turns a leading "* " into a bullet, keeping the source ASCII: MSVC reads
+// UTF-8 literals as the system codepage unless it is told otherwise.
+static QString bulleted(const QString &text)
 {
-	return QString("<table width=\"400\"><tr><td>%1</td></tr></table>").arg(text.toHtmlEscaped());
+	QString bulletedText = text;
+	bulletedText.replace(QLatin1String("\n* "), QLatin1Char('\n') + QString(QChar(0x2022)) + QLatin1Char(' '));
+	return bulletedText;
 }
 
 void TopLevel::createWidgets()
@@ -2008,6 +2080,66 @@ void TopLevel::createWidgets()
 	m_simulatorWidget->setFlat(true);
 	QVBoxLayout *simulatorLayout = new QVBoxLayout(m_simulatorWidget);
 	Geometry::setupInnerLayout(simulatorLayout);
+
+	// The style's arrowType draws a chevron the height of the button, and even an
+	// autoRaise QToolButton keeps a frame around its whole label under QMacStyle.
+	// A bare text button carrying its own triangle looks like the disclosure it is.
+	m_processorUsageOpener = new QToolButton;
+	m_processorUsageOpener->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	m_processorUsageOpener->setStyleSheet("QToolButton { border: none; background: transparent; padding: 0px; }");
+	// QMacStyle gives tool buttons a smaller font than the labels around them.
+	m_processorUsageOpener->setFont(QApplication::font("QLabel"));
+	m_processorUsageOpener->setCursor(Qt::PointingHandCursor);
+	connect(m_processorUsageOpener, SIGNAL(clicked()), this, SLOT(toggleProcessorUsage()));
+
+	m_processorUsageWidget = new QWidget;
+	setProcessorUsageOpen(false);
+
+	QFormLayout *processorUsageLayout = new QFormLayout(m_processorUsageWidget);
+	processorUsageLayout->setContentsMargins(
+		m_processorUsageOpener->fontMetrics().horizontalAdvance(QLatin1String("MM")), 0, 0, 0);
+	processorUsageLayout->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+	processorUsageLayout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+	m_threadQoSCombo = new QComboBox;
+	m_threadQoSCombo->addItem(tr("Performance"), static_cast<int>(Quackle::ThreadQoS::Performance));
+	m_threadQoSCombo->addItem(tr("Balanced"), static_cast<int>(Quackle::ThreadQoS::Balanced));
+	m_threadQoSCombo->addItem(tr("Energy efficient"), static_cast<int>(Quackle::ThreadQoS::EnergyEfficient));
+	m_threadQoSCombo->setToolTip(bulleted(tr("How hard the sim threads compete for the machine.\n"
+											 "* Performance: every core, foreground priority.\n"
+											 "* Balanced: fewer threads, ordinary priority.\n"
+											 "* Energy efficient: efficiency cores, background priority.\n"
+											 "Changing this refills the thread count.")));
+	connect(m_threadQoSCombo, SIGNAL(activated(int)), this, SLOT(threadQoSSet(int)));
+
+	m_threadCountEdit = new QLineEdit;
+	m_threadCountEdit->setMaximumWidth(m_threadCountEdit->fontMetrics().horizontalAdvance(QString(5, QLatin1Char('0'))));
+	m_threadCountEdit->setToolTip(tr("Worker threads running the sim."));
+	connect(m_threadCountEdit, SIGNAL(editingFinished()), this, SLOT(threadCountEdited()));
+
+	m_threadCountDetector = new QPushButton(tr("&Auto-detect"));
+	m_threadCountDetector->setToolTip(tr("Fill in the count advised for this machine at the selected priority."));
+	connect(m_threadCountDetector, SIGNAL(clicked()), this, SLOT(autoDetectThreadCount()));
+
+	QHBoxLayout *threadCountLayout = new QHBoxLayout;
+	Geometry::setupInnerLayout(threadCountLayout);
+	threadCountLayout->addWidget(m_threadCountEdit);
+	threadCountLayout->addWidget(m_threadCountDetector);
+	threadCountLayout->addStretch();
+
+	QLabel *threadQoSLabel = new QLabel(tr("Worker thread &priority:"));
+	threadQoSLabel->setBuddy(m_threadQoSCombo);
+
+	// addRow() only sets a buddy when the field is a widget, and a QLabel keeps
+	// the ampersand it can't spend on one.
+	QLabel *threadCountLabel = new QLabel(tr("# &threads:"));
+	threadCountLabel->setBuddy(m_threadCountEdit);
+
+	processorUsageLayout->addRow(threadQoSLabel, m_threadQoSCombo);
+	processorUsageLayout->addRow(threadCountLabel, threadCountLayout);
+
+	simulatorLayout->addWidget(m_processorUsageOpener, 0, Qt::AlignLeft);
+	simulatorLayout->addWidget(m_processorUsageWidget);
 
 	QHBoxLayout *plyLayout = new QHBoxLayout;
 	Geometry::setupInnerLayout(plyLayout);
@@ -2045,10 +2177,8 @@ void TopLevel::createWidgets()
 	m_partialOppoRackEnable = new QGroupBox(tr("Partial oppo rack"));
 	m_partialOppoRackEnable->setCheckable(true);
 	m_partialOppoRackEnable->setFlat(true);
-	m_partialOppoRackEnable->setToolTip(wrapToolTip(tr("Restrict the simulation to opponent racks that contain these tiles. "
-													   "Use it when you have inferred part of the opponent's rack -- from a fishing "
-													   "exchange, say, or from tiles they conspicuously did not play. Any remaining "
-													   "tiles are drawn at random from the unseen pool, as usual.")));
+	m_partialOppoRackEnable->setToolTip(tr("Simulate only against opponent racks holding these tiles.\n"
+										   "The rest is drawn from the unseen pool, as usual."));
 	connect(m_partialOppoRackEnable, SIGNAL(toggled(bool)), this, SLOT(partialOppoRackEnabled(bool)));
 
 	QHBoxLayout *partialOppoRackLayout = new QHBoxLayout(m_partialOppoRackEnable);
@@ -2067,10 +2197,8 @@ void TopLevel::createWidgets()
 	m_logfileEnable = new QGroupBox(tr("Log sim to file"));
 	m_logfileEnable->setCheckable(true);
 	m_logfileEnable->setFlat(true);
-	m_logfileEnable->setToolTip(wrapToolTip(tr("Append a full record of the simulation -- the racks drawn for the opponent, the "
-											   "moves played on each ply, and the resulting valuations -- to the named file. "
-											   "Handy for studying why the sim prefers one play over another, but the file grows "
-											   "quickly, so keep an eye on it during long sims.")));
+	m_logfileEnable->setToolTip(tr("Append every iteration -- racks, moves, valuations -- to a file.\n"
+								   "It grows quickly during a long sim."));
 	connect(m_logfileEnable, SIGNAL(toggled(bool)), this, SLOT(logfileEnabled(bool)));
 
 	QHBoxLayout *logfileLayout = new QHBoxLayout(m_logfileEnable);
@@ -2081,7 +2209,7 @@ void TopLevel::createWidgets()
 
 	m_logfileChooser = new QToolButton;
 	m_logfileChooser->setIcon(style()->standardIcon(QStyle::SP_DirOpenIcon));
-	m_logfileChooser->setToolTip(tr("Choose the file to log to..."));
+	m_logfileChooser->setToolTip(tr("Browse for log file..."));
 	connect(m_logfileChooser, SIGNAL(clicked()), this, SLOT(chooseLogfile()));
 
 	logfileLayout->addWidget(m_logfileEdit);
@@ -2400,6 +2528,9 @@ void TopLevel::saveSettings()
 	settings.setValue("quackle/splitter-sizes", m_splitter->saveState());
 	settings.setValue("quackle/window-state", saveState(0));
 	settings.setValue("quackle/plies", m_plies);
+	settings.setValue("quackle/processorusageopen", m_processorUsageWidget->isVisible());
+	settings.setValue("quackle/threadqos", static_cast<int>(selectedThreadQoS()));
+	settings.setValue("quackle/threadcount", m_threadCount);
 	settings.setValue("quackle/ignoreoppos", m_ignoreOpposCheck->isChecked());
 	settings.setValue("quackle/logfileEnabled", isLogfileEnabled());
 	settings.setValue("quackle/logfile", userSpecifiedLogfile());
@@ -2426,6 +2557,15 @@ void TopLevel::loadSettings()
 
 	m_plies = settings.value("quackle/plies", 2).toInt();
 	updatePliesCombo();
+
+	setProcessorUsageOpen(settings.value("quackle/processorusageopen", false).toBool());
+
+	const int qosIndex = m_threadQoSCombo->findData(
+		settings.value("quackle/threadqos", static_cast<int>(Quackle::ThreadQoS::Performance)).toInt());
+	m_threadQoSCombo->setCurrentIndex(qosIndex == -1 ? 0 : qosIndex);
+
+	const int savedThreadCount = settings.value("quackle/threadcount", recommendedThreadCount()).toInt();
+	setThreadCount(savedThreadCount >= 1 ? savedThreadCount : recommendedThreadCount());
 
 	m_ignoreOpposCheck->setChecked(settings.value("quackle/ignoreoppos", false).toBool());
 

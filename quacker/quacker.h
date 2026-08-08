@@ -219,6 +219,10 @@ protected slots:
 
 	// simulator settings:
 	void pliesSet(int plyIndex);
+	void toggleProcessorUsage();
+	void threadQoSSet(int qosIndex);
+	void threadCountEdited();
+	void autoDetectThreadCount();
 	void ignoreOpposChanged();
 	void updatePliesCombo();
 	void logfileEnabled(bool on);
@@ -345,6 +349,20 @@ private:
 
 	static const int m_pliesToOffer = 6;
 	QComboBox *m_pliesCombo;
+
+	QToolButton *m_processorUsageOpener;
+	QWidget *m_processorUsageWidget;
+	QComboBox *m_threadQoSCombo;
+	QLineEdit *m_threadCountEdit;
+	QPushButton *m_threadCountDetector;
+	int m_threadCount;
+
+	void setProcessorUsageOpen(bool open);
+	Quackle::ThreadQoS selectedThreadQoS() const;
+	// Thread count CPUTopology advises for the currently selected priority.
+	int recommendedThreadCount() const;
+	void setThreadCount(int count);
+	void applyThreadSettings();
 
 	SimViewer *m_simViewer;
 
