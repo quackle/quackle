@@ -2155,13 +2155,28 @@ void TopLevel::createWidgets()
 	m_pliesCombo->addItems(plyOptions);
 	connect(m_pliesCombo, SIGNAL(activated(int)), this, SLOT(pliesSet(int)));
 
+	// The label is a sibling of the combo, so it needs its own copy.
+	const QString plyToolTip = tr("Turns played out after the candidate, one player's turn per ply.\n"
+								  "Everything after the candidate is that player's static best play.\n"
+								  "More plies see further ahead, at proportionally more time per iteration.\n"
+								  "\"Many\" plays each iteration out to the end of the game.");
+
+	m_pliesCombo->setToolTip(plyToolTip);
+
 	QLabel *plyLabel = new QLabel(tr("p&lies"));
 	plyLabel->setBuddy(m_pliesCombo);
+	plyLabel->setToolTip(plyToolTip);
 
 	m_ignoreOpposCheck = new QCheckBox(tr("oppos pass"));
+	m_ignoreOpposCheck->setToolTip(tr("Oppos pass their turns instead of answering with their best play,\n"
+									  "and what they're left holding stops counting toward the valuation.\n"
+									  "Isolates what the candidate does for us, and sims faster, but says\n"
+									  "nothing about what an oppo would do with the board it leaves them."));
 	connect(m_ignoreOpposCheck, SIGNAL(stateChanged(int)), this, SLOT(ignoreOpposChanged()));
 
 	m_showDetailsButton = new QPushButton(tr("&Details"));
+	m_showDetailsButton->setToolTip(tr("Per-candidate numbers behind the sim: score and bingo rate\n"
+									   "turn by turn, leave value, spread, and win %."));
 	connect(m_showDetailsButton, SIGNAL(clicked()), this, SLOT(showSimulationDetails()));
 
 	plyLayout->addWidget(m_pliesCombo);
