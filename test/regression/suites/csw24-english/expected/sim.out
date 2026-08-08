@@ -12,9 +12,22 @@ PASS the simulator counts the iterations it ran
 PASS every candidate accumulates one residual, spread and win per iteration
 PASS every candidate accumulates one level statistic sample per iteration
 PASS resetNumbers clears every accumulator
+PASS the simulation log was written
 PASS the simulation log is well-formed xml
 PASS plies nest in playaheads nest in iterations
 PASS the log holds one iteration element per iteration
 PASS iteration indices run 1..n in order
 PASS every iteration logs one playahead per candidate
+PASS the batch narrowed to a single candidate
+PASS a single-candidate batch runs exactly the iterations asked
+PASS a single-candidate batch samples every iteration
+PASS the single-candidate log is well-formed xml
+PASS the single-candidate log holds every iteration in order
+PASS the single-candidate log holds one playahead per iteration
+PASS aborting before the first iteration runs none
+PASS aborting before the first iteration accumulates nothing
+PASS aborting partway stops short of the requested iterations
+PASS an aborted batch leaves every candidate evenly sampled
+PASS a batch after an abort runs its own iterations
+PASS an abort leaves no replies behind for the next batch
 all simulator checks passed
