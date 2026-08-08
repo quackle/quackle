@@ -956,6 +956,91 @@ void checkAccumulators(const Quackle::GamePosition &position)
 	check(reset, "resetNumbers clears every accumulator");
 }
 
+struct LogShape
+{
+	bool readable = false;
+	bool wellFormed = false;
+	bool nested = false;
+	QList<int> indices;
+	QList<int> playaheads;
+
+	bool indicesRunTo(int iterations) const
+	{
+		if (indices.size() != iterations)
+			return false;
+		for (int i = 0; i < indices.size(); ++i)
+			if (indices[i] != i + 1)
+				return false;
+		return true;
+	}
+
+	bool everyIterationHas(int candidates) const
+	{
+		if (playaheads.isEmpty() || candidates <= 0)
+			return false;
+		for (int count : playaheads)
+			if (count != candidates)
+				return false;
+		return true;
+	}
+};
+
+LogShape readLogShape(const QString &path)
+{
+	LogShape shape;
+
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return shape;
+
+	shape.readable = true;
+	shape.nested = true;
+
+	QXmlStreamReader xml(&file);
+	QStringList open;
+
+	while (!xml.atEnd())
+	{
+		xml.readNext();
+
+		if (xml.isStartElement())
+		{
+			const QString name = xml.name().toString();
+			const QString parent = open.isEmpty() ? QString() : open.last();
+
+			if (name == "iteration")
+			{
+				shape.nested = shape.nested && parent == "simulation";
+				shape.indices.append(xml.attributes().value("index").toInt());
+				shape.playaheads.append(0);
+			}
+			else if (name == "playahead")
+			{
+				shape.nested = shape.nested && parent == "iteration";
+				if (!shape.playaheads.isEmpty())
+					++shape.playaheads.last();
+			}
+			else if (name == "ply")
+			{
+				shape.nested = shape.nested && parent == "playahead";
+			}
+
+			open.append(name);
+		}
+		else if (xml.isEndElement() && !open.isEmpty())
+		{
+			open.removeLast();
+		}
+	}
+
+	shape.wellFormed = !xml.hasError();
+
+	file.close();
+	QFile::remove(path);
+
+	return shape;
+}
+
 // The log embeds playahead values, which the workers' unseeded rngs make
 // nondeterministic, so only its structure can be asserted.
 void checkLog(const Quackle::GamePosition &position)
@@ -979,73 +1064,137 @@ void checkLog(const Quackle::GamePosition &position)
 		simulator.closeLogfile();
 	}
 
-	QFile file(logPath);
-	if (!file.open(QIODevice::ReadOnly))
-	{
-		check(false, "the simulation log was written");
-		return;
-	}
+	const LogShape shape = readLogShape(logPath);
 
-	QXmlStreamReader xml(&file);
-	QStringList open;
-	QList<int> indices;
-	QList<int> playaheads;
-	bool nested = true;
-
-	while (!xml.atEnd())
-	{
-		xml.readNext();
-
-		if (xml.isStartElement())
-		{
-			const QString name = xml.name().toString();
-			const QString parent = open.isEmpty() ? QString() : open.last();
-
-			if (name == "iteration")
-			{
-				nested = nested && parent == "simulation";
-				indices.append(xml.attributes().value("index").toInt());
-				playaheads.append(0);
-			}
-			else if (name == "playahead")
-			{
-				nested = nested && parent == "iteration";
-				if (!playaheads.isEmpty())
-					++playaheads.last();
-			}
-			else if (name == "ply")
-			{
-				nested = nested && parent == "playahead";
-			}
-
-			open.append(name);
-		}
-		else if (xml.isEndElement() && !open.isEmpty())
-		{
-			open.removeLast();
-		}
-	}
-
-	file.close();
-	QFile::remove(logPath);
-
-	check(!xml.hasError(), "the simulation log is well-formed xml");
-	check(nested, "plies nest in playaheads nest in iterations");
-	check(indices.size() == iterations, "the log holds one iteration element per iteration");
-
-	bool ascending = indices.size() == iterations;
-	for (int i = 0; i < indices.size(); ++i)
-		if (indices[i] != i + 1)
-			ascending = false;
-	check(ascending, "iteration indices run 1..n in order");
-
-	bool complete = !playaheads.isEmpty() && candidates > 0;
-	for (int count : playaheads)
-		if (count != candidates)
-			complete = false;
-	check(complete, "every iteration logs one playahead per candidate");
+	check(shape.readable, "the simulation log was written");
+	check(shape.wellFormed, "the simulation log is well-formed xml");
+	check(shape.nested, "plies nest in playaheads nest in iterations");
+	check(shape.indices.size() == iterations, "the log holds one iteration element per iteration");
+	check(shape.indicesRunTo(iterations), "iteration indices run 1..n in order");
+	check(shape.everyIterationHas(candidates), "every iteration logs one playahead per candidate");
 }
 
+int narrowToOneCandidate(Quackle::Simulator &simulator)
+{
+	Quackle::MoveList one;
+	if (!simulator.simmedMoves().empty())
+		one.push_back(simulator.simmedMoves().front().move);
+	simulator.setIncludedMoves(one);
+
+	int included = 0;
+	for (const auto &it : simulator.simmedMoves())
+		if (it.includeInSimulation())
+			++included;
+	return included;
+}
+
+bool sampledExactly(const Quackle::Simulator &simulator, int iterations)
+{
+	bool any = false;
+	for (const auto &it : simulator.simmedMoves())
+	{
+		if (!it.includeInSimulation())
+			continue;
+		any = true;
+
+		if (it.residual.incorporatedValues() != iterations || it.gameSpread.incorporatedValues() != iterations
+			|| it.wins.incorporatedValues() != iterations)
+			return false;
+
+		if (iterations > 0
+			&& (it.levels.empty() || it.levels[0].statistics.empty()
+				|| it.levels[0].statistics[0].score.incorporatedValues() != iterations))
+			return false;
+	}
+	return any;
+}
+
+// SmartBogowin's shape: one candidate, many iterations. Nothing else in this
+// mode leaves the pool with so little to chew on per iteration.
+void checkSingleCandidateBatch(const Quackle::GamePosition &position)
+{
+	const QString logPath("sim.log");
+	QFile::remove(logPath);
+
+	// deliberately not a round number, so a batch that rounds its work up or
+	// down runs a different count than asked
+	const int iterations = 21;
+	int included = 0;
+
+	{
+		Quackle::Simulator simulator;
+		simulator.setLogfile(logPath.toStdString(), false);
+		simulator.setPosition(position);
+		included = narrowToOneCandidate(simulator);
+
+		simulator.simulate(2, iterations);
+
+		check(included == 1, "the batch narrowed to a single candidate");
+		check(simulator.iterations() == iterations, "a single-candidate batch runs exactly the iterations asked");
+		check(sampledExactly(simulator, iterations), "a single-candidate batch samples every iteration");
+
+		simulator.closeLogfile();
+	}
+
+	const LogShape shape = readLogShape(logPath);
+
+	check(shape.wellFormed, "the single-candidate log is well-formed xml");
+	check(shape.indicesRunTo(iterations), "the single-candidate log holds every iteration in order");
+	check(shape.everyIterationHas(included), "the single-candidate log holds one playahead per iteration");
+}
+
+class AbortAfter : public Quackle::ComputerDispatch
+{
+public:
+	explicit AbortAfter(int calls)
+		: m_remaining(calls)
+	{
+	}
+
+	virtual bool shouldAbort() { return m_remaining-- <= 0; }
+	virtual void signalFractionDone(double) {}
+
+private:
+	int m_remaining;
+};
+
+void checkAbort(const Quackle::GamePosition &position)
+{
+	const int iterations = 20;
+
+	{
+		Quackle::Simulator simulator;
+		simulator.setPosition(position);
+		AbortAfter immediately(0);
+		simulator.setDispatch(&immediately);
+		simulator.simulate(2, iterations);
+
+		check(simulator.iterations() == 0, "aborting before the first iteration runs none");
+		check(sampledExactly(simulator, 0), "aborting before the first iteration accumulates nothing");
+	}
+
+	Quackle::Simulator simulator;
+	simulator.setPosition(position);
+	AbortAfter partway(1);
+	simulator.setDispatch(&partway);
+	simulator.simulate(2, iterations);
+
+	const int ran = simulator.iterations();
+	check(ran > 0 && ran < iterations, "aborting partway stops short of the requested iterations");
+	// An abort must not leave candidates at different sample counts, or
+	// calculateEquity() compares averages over unlike populations.
+	check(sampledExactly(simulator, ran), "an aborted batch leaves every candidate evenly sampled");
+
+	// Returning with replies still in flight would let this next batch pop
+	// them and count another iteration's samples as its own.
+	simulator.setDispatch(0);
+	simulator.resetNumbers();
+	const int after = 4;
+	simulator.simulate(2, after);
+
+	check(simulator.iterations() == after, "a batch after an abort runs its own iterations");
+	check(sampledExactly(simulator, after), "an abort leaves no replies behind for the next batch");
+}
 }
 
 void TestHarness::simulation()
@@ -1072,6 +1221,8 @@ void TestHarness::simulation()
 
 	checkAccumulators(game.currentPosition());
 	checkLog(game.currentPosition());
+	checkSingleCandidateBatch(game.currentPosition());
+	checkAbort(game.currentPosition());
 
 	if (simFailures > 0)
 	{
