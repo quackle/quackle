@@ -916,32 +916,10 @@ void checkLevelListIncorporation()
 	check(kept[0].statistics[0].score.incorporatedValues() == 2, "a shallower source still merges where it overlaps");
 }
 
-}
-
-void TestHarness::simulation()
+void checkAccumulators(const Quackle::GamePosition &position)
 {
-	checkLevelListIncorporation();
-
-	Quackle::Game game;
-	Quackle::PlayerList players;
-
-	Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
-	compyA.setAbbreviatedName(MARK_UV("A"));
-	compyA.setComputerPlayer(m_computerPlayerToTest);
-	players.push_back(compyA);
-
-	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
-	compyB.setAbbreviatedName(MARK_UV("B"));
-	compyB.setComputerPlayer(m_computerPlayer2ToTest);
-	players.push_back(compyB);
-
-	game.setPlayers(players);
-	game.associateKnownComputerPlayers();
-	game.addPosition();
-	game.currentPosition().kibitz(4);
-
 	Quackle::Simulator simulator;
-	simulator.setPosition(game.currentPosition());
+	simulator.setPosition(position);
 
 	const int plies = 2;
 	const int iterations = 8;
@@ -976,6 +954,124 @@ void TestHarness::simulation()
 			reset = false;
 
 	check(reset, "resetNumbers clears every accumulator");
+}
+
+// The log embeds playahead values, which the workers' unseeded rngs make
+// nondeterministic, so only its structure can be asserted.
+void checkLog(const Quackle::GamePosition &position)
+{
+	const QString logPath("sim.log");
+	QFile::remove(logPath);
+
+	const int iterations = 3;
+	int candidates = 0;
+
+	{
+		Quackle::Simulator simulator;
+		simulator.setLogfile(logPath.toStdString(), false);
+		simulator.setPosition(position);
+
+		for (const auto &it : simulator.simmedMoves())
+			if (it.includeInSimulation())
+				++candidates;
+
+		simulator.simulate(2, iterations);
+		simulator.closeLogfile();
+	}
+
+	QFile file(logPath);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		check(false, "the simulation log was written");
+		return;
+	}
+
+	QXmlStreamReader xml(&file);
+	QStringList open;
+	QList<int> indices;
+	QList<int> playaheads;
+	bool nested = true;
+
+	while (!xml.atEnd())
+	{
+		xml.readNext();
+
+		if (xml.isStartElement())
+		{
+			const QString name = xml.name().toString();
+			const QString parent = open.isEmpty() ? QString() : open.last();
+
+			if (name == "iteration")
+			{
+				nested = nested && parent == "simulation";
+				indices.append(xml.attributes().value("index").toInt());
+				playaheads.append(0);
+			}
+			else if (name == "playahead")
+			{
+				nested = nested && parent == "iteration";
+				if (!playaheads.isEmpty())
+					++playaheads.last();
+			}
+			else if (name == "ply")
+			{
+				nested = nested && parent == "playahead";
+			}
+
+			open.append(name);
+		}
+		else if (xml.isEndElement() && !open.isEmpty())
+		{
+			open.removeLast();
+		}
+	}
+
+	file.close();
+	QFile::remove(logPath);
+
+	check(!xml.hasError(), "the simulation log is well-formed xml");
+	check(nested, "plies nest in playaheads nest in iterations");
+	check(indices.size() == iterations, "the log holds one iteration element per iteration");
+
+	bool ascending = indices.size() == iterations;
+	for (int i = 0; i < indices.size(); ++i)
+		if (indices[i] != i + 1)
+			ascending = false;
+	check(ascending, "iteration indices run 1..n in order");
+
+	bool complete = !playaheads.isEmpty() && candidates > 0;
+	for (int count : playaheads)
+		if (count != candidates)
+			complete = false;
+	check(complete, "every iteration logs one playahead per candidate");
+}
+
+}
+
+void TestHarness::simulation()
+{
+	checkLevelListIncorporation();
+
+	Quackle::Game game;
+	Quackle::PlayerList players;
+
+	Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
+	compyA.setAbbreviatedName(MARK_UV("A"));
+	compyA.setComputerPlayer(m_computerPlayerToTest);
+	players.push_back(compyA);
+
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+	compyB.setAbbreviatedName(MARK_UV("B"));
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
+	players.push_back(compyB);
+
+	game.setPlayers(players);
+	game.associateKnownComputerPlayers();
+	game.addPosition();
+	game.currentPosition().kibitz(4);
+
+	checkAccumulators(game.currentPosition());
+	checkLog(game.currentPosition());
 
 	if (simFailures > 0)
 	{
