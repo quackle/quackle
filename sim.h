@@ -203,10 +203,10 @@ class SimmedMoveMessage
 {
 public:
 	long id;
+	// index into the simulator's move list; id cross-checks it
+	int moveIndex = -1;
 	Move move;
 	LevelList levels;
-	vector<double> score;
-	vector<double> bingos;
 	double residual;
 	double gameSpread;
 	double wins;

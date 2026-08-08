@@ -394,19 +394,21 @@ void Simulator::simulate(int plies)
 
 	int messageCount = 0;
 
-	for (auto &moveIt : m_simmedMoves)
+	for (size_t moveIndex = 0; moveIndex < m_simmedMoves.size(); ++moveIndex)
 	{
+		SimmedMove &moveIt = m_simmedMoves[moveIndex];
 		if (!moveIt.includeInSimulation())
 			continue;
 
 #ifdef DEBUG_SIM
-		UVcout << "simulating " << (*moveIt).move << ":" << endl;
+		UVcout << "simulating " << moveIt.move << ":" << endl;
 #endif
 
 		moveIt.levels.setNumberLevels(constants.levelCount + 1);
 
 		SimmedMoveMessage message;
 		message.id = moveIt.id();
+		message.moveIndex = (int)moveIndex;
 		message.move = moveIt.move;
 		// a message carries only its own playahead's samples; incorporateMessage() merges them
 		message.levels.setNumberLevels(constants.levelCount + 1);
@@ -421,26 +423,26 @@ void Simulator::simulate(int plies)
 	// Collect the whole iteration before incorporating so that results
 	// and the log don't depend on the order in which threads finish.
 	vector<SimmedMoveMessage> messages;
+	vector<const SimmedMoveMessage *> byMove(m_simmedMoves.size(), nullptr);
+	messages.reserve(messageCount);
 	while (messageCount-- > 0)
 		messages.push_back(m_receiveQueue.pop());
+	for (const auto &message : messages)
+		byMove[message.moveIndex] = &message;
 
 	std::exception_ptr firstError;
-	for (const auto &moveIt : m_simmedMoves)
+	for (const auto *message : byMove)
 	{
-		for (const auto &message : messages)
+		if (!message)
+			continue;
+
+		if (message->error)
 		{
-			if (message.id == moveIt.id())
-			{
-				if (message.error)
-				{
-					if (!firstError)
-						firstError = message.error;
-				}
-				else
-					incorporateMessage(message);
-				break;
-			}
+			if (!firstError)
+				firstError = message->error;
 		}
+		else
+			incorporateMessage(*message);
 	}
 
 	if (isLogging())
@@ -595,31 +597,46 @@ void Simulator::simulateOnePosition(SimmedMoveMessage &message, const SimmedMove
 
 void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 {
-	for (auto &moveIt : m_simmedMoves)
+	// moveIndex is authoritative, but this is public API: a caller outside
+	// simulate() can hand us a message it built itself, so fall back on id.
+	SimmedMove *move = nullptr;
+	if (message.moveIndex >= 0 && (size_t)message.moveIndex < m_simmedMoves.size() && m_simmedMoves[message.moveIndex].id() == message.id)
 	{
-		if (moveIt.id() == message.id)
+		move = &m_simmedMoves[message.moveIndex];
+	}
+	else
+	{
+		for (auto &moveIt : m_simmedMoves)
 		{
-			if (isLogging())
+			if (moveIt.id() == message.id)
 			{
-				m_logfileStream << m_xmlIndent << "<playahead>" << endl;
-				m_xmlIndent += MARK_UV('\t');
-				m_logfileStream << message.logStream.str();
+				move = &moveIt;
+				break;
 			}
-
-			moveIt.levels.incorporate(message.levels);
-			moveIt.residual.incorporateValue(message.residual);
-			moveIt.gameSpread.incorporateValue(message.gameSpread);
-			moveIt.wins.incorporateValue(message.wins);
-
-			if (isLogging())
-			{
-				if (!message.bogowin)
-					m_logfileStream << m_xmlIndent << "<gameover win=\"" << message.wins << "\" />" << endl;
-				m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
-				m_logfileStream << m_xmlIndent << "</playahead>" << endl;
-			}
-			break;
 		}
+	}
+
+	if (!move)
+		return;
+
+	if (isLogging())
+	{
+		m_logfileStream << m_xmlIndent << "<playahead>" << endl;
+		m_xmlIndent += MARK_UV('\t');
+		m_logfileStream << message.logStream.str();
+	}
+
+	move->levels.incorporate(message.levels);
+	move->residual.incorporateValue(message.residual);
+	move->gameSpread.incorporateValue(message.gameSpread);
+	move->wins.incorporateValue(message.wins);
+
+	if (isLogging())
+	{
+		if (!message.bogowin)
+			m_logfileStream << m_xmlIndent << "<gameover win=\"" << message.wins << "\" />" << endl;
+		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
+		m_logfileStream << m_xmlIndent << "</playahead>" << endl;
 	}
 }
 
