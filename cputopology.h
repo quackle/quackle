@@ -70,6 +70,10 @@ public:
 	// Never less than 1.
 	int performanceThreadPoolSize() const;
 
+	// Worker threads for a pool that wants throughput without commandeering the
+	// machine: midway between the other two sizes, rounded up. Never less than 1.
+	int balancedThreadPoolSize() const;
+
 	// Worker threads for background or low-priority work: on a hybrid machine
 	// the efficiency cores less one for the main thread, otherwise half the
 	// logical cores. Never less than 1.

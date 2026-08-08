@@ -485,6 +485,11 @@ int CPUTopology::performanceThreadPoolSize() const
 	return workers < 1 ? 1 : workers;
 }
 
+int CPUTopology::balancedThreadPoolSize() const
+{
+	return (performanceThreadPoolSize() + efficiencyThreadPoolSize() + 1) / 2;
+}
+
 int CPUTopology::efficiencyThreadPoolSize() const
 {
 	const int workers = m_hybrid ? m_efficiencyLogicalCores - 1 : m_logicalCores / 2;
@@ -536,6 +541,7 @@ UVString CPUTopology::description() const
 	stream << MARK_UV("\n");
 
 	stream << MARK_UV("performance thread pool size: ") << performanceThreadPoolSize() << MARK_UV("\n");
+	stream << MARK_UV("balanced thread pool size: ") << balancedThreadPoolSize() << MARK_UV("\n");
 	stream << MARK_UV("efficiency thread pool size: ") << efficiencyThreadPoolSize() << MARK_UV("\n");
 
 	return stream.str();
