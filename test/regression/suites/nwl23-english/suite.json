@@ -16,6 +16,8 @@
     { "name": "selfplay-seed1",        "mode": "selfplay", "args": ["--repetitions=3"], "seed": 1 },
     { "name": "selfplay-speedy-vs-speedy", "mode": "selfplay", "args": ["--computer=Speedy Player", "--computer2=Speedy Player", "--repetitions=2"], "seed": 7 },
 
-    { "name": "playability",           "mode": "playability", "args": ["--repetitions=2"], "seed": 5 }
+    { "name": "playability",           "mode": "playability", "args": ["--repetitions=2"], "seed": 5 },
+
+    { "name": "sim",                   "mode": "sim" }
   ]
 }

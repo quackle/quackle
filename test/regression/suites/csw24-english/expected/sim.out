@@ -1,0 +1,15 @@
+PASS merging a taller list grows the level count
+PASS merging a wider level grows the statistic count
+PASS overlapping statistics sum their sample counts
+PASS overlapping statistics sum their values
+PASS statistics past the destination's width are added
+PASS levels past the destination's depth are added
+PASS an empty source level adds nothing
+PASS merging a shallower list does not truncate
+PASS merging a shallower list leaves deeper levels intact
+PASS a shallower source still merges where it overlaps
+PASS the simulator counts the iterations it ran
+PASS every candidate accumulates one residual, spread and win per iteration
+PASS every candidate accumulates one level statistic sample per iteration
+PASS resetNumbers clears every accumulator
+all simulator checks passed
