@@ -33,6 +33,7 @@
 #include <strategyparameters.h>
 #include <enumerator.h>
 #include <reporter.h>
+#include <sim.h>
 
 #include <quackleio/dictimplementation.h>
 #include <quackleio/flexiblealphabet.h>
@@ -88,6 +89,7 @@ const char *usage =
 "       'leavecalc' spit out roughish values of leaves in 'leaves' file.\n"
 "       'anagram' anagrams letters supplied in --letters.\n"
 "       'cputopology' dumps detected CPU topology and thread pool sizing.\n"
+"       'sim' checks the simulator's accumulators.\n"
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'nwl23').\n"
@@ -196,6 +198,8 @@ void TestHarness::executeFromArguments()
 		bingos();
 	else if (mode == "cputopology")
 		cpuTopology();
+	else if (mode == "sim")
+		simulation();
 }
 
 void TestHarness::startUp()
@@ -849,4 +853,135 @@ void TestHarness::cpuTopology()
 	}
 
 	UVcout << topology.description();
+}
+
+namespace
+{
+
+int simFailures = 0;
+
+void check(bool condition, const char *what)
+{
+	UVcout << (condition ? "PASS" : "FAIL") << " " << what << endl;
+	if (!condition)
+		++simFailures;
+}
+
+Quackle::AveragedValue sampled(std::initializer_list<double> values)
+{
+	Quackle::AveragedValue value;
+	for (double v : values)
+		value.incorporateValue(v);
+	return value;
+}
+
+Quackle::Level leveled(std::initializer_list<std::initializer_list<double>> statistics)
+{
+	Quackle::Level level;
+	for (const auto &samples : statistics)
+	{
+		Quackle::PositionStatistics position;
+		position.score = sampled(samples);
+		level.statistics.push_back(position);
+	}
+	return level;
+}
+
+void checkLevelListIncorporation()
+{
+	Quackle::LevelList tall;
+	tall.push_back(leveled({ { 20 }, { 30 } }));
+	tall.push_back(leveled({ { 40 } }));
+	tall.push_back(leveled({}));
+
+	Quackle::LevelList shallow;
+	shallow.push_back(leveled({ { 10 } }));
+
+	Quackle::LevelList grown(shallow);
+	grown.incorporate(tall);
+
+	check(grown.size() == 3, "merging a taller list grows the level count");
+	check(grown[0].statistics.size() == 2, "merging a wider level grows the statistic count");
+	check(grown[0].statistics[0].score.incorporatedValues() == 2, "overlapping statistics sum their sample counts");
+	check(grown[0].statistics[0].score.valueSum() == 30, "overlapping statistics sum their values");
+	check(grown[0].statistics[1].score.incorporatedValues() == 1, "statistics past the destination's width are added");
+	check(grown[1].statistics[0].score.valueSum() == 40, "levels past the destination's depth are added");
+	check(grown[2].statistics.empty(), "an empty source level adds nothing");
+
+	Quackle::LevelList kept(tall);
+	kept.incorporate(shallow);
+
+	check(kept.size() == 3, "merging a shallower list does not truncate");
+	check(kept[1].statistics[0].score.valueSum() == 40, "merging a shallower list leaves deeper levels intact");
+	check(kept[0].statistics[0].score.incorporatedValues() == 2, "a shallower source still merges where it overlaps");
+}
+
+}
+
+void TestHarness::simulation()
+{
+	checkLevelListIncorporation();
+
+	Quackle::Game game;
+	Quackle::PlayerList players;
+
+	Quackle::Player compyA(m_computerPlayerToTest->name() + MARK_UV(" A"), Quackle::Player::ComputerPlayerType, 0);
+	compyA.setAbbreviatedName(MARK_UV("A"));
+	compyA.setComputerPlayer(m_computerPlayerToTest);
+	players.push_back(compyA);
+
+	Quackle::Player compyB(m_computerPlayer2ToTest->name() + MARK_UV(" B"), Quackle::Player::ComputerPlayerType, 1);
+	compyB.setAbbreviatedName(MARK_UV("B"));
+	compyB.setComputerPlayer(m_computerPlayer2ToTest);
+	players.push_back(compyB);
+
+	game.setPlayers(players);
+	game.associateKnownComputerPlayers();
+	game.addPosition();
+	game.currentPosition().kibitz(4);
+
+	Quackle::Simulator simulator;
+	simulator.setPosition(game.currentPosition());
+
+	const int plies = 2;
+	const int iterations = 8;
+	simulator.simulate(plies, iterations);
+
+	check(simulator.iterations() == iterations, "the simulator counts the iterations it ran");
+
+	// Every candidate must come out of a batch with the same number of
+	// samples everywhere, or calculateEquity() compares unlike averages.
+	bool evenlySampled = !simulator.simmedMoves().empty();
+	bool candidateSampled = evenlySampled;
+	for (const auto &it : simulator.simmedMoves())
+	{
+		if (it.residual.incorporatedValues() != iterations || it.gameSpread.incorporatedValues() != iterations
+			|| it.wins.incorporatedValues() != iterations)
+			evenlySampled = false;
+
+		// level one, player one is the candidate itself; always played
+		if (it.levels.empty() || it.levels[0].statistics.empty() || it.levels[0].statistics[0].score.incorporatedValues() != iterations
+			|| it.levels[0].statistics[0].bingos.incorporatedValues() != iterations)
+			candidateSampled = false;
+	}
+
+	check(evenlySampled, "every candidate accumulates one residual, spread and win per iteration");
+	check(candidateSampled, "every candidate accumulates one level statistic sample per iteration");
+
+	simulator.resetNumbers();
+
+	bool reset = simulator.iterations() == 0;
+	for (const auto &it : simulator.simmedMoves())
+		if (it.residual.hasValues() || it.gameSpread.hasValues() || it.wins.hasValues() || !it.levels.empty())
+			reset = false;
+
+	check(reset, "resetNumbers clears every accumulator");
+
+	if (simFailures > 0)
+	{
+		UVcout << simFailures << " simulator check(s) failed" << endl;
+		exit(1);
+	}
+
+	UVcout << "all simulator checks passed" << endl;
 }

@@ -51,6 +51,8 @@ struct AveragedValue
 
 	void incorporateValue(double newValue);
 
+	void incorporate(const AveragedValue &other);
+
 	// zero everything
 	void clear();
 
@@ -79,6 +81,13 @@ inline void AveragedValue::incorporateValue(double newValue)
 	m_valueSum += newValue;
 	m_squaredValueSum += newValue * newValue;
 	++m_incorporatedValues;
+}
+
+inline void AveragedValue::incorporate(const AveragedValue &other)
+{
+	m_valueSum += other.m_valueSum;
+	m_squaredValueSum += other.m_squaredValueSum;
+	m_incorporatedValues += other.m_incorporatedValues;
 }
 
 inline long double AveragedValue::valueSum() const
@@ -111,6 +120,8 @@ struct PositionStatistics
 	enum StatisticType { StatisticScore, StatisticBingos };
 	AveragedValue getStatistic(StatisticType type) const;
 
+	void incorporate(const PositionStatistics &other);
+
 	AveragedValue score;
 	AveragedValue bingos;
 };
@@ -122,6 +133,9 @@ struct Level
 	// expand the scores list to be at least number long
 	void setNumberScores(unsigned int number);
 
+	// grows to fit; a narrower other never truncates us
+	void incorporate(const Level &other);
+
 	PositionStatisticsList statistics;
 };
 
@@ -130,6 +144,9 @@ class LevelList : public vector<Level>
 public:
 	// expand the levels list to be at least number long
 	void setNumberLevels(unsigned int number);
+
+	// grows to fit; a shallower other never truncates us
+	void incorporate(const LevelList &other);
 };
 
 struct SimmedMove

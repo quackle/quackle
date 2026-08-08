@@ -82,6 +82,9 @@ public:
 	// Dumps the CPU topology the data manager detected.
 	void cpuTopology();
 
+	// Checks the simulator's accumulators. Exits nonzero on failure.
+	void simulation();
+
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
 

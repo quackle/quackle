@@ -408,8 +408,8 @@ void Simulator::simulate(int plies)
 		SimmedMoveMessage message;
 		message.id = moveIt.id();
 		message.move = moveIt.move;
+		// a message carries only its own playahead's samples; incorporateMessage() merges them
 		message.levels.setNumberLevels(constants.levelCount + 1);
-		message.levels = moveIt.levels;
 		// plies nest inside the <playahead> element that
 		// incorporateMessage() writes around the returned log stream
 		message.xmlIndent = m_xmlIndent + MARK_UV("\t");
@@ -606,7 +606,7 @@ void Simulator::incorporateMessage(const SimmedMoveMessage &message)
 				m_logfileStream << message.logStream.str();
 			}
 
-			moveIt.levels = message.levels;
+			moveIt.levels.incorporate(message.levels);
 			moveIt.residual.incorporateValue(message.residual);
 			moveIt.gameSpread.incorporateValue(message.gameSpread);
 			moveIt.wins.incorporateValue(message.wins);
@@ -839,6 +839,14 @@ void LevelList::setNumberLevels(unsigned int number)
 		push_back(Level());
 }
 
+void LevelList::incorporate(const LevelList &other)
+{
+	setNumberLevels((unsigned int)other.size());
+
+	for (size_t i = 0; i < other.size(); ++i)
+		(*this)[i].incorporate(other[i]);
+}
+
 void SimmedMove::clear()
 {
 	levels.clear();
@@ -850,6 +858,12 @@ void SimmedMove::clear()
 PositionStatistics SimmedMove::getPositionStatistics(int level, int playerIndex) const
 {
 	return levels[level].statistics[playerIndex];
+}
+
+void PositionStatistics::incorporate(const PositionStatistics &other)
+{
+	score.incorporate(other.score);
+	bingos.incorporate(other.bingos);
 }
 
 AveragedValue PositionStatistics::getStatistic(StatisticType type) const
@@ -871,6 +885,14 @@ void Level::setNumberScores(unsigned int number)
 {
 	while (statistics.size() < number)
 		statistics.push_back(PositionStatistics());
+}
+
+void Level::incorporate(const Level &other)
+{
+	setNumberScores((unsigned int)other.statistics.size());
+
+	for (size_t i = 0; i < other.statistics.size(); ++i)
+		statistics[i].incorporate(other.statistics[i]);
 }
 
 //////////
