@@ -333,6 +333,11 @@ public:
 	size_t threadCount() const;
 	ThreadQoS threadQoS() const;
 
+	// The count this machine advises at a given QoS, which is what a
+	// Simulator starts out asking for at its default QoS.
+	static size_t recommendedThreadCount(ThreadQoS qos);
+	void setRecommendedThreadCount();
+
 	// set values for all levels of all moves to zero
 	void resetNumbers();
 

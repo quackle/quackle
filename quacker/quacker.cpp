@@ -1165,17 +1165,7 @@ Quackle::ThreadQoS TopLevel::selectedThreadQoS() const
 
 int TopLevel::recommendedThreadCount() const
 {
-	switch (selectedThreadQoS())
-	{
-	case Quackle::ThreadQoS::EnergyEfficient:
-		return cpuTopology().efficiencyThreadPoolSize();
-	case Quackle::ThreadQoS::Balanced:
-		return cpuTopology().balancedThreadPoolSize();
-	case Quackle::ThreadQoS::Performance:
-		break;
-	}
-
-	return cpuTopology().performanceThreadPoolSize();
+	return (int)Quackle::Simulator::recommendedThreadCount(selectedThreadQoS());
 }
 
 void TopLevel::setProcessorUsageOpen(bool open)

@@ -860,6 +860,11 @@ namespace
 
 int simFailures = 0;
 
+// Pinned so the goldens do not depend on the recording machine's core count.
+// Chunk size follows the thread count, and so does how much of a batch an
+// abort can still interrupt.
+const size_t simThreadCount = 2;
+
 void check(bool condition, const char *what)
 {
 	UVcout << (condition ? "PASS" : "FAIL") << " " << what << endl;
@@ -919,6 +924,7 @@ void checkLevelListIncorporation()
 void checkAccumulators(const Quackle::GamePosition &position)
 {
 	Quackle::Simulator simulator;
+	simulator.setThreadCount(simThreadCount);
 	simulator.setPosition(position);
 
 	const int plies = 2;
@@ -1062,6 +1068,7 @@ void checkLog(const Quackle::GamePosition &position)
 
 	{
 		Quackle::Simulator simulator;
+		simulator.setThreadCount(simThreadCount);
 		simulator.setLogfile(logPath.toStdString(), false);
 		simulator.setPosition(position);
 
@@ -1132,6 +1139,7 @@ void checkSingleCandidateBatch(const Quackle::GamePosition &position)
 
 	{
 		Quackle::Simulator simulator;
+		simulator.setThreadCount(simThreadCount);
 		simulator.setLogfile(logPath.toStdString(), false);
 		simulator.setPosition(position);
 		included = narrowToOneCandidate(simulator);
@@ -1177,6 +1185,7 @@ void checkAbort(const Quackle::GamePosition &position)
 
 	{
 		Quackle::Simulator simulator;
+		simulator.setThreadCount(simThreadCount);
 		simulator.setPosition(position);
 		AbortAfter immediately(0);
 		simulator.setDispatch(&immediately);
@@ -1187,6 +1196,7 @@ void checkAbort(const Quackle::GamePosition &position)
 	}
 
 	Quackle::Simulator simulator;
+	simulator.setThreadCount(simThreadCount);
 	simulator.setPosition(position);
 	AbortAfter partway(1);
 	simulator.setDispatch(&partway);

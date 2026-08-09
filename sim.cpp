@@ -53,7 +53,7 @@ Simulator::Simulator()
 	, m_threadQoS(ThreadQoS::Balanced)
 {
 	m_originalGame.addPosition();
-	setThreadCount(2);
+	setRecommendedThreadCount();
 }
 
 Simulator::~Simulator()
@@ -319,6 +319,33 @@ void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessag
 		}
 		outgoing.push(result.first);
 	}
+}
+
+size_t Simulator::recommendedThreadCount(ThreadQoS qos)
+{
+	// Constructing a Simulator before the data manager is a misuse, but it
+	// should not be a crash; one thread still sims, just serially.
+	if (!QUACKLE_DATAMANAGER_EXISTS)
+		return 1;
+
+	const CPUTopology &topology = QUACKLE_CPU_TOPOLOGY;
+
+	switch (qos)
+	{
+	case ThreadQoS::EnergyEfficient:
+		return (size_t)topology.efficiencyThreadPoolSize();
+	case ThreadQoS::Balanced:
+		return (size_t)topology.balancedThreadPoolSize();
+	case ThreadQoS::Performance:
+		break;
+	}
+
+	return (size_t)topology.performanceThreadPoolSize();
+}
+
+void Simulator::setRecommendedThreadCount()
+{
+	setThreadCount(recommendedThreadCount(m_threadQoS), m_threadQoS);
 }
 
 void Simulator::setThreadCount(size_t count, ThreadQoS qos)
