@@ -24,6 +24,7 @@
 
 #include <player.h>
 #include <playerlist.h>
+#include <sim.h>
 
 class QComboBox;
 class QGroupBox;
@@ -33,6 +34,7 @@ class QTreeWidget;
 class QTreeWidgetItem;
 class QPushButton;
 class QSettings;
+class QWidget;
 class PlayerTab;
 
 namespace Quackle
@@ -70,6 +72,9 @@ public:
 
 	Quackle::PlayerList players() const;
 
+	// hands each computer player the thread pool its row asks for
+	void applyThreadSettings();
+
 public slots:
 	void saveSettings();
 
@@ -79,6 +84,9 @@ private slots:
 	void selectionChanged();
 	void playerEdited();
 	void populatePlayers();
+	void threadQoSSet();
+	void threadCountEdited();
+	void autoDetectThreadCount();
 
 private:
 	bool hasSelection();
@@ -95,6 +103,19 @@ private:
 
 	Quackle::Player getLastPlayer();
 
+	struct ThreadSettings
+	{
+		Quackle::ThreadQoS qos;
+		int count;
+	};
+
+	QWidget *createThreadSettingsWidget();
+	static int recommendedThreadCount(Quackle::ThreadQoS qos);
+	Quackle::ThreadQoS selectedThreadQoS() const;
+	ThreadSettings &threadSettings(int playerId);
+	void showThreadSettings(const Quackle::Player &player);
+	void setThreadCount(int count);
+
 	QTreeWidget *m_playersTreeWidget;
 	QPushButton *m_addPlayerButton;
 	QPushButton *m_removePlayerButton;
@@ -104,6 +125,16 @@ private:
 	QComboBox *m_playerType;
 	bool m_changingEditorManually;
 
+	QWidget *m_threadSettingsWidget;
+	QComboBox *m_threadQoSCombo;
+	QLineEdit *m_threadCountEdit;
+	QPushButton *m_threadCountDetector;
+
+	// which row the thread editors are showing, so a stray editingFinished
+	// during a selection change can't land on the newly selected player
+	int m_editedPlayerId;
+
+	QMap<int, ThreadSettings> m_threadSettings;
 	QMap<Quackle::Player, QTreeWidgetItem *> m_playerMap;
 };
 

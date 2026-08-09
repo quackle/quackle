@@ -67,6 +67,7 @@ Quackle::PlayerList NewGameDialog::players() const
 void NewGameDialog::accept()
 {
 	saveSettings();
+	m_playerTab->applyThreadSettings();
 	QDialog::accept();
 }
 
@@ -80,7 +81,7 @@ void NewGameDialog::loadSettings() {}
 /////////////
 
 PlayerTab::PlayerTab(QWidget *parent)
-	: QWidget(parent), m_changingEditorManually(false)
+	: QWidget(parent), m_changingEditorManually(false), m_editedPlayerId(-1)
 {
 	m_addPlayerButton = new QPushButton(tr("&Add New Player"));
 	m_removePlayerButton = new QPushButton(tr("&Remove Player"));
@@ -104,11 +105,13 @@ PlayerTab::PlayerTab(QWidget *parent)
 	m_playersTreeWidget->setHeaderLabels(headers);
 
 	m_editGroup = new QGroupBox(tr("Player &Information"));
-	QHBoxLayout *editLayout = new QHBoxLayout(m_editGroup);
+	QVBoxLayout *editLayout = new QVBoxLayout(m_editGroup);
+
+	QHBoxLayout *identityLayout = new QHBoxLayout;
 
 	m_nameEdit = new QLineEdit;
 	connect(m_nameEdit, SIGNAL(textEdited(const QString &)), this, SLOT(playerEdited()));
-	editLayout->addWidget(m_nameEdit);
+	identityLayout->addWidget(m_nameEdit);
 
 	m_playerType = new QComboBox;
 
@@ -122,7 +125,10 @@ PlayerTab::PlayerTab(QWidget *parent)
 	m_playerType->addItems(playerTypes);
 
 	connect(m_playerType, SIGNAL(activated(int)), this, SLOT(playerEdited()));
-	editLayout->addWidget(m_playerType);
+	identityLayout->addWidget(m_playerType);
+
+	editLayout->addLayout(identityLayout);
+	editLayout->addWidget(createThreadSettingsWidget());
 
 	QVBoxLayout *topLayout = new QVBoxLayout;
 	topLayout->addWidget(m_playersTreeWidget);
@@ -133,6 +139,141 @@ PlayerTab::PlayerTab(QWidget *parent)
 	setLayout(topLayout);
 
 	QTimer::singleShot(0, this, SLOT(populatePlayers()));
+}
+
+QWidget *PlayerTab::createThreadSettingsWidget()
+{
+	m_threadSettingsWidget = new QWidget;
+
+	QFormLayout *threadLayout = new QFormLayout(m_threadSettingsWidget);
+	threadLayout->setContentsMargins(0, 0, 0, 0);
+	threadLayout->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
+
+	m_threadQoSCombo = new QComboBox;
+	m_threadQoSCombo->addItem(tr("Performance"), static_cast<int>(Quackle::ThreadQoS::Performance));
+	m_threadQoSCombo->addItem(tr("Balanced"), static_cast<int>(Quackle::ThreadQoS::Balanced));
+	m_threadQoSCombo->addItem(tr("Energy efficient"), static_cast<int>(Quackle::ThreadQoS::EnergyEfficient));
+	m_threadQoSCombo->setToolTip(tr("How hard this player's sim threads compete for the machine.\n"
+									"Changing this refills the thread count."));
+	connect(m_threadQoSCombo, SIGNAL(activated(int)), this, SLOT(threadQoSSet()));
+
+	m_threadCountEdit = new QLineEdit;
+	m_threadCountEdit->setMaximumWidth(m_threadCountEdit->fontMetrics().horizontalAdvance(QString(5, QLatin1Char('0'))));
+	m_threadCountEdit->setToolTip(tr("Worker threads running this player's sim."));
+	connect(m_threadCountEdit, SIGNAL(editingFinished()), this, SLOT(threadCountEdited()));
+
+	m_threadCountDetector = new QPushButton(tr("A&uto-detect"));
+	m_threadCountDetector->setToolTip(tr("Fill in the count advised for this machine at the selected priority."));
+	connect(m_threadCountDetector, SIGNAL(clicked()), this, SLOT(autoDetectThreadCount()));
+
+	QHBoxLayout *threadCountLayout = new QHBoxLayout;
+	threadCountLayout->addWidget(m_threadCountEdit);
+	threadCountLayout->addWidget(m_threadCountDetector);
+	threadCountLayout->addStretch();
+
+	QLabel *threadQoSLabel = new QLabel(tr("CPU &priority:"));
+	threadQoSLabel->setBuddy(m_threadQoSCombo);
+
+	// addRow() only sets a buddy when the field is a widget, and a QLabel keeps
+	// the ampersand it can't spend on one.
+	QLabel *threadCountLabel = new QLabel(tr("Number of t&hreads:"));
+	threadCountLabel->setBuddy(m_threadCountEdit);
+
+	threadLayout->addRow(threadQoSLabel, m_threadQoSCombo);
+	threadLayout->addRow(threadCountLabel, threadCountLayout);
+
+	m_threadSettingsWidget->setVisible(false);
+
+	return m_threadSettingsWidget;
+}
+
+int PlayerTab::recommendedThreadCount(Quackle::ThreadQoS qos)
+{
+	return (int)Quackle::Simulator::recommendedThreadCount(qos);
+}
+
+Quackle::ThreadQoS PlayerTab::selectedThreadQoS() const
+{
+	return static_cast<Quackle::ThreadQoS>(m_threadQoSCombo->currentData().toInt());
+}
+
+PlayerTab::ThreadSettings &PlayerTab::threadSettings(int playerId)
+{
+	QMap<int, ThreadSettings>::iterator it = m_threadSettings.find(playerId);
+
+	if (it == m_threadSettings.end())
+	{
+		ThreadSettings fresh;
+		fresh.qos = Quackle::ThreadQoS::Performance;
+		fresh.count = recommendedThreadCount(fresh.qos);
+		it = m_threadSettings.insert(playerId, fresh);
+	}
+
+	return *it;
+}
+
+void PlayerTab::showThreadSettings(const Quackle::Player &player)
+{
+	const bool isComputer = player.type() == Quackle::Player::ComputerPlayerType;
+	m_threadSettingsWidget->setVisible(isComputer);
+
+	m_editedPlayerId = isComputer ? player.id() : -1;
+	if (!isComputer)
+		return;
+
+	const ThreadSettings &settings = threadSettings(player.id());
+
+	const int qosIndex = m_threadQoSCombo->findData(static_cast<int>(settings.qos));
+	m_threadQoSCombo->setCurrentIndex(qosIndex == -1 ? 0 : qosIndex);
+	m_threadCountEdit->setText(QString::number(settings.count));
+}
+
+void PlayerTab::setThreadCount(int count)
+{
+	m_threadCountEdit->setText(QString::number(count));
+
+	if (m_editedPlayerId >= 0)
+		threadSettings(m_editedPlayerId).count = count;
+}
+
+void PlayerTab::threadQoSSet()
+{
+	if (m_editedPlayerId < 0)
+		return;
+
+	threadSettings(m_editedPlayerId).qos = selectedThreadQoS();
+	setThreadCount(recommendedThreadCount(selectedThreadQoS()));
+}
+
+void PlayerTab::threadCountEdited()
+{
+	if (m_changingEditorManually || m_editedPlayerId < 0)
+		return;
+
+	bool isNumber = false;
+	const int count = m_threadCountEdit->text().toInt(&isNumber);
+
+	// Anything unusable puts the last good value back.
+	setThreadCount(isNumber && count >= 1 ? count : threadSettings(m_editedPlayerId).count);
+}
+
+void PlayerTab::autoDetectThreadCount()
+{
+	setThreadCount(recommendedThreadCount(selectedThreadQoS()));
+}
+
+void PlayerTab::applyThreadSettings()
+{
+	const QList<Quackle::Player> playerList(m_playerMap.keys());
+
+	for (QList<Quackle::Player>::const_iterator it = playerList.begin(); it != playerList.end(); ++it)
+	{
+		if ((*it).type() != Quackle::Player::ComputerPlayerType || !(*it).computerPlayer())
+			continue;
+
+		const ThreadSettings &settings = threadSettings((*it).id());
+		(*it).computerPlayer()->setThreadCount(settings.count, settings.qos);
+	}
 }
 
 void PlayerTab::saveSettings()
@@ -148,6 +289,10 @@ void PlayerTab::saveSettings()
 		playerIds.push_back((*it).id());
 		settings.setValue(
 			QString("quackle/newgame/players/%1").arg((*it).id()), QuackleIO::Util::uvStringToQString((*it).storeInformationToString()));
+
+		const ThreadSettings &threads = threadSettings((*it).id());
+		settings.setValue(QString("quackle/newgame/playerthreads/%1/qos").arg((*it).id()), static_cast<int>(threads.qos));
+		settings.setValue(QString("quackle/newgame/playerthreads/%1/count").arg((*it).id()), threads.count);
 	}
 
 	settings.setValue("quackle/newgame/playerIds", playerIds);
@@ -187,6 +332,15 @@ void PlayerTab::populatePlayers()
 			// offered by Quackle
 			player.setComputerPlayer(defaultComputerPlayer());
 		}
+
+		ThreadSettings &threads = threadSettings(id);
+		const int qos = settings.value(QString("quackle/newgame/playerthreads/%1/qos").arg(id), static_cast<int>(threads.qos)).toInt();
+		if (qos >= static_cast<int>(Quackle::ThreadQoS::EnergyEfficient) && qos <= static_cast<int>(Quackle::ThreadQoS::Performance))
+			threads.qos = static_cast<Quackle::ThreadQoS>(qos);
+
+		const int count = settings.value(QString("quackle/newgame/playerthreads/%1/count").arg(id), 0).toInt();
+		threads.count = count >= 1 ? count : recommendedThreadCount(threads.qos);
+
 		addPlayer(player);
 	}
 
@@ -304,7 +458,10 @@ void PlayerTab::removePlayer()
 		QList<Quackle::Player> correspondingPlayers(m_playerMap.keys(it));
 
 		if (correspondingPlayers.size() > 0)
+		{
+			m_threadSettings.remove(correspondingPlayers.front().id());
 			m_playerMap.remove(correspondingPlayers.front());
+		}
 	}
 
 	selectionChanged();
@@ -328,6 +485,10 @@ void PlayerTab::playerEdited()
 	m_playerMap.insert(lastPlayer, item);
 
 	setItem(item, lastPlayer);
+
+	m_changingEditorManually = true;
+	showThreadSettings(lastPlayer);
+	m_changingEditorManually = false;
 }
 
 void PlayerTab::selectionChanged()
@@ -337,7 +498,11 @@ void PlayerTab::selectionChanged()
 	m_editGroup->setEnabled(hasSel);
 
 	if (!hasSel)
+	{
+		m_threadSettingsWidget->setVisible(false);
+		m_editedPlayerId = -1;
 		return;
+	}
 
 	Quackle::Player lastPlayer(getLastPlayer());
 
@@ -351,6 +516,7 @@ void PlayerTab::selectionChanged()
 
 	m_nameEdit->setText(QuackleIO::Util::uvStringToQString(lastPlayer.name()));
 	m_playerType->setCurrentIndex(m_playerType->findText(stringForPlayer(lastPlayer)));
+	showThreadSettings(lastPlayer);
 
 	m_changingEditorManually = false;
 }
