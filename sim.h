@@ -205,6 +205,8 @@ public:
 	long id;
 	// index into the simulator's move list; id cross-checks it
 	int moveIndex = -1;
+	// one-indexed, matching the simulator's iteration count
+	int iteration = 0;
 	Move move;
 	LevelList levels;
 	double residual;
@@ -344,6 +346,10 @@ public:
 	void simulate(int plies);
 	static void simulateOnePosition(SimmedMoveMessage &message, const SimmedMoveConstants &constants);
 
+	// How many iterations simulate() pushes before collecting any of them.
+	// At least one, never more than remaining.
+	static int iterationsPerChunk(size_t threadCount, int includedMoves, int remaining);
+
 	// Incorporate the results of a single simulation into the
 	// cumulative results
 	void incorporateMessage(const SimmedMoveMessage &message);
@@ -393,11 +399,14 @@ protected:
 
 	UVString playaheadIndent() const;
 
-	// returns the number of messages pushed
-	int pushIteration(const SimmedMoveConstants &constants, const UVString &indent);
+	int includedMoveCount() const;
 
-	// drains that many replies, merges them, and wraps the log in <iteration>
-	std::exception_ptr collectIteration(int messageCount, int iteration);
+	// returns the number of messages pushed
+	int pushIteration(const SimmedMoveConstants &constants, const UVString &indent, int iteration);
+
+	// Drains the whole chunk, then merges it iteration by iteration, each
+	// wrapped in <iteration>. Reports how many iterations were incorporated.
+	std::exception_ptr collectChunk(int firstIteration, int iterationCount, int messagesPerIteration, int *incorporated);
 
 	UVOFStream m_logfileStream;
 	string m_logfile;

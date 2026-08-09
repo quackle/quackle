@@ -383,21 +383,61 @@ void Simulator::simulate(int plies, int iterations)
 
 	const UVString indent = playaheadIndent();
 
-	for (int i = 0; i < iterations; ++i)
+	int remaining = iterations;
+	while (remaining > 0)
 	{
+		// Only between chunks: once a chunk is pushed it must be drained,
+		// or the next batch pops its replies and miscounts them as its own.
 		if (m_dispatch && m_dispatch->shouldAbort())
 			break;
 
-		++m_iterations;
+		const int chunk = iterationsPerChunk(threadCount(), includedMoveCount(), remaining);
+		const int firstIteration = m_iterations + 1;
 
-		const int messageCount = pushIteration(constants, indent);
-		const std::exception_ptr firstError = collectIteration(messageCount, m_iterations);
+		int perIteration = 0;
+		for (int i = 0; i < chunk; ++i)
+			perIteration = pushIteration(constants, indent, firstIteration + i);
+
+		int incorporated = 0;
+		const std::exception_ptr firstError = collectChunk(firstIteration, chunk, perIteration, &incorporated);
+
+		m_iterations += incorporated;
+		remaining -= chunk;
 
 		// Rethrow a worker's exception only now, with the queues fully
 		// drained and the log consistent, so the simulator remains usable.
 		if (firstError)
 			std::rethrow_exception(firstError);
 	}
+}
+
+int Simulator::includedMoveCount() const
+{
+	int count = 0;
+	for (const auto &it : m_simmedMoves)
+		if (it.includeInSimulation())
+			++count;
+	return count;
+}
+
+int Simulator::iterationsPerChunk(size_t threadCount, int includedMoves, int remaining)
+{
+	if (includedMoves <= 0 || remaining <= 0)
+		return 1;
+
+	// Keep roughly this many playaheads queued per thread, so no thread runs
+	// dry waiting on the collect and slow playaheads overlap with fast ones.
+	// It also bounds work in flight at about threadCount * slack messages
+	// however many iterations were asked for.
+	const int slack = 3;
+	int wanted = ((int)threadCount * slack + includedMoves - 1) / includedMoves;
+
+	if (wanted < 1)
+		wanted = 1;
+	if (wanted > remaining)
+		wanted = remaining;
+
+	return wanted;
 }
 
 // <playahead> sits inside <iteration> inside the log root, and a worker's
@@ -408,7 +448,7 @@ UVString Simulator::playaheadIndent() const
 	return m_xmlIndent + MARK_UV("\t\t");
 }
 
-int Simulator::pushIteration(const SimmedMoveConstants &constants, const UVString &indent)
+int Simulator::pushIteration(const SimmedMoveConstants &constants, const UVString &indent, int iteration)
 {
 	int messageCount = 0;
 
@@ -427,6 +467,7 @@ int Simulator::pushIteration(const SimmedMoveConstants &constants, const UVStrin
 		SimmedMoveMessage message;
 		message.id = moveIt.id();
 		message.moveIndex = (int)moveIndex;
+		message.iteration = iteration;
 		message.move = moveIt.move;
 		// a message carries only its own playahead's samples; incorporateMessage() merges them
 		message.levels.setNumberLevels(constants.levelCount + 1);
@@ -439,43 +480,56 @@ int Simulator::pushIteration(const SimmedMoveConstants &constants, const UVStrin
 	return messageCount;
 }
 
-std::exception_ptr Simulator::collectIteration(int messageCount, int iteration)
+std::exception_ptr Simulator::collectChunk(int firstIteration, int iterationCount, int messagesPerIteration, int *incorporated)
 {
-	// Collect the whole iteration before incorporating so that results
-	// and the log don't depend on the order in which threads finish.
-	vector<SimmedMoveMessage> messages;
-	vector<const SimmedMoveMessage *> byMove(m_simmedMoves.size(), nullptr);
-	messages.reserve(messageCount);
-	while (messageCount-- > 0)
-		messages.push_back(m_receiveQueue.pop());
-	for (const auto &message : messages)
-		byMove[message.moveIndex] = &message;
+	*incorporated = 0;
 
-	if (isLogging())
-	{
-		m_logfileStream << m_xmlIndent << "<iteration index=\"" << iteration << "\">" << endl;
-		m_xmlIndent += MARK_UV('\t');
-	}
+	// Collect the whole chunk before incorporating any of it, so that results
+	// and the log don't depend on the order in which threads finish.
+	const size_t moveCount = m_simmedMoves.size();
+	vector<SimmedMoveMessage> messages;
+	vector<const SimmedMoveMessage *> byIterationAndMove(iterationCount * moveCount, nullptr);
+
+	int outstanding = iterationCount * messagesPerIteration;
+	messages.reserve(outstanding);
+	while (outstanding-- > 0)
+		messages.push_back(m_receiveQueue.pop());
+
+	for (const auto &message : messages)
+		byIterationAndMove[(message.iteration - firstIteration) * moveCount + message.moveIndex] = &message;
 
 	std::exception_ptr firstError;
-	for (const auto *message : byMove)
+	for (int i = 0; i < iterationCount; ++i)
 	{
-		if (!message)
-			continue;
+		const SimmedMoveMessage *const *slot = &byIterationAndMove[i * moveCount];
 
-		if (message->error)
+		if (isLogging())
 		{
-			if (!firstError)
-				firstError = message->error;
+			m_logfileStream << m_xmlIndent << "<iteration index=\"" << firstIteration + i << "\">" << endl;
+			m_xmlIndent += MARK_UV('\t');
 		}
-		else
-			incorporateMessage(*message);
-	}
 
-	if (isLogging())
-	{
-		m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
-		m_logfileStream << m_xmlIndent << "</iteration>" << endl;
+		for (size_t moveIndex = 0; moveIndex < moveCount; ++moveIndex)
+		{
+			if (!slot[moveIndex])
+				continue;
+
+			if (slot[moveIndex]->error)
+			{
+				if (!firstError)
+					firstError = slot[moveIndex]->error;
+			}
+			else
+				incorporateMessage(*slot[moveIndex]);
+		}
+
+		if (isLogging())
+		{
+			m_xmlIndent = m_xmlIndent.substr(0, m_xmlIndent.length() - 1);
+			m_logfileStream << m_xmlIndent << "</iteration>" << endl;
+		}
+
+		++*incorporated;
 	}
 
 	return firstError;

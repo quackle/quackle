@@ -956,6 +956,15 @@ void checkAccumulators(const Quackle::GamePosition &position)
 	check(reset, "resetNumbers clears every accumulator");
 }
 
+void checkChunkSizing()
+{
+	check(Quackle::Simulator::iterationsPerChunk(8, 1, 100) > 1, "a lone candidate batches iterations to fill the pool");
+	check(Quackle::Simulator::iterationsPerChunk(8, 200, 100) == 1, "a candidate list wider than the pool batches one iteration");
+	check(Quackle::Simulator::iterationsPerChunk(8, 1, 3) == 3, "a chunk never exceeds the iterations remaining");
+	check(Quackle::Simulator::iterationsPerChunk(0, 4, 10) == 1, "a chunk is at least one iteration");
+	check(Quackle::Simulator::iterationsPerChunk(8, 0, 10) == 1, "an empty candidate list still yields a chunk");
+}
+
 struct LogShape
 {
 	bool readable = false;
@@ -1127,6 +1136,10 @@ void checkSingleCandidateBatch(const Quackle::GamePosition &position)
 		simulator.setPosition(position);
 		included = narrowToOneCandidate(simulator);
 
+		// otherwise this runs one iteration at a time and proves nothing
+		check(Quackle::Simulator::iterationsPerChunk(simulator.threadCount(), included, iterations) > 1,
+			"one candidate puts more than one iteration in flight");
+
 		simulator.simulate(2, iterations);
 
 		check(included == 1, "the batch narrowed to a single candidate");
@@ -1200,6 +1213,7 @@ void checkAbort(const Quackle::GamePosition &position)
 void TestHarness::simulation()
 {
 	checkLevelListIncorporation();
+	checkChunkSizing();
 
 	Quackle::Game game;
 	Quackle::PlayerList players;
