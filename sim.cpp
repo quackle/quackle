@@ -44,7 +44,13 @@ using namespace std;
 std::atomic_long SimmedMove::objectIdCounter { 0 };
 
 Simulator::Simulator()
-	: m_logfileIsOpen(false), m_hasHeader(false), m_dispatch(0), m_iterations(0), m_ignoreOppos(false), m_threadQoS(ThreadQoS::Balanced)
+	: m_logfileIsOpen(false)
+	, m_hasHeader(false)
+	, m_dispatch(0)
+	, m_iterations(0)
+	, m_ignoreOppos(false)
+	, m_threadCount(0)
+	, m_threadQoS(ThreadQoS::Balanced)
 {
 	m_originalGame.addPosition();
 	setThreadCount(2);
@@ -52,7 +58,7 @@ Simulator::Simulator()
 
 Simulator::~Simulator()
 {
-	setThreadCount(0);
+	shutdownThreads();
 	closeLogfile();
 }
 
@@ -317,32 +323,58 @@ void Simulator::simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessag
 
 void Simulator::setThreadCount(size_t count, ThreadQoS qos)
 {
-	// A thread's QoS is applied at startup and never revisited.
-	const bool requalify = qos != m_threadQoS;
-	m_threadQoS = qos;
-
-	if ((count == 0 || requalify) && m_threadPool.size() != 0)
+	// A thread's QoS is applied at startup and never revisited, so a change
+	// only takes hold on threads started after it.
+	if (qos != m_threadQoS)
 	{
-		m_sendQueue.send_terminate_all();
-		for (auto &t : m_threadPool)
-			t.join();
-		m_threadPool.clear();
-		// clear the flag so threads created by a later call don't
-		// immediately terminate themselves
-		m_sendQueue.reset_terminate_all();
+		m_threadQoS = qos;
+		shutdownThreads();
 	}
 
-	while (count > m_threadPool.size())
+	m_threadCount = count;
+
+	if (count == 0)
+		shutdownThreads();
+	else if (!m_threadPool.empty())
+		reconcileThreads();
+}
+
+// Every ComputerPlayer owns a Simulator, and Resolvent and Preendgame build
+// one per move, nested; only the innermost ever sims. Starting the pool on
+// demand keeps the rest from costing anything.
+void Simulator::ensureThreads()
+{
+	if (m_threadPool.size() != m_threadCount)
+		reconcileThreads();
+}
+
+void Simulator::reconcileThreads()
+{
+	while (m_threadCount > m_threadPool.size())
 	{
-		m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue), qos);
+		m_threadPool.emplace_back(Simulator::simThreadFunc, std::ref(m_sendQueue), std::ref(m_receiveQueue), m_threadQoS);
 	}
 
-	while (count < m_threadPool.size())
+	while (m_threadCount < m_threadPool.size())
 	{
 		m_sendQueue.send_terminate_one(m_threadPool.back().get_id());
 		m_threadPool.back().join();
 		m_threadPool.pop_back();
 	}
+}
+
+void Simulator::shutdownThreads()
+{
+	if (m_threadPool.empty())
+		return;
+
+	m_sendQueue.send_terminate_all();
+	for (auto &t : m_threadPool)
+		t.join();
+	m_threadPool.clear();
+	// clear the flag so threads created by a later call don't
+	// immediately terminate themselves
+	m_sendQueue.reset_terminate_all();
 }
 
 void Simulator::simulate(int plies)
@@ -380,6 +412,8 @@ void Simulator::simulate(int plies, int iterations)
 
 	if (isLogging() && !m_hasHeader)
 		writeLogHeader();
+
+	ensureThreads();
 
 	const UVString indent = playaheadIndent();
 

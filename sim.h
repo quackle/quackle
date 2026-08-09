@@ -328,6 +328,7 @@ public:
 	static void simThreadFunc(SimmedMoveMessageQueue &incoming, SimmedMoveMessageQueue &outgoing, ThreadQoS qos);
 
 	// A change of QoS recycles the whole pool, not just the threads added.
+	// Threads are not started until the first simulate().
 	void setThreadCount(size_t count, ThreadQoS qos = ThreadQoS::Balanced);
 	size_t threadCount() const;
 	ThreadQoS threadQoS() const;
@@ -397,6 +398,10 @@ protected:
 	void writeLogHeader();
 	void writeLogFooter();
 
+	void ensureThreads();
+	void reconcileThreads();
+	void shutdownThreads();
+
 	UVString playaheadIndent() const;
 
 	int includedMoveCount() const;
@@ -429,6 +434,8 @@ protected:
 	bool m_ignoreOppos;
 
 	std::vector<std::thread> m_threadPool;
+	// requested; m_threadPool stays empty until the first simulate()
+	size_t m_threadCount;
 	ThreadQoS m_threadQoS;
 	SimmedMoveMessageQueue m_sendQueue;
 	SimmedMoveMessageQueue m_receiveQueue;
@@ -491,7 +498,7 @@ inline bool Simulator::ignoreOppos() const
 
 inline size_t Simulator::threadCount() const
 {
-	return m_threadPool.size();
+	return m_threadCount;
 }
 
 inline ThreadQoS Simulator::threadQoS() const
