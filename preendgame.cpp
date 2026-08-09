@@ -82,6 +82,7 @@ void Preendgame::getInitialMoves(MoveList *moves)
 		SmartBogowin bogo;
 
 		bogo.setParameters(m_parameters);
+		bogo.setThreadCount(threadCount(), threadQoS());
 		currentPosition().incrementNestedness();
 		bogo.setPosition(currentPosition());
 		bogo.setConsideredMoves(m_simulator.consideredMoves());
@@ -145,6 +146,7 @@ MoveList Preendgame::moves(int nmoves)
 
 	GamePosition tempPosition;
 	Resolvent resolvent;
+	resolvent.setThreadCount(threadCount(), threadQoS());
 
 	int j = 0;
 	for (MoveList::iterator moveIt = moves.begin(); moveIt != moves.end(); ++moveIt, ++j)

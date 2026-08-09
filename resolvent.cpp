@@ -63,6 +63,7 @@ MoveList Resolvent::moves(int nmoves)
 	}
 
 	delegatee->setParameters(parameters());
+	delegatee->setThreadCount(threadCount(), threadQoS());
 	delegatee->setDispatch(currentPosition().nestedness() > 0 ? 0 : m_dispatch);
 	delegatee->setPosition(m_simulator.currentPosition());
 	delegatee->setConsideredMoves(m_simulator.consideredMoves());

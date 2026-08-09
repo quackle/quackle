@@ -129,6 +129,12 @@ public:
 	// sets dispatch for this player and its simulator
 	virtual void setDispatch(ComputerDispatch *dispatch);
 
+	// The simulation thread pool. Players that delegate their move to a
+	// freshly built player hand these down, since the delegatee is what sims.
+	void setThreadCount(size_t count, ThreadQoS qos);
+	size_t threadCount() const;
+	ThreadQoS threadQoS() const;
+
 protected:
 	// a max function for convenience
 	static double max(double v1, double v2);
@@ -140,6 +146,21 @@ protected:
 	ComputerParameters m_parameters;
 	ComputerDispatch *m_dispatch;
 };
+
+inline void ComputerPlayer::setThreadCount(size_t count, ThreadQoS qos)
+{
+	m_simulator.setThreadCount(count, qos);
+}
+
+inline size_t ComputerPlayer::threadCount() const
+{
+	return m_simulator.threadCount();
+}
+
+inline ThreadQoS ComputerPlayer::threadQoS() const
+{
+	return m_simulator.threadQoS();
+}
 
 inline GamePosition &ComputerPlayer::currentPosition()
 {

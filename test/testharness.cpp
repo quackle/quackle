@@ -47,6 +47,34 @@
 using namespace std;
 using namespace Quackle;
 
+static Quackle::ThreadQoS
+checkThreadQoS(const QString& qos)
+{
+	if (qos == "efficient")
+		return Quackle::ThreadQoS::EnergyEfficient;
+	if (qos == "balanced")
+		return Quackle::ThreadQoS::Balanced;
+	if (qos == "performance")
+		return Quackle::ThreadQoS::Performance;
+
+	UVcout << "Thread QoS " << QuackleIO::Util::qstringToString(qos) << " not recognized!" << endl;
+	exit(1);
+}
+
+// A player that delegates its move hands these down, so setting them on the
+// selected player reaches whichever player actually does the simming.
+static void
+applyThreadSettings(ComputerPlayer* player, const QString& threadString, const QString& qosString)
+{
+	if (!player || (threadString.isNull() && qosString.isNull()))
+		return;
+
+	const Quackle::ThreadQoS qos = qosString.isNull() ? player->threadQoS() : checkThreadQoS(qosString);
+	const size_t count = threadString.isNull() ? Quackle::Simulator::recommendedThreadCount(qos) : threadString.toULong();
+
+	player->setThreadCount(count, qos);
+}
+
 static ComputerPlayer*
 checkPlayerName(const QString& computer)
 {
@@ -99,7 +127,11 @@ const char *usage =
 "--letters; letters to anagram.\n"
 "--build; when mode is anagram, do not require that all letters be used.\n"
 "--quiet; print nothing during selfplay games (default false).\n"
-"--repetitions=integer; the number of games for selfplay (default 1000).\n";
+"--repetitions=integer; the number of games for selfplay (default 1000).\n"
+"--threads=integer; simulation worker threads for the computer players.\n"
+"--qos=efficient|balanced|performance; simulation thread priority. Also sets\n"
+"      the thread count this machine advises at that priority, unless\n"
+"      --threads says otherwise.\n";
 
 void TestHarness::executeFromArguments()
 {
@@ -110,6 +142,8 @@ void TestHarness::executeFromArguments()
 	QString computer2;
 	QString seedString;
 	QString repString;
+	QString threadString;
+	QString qosString;
 	bool build;
 	QString letters;
 	bool help;
@@ -125,6 +159,8 @@ void TestHarness::executeFromArguments()
 	opts.addOption('s', "seed", &seedString);
 	opts.addOption('r', "repetitions", &repString);
 	opts.addOption('t', "letters", &letters);
+	opts.addOption('n', "threads", &threadString);
+	opts.addOption('q', "qos", &qosString);
 	opts.addRepeatableOption("position", &m_positions);
 
 	opts.addSwitch("report", &report);
@@ -161,6 +197,10 @@ void TestHarness::executeFromArguments()
 	m_computerPlayer2ToTest = checkPlayerName(computer2);
 
 	startUp();
+
+	applyThreadSettings(m_computerPlayerToTest, threadString, qosString);
+	if (m_computerPlayer2ToTest != m_computerPlayerToTest)
+		applyThreadSettings(m_computerPlayer2ToTest, threadString, qosString);
 
 	// Apply the seed before dispatching to any mode so that every lever --
 	// not just selfplay -- produces reproducible results. Tile drawing (used
