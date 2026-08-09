@@ -970,8 +970,9 @@ void TopLevel::kibitz(int numberOfPlays, Quackle::ComputerPlayer *computerPlayer
 		connect(thread, SIGNAL(finished()), this, SLOT(kibitzThreadFinished()));
 		connect(thread, SIGNAL(fractionDone(double, OppoThread *)), this, SLOT(playerFractionDone(double, OppoThread *)));
 		thread->setPosition(m_game->currentPosition());
-
-		thread->setPlayer(computerPlayer->clone());
+		Quackle::ComputerPlayer *kibitzPlayer = computerPlayer->clone();
+		kibitzPlayer->setThreadCount(Quackle::CPUTopology().performanceThreadPoolSize(), Quackle::ThreadQoS::Performance);
+		thread->setPlayer(kibitzPlayer);
 		thread->findBestMoves(numberOfPlays);
 		statusMessage(tr("Asked %1 for her choices. Please allow her time to think.")
 				.arg(QuackleIO::Util::uvStringToQString(computerPlayer->name())));
@@ -1455,6 +1456,7 @@ void TopLevel::reportAs(Quackle::ComputerPlayer *player)
 		}
 
 		Quackle::ComputerPlayer *clone = player->clone();
+		clone->setThreadCount(Quackle::CPUTopology().performanceThreadPoolSize(), Quackle::ThreadQoS::Performance);
 
 		QTextStream stream(&file);
 		SET_QTEXTSTREAM_TO_UTF8(stream);
