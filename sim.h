@@ -405,7 +405,8 @@ protected:
 	int pushIteration(const SimmedMoveConstants &constants, const UVString &indent, int iteration);
 
 	// Drains the whole chunk, then merges it iteration by iteration, each
-	// wrapped in <iteration>. Reports how many iterations were incorporated.
+	// wrapped in <iteration>. Reports how many iterations were incorporated;
+	// the one that lost a playahead, and any after it, are dropped.
 	std::exception_ptr collectChunk(int firstIteration, int iterationCount, int messagesPerIteration, int *incorporated);
 
 	UVOFStream m_logfileStream;

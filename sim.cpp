@@ -503,6 +503,17 @@ std::exception_ptr Simulator::collectChunk(int firstIteration, int iterationCoun
 	{
 		const SimmedMoveMessage *const *slot = &byIterationAndMove[i * moveCount];
 
+		// An iteration that lost a playahead is dropped whole, along with
+		// the rest of the chunk. Incorporating its survivors would leave the
+		// candidates at unequal sample counts, and calculateEquity() would
+		// then be comparing averages over unlike populations.
+		for (size_t moveIndex = 0; moveIndex < moveCount; ++moveIndex)
+			if (slot[moveIndex] && slot[moveIndex]->error)
+				firstError = slot[moveIndex]->error;
+
+		if (firstError)
+			break;
+
 		if (isLogging())
 		{
 			m_logfileStream << m_xmlIndent << "<iteration index=\"" << firstIteration + i << "\">" << endl;
@@ -510,18 +521,8 @@ std::exception_ptr Simulator::collectChunk(int firstIteration, int iterationCoun
 		}
 
 		for (size_t moveIndex = 0; moveIndex < moveCount; ++moveIndex)
-		{
-			if (!slot[moveIndex])
-				continue;
-
-			if (slot[moveIndex]->error)
-			{
-				if (!firstError)
-					firstError = slot[moveIndex]->error;
-			}
-			else
+			if (slot[moveIndex])
 				incorporateMessage(*slot[moveIndex]);
-		}
 
 		if (isLogging())
 		{
