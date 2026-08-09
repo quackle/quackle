@@ -8,6 +8,11 @@ PASS an empty source level adds nothing
 PASS merging a shallower list does not truncate
 PASS merging a shallower list leaves deeper levels intact
 PASS a shallower source still merges where it overlaps
+PASS a lone candidate batches iterations to fill the pool
+PASS a candidate list wider than the pool batches one iteration
+PASS a chunk never exceeds the iterations remaining
+PASS a chunk is at least one iteration
+PASS an empty candidate list still yields a chunk
 PASS the simulator counts the iterations it ran
 PASS every candidate accumulates one residual, spread and win per iteration
 PASS every candidate accumulates one level statistic sample per iteration
@@ -18,6 +23,7 @@ PASS plies nest in playaheads nest in iterations
 PASS the log holds one iteration element per iteration
 PASS iteration indices run 1..n in order
 PASS every iteration logs one playahead per candidate
+PASS one candidate puts more than one iteration in flight
 PASS the batch narrowed to a single candidate
 PASS a single-candidate batch runs exactly the iterations asked
 PASS a single-candidate batch samples every iteration
