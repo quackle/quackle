@@ -58,13 +58,17 @@ jobs:
             # miurahr/aqtinstall#1007 and empirically here). 6.10.x is the
             # newest line confirmed to still install correctly.
             qt_ver: 6.10.*
-            os: windows-latest
+            # Pinned to Windows Server 2022, the only remaining x64 image
+            # carrying VS2022: windows-latest/windows-2025 moved to VS2026 in
+            # June 2026. Deliberate division of labor -- this job is the VS2022
+            # sanity check, and the arm64 job below covers VS2026.
+            os: windows-2022
             msvc_arch: x64
             qt_arch: win64_msvc2022_64
             env:
               CXX: cl
               C: cl
-          - name: windows-arm64-vs22
+          - name: windows-arm64-vs2026
             # Native Windows-on-ARM build on GitHub's arm64 runner. On this host
             # aqtinstall's target is windows_arm64, which serves a native arm64
             # Qt (win64_msvc2022_arm64, native host tools) -- so this is a plain
@@ -72,12 +76,18 @@ jobs:
             # these arm64 binaries only since 6.8; pinning 6.10.* keeps us in
             # step with the x64 job (whose ceiling is the aqtinstall bug above).
             qt_ver: 6.10.*
-            os: windows-11-arm
+            # windows-11-arm migrates to VS2026 between 2026-09-21 and 09-30;
+            # naming the vs2026 image explicitly gets us there now and keeps the
+            # toolchain pinned afterwards. There is no VS2022-pinned arm64
+            # image, which is why the x64 job carries VS2022 instead.
+            os: windows-11-vs2026-arm
             msvc_arch: arm64
+            # Qt ships no msvc2026 packages; the msvc2022 arm64 build is the
+            # one to use, and links fine against the VS2026 toolset (same ABI).
             qt_arch: win64_msvc2022_arm64
-            # MSVC AddressSanitizer for ARM64 only exists as a VS2026 *preview*
-            # feature at this time, so windows-11-arm runner's toolchain
-            # can't be relied on to carry it.
+            # MSVC AddressSanitizer for ARM64 is still a preview feature in
+            # VS2026, so leave it off here even though the toolchain now
+            # nominally offers it.
             asan: OFF
             env:
               CXX: cl
