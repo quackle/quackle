@@ -25,10 +25,7 @@ jobs:
               CC: clang
           - name: macos-clang
             qt_ver: 5.15.2
-            # Qt 5.15.x's official macOS package is x86_64-only (Apple
-            # Silicon support never shipped for Qt5), but macos-latest
-            # runners are arm64. Force an x86_64 build for this combo only;
-            # Rosetta 2 handles running it if ever needed.
+            # Qt 5.15.x's official macOS package is x86_64-only
             osx_arch: x86_64
           - name: ubuntu-22.04-clang
             os: ubuntu-22.04
@@ -55,13 +52,8 @@ jobs:
             # Windows package-path construction (it requests
             # qt6_NNNN/qt6_NNNN/Updates.xml instead of
             # qt6_NNNN/qt6_NNNN_msvc2022_64/Updates.xml, confirmed against
-            # miurahr/aqtinstall#1007 and empirically here). 6.10.x is the
-            # newest line confirmed to still install correctly.
+            # miurahr/aqtinstall#1007 and empirically here).
             qt_ver: 6.10.*
-            # Pinned to Windows Server 2022, the only remaining x64 image
-            # carrying VS2022: windows-latest/windows-2025 moved to VS2026 in
-            # June 2026. Deliberate division of labor -- this job is the VS2022
-            # sanity check, and the arm64 job below covers VS2026.
             os: windows-2022
             msvc_arch: x64
             qt_arch: win64_msvc2022_64
@@ -69,25 +61,11 @@ jobs:
               CXX: cl
               C: cl
           - name: windows-arm64-vs2026
-            # Native Windows-on-ARM build on GitHub's arm64 runner. On this host
-            # aqtinstall's target is windows_arm64, which serves a native arm64
-            # Qt (win64_msvc2022_arm64, native host tools) -- so this is a plain
-            # native build like the x64 job, not a cross-compile. Qt has offered
-            # these arm64 binaries only since 6.8; pinning 6.10.* keeps us in
-            # step with the x64 job (whose ceiling is the aqtinstall bug above).
             qt_ver: 6.10.*
-            # windows-11-arm migrates to VS2026 between 2026-09-21 and 09-30;
-            # naming the vs2026 image explicitly gets us there now and keeps the
-            # toolchain pinned afterwards. There is no VS2022-pinned arm64
-            # image, which is why the x64 job carries VS2022 instead.
             os: windows-11-vs2026-arm
             msvc_arch: arm64
-            # Qt ships no msvc2026 packages; the msvc2022 arm64 build is the
-            # one to use, and links fine against the VS2026 toolset (same ABI).
             qt_arch: win64_msvc2022_arm64
-            # MSVC AddressSanitizer for ARM64 is still a preview feature in
-            # VS2026, so leave it off here even though the toolchain now
-            # nominally offers it.
+            # MSVC AddressSanitizer for ARM64 is still a preview feature in VS2026
             asan: OFF
             env:
               CXX: cl
@@ -142,15 +120,6 @@ jobs:
         command -v "$PY" >/dev/null 2>&1 || PY=python
         "$PY" test/regression/run_regression.py --bin build
 
-  # Linux ARM64 (Raspberry Pi) builds. Unlike the matrix above, these do NOT use
-  # aqtinstall: Qt has no ARM64 Linux desktop binaries before 6.7, and real Pi
-  # users build against the system Qt from apt anyway. So we install Qt (and the
-  # rest of the toolchain) via the distro package manager inside a container that
-  # matches an actual Pi userland, running on GitHub's native aarch64 runners.
-  # The distro decides the Qt version; we deliberately don't pin one.
-  #
-  # aarch64 only: hosted ARM64 runners cover 64-bit Raspberry Pi OS / Ubuntu
-  # (Pi 3/4/5, Zero 2 W). 32-bit armhf has no hosted runner and is not tested.
   raspi:
     name: ${{ matrix.label }}-build
     runs-on: ubuntu-24.04-arm
@@ -182,11 +151,9 @@ jobs:
             qt_pkgs: qt6-base-dev qt6-base-dev-tools
 
     steps:
-    # Install everything from apt, exactly as a Raspberry Pi user would (no
-    # aqtinstall). git/ca-certificates let actions/checkout clone inside the
-    # otherwise-minimal container. libgl1-mesa-dev supplies the GL headers that
-    # Qt6's WrapOpenGL dependency needs at configure time -- Ubuntu 22.04's
-    # qt6-base-dev (Qt 6.2) doesn't pull them in, unlike the Qt5 and Qt 6.4 pkgs.
+    # Install everything from apt instead of using aqtinstall.
+    # git/ca-certificates let actions/checkout clone inside the container.
+    # libgl1-mesa-dev is a required qt6-base-dev dependency in Ubuntu 22.04
     - name: Install build dependencies
       run: |
         apt-get update
