@@ -15,9 +15,19 @@ all pathnames (e.g., in the CMAKE_PREFIX_PATH) with forward slashes (/).
 Additional things to know:
 --------------------------
 * To build the Quackle installer,
-  + Run a cmake build in quacker\build
+  + Run a cmake build of `quacker/`
   + Build the RelWithDebInfo build
-  + Copy any needed DLLs into build\RelWithDebInfo
-  + From the Quackle directory, run the following...
-    <full path to Inno Setup's ISCC.exe> installer.iss /FQuackleInstaller /O. /Q
-  + Find the file QuackleInstaller.exe in the quackle\ directory.
+  + From the Quackle directory, in the appropriate VS developer prompt, run...
+```
+    <full path to Inno Setup's ISCC.exe> installer.iss /DBuildDir=<build dir>
+```
+  + Find the file QuackleInstaller-<x.y.z>.exe in the quackle\ directory.
+
+If you get the error:
+```
+Error on line 22 in C:\dev\quackle\installer.iss: VCRedistDir is empty. Run
+from a Visual Studio developer prompt, or pass /DVCRedistDir=<path>.
+Compile aborted.
+```
+then you didn't run from a VS developer prompt.  This is necessary in order to
+include the proper VC runtime.

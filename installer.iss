@@ -5,6 +5,8 @@
 ;   ISCC.exe installer.iss
 ; Overridable defines:
 ;   /DBuildDir=<dir containing Quackle.exe and the windeployqt output>
+;   /DVCRedistDir=<dir containing vc_redist.x64.exe>
+;     (defaults to %VCToolsRedistDir%, which a VS developer prompt sets)
 
 ; Keep in sync with project(Quackle VERSION ...) in quacker/CMakeLists.txt.
 #define AppVersion "1.1.0"
@@ -12,6 +14,18 @@
 #ifndef BuildDir
   #define BuildDir "build.vs22\RelWithDebInfo"
 #endif
+
+#ifndef VCRedistDir
+  #define VCRedistDir GetEnv("VCToolsRedistDir")
+#endif
+#if VCRedistDir == ""
+  #error VCRedistDir is empty. Run from a Visual Studio developer prompt, or pass /DVCRedistDir=<path>
+#endif
+#define VCRedist AddBackslash(VCRedistDir) + "vc_redist.x64.exe"
+#if !FileExists(VCRedist)
+  #error vc_redist.x64.exe not found in VCRedistDir
+#endif
+#define VCRedistVersion GetVersionNumbersString(VCRedist)
 
 [Setup]
 ; Versioned so that releases install side by side, each with its own uninstaller.
@@ -32,6 +46,9 @@ DisableProgramGroupPage=yes
 ChangesAssociations=yes
 SetupIconFile=quacker\quacker.ico
 UninstallDisplayIcon={app}\Quackle.exe
+WizardStyle=modern dynamic
+Compression=lzma2/max
+SolidCompression=yes
 OutputDir=.
 OutputBaseFilename=QuackleInstaller-{#AppVersion}
 
@@ -59,22 +76,28 @@ Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"; Excludes: "CMakeLis
 Source: "data\lexica\*"; DestDir: "{app}\data\lexica"; Excludes: "CMakeLists.txt"; Flags: ignoreversion
 Source: "data\strategy\*"; DestDir: "{app}\data\strategy"; Excludes: "CMakeLists.txt"; Flags: ignoreversion recursesubdirs
 
-; Assuming either a cmake process or a human copied the DLL files
-; in the same dir.  Right now, I'm building from vcpkg, and the list of DLLs
-; is Qt5Core, Qt5Gui, Qt5Widgets, zlib1, bz2, freetype, harfbuzz, libpng16, pcre2-16.
-; Also the MSVC VC runtime redist DLLs.
-; But, depending upon your build chain, this will vary. -jfultz
-Source: "build.vs22\RelWithDebInfo\*.dll"; DestDir: "{app}"
+; Last, in its own solid block, so a skipped redist costs nothing to decompress past.
+Source: "{#VCRedist}"; DestDir: "{tmp}"; Flags: deleteafterinstall solidbreak; Check: VCRedistNeeded
 
-; Ditto for various Qt plugins
-; Right now, I'm installing platforms\qwindows.dll, styles\qwindowsvistastyle.dll,
-; and imageformats\*
-Source: "build.vs22\RelWithDebInfo\imageformats\*"; DestDir: "{app}\imageformats"
-Source: "build.vs22\RelWithDebInfo\platforms\*"; DestDir: "{app}\platforms"
-Source: "build.vs22\RelWithDebInfo\styles\*"; DestDir: "{app}\styles"
+[Run]
+Filename: "{tmp}\vc_redist.x64.exe"; Parameters: "/install /quiet /norestart"; StatusMsg: "Installing Microsoft Visual C++ Runtime..."; Check: VCRedistNeeded
+Filename: "{app}\Quackle.exe"; Description: "{cm:LaunchProgram,Quackle}"; Flags: nowait postinstall skipifsilent
 
+[Code]
+const
+  VCRuntimeKey = 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64';
 
-Source: "data\themes\*"; DestDir: "{app}\data\themes"
-Source: "data\alphabets\*"; DestDir: "{app}\data\alphabets"
-Source: "data\lexica\*"; DestDir: "{app}\data\lexica"
-Source: "data\strategy\*"; DestDir: "{app}\data\strategy"; Flags: recursesubdirs
+function VCRedistNeeded: Boolean;
+var
+  Installed, Major, Minor, Bld, Rbld: Cardinal;
+  Required: Int64;
+begin
+  if not StrToVersion('{#VCRedistVersion}', Required) then
+    RaiseException('Bad VCRedistVersion: {#VCRedistVersion}');
+  Result := not (RegQueryDWordValue(HKLM, VCRuntimeKey, 'Installed', Installed) and (Installed = 1) and
+    RegQueryDWordValue(HKLM, VCRuntimeKey, 'Major', Major) and
+    RegQueryDWordValue(HKLM, VCRuntimeKey, 'Minor', Minor) and
+    RegQueryDWordValue(HKLM, VCRuntimeKey, 'Bld', Bld) and
+    RegQueryDWordValue(HKLM, VCRuntimeKey, 'Rbld', Rbld) and
+    (ComparePackedVersion(PackVersionComponents(Major, Minor, Bld, Rbld), Required) >= 0));
+end;
