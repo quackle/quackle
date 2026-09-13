@@ -28,14 +28,14 @@ add_executable(libquackle_test
 	trademarkedboards.cpp
 	trademarkedboards.h
 )
-target_link_libraries(libquackle_test quackleio quackle ${QUACKLE_TEST_QT_CORE})
+target_link_libraries(libquackle_test quackleio libquackle ${QUACKLE_TEST_QT_CORE})
 
 # quackle.pro's excluded quackletest.cpp: standalone libquackle smoke test,
 # no Qt dependency.
 add_executable(quackletest
 	"${CMAKE_CURRENT_SOURCE_DIR}/../quackletest.cpp"
 )
-target_link_libraries(quackletest quackle)
+target_link_libraries(quackletest libquackle)
 
 # quackleio/iotest/iotest.pro: GCG read/write round-trip test.
 add_executable(iotest
@@ -44,4 +44,4 @@ add_executable(iotest
 	"${CMAKE_CURRENT_SOURCE_DIR}/../quackleio/iotest/trademarkedboards.h"
 )
 target_include_directories(iotest PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../quackleio")
-target_link_libraries(iotest quackleio quackle ${QUACKLE_TEST_QT_CORE})
+target_link_libraries(iotest quackleio libquackle ${QUACKLE_TEST_QT_CORE})
