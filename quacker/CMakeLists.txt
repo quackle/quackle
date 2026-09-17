@@ -9,6 +9,27 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/../Settings.cmake")
 option(BUNDLE "Build a macOS .app bundle populated with data resources (use the macdeploy target to add Qt frameworks)" OFF)
 set(QT_VERSION "6" CACHE STRING "Version of Qt (anything past the first digit is ignored)")
 
+# Before add_subdirectory so the deployment target below reaches the libraries.
+if("${QT_VERSION}" MATCHES "^6")
+	# See quackleio/CMakeLists.txt for why this is set.
+	set(QT_SKIP_AUTO_PLUGIN_INCLUSION ON)
+	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+	set(_quackle_qt "Qt6")
+else()
+	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+	set(_quackle_qt "Qt5")
+endif()
+message(STATUS "Qt: ${${_quackle_qt}_VERSION} (${${_quackle_qt}_DIR})")
+
+if(APPLE)
+	if(CMAKE_OSX_DEPLOYMENT_TARGET)
+		set(_quackle_deployment_target_source "explicit")
+	else()
+		get_target_property(CMAKE_OSX_DEPLOYMENT_TARGET ${_quackle_qt}::Core QT_DARWIN_MIN_DEPLOYMENT_TARGET)
+		set(_quackle_deployment_target_source "from ${_quackle_qt}::Core")
+	endif()
+	message(STATUS "macOS deployment target: ${CMAKE_OSX_DEPLOYMENT_TARGET} (${_quackle_deployment_target_source})")
+endif()
 
 add_subdirectory(.. libquackle)
 add_subdirectory(../quackleio quackleio)
@@ -18,14 +39,6 @@ add_subdirectory(../encodeleaves encodeleaves)
 add_subdirectory(../makegaddag makegaddag)
 add_subdirectory(../makeminidawg makeminidawg)
 add_subdirectory(../gaddagize gaddagize)
-
-if("${QT_VERSION}" MATCHES "^6")
-	# See quackleio/CMakeLists.txt for why this is set.
-	set(QT_SKIP_AUTO_PLUGIN_INCLUSION ON)
-	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
-else()
-	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
-endif()
 
 set(CMAKE_AUTOMOC ON)
 
