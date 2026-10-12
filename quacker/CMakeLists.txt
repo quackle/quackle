@@ -236,16 +236,17 @@ if(APPLE)
 
 		if(MACDEPLOYQT_EXECUTABLE)
 			# Optional code-signing identity (a certificate name or SHA-1).
-			# When set, macdeployqt signs the app (with a hardened runtime,
-			# required for notarization). Leave empty for an unsigned local
-			# build.
+			# When set, macdeployqt signs the app (with a hardened runtime and
+			# secure timestamp, both required for notarization). Leave empty for
+			# an unsigned local build.
 			set(QUACKLE_CODESIGN_IDENTITY "" CACHE STRING
 				"Code-signing identity for the macdeploy target (empty = don't sign)")
 			set(_quackle_macdeploy_args "")
 			if(QUACKLE_CODESIGN_IDENTITY)
 				list(APPEND _quackle_macdeploy_args
 					"-codesign=${QUACKLE_CODESIGN_IDENTITY}"
-					"-hardened-runtime")
+					"-hardened-runtime"
+					"-timestamp")
 			endif()
 
 			add_custom_target(macdeploy
