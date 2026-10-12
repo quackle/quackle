@@ -1,13 +1,17 @@
 Requirements:
 -------------
 
-1. Xcode 9 or above (for the compiler and build tools)
-2. A version of Qt 5 or 6.  Homebrew, vcpkg, macports, or whatever you prefer.  For
-   example, in HomeBrew...
-		brew install qt
+1. Xcode (for the compiler, SDK, and signing/notarization tools)
+2. CMake and Ninja (e.g. `brew install cmake ninja`)
+3. Qt 5 or 6.  For development, Homebrew, vcpkg, or the official Qt installer all work.  For
+   a release, use the official Qt installer's `macos` build, whose frameworks are universal
+   (x86_64 + arm64); Homebrew's Qt is single-architecture.
 
-Note that Qt6 imposes greater Xcode and macOS requirements.  Qt6 uses `std::filesystem`, which
-is only implemented with a 10.15 or later minimum macOS deployment target.
+The minimum macOS version Quackle supports is taken from the Qt it's built against (e.g. Qt
+6.8 requires macOS 12).  CMake prints it at configure time ("macOS deployment target"), and
+it is applied to the compiler and to `LSMinimumSystemVersion` in the app's Info.plist.  Pass
+`-DCMAKE_OSX_DEPLOYMENT_TARGET=<version>` only to raise it.
+
 
 Building Quackle:
 -----------------
@@ -29,40 +33,184 @@ self-contained.  From quackle/quacker/:
 	cmake -DCMAKE_PREFIX_PATH=<path_to_qt> -DBUNDLE=ON ..
 	cmake --build .
 
-`<path_to_qt>` is your Qt prefix, e.g. ~/dev/qt/6.12.0/macos or the Homebrew/vcpkg prefix.
+`<path_to_qt>` is your Qt prefix, e.g. ~/Qt/6.8.3/macos or the Homebrew/vcpkg prefix.
 If you use the Xcode generator, add `--config Release` (or Debug) to the build command.
 
 At this point Quackle.app runs locally, but it still links against the Qt frameworks in
-your Qt install, so it won't run on a machine without Qt.
+your Qt install, so it won't run on a machine without Qt.  The `macdeploy` target (see
+below) copies Qt into the bundle.
 
 
-Deploying (bundling Qt) and creating the DMG:
----------------------------------------------
+Making a release
+================
 
-The build defines a separate `macdeploy` target that runs Qt's `macdeployqt` to copy the Qt
-frameworks and plugins into the bundle and rewrite the link paths.  It's a separate target
-(not part of the normal build) because it rewrites the bundle in place and is only needed
-for distribution:
+A release is a universal, Developer ID-signed, notarized Quackle.app inside a signed,
+notarized, stapled .dmg, distributed outside the Mac App Store.  It's built as
+RelWithDebInfo, and its debug info (a .dSYM) is archived separately so crash reports from the
+field can be symbolicated.
 
-	cmake --build . --target macdeploy
+Prerequisites
+-------------
 
-To code-sign as part of deployment, pass a Developer ID Application identity at configure
-time (a certificate name, or its SHA-1 with spaces stripped, from Keychain).  When set,
-`macdeploy` signs the app with a hardened runtime (required for notarization):
+Releasing assumes the following are already set up on the Mac you release from.  Check each
+before starting.
 
-	cmake -DCMAKE_PREFIX_PATH=<path_to_qt> -DBUNDLE=ON \
-		-DQUACKLE_CODESIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ..
-	cmake --build . --target macdeploy
+1. **A Developer ID Application certificate and its private key**, in the login keychain,
+   along with Apple's "Developer ID - G2" intermediate certificate
+   (https://www.apple.com/certificateauthority/).  This should report one valid identity
+   named "Developer ID Application: <Name> (<TEAMID>)"; that exact string is the signing
+   identity used below.
 
-Leave `QUACKLE_CODESIGN_IDENTITY` unset for an unsigned local bundle.  (You can also sign
-after the fact with `codesign -s <identity> --force --deep Quackle.app`.)
+		security find-identity -v -p codesigning
 
-Verify code-signing with:
+2. **Notarization credentials** for the developer account, stored in the keychain by
+   `xcrun notarytool store-credentials` under the profile name `quackle-notary`.  This
+   should list past submissions (possibly none) without an error:
 
-	spctl --assess --type execute --verbose Quackle.app
+		xcrun notarytool history --keychain-profile quackle-notary
 
-Finally, package it into a .dmg.  The *very* nice create-dmg tool from GitHub works well
-(run from the directory containing the built Quackle.app and DmgBackground.png):
+3. **A universal Qt** (the official installer's `macos` build).  This should list
+   `x86_64 arm64`:
 
-	create-dmg --app-drop-link 400 100 --icon Quackle.app 100 100 \
-	--window-size 500 250 --background DmgBackground.png Quackle.dmg Quackle.app
+		lipo -info <path to Qt>/macos/lib/QtCore.framework/QtCore
+
+4. **create-dmg** (https://github.com/create-dmg/create-dmg, e.g. via Homebrew).  This
+   should print a version:
+
+		create-dmg --version
+
+
+Release procedure
+-----------------
+
+Run everything from the repository root unless noted.
+
+1. **Set shell variables** for the rest of the procedure, in the terminal you'll use:
+
+		export QT_PREFIX=<path to Qt>/macos
+		export IDENTITY="Developer ID Application: <Name> (<TEAMID>)"
+		export VERSION=x.y.z
+		export DMG=quackle-$VERSION-macos.dmg
+		export DSYM_ZIP=quackle-$VERSION-macos-dSYM.zip
+
+2. **Configure** in an empty build directory:
+
+		rm -rf build.release && mkdir build.release && cd build.release
+		cmake --fresh -GNinja \
+			-DCMAKE_PREFIX_PATH="$QT_PREFIX" \
+			-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+			-DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
+			-DBUNDLE=ON \
+			-DQUACKLE_CODESIGN_IDENTITY="$IDENTITY" \
+			../quacker/
+
+   In the output, check that "Qt:" shows the intended Qt, "macOS deployment target" is the
+   minimum you expect, and the sanitizers report "none enabled".
+
+3. **Build, extract debug info, then deploy and sign.**  `dsymutil` must run before
+   `macdeploy`: `macdeployqt` strips the executable's debug map, after which the debug info
+   can no longer be collected.  `macdeploy` copies the Qt frameworks and plugins into the
+   bundle and signs everything with a hardened runtime and secure timestamp (both required
+   for notarization).  It needs network access for the timestamp.
+
+		ninja
+		dsymutil Quackle.app/Contents/MacOS/Quackle -o Quackle.app.dSYM
+		ninja macdeploy
+
+   Plain `ninja` also builds the regression-test tools used in step 5.  If anything causes
+   Quackle to relink after `dsymutil`, run `dsymutil` again; the check in step 4 catches
+   this.
+
+4. **Check the bundle** (still in build.release):
+
+		lipo -info Quackle.app/Contents/MacOS/Quackle
+
+   should list `x86_64 arm64`.
+
+		dwarfdump --uuid Quackle.app/Contents/MacOS/Quackle Quackle.app.dSYM
+
+   should show the same UUID for the app and the dSYM, for each architecture.  A dSYM
+   only symbolicates the exact build it came from.
+
+		vtool -show-build Quackle.app/Contents/MacOS/Quackle | grep minos
+
+   should show the deployment target, once per architecture.
+
+		codesign --verify --deep --strict --verbose=2 Quackle.app
+		codesign -dvv Quackle.app 2>&1 | grep -E 'Authority|flags|Timestamp'
+
+   should report "valid on disk" and "satisfies its Designated Requirement"; the second
+   should show `Authority=Developer ID Application: ...`, `flags=0x10000(runtime)`, and a
+   `Timestamp=` line (not "Signed Time").
+
+		find Quackle.app/Contents/MacOS Quackle.app/Contents/Frameworks Quackle.app/Contents/PlugIns \
+			-type f -perm -u+x | xargs otool -L | \
+			grep -v -E ':$|@rpath/|@executable_path/|@loader_path/|/System/Library/|/usr/lib/'
+
+   should print nothing.  Any output is a library linked from outside the bundle (e.g. your
+   Qt install), which won't exist on users' Macs.
+
+5. **Run the regression suite** against this build (from the repository root); it must pass:
+
+		cd ..
+		python3 test/regression/run_regression.py --bin build.release
+		cd build.release
+
+6. **Smoke test.**  `open Quackle.app`: check that Help > About shows the new version, start
+   a game against a computer player, and run a simulation.
+
+7. **Create the DMG.**  create-dmg packs the *contents* of a folder, so stage the app in
+   its own folder.  The window size matches DmgBackground.png (500x250).  The first time,
+   macOS asks to let your terminal control Finder (used to lay out the window); allow it.
+
+		rm -rf dmg-staging "$DMG" && mkdir dmg-staging
+		ditto Quackle.app dmg-staging/Quackle.app
+		create-dmg --volname Quackle --window-size 500 250 \
+			--background ../DmgBackground.png \
+			--icon Quackle.app 100 100 --app-drop-link 400 100 \
+			"$DMG" dmg-staging
+
+8. **Sign the DMG:**
+
+		codesign -s "$IDENTITY" --timestamp "$DMG"
+
+9. **Notarize.**  This uploads the DMG; Apple checks the DMG and everything in it.  It
+   usually takes a few minutes.
+
+		xcrun notarytool submit "$DMG" --keychain-profile quackle-notary --wait
+
+   The result should be `status: Accepted`.  If it's `Invalid`, get the reasons with
+
+		xcrun notarytool log <submission-id> --keychain-profile quackle-notary
+
+   fix the problem, and start over from step 2.
+
+10. **Staple** the notarization ticket to the DMG, so Gatekeeper can verify it offline,
+    and check the result:
+
+		xcrun stapler staple "$DMG"
+		xcrun stapler validate "$DMG"
+		spctl -a -t open --context context:primary-signature -v "$DMG"
+
+    The last should say `accepted` and `source=Notarized Developer ID`.
+
+11. **Archive the debug info.**  It isn't shipped to users; keep it with the release's
+    records, since no other build (even from the same source) will match crash reports
+    from this one.
+
+		ditto -c -k --keepParent Quackle.app.dSYM "$DSYM_ZIP"
+
+
+Symbolicating crash reports
+---------------------------
+
+Unzip the archived dSYM for the release.  In a macOS crash report, the "Binary Images"
+section (`usedImages` in a raw .ips file) gives Quackle's load address and UUID; check that
+the UUID matches `dwarfdump --uuid` on the dSYM.  Then pass the load address and the frame
+addresses from the backtrace to `atos`, using the architecture from the report:
+
+	atos -o Quackle.app.dSYM/Contents/Resources/DWARF/Quackle -arch arm64 \
+		-l <load address> <address> [<address> ...]
+
+Each address resolves to a function, source file, and line.  Frames inside the Qt
+frameworks resolve only to exported symbol names.
