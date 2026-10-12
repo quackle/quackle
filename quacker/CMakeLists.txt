@@ -14,6 +14,12 @@ if("${QT_VERSION}" MATCHES "^6")
 	# See quackleio/CMakeLists.txt for why this is set.
 	set(QT_SKIP_AUTO_PLUGIN_INCLUSION ON)
 	find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+	# Qt6 through 6.8 links AGL, which nothing uses and Xcode 15+ SDKs no longer ship.
+	if(APPLE AND TARGET WrapOpenGL::WrapOpenGL)
+		get_target_property(_quackle_gl_libs WrapOpenGL::WrapOpenGL INTERFACE_LINK_LIBRARIES)
+		list(FILTER _quackle_gl_libs EXCLUDE REGEX "AGL")
+		set_target_properties(WrapOpenGL::WrapOpenGL PROPERTIES INTERFACE_LINK_LIBRARIES "${_quackle_gl_libs}")
+	endif()
 	set(_quackle_qt "Qt6")
 else()
 	find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
@@ -128,38 +134,6 @@ target_precompile_headers(Quackle PRIVATE <QtWidgets>)
 target_link_libraries(Quackle quackleio libquackle)
 if("${QT_VERSION}" MATCHES "^6")
 	target_link_libraries(Quackle Qt6::Core Qt6::Widgets)
-	if(APPLE)
-		# Qt6's FindWrapOpenGL.cmake (used by Qt6Gui through 6.4ish) links
-		# -framework AGL unconditionally, even though nothing actually calls
-		# into it. Xcode 15+ dropped AGL.framework from the SDK entirely, so
-		# the link fails there even though the framework is still resolvable
-		# at runtime via the dyld shared cache. Point the linker at any
-		# installed SDK that still ships the (unused) stub, if one is
-		# present. Don't hardcode a specific SDK version here: it varies by
-		# machine (and by whichever Xcode/CLT happens to be installed on a
-		# given CI runner).
-		if(NOT QUACKLE_AGL_FRAMEWORK_DIR)
-			file(GLOB _quackle_agl_sdk_roots
-				"/Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk"
-				"/Applications/Xcode*.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk"
-			)
-			list(SORT _quackle_agl_sdk_roots COMPARE NATURAL ORDER DESCENDING)
-			set(_quackle_agl_frameworks_dirs "")
-			foreach(_quackle_agl_sdk_root ${_quackle_agl_sdk_roots})
-				list(APPEND _quackle_agl_frameworks_dirs "${_quackle_agl_sdk_root}/System/Library/Frameworks")
-			endforeach()
-			list(APPEND _quackle_agl_frameworks_dirs "/System/Library/Frameworks")
-			foreach(_quackle_agl_frameworks_dir ${_quackle_agl_frameworks_dirs})
-				if(EXISTS "${_quackle_agl_frameworks_dir}/AGL.framework")
-					set(QUACKLE_AGL_FRAMEWORK_DIR "${_quackle_agl_frameworks_dir}" CACHE PATH "Directory containing an AGL.framework usable for linking Qt6 on Apple")
-					break()
-				endif()
-			endforeach()
-		endif()
-		if(QUACKLE_AGL_FRAMEWORK_DIR)
-			target_link_options(Quackle PRIVATE "-F${QUACKLE_AGL_FRAMEWORK_DIR}")
-		endif()
-	endif()
 else()
 	target_link_libraries(Quackle Qt5::Core Qt5::Widgets)
 endif()

@@ -40,7 +40,10 @@ For Qt5, add `-DQT_VERSION=5` and use the `clang_64/` subdirectory instead of `m
 
 ### Qt6 + AGL.framework on newer Xcode
 
-Qt6 releases up through roughly 6.4 link `-framework AGL` (via `FindWrapOpenGL.cmake`) even though nothing actually calls into it. Xcode 15+ dropped `AGL.framework` from the SDK, so linking fails there, even though the framework still resolves fine at runtime via the dyld shared cache. `quacker/CMakeLists.txt` works around this by searching known Command Line Tools SDK locations for a copy of `AGL.framework` and adding it to the linker's framework search path when building Qt6 on Apple. If no such SDK is found on a given machine, install the Xcode Command Line Tools (which bundles an older SDK) to unblock the link.
+Qt6 releases through 6.8 link `-framework AGL` (via `FindWrapOpenGL.cmake`) even though nothing
+actually calls into it. Xcode 15+ dropped `AGL.framework` from the SDK, so linking fails there.
+`quacker/CMakeLists.txt` works around this by removing AGL from the `WrapOpenGL::WrapOpenGL`
+link interface right after `find_package(Qt6 ...)`.
 
 ## Sanitizers
 
