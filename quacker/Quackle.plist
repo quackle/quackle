@@ -33,6 +33,8 @@
 	<string>APPL</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.word-games</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSHumanReadableCopyright</key>
