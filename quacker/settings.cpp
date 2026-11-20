@@ -286,6 +286,12 @@ void Settings::setGaddagLabel(const QString &label)
 
 void Settings::buildGaddag()
 {
+	if (!QUACKLE_LEXICON_PARAMETERS->hasDawg())
+	{
+		setGaddagLabel(tr("Please select a lexicon before building the database."));
+		return;
+	}
+
 	const string gaddagFile(QUACKLE_DATAMANAGER->makeDataFilename("lexica", QUACKLE_LEXICON_PARAMETERS->lexiconName() + ".gaddag", true));
 	GaddagFactory factory((UVString()));
 	Quackle::LetterString word;
