@@ -381,8 +381,8 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 			}
 
 			QString rackString = Util::letterStringToQString((*it).currentPlayer().rack().alphaTiles());
-			if (move.action == Quackle::Move::UnusedTilesBonusError)
-				rackString = QString();
+			if (move.action == Quackle::Move::UnusedTilesBonusError || rackString.isEmpty())
+				rackString = "_";
 			stream << ">" << Util::uvStringToQString((*it).currentPlayer().abbreviatedName()) << ": " << rackString << " "
 				   << Util::uvStringToQString(move.toString()) << " +" << outputScore << " " << outputScore + (*it).currentPlayer().score()
 				   << m_endl;
@@ -428,8 +428,8 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 
 	if (!lastPosition.gameOver())
 	{
-		stream << "#rack" << lastPosition.currentPlayer().id() + 1 << " "
-			   << Util::letterStringToQString(lastPosition.currentPlayer().rack().alphaTiles()) << m_endl;
+		QString rackString = Util::letterStringToQString(lastPosition.currentPlayer().rack().alphaTiles());
+		stream << "#rack" << lastPosition.currentPlayer().id() + 1 << " " << (rackString.isEmpty() ? "_" : rackString) << m_endl;
 	}
 }
 
