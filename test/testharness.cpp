@@ -118,6 +118,7 @@ const char *usage =
 "       'anagram' anagrams letters supplied in --letters.\n"
 "       'cputopology' dumps detected CPU topology and thread pool sizing.\n"
 "       'sim' checks the simulator's accumulators.\n"
+"       'fixedstring' checks the LetterString capacity invariant.\n"
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'nwl23').\n"
@@ -240,6 +241,8 @@ void TestHarness::executeFromArguments()
 		cpuTopology();
 	else if (mode == "sim")
 		simulation();
+	else if (mode == "fixedstring")
+		fixedStringBounds();
 }
 
 void TestHarness::startUp()
@@ -1295,4 +1298,127 @@ void TestHarness::simulation()
 	}
 
 	UVcout << "all simulator checks passed" << endl;
+}
+
+namespace
+{
+
+int boundFailures = 0;
+
+void boundCheck(bool condition, const char *what)
+{
+	UVcout << (condition ? "PASS" : "FAIL") << " " << what << endl;
+	if (!condition)
+		++boundFailures;
+}
+
+UVString repeatedLetters(unsigned int count)
+{
+	UVString ret;
+	for (unsigned int i = 0; i < count; ++i)
+		ret += MARK_UV('A');
+	return ret;
+}
+
+// A move spanning a full row of a maximum-size board, alternating played-thru
+// and new tiles: the shape whose marked-up rendering is nearly twice as long as
+// the move itself.
+Quackle::Move alternatingFullRowMove(Quackle::Board *board)
+{
+	const Quackle::Letter letter = (Quackle::Letter)QUACKLE_FIRST_LETTER;
+	const int width = board->width();
+
+	Quackle::LetterString tiles;
+	for (int col = 0; col < width; ++col)
+	{
+		if (col % 2 == 0)
+		{
+			Quackle::LetterString single;
+			single += letter;
+			board->makeMove(Quackle::Move::createPlaceMove(0, col, true, single));
+			tiles += QUACKLE_PLAYED_THRU_MARK;
+		}
+		else
+		{
+			tiles += letter;
+		}
+	}
+
+	Quackle::Move move = Quackle::Move::createPlaceMove(0, 0, true, tiles);
+	move.setPrettyTiles(board->prettyTilesOfMove(move));
+	return move;
+}
+
+bool laidNoTiles(const Quackle::Game &game)
+{
+	return !game.hasPositions() || game.currentPosition().board().isEmpty();
+}
+
+bool readLaidNoTiles(const QString &gcg)
+{
+	QString text(gcg);
+	QTextStream stream(&text, QIODevice::ReadOnly);
+	QuackleIO::GCGIO io;
+	Quackle::Game *game = io.read(stream, QuackleIO::Logania::MaintainBoardPreparation);
+	const bool ret = laidNoTiles(*game);
+	delete game;
+	return ret;
+}
+
+const char *gcgPrologue = "#character-encoding UTF-8\n#player1 a Alice\n#player2 b Bob\n";
+
+}
+
+void TestHarness::fixedStringBounds()
+{
+	typedef Quackle::LetterString LetterString;
+
+	boundCheck(LetterString::maxSize == QUACKLE_MAXIMUM_BOARD_SIZE + 1, "capacity holds a gaddagized full-row word");
+
+	LetterString full;
+	while (full.length() < LetterString::maxSize)
+		full += (char)QUACKLE_FIRST_LETTER;
+	boundCheck(full.length() == LetterString::maxSize, "fills to capacity");
+	boundCheck(full.substr(0, LetterString::maxSize).length() == LetterString::maxSize, "substr spans the whole string");
+	boundCheck(full.substr(LetterString::maxSize, 0).empty(), "substr at the end is empty");
+	boundCheck(Quackle::String::alphabetize(full).length() == LetterString::maxSize, "alphabetize keeps the length");
+
+	LetterString erased(full);
+	erased.erase(erased.end() - 1);
+	erased.erase(erased.begin());
+	boundCheck(erased.length() == LetterString::maxSize - 2, "erase at both ends");
+
+	UVString leftover;
+	const LetterString exact = QUACKLE_ALPHABET_PARAMETERS->encode(repeatedLetters(LetterString::maxSize), &leftover);
+	boundCheck(exact.length() == LetterString::maxSize && leftover.empty(), "encode accepts a word of exactly capacity");
+
+	const LetterString overlong = QUACKLE_ALPHABET_PARAMETERS->encode(repeatedLetters(LetterString::maxSize + 5), &leftover);
+	boundCheck(overlong.length() == LetterString::maxSize && !leftover.empty(), "encode reports an over-long word as leftover");
+
+	const int boardWidth = QUACKLE_BOARD_PARAMETERS->width();
+	const int boardHeight = QUACKLE_BOARD_PARAMETERS->height();
+	QUACKLE_BOARD_PARAMETERS->setWidth(QUACKLE_MAXIMUM_BOARD_SIZE);
+	QUACKLE_BOARD_PARAMETERS->setHeight(QUACKLE_MAXIMUM_BOARD_SIZE);
+	Quackle::Board wide;
+	wide.prepareEmptyBoard();
+	const Quackle::Move spanning = alternatingFullRowMove(&wide);
+	boundCheck(spanning.prettyTiles().length() == (unsigned int)QUACKLE_MAXIMUM_BOARD_SIZE, "filled-in tiles stay within capacity");
+	boundCheck(spanning.displayTiles().length() > LetterString::maxSize, "marked-up tiles outgrow a LetterString");
+	QUACKLE_BOARD_PARAMETERS->setWidth(boardWidth);
+	QUACKLE_BOARD_PARAMETERS->setHeight(boardHeight);
+
+	boundCheck(!readLaidNoTiles(QString(gcgPrologue) + ">a: AEINRST 8D RETINAS +64 64\n"), "a well-formed play is read");
+	boundCheck(
+		readLaidNoTiles(QString(gcgPrologue) + ">a: " + QString(60, 'A') + " 8D RETINAS +64 64\n"), "an over-long GCG rack is refused");
+	boundCheck(readLaidNoTiles(QString(gcgPrologue) + ">a: AEINRST -4000000 +0 0\n"), "an over-large GCG exchange count is refused");
+	boundCheck(readLaidNoTiles(QString(gcgPrologue) + ">a: AEINRST 8A " + QString(30, 'A') + " +10 10\n"),
+		"a GCG play running off the board is refused");
+
+	if (boundFailures > 0)
+	{
+		UVcout << boundFailures << " bound check(s) failed" << endl;
+		exit(1);
+	}
+
+	UVcout << "all bound checks passed" << endl;
 }

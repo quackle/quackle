@@ -85,6 +85,10 @@ public:
 	// Checks the simulator's accumulators. Exits nonzero on failure.
 	void simulation();
 
+	// Checks the LetterString capacity invariant and the input boundaries that
+	// keep it. Exits nonzero on failure.
+	void fixedStringBounds();
+
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
 

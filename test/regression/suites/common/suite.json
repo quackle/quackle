@@ -12,6 +12,8 @@
     { "name": "positions-multi",      "mode": "positions", "positions": ["preendgame.gcg", "logan.gcg"] },
 
     { "name": "report-logan",         "mode": "report",     "positions": ["logan.gcg"] },
-    { "name": "htmlreport-logan",     "mode": "htmlreport", "positions": ["logan.gcg"] }
+    { "name": "htmlreport-logan",     "mode": "htmlreport", "positions": ["logan.gcg"] },
+
+    { "name": "fixedstring",          "mode": "fixedstring" }
   ]
 }

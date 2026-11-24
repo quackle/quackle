@@ -1,0 +1,15 @@
+PASS capacity holds a gaddagized full-row word
+PASS fills to capacity
+PASS substr spans the whole string
+PASS substr at the end is empty
+PASS alphabetize keeps the length
+PASS erase at both ends
+PASS encode accepts a word of exactly capacity
+PASS encode reports an over-long word as leftover
+PASS filled-in tiles stay within capacity
+PASS marked-up tiles outgrow a LetterString
+PASS a well-formed play is read
+PASS an over-long GCG rack is refused
+PASS an over-large GCG exchange count is refused
+PASS a GCG play running off the board is refused
+all bound checks passed
