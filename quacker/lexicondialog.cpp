@@ -195,6 +195,12 @@ void LexiconDialog::addWordsFromDawgRecursive(const LexiconParameters &lexParams
 	bool british;
 	int playability;
 
+	// Depth is the dawg's path length, unbounded if the file has a cycle. The
+	// limit is one below capacity because these words are gaddagized later,
+	// which inserts a separator.
+	if (word.length() >= Quackle::LetterString::maxSize - 1)
+		return;
+
 	do
 	{
 		lexParams.dawgAt(index, p, letter, t, lastchild, british, playability);

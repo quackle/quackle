@@ -321,6 +321,11 @@ void Settings::pushIndex(GaddagFactory &factory, Quackle::LetterString &word, in
 	bool british;
 	int playability;
 
+	// Depth is the dawg's path length, unbounded if the file has a cycle. One
+	// below capacity, because GaddagFactory inserts a separator.
+	if (word.length() >= Quackle::LetterString::maxSize - 1)
+		return;
+
 	do
 	{
 		QUACKLE_LEXICON_PARAMETERS->dawgAt(index, p, letter, t, lastchild, british, playability);

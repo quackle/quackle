@@ -1709,6 +1709,12 @@ void Generator::spit(int i, const LetterString &prefix, int flags)
 {
 	// UVcout << "spit called... i: " << i << ", prefix: " << prefix << endl;
 
+	// Recursion depth is the dawg's path length, which a cycle in a corrupt
+	// dawg makes unbounded. With AddAnyLetters the rack counts do not bound it
+	// either, since the blank branch is taken whatever they say.
+	if (prefix.length() >= LetterString::maxSize)
+		return;
+
 	unsigned int p;
 	Letter c;
 	bool t;
@@ -1801,6 +1807,9 @@ void Generator::spit(int i, const LetterString &prefix, int flags)
 void Generator::wordspit(int i, const LetterString &prefix, int flags)
 {
 	// UVcout << "spit called... i: " << i << ", prefix: " << prefix << endl;
+
+	if (prefix.length() >= LetterString::maxSize)
+		return;
 
 	unsigned int p;
 	Letter c;

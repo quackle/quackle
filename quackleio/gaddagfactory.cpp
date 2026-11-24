@@ -53,7 +53,8 @@ bool GaddagFactory::pushWord(const UVString &word)
 {
 	UVString leftover;
 	Quackle::LetterString encodedWord = m_alphas->encode(word, &leftover);
-	if (leftover.empty())
+	// One below capacity: gaddagizing inserts a separator.
+	if (leftover.empty() && encodedWord.length() < Quackle::LetterString::maxSize)
 	{
 		pushWord(encodedWord);
 		return true;
