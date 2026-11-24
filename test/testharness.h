@@ -25,11 +25,11 @@
 #include <alphabetparameters.h>
 namespace Quackle
 {
-	class ComputerPlayer;
-	class Game;
-	class GamePosition;
-	class Rack;
-	class GaddagNode;
+class ComputerPlayer;
+class Game;
+class GamePosition;
+class Rack;
+class GaddagNode;
 }
 
 class TestHarness
@@ -100,23 +100,14 @@ public:
 	void selfPlayGame(unsigned int gameNumber, bool reports, bool playability);
 
 	// Sets the positions that will be tested.
-	void setPositions(const QStringList &positions)
-	{
-		m_positions = positions;
-	}
+	void setPositions(const QStringList &positions) { m_positions = positions; }
 
-	Quackle::ComputerPlayer *computerPlayerToTest() const
-	{
-		return m_computerPlayerToTest;
-	}
+	Quackle::ComputerPlayer *computerPlayerToTest() const { return m_computerPlayerToTest; }
 
-	void setComputerPlayerToTest(Quackle::ComputerPlayer *computerPlayer)
-	{
-		m_computerPlayerToTest = computerPlayer;
-	}
+	void setComputerPlayerToTest(Quackle::ComputerPlayer *computerPlayer) { m_computerPlayerToTest = computerPlayer; }
 
 protected:
-    //	void dumpGaddag(const GaddagNode *node, const LetterString &prefix);
+	//	void dumpGaddag(const GaddagNode *node, const LetterString &prefix);
 	QStringList m_positions;
 	Quackle::DataManager m_dataManager;
 	Quackle::ComputerPlayer *m_computerPlayerToTest;
