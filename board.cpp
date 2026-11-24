@@ -82,6 +82,16 @@ Bag Board::tilesNotOnBoard() const
 	return ret;
 }
 
+int Board::tilesOnBoard(const Move &move) const
+{
+	if (move.startrow < 0 || move.startrow >= m_height || move.startcol < 0 || move.startcol >= m_width)
+		return 0;
+
+	const int available = move.horizontal ? m_width - move.startcol : m_height - move.startrow;
+	const int wanted = (int)move.tiles().length();
+	return wanted < available ? wanted : available;
+}
+
 bool Board::isConnected(const Move &move) const
 {
 	bool ret = false;
@@ -92,8 +102,12 @@ bool Board::isConnected(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
+		const int count = tilesOnBoard(move);
 		for (const auto &it : move.tiles())
 		{
+			if (i >= count)
+				break;
+
 			const int row = move.horizontal ? move.startrow : i + move.startrow;
 			const int column = move.horizontal ? i + move.startcol : move.startcol;
 
@@ -115,8 +129,12 @@ bool Board::isUnacceptableOpeningMove(const Move &move) const
 	if (move.action == Move::Place)
 	{
 		int i = 0;
+		const int count = tilesOnBoard(move);
 		for (const auto &it : move.tiles())
 		{
+			if (i >= count)
+				break;
+
 			const int row = move.horizontal ? move.startrow : i + move.startrow;
 			const int column = move.horizontal ? i + move.startcol : move.startcol;
 
@@ -222,12 +240,16 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 		else
 		{
 			LetterString word;
+			const int count = tilesOnBoard(move);
 
 			if (move.horizontal)
 			{
 				int i = 0;
 				for (const auto &it : move.tiles())
 				{
+					if (i >= count)
+						break;
+
 					if (m_letters[move.startrow][i + move.startcol] == QUACKLE_NULL_MARK)
 					{
 						word.clear();
@@ -268,6 +290,9 @@ MoveList Board::allWordsFormedBy(const Move &move) const
 				int i = 0;
 				for (const auto &it : move.tiles())
 				{
+					if (i >= count)
+						break;
+
 					if (m_letters[i + move.startrow][move.startcol] == QUACKLE_NULL_MARK)
 					{
 						word.clear();
@@ -328,12 +353,13 @@ int Board::score(const Move &move, bool *isBingo) const
 		int mainscore = 0;
 		int hookscore = 0;
 		int wordmult = 1;
+		const int count = tilesOnBoard(move);
 
 		if (move.horizontal)
 		{
 			int i = 0;
 			const LetterString::const_iterator end(move.tiles().end());
-			for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+			for (LetterString::const_iterator it = move.tiles().begin(); it != end && i < count; ++it, ++i)
 			{
 				if (m_letters[move.startrow][i + move.startcol] == QUACKLE_NULL_MARK)
 				{
@@ -390,7 +416,7 @@ int Board::score(const Move &move, bool *isBingo) const
 		{
 			int i = 0;
 			const LetterString::const_iterator end(move.tiles().end());
-			for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
+			for (LetterString::const_iterator it = move.tiles().begin(); it != end && i < count; ++it, ++i)
 			{
 				if (m_letters[i + move.startrow][move.startcol] == QUACKLE_NULL_MARK)
 				{
@@ -474,11 +500,15 @@ LetterString Board::prettyTilesOfMove(const Move &move) const
 	const int startTileCol = move.startcol;
 	const int startTileRow = move.startrow;
 
+	// Tiles past the board's edge keep their own letter, so the result stays the
+	// same length as move.tiles() -- Move::displayTiles indexes the two together.
+	const int count = tilesOnBoard(move);
+
 	const LetterString::const_iterator end(move.tiles().end());
 	int i = 0;
 	for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
 	{
-		if (move.isAlreadyOnBoard(*it))
+		if (move.isAlreadyOnBoard(*it) && i < count)
 		{
 			int currentTileCol = startTileCol;
 			int currentTileRow = startTileRow;
@@ -507,11 +537,18 @@ LetterString Board::sanitizedTilesOfMove(const Move &move) const
 	LetterString ret;
 	const int startTileCol = move.startcol;
 	const int startTileRow = move.startrow;
+	const int count = tilesOnBoard(move);
 
 	const LetterString::const_iterator end(move.tiles().end());
 	int i = 0;
 	for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
 	{
+		if (i >= count)
+		{
+			ret += *it;
+			continue;
+		}
+
 		int currentTileCol = startTileCol;
 		int currentTileRow = startTileRow;
 
@@ -536,9 +573,11 @@ void Board::makeMove(const Move &move)
 		m_empty = false;
 		int col = move.startcol;
 		int row = move.startrow;
+		int i = 0;
+		const int count = tilesOnBoard(move);
 
 		const LetterString::const_iterator end(move.tiles().end());
-		for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it)
+		for (LetterString::const_iterator it = move.tiles().begin(); it != end && i < count; ++it, ++i)
 		{
 			if (m_letters[row][col] == QUACKLE_NULL_MARK)
 			{

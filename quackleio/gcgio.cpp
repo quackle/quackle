@@ -336,6 +336,12 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				else
 					ret->addPosition();
 
+				if (move.action == Quackle::Move::Place && !ret->currentPosition().board().isMoveOnBoard(move))
+				{
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": play does not fit on the board" << m_endl;
+					return ret;
+				}
+
 				ret->currentPosition().setCurrentPlayerRack(rack);
 				ret->currentPosition().ensureMovePrettiness(move);
 				ret->currentPosition().ensureMoveTilesDoNotIncludePlayThru(move);

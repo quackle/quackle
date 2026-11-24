@@ -85,6 +85,13 @@ public:
 	// is stored in isBingo.
 	int score(const Move &move, bool *isBingo = 0) const;
 
+	// How many of the move's tiles fall inside the board, and whether all of
+	// them do. A move read from a GCG can start outside the board or run off
+	// its far edge; every method here that walks a move's tiles stops at
+	// tilesOnBoard rather than indexing past the grid.
+	int tilesOnBoard(const Move &move) const;
+	bool isMoveOnBoard(const Move &move) const { return tilesOnBoard(move) == (int)move.tiles().length(); }
+
 	// Return string suitable for prettyTiles field of move: the move's tiles
 	// with each played-thru position filled in from the board. Move::displayTiles
 	// adds the parentheses around played-thru runs.
