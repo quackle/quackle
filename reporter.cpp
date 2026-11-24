@@ -100,8 +100,8 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 		const Quackle::MoveList::const_iterator end(moves.end());
 		for (Quackle::MoveList::const_iterator it = moves.begin(); it != end; ++it)
 		{
-			if ((*it).prettyTiles().length() > widestMove)
-				widestMove = (*it).prettyTiles().length();
+			if ((*it).displayTiles().length() > widestMove)
+				widestMove = (unsigned int)(*it).displayTiles().length();
 			if ((*it).positionString().length() > widestPositionString)
 				widestPositionString = (*it).positionString().length();
 			if ((*it).win > 0)
@@ -175,7 +175,7 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 
 			// column 4, the word
 			s.width(widestMove);
-			s << left << QUACKLE_ALPHABET_PARAMETERS->userVisible((*it).prettyTiles()) << MARK_UV(" ");
+			s << left << QUACKLE_ALPHABET_PARAMETERS->userVisible((*it).displayTiles()) << MARK_UV(" ");
 
 			// column 5, the score
 			s.width(highestScore >= 100 ? 3 : (highestScore >= 10 ? 2 : 1));

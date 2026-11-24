@@ -66,6 +66,7 @@ public:
 
 	static QString uvStringToQString(const UVString &stdWString);
 	static QString letterStringToQString(const Quackle::LetterString &letterString);
+	static QString letterStringToQString(const Quackle::LongLetterString &letterString);
 	static QString letterToQString(const Quackle::Letter &letter);
 
 	// non-ui strings

@@ -41,7 +41,7 @@ UtilSettings::UtilSettings()
 
 QString Util::moveToDetailedString(const Quackle::Move &move)
 {
-	QString prettyTiles = letterStringToQString(move.prettyTiles());
+	QString prettyTiles = letterStringToQString(move.displayTiles());
 
 	QString ret;
 
@@ -138,6 +138,11 @@ Quackle::LetterString Util::nonBlankEncode(const QString &qstring)
 }
 
 QString Util::letterStringToQString(const Quackle::LetterString &letterString)
+{
+	return uvStringToQString(QUACKLE_ALPHABET_PARAMETERS->userVisible(letterString));
+}
+
+QString Util::letterStringToQString(const Quackle::LongLetterString &letterString)
 {
 	return uvStringToQString(QUACKLE_ALPHABET_PARAMETERS->userVisible(letterString));
 }

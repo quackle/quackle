@@ -468,7 +468,7 @@ int Board::score(const Move &move, bool *isBingo) const
 	return 0;
 }
 
-LetterString Board::prettyTilesOfMove(const Move &move, bool markPlayThruTiles) const
+LetterString Board::prettyTilesOfMove(const Move &move) const
 {
 	LetterString ret;
 	const int startTileCol = move.startcol;
@@ -476,7 +476,6 @@ LetterString Board::prettyTilesOfMove(const Move &move, bool markPlayThruTiles) 
 
 	const LetterString::const_iterator end(move.tiles().end());
 	int i = 0;
-	bool insidePlayThru = false;
 	for (LetterString::const_iterator it = move.tiles().begin(); it != end; ++it, ++i)
 	{
 		if (move.isAlreadyOnBoard(*it))
@@ -489,30 +488,12 @@ LetterString Board::prettyTilesOfMove(const Move &move, bool markPlayThruTiles) 
 			else
 				currentTileRow += i;
 
-			if (markPlayThruTiles && !insidePlayThru)
-			{
-				ret += QUACKLE_PLAYTHRU_START_MARK;
-				insidePlayThru = true;
-			}
-
 			ret += m_letters[currentTileRow][currentTileCol];
 		}
 		else
 		{
-			if (insidePlayThru)
-			{
-				assert(markPlayThruTiles);
-				ret += QUACKLE_PLAYTHRU_END_MARK;
-				insidePlayThru = false;
-			}
 			ret += *it;
 		}
-	}
-
-	if (insidePlayThru)
-	{
-		assert(markPlayThruTiles);
-		ret += QUACKLE_PLAYTHRU_END_MARK;
 	}
 
 	return ret;

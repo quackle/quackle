@@ -91,10 +91,35 @@ LetterString Move::wordTiles() const
 
 	const LetterString::const_iterator end(m_prettyTiles.end());
 	for (LetterString::const_iterator it = m_prettyTiles.begin(); it != end; ++it)
-		if (*it != QUACKLE_PLAYTHRU_START_MARK && *it != QUACKLE_PLAYTHRU_END_MARK)
-			word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
+		word += QUACKLE_ALPHABET_PARAMETERS->clearBlankness(*it);
 
 	return word;
+}
+
+LongLetterString Move::displayTiles() const
+{
+	LongLetterString ret;
+
+	// m_tiles marks which positions were played thru; m_prettyTiles supplies the
+	// letter standing at each of them, so the board is not needed here.
+	bool insidePlayThru = false;
+	LetterString::size_type i = 0;
+	for (const auto &letter : m_prettyTiles)
+	{
+		const bool playedThru = i < m_tiles.length() && isAlreadyOnBoard(m_tiles[i]);
+		if (playedThru != insidePlayThru)
+		{
+			ret += playedThru ? QUACKLE_PLAYTHRU_START_MARK : QUACKLE_PLAYTHRU_END_MARK;
+			insidePlayThru = playedThru;
+		}
+		ret += letter;
+		++i;
+	}
+
+	if (insidePlayThru)
+		ret += QUACKLE_PLAYTHRU_END_MARK;
+
+	return ret;
 }
 
 LetterString Move::wordTilesWithNoPlayThru() const

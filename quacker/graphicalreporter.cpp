@@ -181,7 +181,7 @@ void GraphicalReporter::reportPosition(const Quackle::GamePosition &position, Qu
 					const QString filebasename = QString("%1-%2-%3-%4.png")
 													 .arg(position.turnNumber())
 													 .arg(QuackleIO::Util::uvStringToQString(position.currentPlayer().name()))
-													 .arg(QuackleIO::Util::letterStringToQString((*it).prettyTiles()))
+													 .arg(QuackleIO::Util::letterStringToQString((*it).displayTiles()))
 													 .arg(QuackleIO::Util::uvStringToQString((*it).positionString()));
 					const QString filename = makeFilename(filebasename);
 

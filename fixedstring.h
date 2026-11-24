@@ -21,7 +21,10 @@
 
 #include <string.h>
 
-#define FIXED_STRING_MAXIMUM_LENGTH 40
+// A full row of a maximum-size board, plus the separator GaddagFactory inserts.
+// board.h static_asserts the relationship; it cannot be stated here without
+// making the string type depend on the board.
+#define FIXED_STRING_MAXIMUM_LENGTH 41
 
 namespace Quackle
 {

@@ -364,7 +364,7 @@ void GCGIO::write(const Quackle::Game &game, QTextStream &stream)
 	for (Quackle::PositionList::const_iterator it = game.history().begin(); it != end; ++it)
 	{
 		Quackle::Move move = (*it).committedMove();
-		move.setPrettyTiles((*it).board().prettyTilesOfMove(move, /* don't mark playthru */ false));
+		move.setPrettyTiles((*it).board().prettyTilesOfMove(move));
 
 		if (move.isAMove())
 		{

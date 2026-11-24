@@ -65,11 +65,16 @@ public:
 	// tiles like .ANELINg
 	void setTiles(const LetterString &tiles);
 
-	// tiles like (P)ANELINg
+	// tiles like PANELINg
 	void setPrettyTiles(const LetterString &prettyTiles);
 
-	// returns tiles like (P)ANELINg
+	// returns tiles like PANELINg
 	const LetterString &prettyTiles() const;
+
+	// Returns tiles like (P)ANELINg. Marking each run of played-thru tiles can
+	// nearly double the length, past what a LetterString holds on a wide board,
+	// so this is built on demand and only for display.
+	LongLetterString displayTiles() const;
 
 	// Returns tiles like .ANELIN?.
 	// QUACKLE_PLAYED_THRU_MARK will take place of a letter already on the board

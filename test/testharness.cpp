@@ -783,8 +783,8 @@ void TestHarness::selfPlayGame(unsigned int gameNumber, bool reports, bool playa
                 for (MoveList::iterator it = tops.begin(); it != tops.end(); ++it) {
                     MoveList words = game.currentPosition().allWordsFormedBy(*it);
                     for (MoveList::iterator it2 = words.begin(); it2 != words.end(); ++it2) {
-                        Rack word = (*it2).prettyTiles();
-                        UVcout << word << " " << numTops << endl;
+                        UVcout << QUACKLE_ALPHABET_PARAMETERS->userVisible((*it2).displayTiles())
+                               << " " << numTops << endl;
                     }
                 }
                 int toPlay = QUACKLE_DATAMANAGER->randomInteger(0, (int)numTops - 1);

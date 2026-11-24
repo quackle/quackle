@@ -277,6 +277,7 @@ public:
 	// alphabet-based conversion facilities:
 	// LetterString -> UVString
 	UVString userVisible(const LetterString &letterString) const;
+	UVString userVisible(const LongLetterString &letterString) const;
 	UVString userVisible(Letter letter) const;
 
 	// UVString -> LetterString. Letters that could not be encoded are

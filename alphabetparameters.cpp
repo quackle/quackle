@@ -185,6 +185,17 @@ UVString AlphabetParameters::userVisible(const LetterString &letterString) const
 	return ret;
 }
 
+UVString AlphabetParameters::userVisible(const LongLetterString &letterString) const
+{
+	UVString ret;
+
+	const LongLetterString::const_iterator end(letterString.end());
+	for (LongLetterString::const_iterator it = letterString.begin(); it != end; ++it)
+		ret += userVisible((Letter)*it);
+
+	return ret;
+}
+
 UVString AlphabetParameters::userVisible(Letter letter) const
 {
 	if (isBlankLetter(letter))

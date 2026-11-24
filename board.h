@@ -29,8 +29,13 @@
 
 typedef std::bitset<QUACKLE_MAXIMUM_ALPHABET_SIZE> LetterBitset;
 
-#define QUACKLE_MAXIMUM_BOARD_SIZE LETTER_STRING_MAXIMUM_LENGTH
+#define QUACKLE_MAXIMUM_BOARD_SIZE 40
 #define QUACKLE_MINIMUM_BOARD_SIZE 7
+
+// A word filling a row, gaddagized, is the longest LetterString the engine
+// builds from a board of this size.
+static_assert(QUACKLE_MAXIMUM_BOARD_SIZE + 1 <= Quackle::FixedLengthString::maxSize,
+	"LETTER_STRING_MAXIMUM_LENGTH is too small for QUACKLE_MAXIMUM_BOARD_SIZE");
 
 namespace Quackle
 {
@@ -80,10 +85,10 @@ public:
 	// is stored in isBingo.
 	int score(const Move &move, bool *isBingo = 0) const;
 
-	// Return string suitable for prettyTiles field of move.
-	// If markPlayThruTiles is true, wrap tiles played thru in
-	// parentheses
-	LetterString prettyTilesOfMove(const Move &move, bool markPlayThruTiles = true) const;
+	// Return string suitable for prettyTiles field of move: the move's tiles
+	// with each played-thru position filled in from the board. Move::displayTiles
+	// adds the parentheses around played-thru runs.
+	LetterString prettyTilesOfMove(const Move &move) const;
 
 	LetterString sanitizedTilesOfMove(const Move &move) const;
 
