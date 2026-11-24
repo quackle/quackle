@@ -100,8 +100,9 @@ void Reporter::reportPosition(const GamePosition &position, ComputerPlayer *comp
 		const Quackle::MoveList::const_iterator end(moves.end());
 		for (Quackle::MoveList::const_iterator it = moves.begin(); it != end; ++it)
 		{
-			if ((*it).displayTiles().length() > widestMove)
-				widestMove = (unsigned int)(*it).displayTiles().length();
+			const unsigned int moveWidth = (unsigned int)(*it).displayTiles().length();
+			if (moveWidth > widestMove)
+				widestMove = moveWidth;
 			if ((*it).positionString().length() > widestPositionString)
 				widestPositionString = (*it).positionString().length();
 			if ((*it).win > 0)
