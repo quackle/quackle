@@ -146,3 +146,17 @@ The model to imitate, from `sim.cpp`:
 
 One line. It names the feature the opaque macro stands for and the reason the `#ifdef` exists —
 neither is anywhere in the code — and says nothing about what the code does.
+
+## Commit messages
+
+A commit with LLM authorship in it — the code, the message, or both — carries a co-author trailer
+naming the model:
+
+```
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+The human committer stays the author, so `git blame` and `git log --author` are unchanged for
+anyone who doesn't ask; `git log --grep Co-Authored-By` is then the whole list. Name the assistant
+rather than a generic "AI": which one it was, and therefore how much to trust the result, is the
+part a later reader cannot reconstruct.
