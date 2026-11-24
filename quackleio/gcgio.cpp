@@ -50,7 +50,7 @@ Quackle::Game *GCGIO::read(const QString &filename, int flags)
 
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << m_endl;
+		UVcerr << "Could not open gcg " << QuackleIO::Util::qstringToString(filename) << std::endl;
 		return new Quackle::Game;
 	}
 
@@ -100,7 +100,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player abbreviation in #player" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player abbreviation in #player" << std::endl;
 					return ret;
 				}
 
@@ -109,7 +109,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player name in #player" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no player name in #player" << std::endl;
 					return ret;
 				}
 
@@ -135,7 +135,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no rack in #rack" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": no rack in #rack" << std::endl;
 					return ret;
 				}
 
@@ -143,7 +143,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				Quackle::LetterString encodedRack;
 				if (!encodeGCGField(rackString, &encodedRack))
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long in #rack" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long in #rack" << std::endl;
 					return ret;
 				}
 
@@ -157,7 +157,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				Quackle::LetterString encodedRack;
 				if (!encodeGCGField(rackString, &encodedRack))
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long in #incomplete" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long in #incomplete" << std::endl;
 					return ret;
 				}
 				incompleteRack = Quackle::Rack(encodedRack);
@@ -190,7 +190,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 			if (strings.isEmpty())
 			{
-				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
+				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << std::endl;
 				return ret;
 			}
 
@@ -208,7 +208,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				Quackle::LetterString bonusTiles;
 				if (!encodeGCGField(rackString.mid(1, rackString.size() - 2), &bonusTiles))
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": unused tile bonus too long" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": unused tile bonus too long" << std::endl;
 					return ret;
 				}
 				ret->currentPosition().setTileBonus(currentPlayer, bonusTiles, strings.front().toInt());
@@ -217,14 +217,14 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 			if (strings.isEmpty())
 			{
-				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
+				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << std::endl;
 				return ret;
 			}
 
 			Quackle::LetterString encodedRack;
 			if (!encodeGCGField(rackString, &encodedRack))
 			{
-				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long" << m_endl;
+				UVcerr << "GCG error reading " << Util::qstringToString(line) << ": rack too long" << std::endl;
 				return ret;
 			}
 			const Quackle::Rack rack(encodedRack);
@@ -251,7 +251,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 					if (letterCount > (uint)QUACKLE_PARAMETERS->rackSize())
 					{
 						UVcerr << "GCG error reading " << Util::qstringToString(line) << ": exchanged more tiles than a rack holds"
-							   << m_endl;
+							   << std::endl;
 						return ret;
 					}
 
@@ -266,7 +266,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 					Quackle::LetterString encodedLetters;
 					if (!encodeGCGField(exchangedLetters, &encodedLetters))
 					{
-						UVcerr << "GCG error reading " << Util::qstringToString(line) << ": exchanged tiles too long" << m_endl;
+						UVcerr << "GCG error reading " << Util::qstringToString(line) << ": exchanged tiles too long" << std::endl;
 						return ret;
 					}
 					move = Quackle::Move::createExchangeMove(encodedLetters, false);
@@ -278,7 +278,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << std::endl;
 					return ret;
 				}
 			}
@@ -288,7 +288,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << std::endl;
 					return ret;
 				}
 
@@ -304,7 +304,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (strings.isEmpty())
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": incomplete move" << std::endl;
 					return ret;
 				}
 
@@ -321,7 +321,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 				Quackle::LetterString encodedTiles;
 				if (!encodeGCGField(placeTiles, &encodedTiles))
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": played tiles too long" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": played tiles too long" << std::endl;
 					return ret;
 				}
 
@@ -338,7 +338,7 @@ Quackle::Game *GCGIO::read(QTextStream &stream, int flags)
 
 				if (move.action == Quackle::Move::Place && !ret->currentPosition().board().isMoveOnBoard(move))
 				{
-					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": play does not fit on the board" << m_endl;
+					UVcerr << "GCG error reading " << Util::qstringToString(line) << ": play does not fit on the board" << std::endl;
 					return ret;
 				}
 
