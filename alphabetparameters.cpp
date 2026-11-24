@@ -215,6 +215,16 @@ LetterString AlphabetParameters::encode(const UVString &word, UVString *leftover
 	const UVString::const_iterator end(word.end());
 	for (UVString::const_iterator it = word.begin(); it != end; ++it)
 	{
+		if (ret.length() == LetterString::maxSize)
+		{
+			// Reported through leftover rather than truncated: callers already
+			// treat a non-empty leftover as "this alphabet cannot encode the
+			// word" and reject it, which is the right answer for an overlong
+			// one too.
+			leftoverQuery.append(it, end);
+			break;
+		}
+
 		UVString query(leftoverQuery);
 		query += *it;
 

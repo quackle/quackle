@@ -280,8 +280,10 @@ public:
 	UVString userVisible(const LongLetterString &letterString) const;
 	UVString userVisible(Letter letter) const;
 
-	// UVString -> LetterString. Letters that could not be encoded are
-	// stored in leftover if it is non-null.
+	// UVString -> LetterString. Letters that could not be encoded are stored in
+	// leftover if it is non-null, as is everything past LetterString::maxSize.
+	// With leftover null an overlong word is truncated, so callers handling
+	// untrusted input pass it.
 	LetterString encode(const UVString &word, UVString *leftover = 0) const;
 
 	// a convenience field; this is unused by libquackle
