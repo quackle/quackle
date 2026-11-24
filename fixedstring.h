@@ -19,7 +19,6 @@
 #ifndef QUACKLE_FIXEDSTRING_H
 #define QUACKLE_FIXEDSTRING_H
 
-#include <cassert>
 #include <string.h>
 
 #define FIXED_STRING_MAXIMUM_LENGTH 40
@@ -30,7 +29,7 @@ namespace Quackle
 // LetterStrings are built from untrusted input -- GCG racks, word lists, binary
 // lexicons -- so the capacity bound is checked in release builds rather than
 // asserted, and a violation is fatal instead of silently truncating a rack.
-[[noreturn]] void fixedStringOverflow(const char *operation, unsigned int requested);
+[[noreturn]] void fixedStringViolation(const char *operation, unsigned int length);
 
 class FixedLengthString
 {
@@ -106,7 +105,7 @@ inline FixedLengthString::FixedLengthString()
 inline FixedLengthString::FixedLengthString(const char *s, size_type n)
 {
 	if (n > maxSize)
-		fixedStringOverflow("FixedLengthString(const char *, size_type)", n);
+		fixedStringViolation("FixedLengthString(const char *, size_type)", n);
 	memcpy(m_data, s, n);
 	m_length = n;
 }
@@ -115,7 +114,7 @@ inline FixedLengthString::FixedLengthString(size_type n, char c)
 	: m_length(n)
 {
 	if (n > maxSize)
-		fixedStringOverflow("FixedLengthString(size_type, char)", n);
+		fixedStringViolation("FixedLengthString(size_type, char)", n);
 	memset(m_data, c, n);
 }
 
@@ -123,7 +122,7 @@ inline FixedLengthString::FixedLengthString(const char *s)
 {
 	size_t sz = strlen(s);
 	if (sz > maxSize)
-		fixedStringOverflow("FixedLengthString(const char *)", (size_type)sz);
+		fixedStringViolation("FixedLengthString(const char *)", (size_type)sz);
 	memcpy(m_data, s, sz);
 	m_length = (size_type)sz;
 }
@@ -169,6 +168,8 @@ inline FixedLengthString::iterator FixedLengthString::end()
 
 inline void FixedLengthString::erase(const iterator i)
 {
+	if (i < m_data || i >= m_data + m_length)
+		fixedStringViolation("erase", size_type(i - m_data) + 1);
 	memmove(i, i + 1, (m_data + m_length) - (i + 1));
 	--m_length;
 }
@@ -180,7 +181,10 @@ inline FixedLengthString::size_type FixedLengthString::length() const
 
 inline FixedLengthString FixedLengthString::substr(size_type pos, size_type n) const
 {
-	assert(pos + n <= size());
+	// Not pos + n <= size(): both are unsigned, and callers reach this with
+	// length() - 1 on an empty string, where the sum wraps back into range.
+	if (pos > m_length || n > m_length - pos)
+		fixedStringViolation("substr", pos + n);
 	return FixedLengthString(&m_data[pos], n);
 }
 
@@ -192,7 +196,7 @@ inline bool FixedLengthString::empty() const
 inline FixedLengthString &FixedLengthString::operator+=(char c)
 {
 	if (m_length >= maxSize)
-		fixedStringOverflow("operator+=(char)", m_length + 1);
+		fixedStringViolation("operator+=(char)", m_length + 1);
 	m_data[m_length++] = c;
 	return *this;
 }
@@ -200,7 +204,7 @@ inline FixedLengthString &FixedLengthString::operator+=(char c)
 inline FixedLengthString &FixedLengthString::operator+=(const FixedLengthString &s)
 {
 	if (s.m_length > maxSize - m_length)
-		fixedStringOverflow("operator+=(const FixedLengthString &)", m_length + s.m_length);
+		fixedStringViolation("operator+=(const FixedLengthString &)", m_length + s.m_length);
 	memcpy(m_data + m_length, s.m_data, s.m_length);
 	m_length += s.m_length;
 	return *this;
@@ -213,7 +217,8 @@ inline void FixedLengthString::push_back(char c)
 
 inline void FixedLengthString::pop_back()
 {
-	assert(size() > 0);
+	if (m_length == 0)
+		fixedStringViolation("pop_back", 0);
 	--m_length;
 }
 

@@ -26,9 +26,9 @@ namespace Quackle
 
 // stdio rather than UVcerr: this runs with the invariant already broken, so it
 // avoids iostream construction and locale machinery.
-void fixedStringOverflow(const char *operation, unsigned int requested)
+void fixedStringViolation(const char *operation, unsigned int length)
 {
-	fprintf(stderr, "Quackle: FixedLengthString capacity exceeded in %s: wanted %u, capacity %u.\n", operation, requested,
+	fprintf(stderr, "Quackle: FixedLengthString bound violated in %s: length %u, capacity %u.\n", operation, length,
 		FixedLengthString::maxSize);
 	fflush(stderr);
 	abort();

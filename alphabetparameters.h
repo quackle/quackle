@@ -19,6 +19,7 @@
 #ifndef QUACKLE_ALPHABETPARAMETERS_H
 #define QUACKLE_ALPHABETPARAMETERS_H
 
+#include <cassert>
 #include <vector>
 #include <map>
 
@@ -78,6 +79,8 @@ void counts(const LongLetterString &letterString, char *countsArray);
 
 inline Letter back(const LetterString &letterString)
 {
+	if (letterString.empty())
+		fixedStringViolation("String::back", 0);
 	return *(letterString.end() - 1);
 }
 
@@ -88,6 +91,8 @@ inline void pop_back(LetterString &letterString)
 
 inline Letter front(const LetterString &letterString)
 {
+	if (letterString.empty())
+		fixedStringViolation("String::front", 0);
 	return *letterString.begin();
 }
 

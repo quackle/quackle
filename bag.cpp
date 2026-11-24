@@ -161,7 +161,9 @@ LetterString Bag::refill(Rack &rack, const LetterString &drawingOrder)
 
 	for (int number = QUACKLE_PARAMETERS->rackSize() - rack.tiles().length(); number > 0 && !m_tiles.empty(); --number)
 	{
-		if (drawingOrder.empty())
+		// ret, not drawingOrder: a drawing order shorter than the bag runs out
+		// first, and someShuffledTiles() caps it at a LetterString's capacity.
+		if (ret.empty())
 			rack.setTiles(String::alphabetize(rack.tiles() + pluck()));
 		else
 		{
