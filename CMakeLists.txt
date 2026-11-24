@@ -24,6 +24,7 @@ set(LIBQUACKLE_SOURCES
 	endgameplayer.cpp
 	enumerator.cpp
 	evaluator.cpp
+	fixedstring.cpp
 	game.cpp
 	gameparameters.cpp
 	generator.cpp
