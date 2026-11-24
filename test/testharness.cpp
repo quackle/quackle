@@ -119,6 +119,7 @@ const char *usage =
 "       'cputopology' dumps detected CPU topology and thread pool sizing.\n"
 "       'sim' checks the simulator's accumulators.\n"
 "       'fixedstring' checks the LetterString capacity invariant.\n"
+"       'lexiconfiles' checks that malformed lexicon files are refused.\n"
 "--position=game.gcg; this option can be repeated to specify positions\n"
 "                     to test.\n"
 "--lexicon=; sets the lexicon (default 'nwl23').\n"
@@ -243,6 +244,8 @@ void TestHarness::executeFromArguments()
 		simulation();
 	else if (mode == "fixedstring")
 		fixedStringBounds();
+	else if (mode == "lexiconfiles")
+		lexiconFiles();
 }
 
 void TestHarness::startUp()
@@ -1421,4 +1424,186 @@ void TestHarness::fixedStringBounds()
 	}
 
 	UVcout << "all bound checks passed" << endl;
+}
+
+namespace
+{
+
+int lexiconFailures = 0;
+
+void lexiconCheck(bool condition, const char *what)
+{
+	UVcout << (condition ? "PASS" : "FAIL") << " " << what << endl;
+	if (!condition)
+		++lexiconFailures;
+}
+
+// A v1 dawg header: version byte, 16-byte lexicon hash, 3-byte word count, the
+// alphabet's size, then that many space-terminated utf8 letters.
+string dawgHeader(char hashByte, int alphabetSize)
+{
+	string header(1, (char)1);
+	header.append(16, hashByte);
+	header.append(3, (char)0);
+	header += (char)alphabetSize;
+	for (int i = 0; i < alphabetSize; ++i)
+	{
+		header += (char)('A' + i % 26);
+		header += ' ';
+	}
+	return header;
+}
+
+string dawgNode(unsigned int pointer, unsigned char letterBits, bool lastchild, unsigned int playability)
+{
+	string node;
+	node += (char)((pointer >> 16) & 0xFF);
+	node += (char)((pointer >> 8) & 0xFF);
+	node += (char)(pointer & 0xFF);
+	node += (char)(letterBits | (lastchild ? 64 : 0));
+	node += (char)((playability >> 16) & 0xFF);
+	node += (char)((playability >> 8) & 0xFF);
+	node += (char)(playability & 0xFF);
+	return node;
+}
+
+// What DawgFactory writes for node 0: the blank mark biased below the first
+// letter, which is why the loader's letter check has to skip this one node.
+string dawgRootNode()
+{
+	return dawgNode(1, (unsigned char)((QUACKLE_BLANK_MARK - QUACKLE_FIRST_LETTER) & 0x3F), true, 0);
+}
+
+// A two-node dawg holding the single word "A". In the v1 format a nonzero
+// playability is what marks a node as a word terminator.
+string wellFormedDawg(char hashByte)
+{
+	return dawgHeader(hashByte, 26) + dawgRootNode() + dawgNode(0, 0, true, 1);
+}
+
+// A v1 gaddag header: version byte then the 16-byte lexicon hash.
+string gaddagHeader(char hashByte)
+{
+	return string(1, (char)1) + string(16, hashByte);
+}
+
+string gaddagNode(unsigned int offset, Quackle::Letter letter, bool terminal, bool lastSibling)
+{
+	string node;
+	node += (char)((offset >> 16) & 0xFF);
+	node += (char)((offset >> 8) & 0xFF);
+	node += (char)(offset & 0xFF);
+	node += (char)(letter | (terminal ? 0x40 : 0) | (lastSibling ? 0x80 : 0));
+	return node;
+}
+
+// The gaddag counterpart of wellFormedDawg: a root whose one child is "A".
+// Child pointers here are offsets from the node holding them.
+string wellFormedGaddag(char hashByte)
+{
+	return gaddagHeader(hashByte) + gaddagNode(1, QUACKLE_GADDAG_SEPARATOR, false, true) + gaddagNode(0, QUACKLE_FIRST_LETTER, true, true);
+}
+
+string writeLexiconFile(const QString &path, const string &contents)
+{
+	const string filename = QuackleIO::Util::qstringToStdString(path);
+	ofstream out(filename.c_str(), ios::out | ios::binary);
+	out.write(contents.data(), (streamsize)contents.size());
+	out.close();
+	return filename;
+}
+
+bool dawgLoads(Quackle::LexiconParameters *lexicon, const QString &dir, const string &contents)
+{
+	lexicon->loadDawg(writeLexiconFile(dir + "/candidate.dawg", contents));
+	return lexicon->hasDawg();
+}
+
+bool gaddagLoads(Quackle::LexiconParameters *lexicon, const QString &dir, const string &contents)
+{
+	lexicon->loadGaddag(writeLexiconFile(dir + "/candidate.gaddag", contents));
+	return lexicon->hasGaddag();
+}
+
+}
+
+void TestHarness::lexiconFiles()
+{
+	Quackle::LexiconParameters *lexicon = m_dataManager.lexiconParameters();
+	const bool startedWithLexicon = lexicon->hasDawg();
+
+	QTemporaryDir temp;
+	if (!temp.isValid())
+	{
+		UVcout << "FAIL could not create a temp directory for the test files" << endl;
+		exit(1);
+	}
+	const QString dir = temp.path();
+
+	const char hashByte = 0x5A;
+	const string dawg = wellFormedDawg(hashByte);
+	const string header = dawgHeader(hashByte, 26);
+
+	lexiconCheck(!dawgLoads(lexicon, dir, string()), "an empty dawg is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, string(1, (char)9) + dawg.substr(1)), "a dawg of an unknown version is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header.substr(0, 10)), "a dawg with a truncated header is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, dawgHeader(hashByte, 0)), "a dawg claiming an empty alphabet is refused");
+	lexiconCheck(
+		!dawgLoads(lexicon, dir, header.substr(0, 20) + string(1, (char)0xFF)), "a dawg claiming an over-large alphabet is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header), "a dawg with no nodes is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header + dawgRootNode()), "a dawg with nothing but a root node is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, dawg.substr(0, dawg.size() - 3)), "a dawg cut short of a node boundary is refused");
+	lexiconCheck(
+		!dawgLoads(lexicon, dir, header + dawgRootNode() + dawgNode(99, 0, true, 1)), "a dawg pointing past its last node is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header + dawgRootNode() + dawgNode(0, 0, false, 1)),
+		"a dawg ending in the middle of a sibling list is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header + dawgRootNode() + dawgNode(0, 60, true, 1)),
+		"a dawg holding a letter off the alphabet is refused");
+	lexiconCheck(!dawgLoads(lexicon, dir, header + dawgRootNode() + dawgNode(2, 0, true, 1) + dawgNode(1, 1, true, 1)),
+		"a dawg whose nodes form a cycle is refused");
+
+	lexiconCheck(dawgLoads(lexicon, dir, dawg), "a well-formed dawg is accepted");
+	lexiconCheck(lexicon->dawgNodeCount() == 2, "the dawg's node count is recorded at load");
+
+	const string gaddag = wellFormedGaddag(hashByte);
+
+	lexiconCheck(!gaddagLoads(lexicon, dir, string()), "an empty gaddag is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir, gaddagHeader(hashByte)), "a gaddag with no nodes is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir, gaddag.substr(0, gaddag.size() - 2)), "a gaddag cut short of a node boundary is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir, wellFormedGaddag(0x2D)), "a gaddag built from another lexicon is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir,
+					 gaddagHeader(hashByte) + gaddagNode(99, QUACKLE_GADDAG_SEPARATOR, false, true)
+						 + gaddagNode(0, QUACKLE_FIRST_LETTER, true, true)),
+		"a gaddag pointing past its last node is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir,
+					 gaddagHeader(hashByte) + gaddagNode(1, QUACKLE_GADDAG_SEPARATOR, false, true)
+						 + gaddagNode(0, QUACKLE_FIRST_LETTER, true, false)),
+		"a gaddag ending in the middle of a sibling list is refused");
+	lexiconCheck(!gaddagLoads(lexicon, dir,
+					 gaddagHeader(hashByte) + gaddagNode(1, QUACKLE_GADDAG_SEPARATOR, false, true) + gaddagNode(0, 63, true, true)),
+		"a gaddag holding a letter off the alphabet is refused");
+
+	lexiconCheck(gaddagLoads(lexicon, dir, gaddag), "a well-formed gaddag is accepted");
+	lexiconCheck(lexicon->gaddagNodeCount() == 2, "the gaddag's node count is recorded at load");
+
+	lexicon->unloadDawg();
+	lexiconCheck(!gaddagLoads(lexicon, dir, gaddag), "a gaddag with no dawg to check it against is refused");
+
+	lexicon->unloadAll();
+	lexiconCheck(!lexicon->hasSomething(), "the lexicon unloads");
+	lexiconCheck(!readLaidNoTiles(QString(gcgPrologue) + ">a: AEINRST 8D RETINAS +64 64\n"), "a gcg is read with no lexicon loaded");
+
+	if (startedWithLexicon)
+	{
+		lexicon->loadDawg(Quackle::LexiconParameters::findDictionaryFile(QuackleIO::Util::qstringToStdString(m_lexicon + ".dawg")));
+		lexiconCheck(lexicon->hasDawg(), "the real lexicon loads again after all of that");
+	}
+
+	if (lexiconFailures > 0)
+	{
+		UVcout << lexiconFailures << " lexicon file check(s) failed" << endl;
+		exit(1);
+	}
+
+	UVcout << "all lexicon file checks passed" << endl;
 }

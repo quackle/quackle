@@ -627,6 +627,9 @@ LetterBitset Generator::fitbetween(const LetterString &pre, const LetterString &
 
 	LetterBitset crosses;
 
+	if (!QUACKLE_LEXICON_PARAMETERS->hasDawg())
+		return crosses;
+
 	for (Letter c = QUACKLE_FIRST_LETTER; c <= QUACKLE_ALPHABET_PARAMETERS->lastLetter(); c++)
 	{
 		/*
@@ -2064,7 +2067,7 @@ Move Generator::anagram()
 	{
 		gaddagAnagram(QUACKLE_LEXICON_PARAMETERS->gaddagRoot(), LetterString(), NoRequireAllLetters);
 	}
-	else
+	else if (QUACKLE_LEXICON_PARAMETERS->hasDawg())
 	{
 		spit(1, LetterString(), NoRequireAllLetters);
 	}
@@ -2123,7 +2126,7 @@ WordList Generator::anagramLetters(const LetterString &letters, int flags)
 	{
 		gaddagAnagram(QUACKLE_LEXICON_PARAMETERS->gaddagRoot(), LetterString(), flags);
 	}
-	else if (QUACKLE_LEXICON_PARAMETERS->hasSomething())
+	else if (QUACKLE_LEXICON_PARAMETERS->hasDawg())
 	{
 		spit(1, LetterString(), flags);
 	}
@@ -2133,7 +2136,7 @@ WordList Generator::anagramLetters(const LetterString &letters, int flags)
 
 void Generator::storeWordInfo(WordWithInfo *wordWithInfo)
 {
-	if (!QUACKLE_LEXICON_PARAMETERS->hasSomething())
+	if (!QUACKLE_LEXICON_PARAMETERS->hasDawg())
 		return;
 
 	setupCounts(String::clearBlankness(wordWithInfo->wordLetterString));

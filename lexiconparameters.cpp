@@ -27,28 +27,25 @@
 using namespace Quackle;
 using namespace std;
 
+namespace
+{
+
+const size_t dawgNodeSize = 7;
+const size_t gaddagNodeSize = 4;
+
+// A dawg's child pointers are absolute, and the field is 24 bits wide.
+const size_t maximumDawgNodeCount = 0xFFFFFF;
+
+const unsigned char gaddagLastSiblingBit = 0x80;
+
+}
+
 class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 {
 
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
-	{
-		int i = 0;
-		while (!file.eof())
-		{
-			file.read((char *)(lexparams.m_dawg) + i, 7);
-			i += 7;
-		}
-	}
+	virtual const char *loadDawg(ifstream &file, LexiconParameters &lexparams) { return lexparams.readDawgNodes(file); }
 
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
-	{
-		int i = 0;
-		while (!file.eof())
-		{
-			file.read((char *)(lexparams.m_gaddag) + i, 4);
-			i += 4;
-		}
-	}
+	virtual const char *loadGaddag(ifstream &file, LexiconParameters &lexparams) { return lexparams.readGaddagNodes(file); }
 
 	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
 		int &playability) const
@@ -70,51 +67,50 @@ class Quackle::V0LexiconInterpreter : public LexiconInterpreter
 class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 {
 
-	virtual void loadDawg(ifstream &file, LexiconParameters &lexparams)
+	virtual const char *loadDawg(ifstream &file, LexiconParameters &lexparams)
 	{
-		int i = 0;
 		unsigned char bytes[3];
 		file.get(); // skip past version byte
 		file.read(lexparams.m_hash, sizeof(lexparams.m_hash));
 		file.read((char *)bytes, 3);
 
-		lexparams.m_utf8Alphabet.resize(file.get());
+		const int alphabetSize = file.get();
+		if (!file.good())
+			return "header is truncated";
+		if (alphabetSize < QUACKLE_MINIMUM_ALPHABET_SIZE || alphabetSize > QUACKLE_MAXIMUM_ALPHABET_SIZE)
+			return "header claims an impossible alphabet size";
+
+		lexparams.m_utf8Alphabet.resize(alphabetSize);
 		for (size_t i = 0; i < lexparams.m_utf8Alphabet.size(); i++)
 		{
 			file >> lexparams.m_utf8Alphabet[i];
 			file.get(); // separator space
 		}
-		while (!file.eof())
-		{
-			file.read((char *)(lexparams.m_dawg) + i, 7);
-			i += 7;
-		}
+		if (!file.good())
+			return "alphabet in the header is truncated";
+
+		return lexparams.readDawgNodes(file);
 	}
 
-	virtual void loadGaddag(ifstream &file, LexiconParameters &lexparams)
+	virtual const char *loadGaddag(ifstream &file, LexiconParameters &lexparams)
 	{
 		char hash[16];
 		file.get(); // skip past version byte
 		file.read(hash, sizeof(hash));
+		if (!file.good())
+			return "header is truncated";
+
 		if (memcmp(hash, lexparams.m_hash, sizeof(hash)))
 		{
 			// If we're using a v0 DAWG, then ignore the hash
 			for (size_t i = 0; i < sizeof(lexparams.m_hash); i++)
 			{
-				if (lexparams.m_hash[0] != 0)
-				{
-					lexparams.unloadGaddag(); // don't use a mismatched gaddag
-					return;
-				}
+				if (lexparams.m_hash[i] != 0)
+					return "was built from a different lexicon than the dawg";
 			}
 		}
 
-		size_t i = 0;
-		while (!file.eof())
-		{
-			file.read((char *)(lexparams.m_gaddag) + i, 4);
-			i += 4;
-		}
+		return lexparams.readGaddagNodes(file);
 	}
 
 	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
@@ -135,7 +131,7 @@ class Quackle::V1LexiconInterpreter : public LexiconInterpreter
 };
 
 LexiconParameters::LexiconParameters()
-	: m_dawg(NULL), m_gaddag(NULL), m_interpreter(NULL)
+	: m_dawg(nullptr), m_gaddag(nullptr), m_dawgNodeCount(0), m_gaddagNodeCount(0), m_interpreter(nullptr)
 {
 	memset(m_hash, 0, sizeof(m_hash));
 }
@@ -154,15 +150,19 @@ void LexiconParameters::unloadAll()
 void LexiconParameters::unloadDawg()
 {
 	delete[] m_dawg;
-	m_dawg = NULL;
+	m_dawg = nullptr;
+	m_dawgNodeCount = 0;
 	delete m_interpreter;
-	m_interpreter = NULL;
+	m_interpreter = nullptr;
+	m_utf8Alphabet.clear();
+	memset(m_hash, 0, sizeof(m_hash));
 }
 
 void LexiconParameters::unloadGaddag()
 {
 	delete[] m_gaddag;
-	m_gaddag = NULL;
+	m_gaddag = nullptr;
+	m_gaddagNodeCount = 0;
 }
 
 void LexiconParameters::loadDawg(const string &filename)
@@ -176,19 +176,31 @@ void LexiconParameters::loadDawg(const string &filename)
 		return;
 	}
 
-	char versionByte = file.get();
-	m_interpreter = createInterpreter(versionByte);
-	if (m_interpreter == NULL)
+	const int versionByte = file.get();
+	if (!file.good())
 	{
-		UVcout << "couldn't open file " << filename.c_str() << endl;
+		UVcerr << "refusing dawg " << filename.c_str() << ": the file is empty" << std::endl;
 		return;
 	}
 
-	file.seekg(0, ios_base::end);
-	m_dawg = new unsigned char[file.tellg()];
+	m_interpreter = createInterpreter((char)versionByte);
+	if (m_interpreter == nullptr)
+	{
+		UVcerr << "refusing dawg " << filename.c_str() << ": unknown format version" << std::endl;
+		return;
+	}
+
 	file.seekg(0, ios_base::beg);
 
-	m_interpreter->loadDawg(file, *this);
+	const char *trouble = m_interpreter->loadDawg(file, *this);
+	if (trouble == nullptr)
+		trouble = validateDawg();
+
+	if (trouble != nullptr)
+	{
+		UVcerr << "refusing dawg " << filename.c_str() << ": " << trouble << std::endl;
+		unloadDawg();
+	}
 }
 
 void LexiconParameters::loadGaddag(const string &filename)
@@ -203,22 +215,181 @@ void LexiconParameters::loadGaddag(const string &filename)
 		return;
 	}
 
-	char versionByte = file.get();
+	if (!hasDawg())
+	{
+		UVcerr << "refusing gaddag " << filename.c_str() << ": no dawg is loaded to check it against" << std::endl;
+		return;
+	}
+
+	const int versionByte = file.get();
+	if (!file.good())
+	{
+		UVcerr << "refusing gaddag " << filename.c_str() << ": the file is empty" << std::endl;
+		return;
+	}
 	if (versionByte < m_interpreter->versionNumber())
 		return;
-	file.seekg(0, ios_base::end);
-	m_gaddag = new unsigned char[file.tellg()];
 	file.seekg(0, ios_base::beg);
 
 	// must create a local interpreter because dawg/gaddag versions might not match
-	LexiconInterpreter *interpreter = createInterpreter(versionByte);
-	if (interpreter != NULL)
+	LexiconInterpreter *interpreter = createInterpreter((char)versionByte);
+	if (interpreter == nullptr)
 	{
-		interpreter->loadGaddag(file, *this);
-		delete interpreter;
+		UVcerr << "refusing gaddag " << filename.c_str() << ": unknown format version" << std::endl;
+		return;
 	}
-	else
+
+	const char *trouble = interpreter->loadGaddag(file, *this);
+	delete interpreter;
+	if (trouble == nullptr)
+		trouble = validateGaddag();
+
+	if (trouble != nullptr)
+	{
+		UVcerr << "refusing gaddag " << filename.c_str() << ": " << trouble << std::endl;
 		unloadGaddag();
+	}
+}
+
+static const char *readNodes(ifstream &file, size_t nodeSize, unsigned char *&nodes, size_t &nodeCount)
+{
+	if (!file.good())
+		return "cannot be read";
+
+	const streamoff header = file.tellg();
+	file.seekg(0, ios_base::end);
+	const streamoff size = file.tellg();
+	if (header < 0 || size < header)
+		return "cannot be measured";
+
+	const streamoff body = size - header;
+	if (body == 0)
+		return "holds no nodes";
+	if (body % (streamoff)nodeSize != 0)
+		return "does not end on a node boundary";
+
+	const streamoff count = body / (streamoff)nodeSize;
+	// Index 0 is the root sentinel the traversals skip; index 1 is where they start.
+	if (count < 2)
+		return "holds no nodes to walk";
+
+	const size_t bytes = (size_t)count * nodeSize;
+	file.seekg(header, ios_base::beg);
+	nodes = new unsigned char[bytes];
+	file.read((char *)nodes, (streamsize)bytes);
+	if (file.gcount() != (streamsize)bytes)
+		return "is truncated";
+
+	nodeCount = (size_t)count;
+	return nullptr;
+}
+
+const char *LexiconParameters::readDawgNodes(ifstream &file)
+{
+	return readNodes(file, dawgNodeSize, m_dawg, m_dawgNodeCount);
+}
+
+const char *LexiconParameters::readGaddagNodes(ifstream &file)
+{
+	return readNodes(file, gaddagNodeSize, m_gaddag, m_gaddagNodeCount);
+}
+
+const char *LexiconParameters::validateDawg() const
+{
+	if (m_dawgNodeCount > maximumDawgNodeCount)
+		return "has more nodes than a pointer field can reach";
+
+	for (size_t i = 0; i < m_dawgNodeCount; ++i)
+	{
+		unsigned int p;
+		Letter letter;
+		bool t;
+		bool lastchild;
+		bool british;
+		int playability;
+		m_interpreter->dawgAt(m_dawg, (int)i, p, letter, t, lastchild, british, playability);
+
+		if (p >= m_dawgNodeCount)
+			return "has a node pointing past its last node";
+
+		// The root sentinel's letter byte is the blank mark biased below the first
+		// letter, so it decodes out of range; no traversal reads it.
+		if (i > 0 && letter >= QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE)
+			return "has a node whose letter is outside the alphabet";
+
+		if (i + 1 == m_dawgNodeCount && !lastchild)
+			return "ends in the middle of a sibling list";
+	}
+
+	// Shared suffixes point plenty of these pointers backwards, so acyclicity needs a walk.
+	if (!dawgIsAcyclic())
+		return "has a cycle";
+
+	return nullptr;
+}
+
+bool LexiconParameters::dawgIsAcyclic() const
+{
+	vector<unsigned char> state(m_dawgNodeCount, 0); // 0 unvisited, 1 on the path, 2 finished
+	vector<size_t> stack;
+	stack.push_back(1 << 1);
+
+	while (!stack.empty())
+	{
+		const size_t entry = stack.back();
+		stack.pop_back();
+
+		const size_t i = entry >> 1;
+		if (entry & 1)
+		{
+			state[i] = 2;
+			continue;
+		}
+		if (state[i] == 2)
+			continue;
+		if (state[i] == 1)
+			return false;
+		state[i] = 1;
+		stack.push_back((i << 1) | 1);
+
+		unsigned int p;
+		Letter letter;
+		bool t;
+		bool lastchild;
+		bool british;
+		int playability;
+		m_interpreter->dawgAt(m_dawg, (int)i, p, letter, t, lastchild, british, playability);
+
+		if (p != 0)
+			stack.push_back((size_t)p << 1);
+		if (!lastchild && i + 1 < m_dawgNodeCount)
+			stack.push_back((i + 1) << 1);
+	}
+
+	return true;
+}
+
+const char *LexiconParameters::validateGaddag() const
+{
+	// Children are reached by a positive offset and siblings by one node, so
+	// bounding every offset also proves the graph acyclic.
+	for (size_t i = 0; i < m_gaddagNodeCount; ++i)
+	{
+		const unsigned char *node = m_gaddag + i * gaddagNodeSize;
+		const size_t child = (node[0] << 16) + (node[1] << 8) + node[2];
+		if (child != 0 && i + child >= m_gaddagNodeCount)
+			return "has a node pointing past its last node";
+
+		const Letter letter = node[3] & 0x3F;
+		if (letter != QUACKLE_GADDAG_SEPARATOR
+			&& (letter < QUACKLE_FIRST_LETTER || letter >= QUACKLE_FIRST_LETTER + QUACKLE_MAXIMUM_ALPHABET_SIZE))
+			return "has a node whose letter is outside the alphabet";
+	}
+
+	if ((m_gaddag[(m_gaddagNodeCount - 1) * gaddagNodeSize + 3] & gaddagLastSiblingBit) == 0)
+		return "ends in the middle of a sibling list";
+
+	return nullptr;
 }
 
 string LexiconParameters::findDictionaryFile(const string &lexicon)
@@ -286,6 +457,6 @@ LexiconInterpreter *LexiconParameters::createInterpreter(char version) const
 	case 1:
 		return new V1LexiconInterpreter();
 	default:
-		return NULL;
+		return nullptr;
 	}
 }

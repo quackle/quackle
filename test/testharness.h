@@ -89,6 +89,10 @@ public:
 	// keep it. Exits nonzero on failure.
 	void fixedStringBounds();
 
+	// Checks that malformed dawg and gaddag files are refused at load. Exits
+	// nonzero on failure.
+	void lexiconFiles();
+
 	// Allocates and loads a game from the file.
 	Quackle::Game *createNewGame(const QString &filename);
 

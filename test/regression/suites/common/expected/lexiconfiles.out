@@ -1,0 +1,28 @@
+PASS an empty dawg is refused
+PASS a dawg of an unknown version is refused
+PASS a dawg with a truncated header is refused
+PASS a dawg claiming an empty alphabet is refused
+PASS a dawg claiming an over-large alphabet is refused
+PASS a dawg with no nodes is refused
+PASS a dawg with nothing but a root node is refused
+PASS a dawg cut short of a node boundary is refused
+PASS a dawg pointing past its last node is refused
+PASS a dawg ending in the middle of a sibling list is refused
+PASS a dawg holding a letter off the alphabet is refused
+PASS a dawg whose nodes form a cycle is refused
+PASS a well-formed dawg is accepted
+PASS the dawg's node count is recorded at load
+PASS an empty gaddag is refused
+PASS a gaddag with no nodes is refused
+PASS a gaddag cut short of a node boundary is refused
+PASS a gaddag built from another lexicon is refused
+PASS a gaddag pointing past its last node is refused
+PASS a gaddag ending in the middle of a sibling list is refused
+PASS a gaddag holding a letter off the alphabet is refused
+PASS a well-formed gaddag is accepted
+PASS the gaddag's node count is recorded at load
+PASS a gaddag with no dawg to check it against is refused
+PASS the lexicon unloads
+PASS a gcg is read with no lexicon loaded
+PASS the real lexicon loads again after all of that
+all lexicon file checks passed

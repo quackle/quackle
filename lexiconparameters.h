@@ -33,8 +33,9 @@ class LexiconParameters;
 class LexiconInterpreter
 {
 public:
-	virtual void loadDawg(std::ifstream &file, LexiconParameters &lexparams) = 0;
-	virtual void loadGaddag(std::ifstream &file, LexiconParameters &lexparams) = 0;
+	// the loaders return nullptr on success, or a diagnostic naming what is wrong with the file
+	virtual const char *loadDawg(std::ifstream &file, LexiconParameters &lexparams) = 0;
+	virtual const char *loadGaddag(std::ifstream &file, LexiconParameters &lexparams) = 0;
 	virtual void dawgAt(const unsigned char *dawg, int index, unsigned int &p, Letter &letter, bool &t, bool &lastchild, bool &british,
 		int &playability) const = 0;
 	virtual int versionNumber() const = 0;
@@ -58,16 +59,18 @@ public:
 	// true if we have a dawg or a gaddag
 	bool hasSomething() const { return hasDawg() || hasGaddag(); };
 
-	// loadDawg unloads the dawg if filename can't be opened
+	// loadDawg unloads the dawg if filename can't be opened or doesn't validate
 	void loadDawg(const string &filename);
 	void unloadDawg();
-	bool hasDawg() const { return m_dawg != NULL; };
+	bool hasDawg() const { return m_dawg != nullptr; };
 	int dawgVersion() const { return m_interpreter->versionNumber(); };
+	size_t dawgNodeCount() const { return m_dawgNodeCount; };
 
-	// loadGaddag unloads the gaddag if filename can't be opened
+	// loadGaddag unloads the gaddag if filename can't be opened or doesn't validate
 	void loadGaddag(const string &filename);
 	void unloadGaddag();
-	bool hasGaddag() const { return m_gaddag != NULL; };
+	bool hasGaddag() const { return m_gaddag != nullptr; };
+	size_t gaddagNodeCount() const { return m_gaddagNodeCount; };
 
 	// finds a file in the lexica data directory
 	static string findDictionaryFile(const string &lexicon);
@@ -91,6 +94,8 @@ public:
 protected:
 	unsigned char *m_dawg;
 	unsigned char *m_gaddag;
+	size_t m_dawgNodeCount;
+	size_t m_gaddagNodeCount;
 	string m_lexiconName;
 	LexiconInterpreter *m_interpreter;
 	char m_hash[16];
@@ -100,6 +105,14 @@ protected:
 
 private:
 	string getLexiconCopyrightLine() const;
+
+	// read the nodes from the stream's current position to the end of the file
+	const char *readDawgNodes(std::ifstream &file);
+	const char *readGaddagNodes(std::ifstream &file);
+
+	const char *validateDawg() const;
+	const char *validateGaddag() const;
+	bool dawgIsAcyclic() const;
 };
 
 }
