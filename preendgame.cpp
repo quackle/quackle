@@ -171,7 +171,7 @@ MoveList Preendgame::moves(int nmoves)
 
 			tempPosition.setOppRack((*it).rack);
 			tempPosition.setMoveMade(*moveIt);
-			tempPosition.incrementTurn(NULL);
+			tempPosition.incrementTurn(nullptr);
 			tempPosition.makeMove(*moveIt);
 			// tempPosition.incrementNestedness();
 

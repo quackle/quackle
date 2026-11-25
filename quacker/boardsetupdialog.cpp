@@ -253,7 +253,7 @@ void BoardSetupDialog::deleteBoard()
 	QString message = "Do you really want to delete the game board \"";
 	message += m_originalName;
 	message += "\"?";
-	if (QMessageBox::warning(NULL, QString("Confirm Deletion"), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
+	if (QMessageBox::warning(nullptr, QString("Confirm Deletion"), message, QMessageBox::Yes | QMessageBox::No, QMessageBox::No)
 		== QMessageBox::Yes)
 	{
 		CustomQSettings settings;

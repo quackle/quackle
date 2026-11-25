@@ -25,7 +25,7 @@ class QuackerApplication : public QApplication
 {
 public:
 	QuackerApplication(int &argc, char **argv)
-		: QApplication(argc, argv), m_TopLevel(NULL) {
+		: QApplication(argc, argv), m_TopLevel(nullptr) {
 			// empty
 		};
 

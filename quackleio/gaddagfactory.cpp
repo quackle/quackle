@@ -26,7 +26,7 @@
 using namespace std;
 
 GaddagFactory::GaddagFactory(const UVString &alphabetFile)
-	: m_encodableWords(0), m_unencodableWords(0), m_alphas(NULL)
+	: m_encodableWords(0), m_unencodableWords(0), m_alphas(nullptr)
 {
 	if (!alphabetFile.empty())
 	{

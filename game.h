@@ -389,7 +389,7 @@ public:
 	// at start of game.)
 	// If applicable, this player's score is also incremented by score of move
 	// made.
-	bool incrementTurn(const History *history = NULL);
+	bool incrementTurn(const History *history = nullptr);
 
 	// Turn numbers in games start from 1.
 	// A turn number of zero indicates a position that is pregame.

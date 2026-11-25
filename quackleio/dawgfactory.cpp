@@ -102,7 +102,7 @@ void DawgFactory::generate()
 		m_nodelist[i]->pointer = 0;
 		m_nodelist[i]->written = false;
 		m_nodelist[i]->deleted = false;
-		m_nodelist[i]->cloneof = NULL;
+		m_nodelist[i]->cloneof = nullptr;
 	}
 
 	for (int b = 0; b < bucketcount; b++)

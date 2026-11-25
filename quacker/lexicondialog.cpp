@@ -41,7 +41,7 @@ public:
 };
 
 LexiconDialog::LexiconDialog(QWidget *parent, const QString &originalName)
-	: QDialog(parent), m_deleted(false), m_wordFactory(NULL)
+	: QDialog(parent), m_deleted(false), m_wordFactory(nullptr)
 {
 	m_originalName = originalName;
 
@@ -167,7 +167,7 @@ void LexiconDialog::alphabetChanged(int alphabetIndex)
 {
 	QString alphabet = m_alphabetCombo->currentText();
 	delete m_wordFactory;
-	m_wordFactory = NULL;
+	m_wordFactory = nullptr;
 	updateLexiconInformation();
 	m_alphabetFileName = QString::fromStdString(AlphabetParameters::findAlphabetFile(QuackleIO::Util::qstringToStdString(alphabet)));
 }
@@ -248,7 +248,7 @@ void LexiconDialog::addWordsFromTextFile(const QString &textFile)
 void LexiconDialog::loadOriginalDictionary()
 {
 	delete m_wordFactory;
-	m_wordFactory = NULL;
+	m_wordFactory = nullptr;
 	string dawgFileName = m_originalName.toStdString() + ".dawg";
 	QString dawgFullFileName;
 	if (!m_originalName.isEmpty())
@@ -292,7 +292,7 @@ void LexiconDialog::updateLexiconInformation(bool firstTime)
 	if (wordCount == 0)
 	{
 		delete m_wordFactory;
-		m_wordFactory = NULL;
+		m_wordFactory = nullptr;
 	}
 	if (m_wordFactory)
 		lengthText = QString::fromStdString(m_wordFactory->letterCountString());

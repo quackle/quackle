@@ -30,12 +30,12 @@ Stopwatch::Stopwatch()
 
 void Stopwatch::start()
 {
-	m_startTime = time(NULL);
+	m_startTime = time(nullptr);
 }
 
 int Stopwatch::elapsed() const
 {
-	time_t now = time(NULL);
+	time_t now = time(nullptr);
 	return (int)(now - m_startTime);
 }
 

@@ -74,7 +74,7 @@ Settings::Settings(QWidget *parent)
 #ifdef Q_OS_APPLE
 	if (CFBundleGetMainBundle())
 	{
-		CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), NULL, NULL);
+		CFURLRef dataUrlRef = CFBundleCopyResourceURL(CFBundleGetMainBundle(), CFSTR("data"), nullptr, nullptr);
 		if (dataUrlRef)
 		{
 			CFStringRef macPath = CFURLCopyFileSystemPath(dataUrlRef, kCFURLPOSIXPathStyle);

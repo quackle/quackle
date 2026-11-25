@@ -2022,7 +2022,7 @@ void TopLevel::createMenu()
 	moveBar->addAction(m_simulateAction);
 
 	// study toolbar
-	QToolBar *studyBar = NULL;
+	QToolBar *studyBar = nullptr;
 	if (enableLetterbox)
 	{
 		studyBar = addToolBar(tr("Study"));
