@@ -57,33 +57,50 @@ suites/<name>/
 There are two kinds:
 
 - **Per-combo suites**, named `<lexicon>-<alphabet>` (e.g. `nwl23-english`).
-  These hold only the **language-agnostic** levers (`anagram`, `enumerate`,
-  `staticleaves`, `leavecalc`, `selfplay`, `playability`) — the ones worth
-  replicating across dictionaries/languages. To add a combination, create
+  These hold only the **language-agnostic** levers — the ones worth replicating
+  across dictionaries/languages. To add a combination, create
   `suites/<lex>-<alpha>/suite.json`, adjust the inputs to that language, and run
   `--record <name>`.
 
-- **The `common` suite.** The position-specific levers (`positions`, `report`,
-  `htmlreport`) load `.gcg` boards laid out with English words scored against
-  `nwl23`, so they're meaningful only for the default dictionary/language. They
-  live in one place, fixed to nwl23-english, and are **not** replicated per
-  combo.
+- **The `common` suite.** Everything meaningful only for the default
+  dictionary/language: the levers that load `.gcg` boards laid out with English
+  words scored against `nwl23`, plus the self-checking levers there's no point
+  running once per combo. Fixed to nwl23-english and **not** replicated.
 
 Running with no arguments runs every suite; the `common` suite runs alongside
 whatever per-combo suites exist.
 
-## What is (and isn't) tested
+### Per-combo tests
 
-Only the **Speedy Player** produces reproducible move choices, so it's the only
-computer player exercised. Everything that draws tiles — positions with unknown
-racks, game reports, self-play — is made deterministic by passing `--seed`;
-`testharness.cpp` applies that seed before dispatching to any mode.
+| Test | Lever | Checks |
+| --- | --- | --- |
+| `anagram-satire` | `anagram` | every word using all of SATIRE |
+| `anagram-build-retinas` | `anagram` | every word built from RETINAS or part of it |
+| `enumerate` | `enumerate` | every rack drawable from a full bag, by digest |
+| `staticleaves` | `staticleaves` | the static leave value of each rack in `inputs/static.racks` |
+| `leavecalc` | `leavecalc` | the simmed value of each leave in `inputs/calc.leaves` |
+| `selfplay-seed1` | `selfplay` | three self-play games, move by move |
+| `selfplay-speedy-vs-speedy` | `selfplay` | two games with Speedy Player on both sides |
+| `playability` | `playability` | self-play instrumented for playability counts |
+| `sim` | `sim` | the simulator's accumulators, logging, chunking and abort |
 
-Levers covered: `anagram`, `enumerate`, `staticleaves`, `leavecalc`,
-`positions`, `report`, `htmlreport`, `selfplay` (including Speedy-vs-Speedy at a
-fixed seed), and `playability`. `randomracks` (infinite) isn't regression-testable
-and is left out. `worddump` isn't asserted on directly — its output shape depends
-on whether a gaddag is present — but it's used internally to build gaddags (below).
+### `common` tests
+
+| Test | Lever | Checks |
+| --- | --- | --- |
+| `positions-one-tile` | `positions` | the move chosen on `one_tile_play.gcg` |
+| `positions-preendgame` | `positions` | the move chosen on `preendgame.gcg` |
+| `positions-deadwood` | `positions` | the move chosen on `deadwoodendgame.gcg` |
+| `positions-fivepoint` | `positions` | the move chosen on `fivepoint.gcg` |
+| `positions-multi` | `positions` | two boards passed to one invocation |
+| `report-logan` | `report` | the plain-text game report for `logan.gcg` |
+| `htmlreport-logan` | `htmlreport` | the HTML game report for `logan.gcg` |
+| `fixedstring` | `fixedstring` | the `LetterString` capacity invariant and the parse boundaries that keep it |
+| `lexiconfiles` | `lexiconfiles` | that a malformed `.dawg` or `.gaddag` is refused at load |
+
+`randomracks` never terminates and isn't regression-testable, so it's left out.
+`worddump` isn't asserted on directly — its output shape depends on whether a
+gaddag is present — but it's used internally to build gaddags (below).
 
 ## Gaddags
 
